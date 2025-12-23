@@ -1,5 +1,5 @@
 /** @import must precede all other statements */
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -7,94 +7,116 @@
 
 @layer base {
   /**
-   * Tailwind CSS theme
-   * tailwind.config.ts expects the following color variables to be expressed as HSL values.
-   * A different format will require also updating the theme in tailwind.config.ts.
-  */
+   * OVscale - AI-Powered Network Operations Platform
+   * Modern enterprise SaaS color system
+   * Colors expressed as HSL for Tailwind integration
+   */
   :root {
+    /* Neutrals */
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 210 15% 8%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 210 15% 8%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 210 15% 8%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary - Deep Blue (Trust, Professional) */
+    --primary: 216 98% 35%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Secondary - Slate Gray */
+    --secondary: 213 27% 84%;
+    --secondary-foreground: 210 15% 8%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Accent - Cyan (AI/Intelligence) */
+    --accent: 188 100% 45%;
+    --accent-foreground: 0 0% 100%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
+    /* Destructive - Red (Critical) */
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    /* Muted - Light Gray */
+    --muted: 210 10% 92%;
+    --muted-foreground: 210 10% 40%;
+
+    /* Border & Input */
+    --border: 210 10% 88%;
+    --input: 210 10% 95%;
+    --ring: 216 98% 35%;
+
+    /* Status Colors */
+    --status-healthy: 142 76% 36%;
+    --status-degraded: 38 92% 50%;
+    --status-critical: 0 84.2% 60.2%;
+    --status-pending: 188 100% 45%;
+
+    /* Sidebar */
+    --sidebar-background: 210 40% 96%;
+    --sidebar-foreground: 210 15% 20%;
+    --sidebar-primary: 216 98% 35%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 188 100% 45%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 210 10% 88%;
+    --sidebar-ring: 216 98% 35%;
 
     --radius: 0.5rem;
-
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    /* Neutrals */
+    --background: 210 40% 5%;
+    --foreground: 210 15% 95%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 216 25% 15%;
+    --card-foreground: 210 15% 95%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 216 25% 15%;
+    --popover-foreground: 210 15% 95%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    /* Primary */
+    --primary: 188 100% 50%;
+    --primary-foreground: 210 40% 5%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    /* Secondary */
+    --secondary: 213 20% 35%;
+    --secondary-foreground: 210 15% 95%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    /* Accent */
+    --accent: 188 100% 50%;
+    --accent-foreground: 210 40% 5%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    /* Destructive */
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    /* Muted */
+    --muted: 213 15% 35%;
+    --muted-foreground: 210 15% 70%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Border & Input */
+    --border: 213 20% 30%;
+    --input: 213 20% 25%;
+    --ring: 188 100% 50%;
+
+    /* Status Colors */
+    --status-healthy: 142 76% 45%;
+    --status-degraded: 38 92% 55%;
+    --status-critical: 0 84.2% 65%;
+    --status-pending: 188 100% 50%;
+
+    /* Sidebar */
+    --sidebar-background: 210 35% 12%;
+    --sidebar-foreground: 210 15% 90%;
+    --sidebar-primary: 188 100% 50%;
+    --sidebar-primary-foreground: 210 40% 5%;
+    --sidebar-accent: 188 100% 50%;
+    --sidebar-accent-foreground: 210 40% 5%;
+    --sidebar-border: 213 20% 25%;
+    --sidebar-ring: 188 100% 50%;
   }
 }
 
@@ -116,5 +138,48 @@
   code {
     overflow-x: auto;
     white-space: pre;
+  }
+}
+
+/* Utility classes for OVscale */
+@layer components {
+  .status-healthy {
+    @apply text-[hsl(var(--status-healthy))];
+  }
+
+  .status-degraded {
+    @apply text-[hsl(var(--status-degraded))];
+  }
+
+  .status-critical {
+    @apply text-[hsl(var(--status-critical))];
+  }
+
+  .status-pending {
+    @apply text-[hsl(var(--status-pending))];
+  }
+
+  .badge-healthy {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-sm font-medium bg-[hsl(var(--status-healthy))] bg-opacity-10 text-[hsl(var(--status-healthy))];
+  }
+
+  .badge-degraded {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-sm font-medium bg-[hsl(var(--status-degraded))] bg-opacity-10 text-[hsl(var(--status-degraded))];
+  }
+
+  .badge-critical {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-sm font-medium bg-[hsl(var(--status-critical))] bg-opacity-10 text-[hsl(var(--status-critical))];
+  }
+
+  .badge-pending {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-sm font-medium bg-[hsl(var(--status-pending))] bg-opacity-10 text-[hsl(var(--status-pending))];
+  }
+
+  .card-elevated {
+    @apply rounded-xl border border-border bg-card shadow-sm transition-all duration-200 hover:shadow-md;
+  }
+
+  .card-subtle {
+    @apply rounded-lg border border-border bg-card;
   }
 }
