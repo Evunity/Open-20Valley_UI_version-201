@@ -152,17 +152,33 @@ export default function Dashboard() {
           ? "badge-pending"
           : "badge-critical";
 
+    const StatusIcon =
+      status === "Success"
+        ? CheckCircle2
+        : status === "Ongoing"
+          ? AlertCircle
+          : AlertCircle;
+
     return (
       <div
-        className="p-3 border border-border rounded-lg hover:border-primary hover:bg-muted/30 transition-colors cursor-pointer"
+        className="p-3 border border-border rounded-lg hover:border-primary/50 hover:bg-muted/30 transition-all cursor-pointer group"
         onClick={() => navigate(`/detail/ai-actions/${action.replace(/\s+/g, "-")}`)}
       >
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground">{action}</p>
-            <p className="text-xs text-muted-foreground mt-1">{timestamp}</p>
+        <div className="flex items-start gap-3">
+          <div className="mt-0.5 flex-shrink-0">
+            <StatusIcon className={`w-4 h-4 ${
+              status === "Success"
+                ? "text-status-healthy"
+                : status === "Ongoing"
+                  ? "text-status-pending"
+                  : "text-status-critical"
+            }`} />
           </div>
-          <span className={statusColor}>{status}</span>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">{action}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{timestamp}</p>
+          </div>
+          <span className={`${statusColor} flex-shrink-0`}>{status}</span>
         </div>
       </div>
     );
