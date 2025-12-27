@@ -4,38 +4,38 @@ import { ArrowLeft } from "lucide-react";
 const DETAIL_PAGES: Record<string, { title: string; description: string; metrics: string[] }> = {
   voice: {
     title: "Voice Analytics",
-    description: "Detailed voice traffic, call quality, and performance metrics",
-    metrics: ["Total Calls", "Average Duration", "Call Quality Score", "Peak Hours", "Regional Distribution"],
+    description: "Detailed call volume, call quality, drops, and blocks analysis",
+    metrics: ["Total Calls", "Call Drops", "Call Blocks", "Completed Calls", "Quality Score"],
   },
   data: {
     title: "Data Analytics",
-    description: "In-depth data consumption, traffic patterns, and network utilization",
-    metrics: ["Total Traffic", "Peak Bandwidth", "User Count", "Service Quality", "Coverage Analysis"],
+    description: "Data sessions, failures, traffic patterns, and network utilization",
+    metrics: ["Data Sessions", "Data Failures", "Peak Bandwidth", "Failure Rate", "Traffic Trends"],
   },
   subscribers: {
     title: "Subscriber Management",
-    description: "Comprehensive subscriber demographics, segmentation, and engagement",
-    metrics: ["Active Subscribers", "Churn Rate", "ARPU", "Segment Breakdown", "Activation Rate"],
+    description: "Total and active subscriber metrics, segmentation, and engagement",
+    metrics: ["Total Subscribers", "Active Subscribers", "Growth Rate", "Churn Rate", "Segments"],
   },
   vendors: {
-    title: "Device Vendor Analysis",
-    description: "Mobile device distribution, performance, and compatibility metrics",
-    metrics: ["Device Count", "Market Share", "Performance Rating", "Compatibility", "Update Status"],
+    title: "Mobile Device Vendors",
+    description: "Device distribution by manufacturer and performance analysis",
+    metrics: ["Apple", "Samsung", "Nokia", "Xiaomi", "Market Share"],
   },
   "ai-actions": {
     title: "AI Engine Actions",
-    description: "Automated network operations, optimization actions, and their outcomes",
-    metrics: ["Action Count", "Success Rate", "Efficiency Gain", "Cost Reduction", "Response Time"],
+    description: "Automated network operations and their outcomes",
+    metrics: ["RAN Anomaly Detection", "Media Engine DDoS Protection", "CORE Network Correction", "IP-Backbone Fault Analysis"],
   },
   alarms: {
     title: "Network Alarms",
-    description: "Detailed alarm analytics, trends, and incident management",
-    metrics: ["Total Alarms", "Critical Issues", "Resolution Time", "Recurring Issues", "Trend Analysis"],
+    description: "Down sites, network failures, traffic congestion, and alarm trends",
+    metrics: ["Down Sites", "Network Failures", "Low Traffic Sites", "Congested Sites", "Severity Levels"],
   },
   failures: {
-    title: "Equipment Failures",
-    description: "Comprehensive failure analysis, MTTR, and reliability metrics",
-    metrics: ["Total Failures", "Failure Rate", "MTTR", "Root Causes", "Preventive Measures"],
+    title: "Equipment Failures by Vendor",
+    description: "Failure distribution across equipment vendors",
+    metrics: ["Huawei", "Nokia", "Samsung", "Cisco", "Ericsson"],
   },
 };
 
