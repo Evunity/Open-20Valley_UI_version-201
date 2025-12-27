@@ -1,298 +1,247 @@
-import { Activity, TrendingUp, Zap, AlertCircle, CheckCircle2, Clock } from "lucide-react";
-import { AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import DashboardWidget from "@/components/DashboardWidget";
+import { useLocalStorage, DEFAULT_WIDGETS, type DashboardLayout, type WidgetConfig } from "@/hooks/useLocalStorage";
+
+// Mock data generators
+const generateVoiceData = () => [
+  { name: "Monday", value: 4200, calls: 240 },
+  { name: "Tuesday", value: 3800, calls: 221 },
+  { name: "Wednesday", value: 2000, calls: 229 },
+  { name: "Thursday", value: 2780, calls: 200 },
+  { name: "Friday", value: 1890, calls: 210 },
+  { name: "Saturday", value: 2390, calls: 222 },
+  { name: "Sunday", value: 3490, calls: 250 },
+];
+
+const generateDataData = () => [
+  { name: "Mon", value: 65, traffic: 2400 },
+  { name: "Tue", value: 59, traffic: 2210 },
+  { name: "Wed", value: 80, traffic: 2290 },
+  { name: "Thu", value: 81, traffic: 2000 },
+  { name: "Fri", value: 56, traffic: 2181 },
+  { name: "Sat", value: 55, traffic: 2500 },
+  { name: "Sun", value: 40, traffic: 2100 },
+];
+
+const generateSubscriberData = () => [
+  { name: "Prepaid", value: 45 },
+  { name: "Postpaid", value: 35 },
+  { name: "Enterprise", value: 15 },
+  { name: "Trial", value: 5 },
+];
+
+const generateVendorData = () => [
+  { name: "Apple", value: 2800 },
+  { name: "Samsung", value: 1398 },
+  { name: "Xiaomi", value: 9800 },
+  { name: "OnePlus", value: 3908 },
+  { name: "Google", value: 4800 },
+];
+
+const generateAIActionsData = () => [
+  { action: "Traffic Optimization", status: "Completed", timestamp: "2 min ago", impact: "+12% efficiency" },
+  { action: "Auto-scaling Services", status: "In Progress", timestamp: "5 min ago", impact: "Preventing overload" },
+  { action: "Anomaly Detection", status: "Completed", timestamp: "8 min ago", impact: "Found 3 issues" },
+  { action: "Load Balancing", status: "In Progress", timestamp: "12 min ago", impact: "Optimizing routes" },
+  { action: "Capacity Planning", status: "Queued", timestamp: "15 min ago", impact: "Analyzing trends" },
+];
+
+const generateAlarmData = () => [
+  { name: "Mon", value: 24, alarms: 240 },
+  { name: "Tue", value: 19, alarms: 221 },
+  { name: "Wed", value: 14, alarms: 229 },
+  { name: "Thu", value: 11, alarms: 200 },
+  { name: "Fri", value: 8, alarms: 210 },
+  { name: "Sat", value: 5, alarms: 222 },
+  { name: "Sun", value: 2, alarms: 250 },
+];
+
+const generateFailureData = () => [
+  { name: "Ericsson", value: 2400 },
+  { name: "Nokia", value: 1398 },
+  { name: "ZTE", value: 1200 },
+  { name: "Cisco", value: 780 },
+  { name: "Huawei", value: 390 },
+];
 
 export default function Dashboard() {
-  // Mock data
-  const healthStatus = "Healthy";
-  const healthPercentage = 98.7;
+  const navigate = useNavigate();
+  const [widgetLayout, setWidgetLayout] = useLocalStorage<DashboardLayout>(
+    "dashboard_layout",
+    DEFAULT_WIDGETS
+  );
 
-  const activeIncidents = [
+  // Data sources
+  const voiceData = generateVoiceData();
+  const dataData = generateDataData();
+  const subscriberData = generateSubscriberData();
+  const vendorData = generateVendorData();
+  const aiActionsData = generateAIActionsData();
+  const alarmData = generateAlarmData();
+  const failureData = generateFailureData();
+
+  // Widget state management
+  const updateWidgetConfig = useCallback((widgetId: string, updates: Partial<WidgetConfig>) => {
+    setWidgetLayout((prev) => ({
+      ...prev,
+      [widgetId]: { ...prev[widgetId], ...updates },
+    }));
+  }, [setWidgetLayout]);
+
+  const resetWidget = useCallback((widgetId: string) => {
+    setWidgetLayout((prev) => ({
+      ...prev,
+      [widgetId]: DEFAULT_WIDGETS[widgetId],
+    }));
+  }, [setWidgetLayout]);
+
+  // Widget definitions with navigation
+  const widgets = [
     {
-      id: 1,
-      title: "Traffic Imbalance in Region A",
-      severity: "degraded",
-      impact: "Increased latency by 12% in Cluster A",
-      aiAction: "Auto-rebalancing traffic distribution",
-      timestamp: "2 minutes ago",
+      id: "voice",
+      title: "Voice",
+      subtitle: "Weekly call volume & quality metrics",
+      data: voiceData,
+      dataKey: "value",
+      categoryKey: "name",
+      onNavigate: () => navigate("/detail/voice"),
     },
     {
-      id: 2,
-      title: "Capacity Warning - Data Center 2",
-      severity: "degraded",
-      impact: "CPU utilization at 78%, trending upward",
-      aiAction: "Scaling additional compute resources",
-      timestamp: "5 minutes ago",
+      id: "data",
+      title: "Data",
+      subtitle: "Data traffic & consumption",
+      data: dataData,
+      dataKey: "value",
+      categoryKey: "name",
+      onNavigate: () => navigate("/detail/data"),
     },
     {
-      id: 3,
-      title: "Latency Spike in Region B",
-      severity: "critical",
-      impact: "User-facing API response time +45%",
-      aiAction: "Investigating network routing anomalies",
-      timestamp: "8 minutes ago",
+      id: "subscribers",
+      title: "Subscribers",
+      subtitle: "Subscriber distribution by type",
+      data: subscriberData,
+      dataKey: "value",
+      categoryKey: "name",
+      onNavigate: () => navigate("/detail/subscribers"),
+    },
+    {
+      id: "vendors",
+      title: "Mobile Device Vendors",
+      subtitle: "Device distribution across vendors",
+      data: vendorData,
+      dataKey: "value",
+      categoryKey: "name",
+      onNavigate: () => navigate("/detail/vendors"),
+    },
+    {
+      id: "aiActions",
+      title: "Recent AI-Engine Actions",
+      subtitle: "Recent automated network operations",
+      data: aiActionsData,
+      dataKey: "impact",
+      categoryKey: "action",
+      onNavigate: () => navigate("/detail/ai-actions"),
+    },
+    {
+      id: "alarms",
+      title: "Network Alarms",
+      subtitle: "Weekly alarm trend (improving)",
+      data: alarmData,
+      dataKey: "value",
+      categoryKey: "name",
+      onNavigate: () => navigate("/detail/alarms"),
+    },
+    {
+      id: "failures",
+      title: "Total Failures per Vendor",
+      subtitle: "Failure count by equipment vendor",
+      data: failureData,
+      dataKey: "value",
+      categoryKey: "name",
+      onNavigate: () => navigate("/detail/failures"),
     },
   ];
 
-  const aiActivities = [
-    { id: 1, action: "Optimizing traffic in Region A", status: "in-progress" },
-    { id: 2, action: "Auto-resolving latency issue in Cluster X", status: "in-progress" },
-    { id: 3, action: "Scaling compute resources in DC-2", status: "pending" },
-    { id: 4, action: "Rebalancing load across sites", status: "in-progress" },
-    { id: 5, action: "Analyzing network topology changes", status: "pending" },
-  ];
+  // Sort widgets by order
+  const sortedWidgets = widgets.sort(
+    (a, b) => (widgetLayout[a.id]?.order || 0) - (widgetLayout[b.id]?.order || 0)
+  );
 
-  const kpiData = [
-    { label: "Uptime", value: "99.97%", icon: CheckCircle2, color: "status-healthy" },
-    { label: "Performance (avg)", value: "45ms", icon: Zap, color: "status-healthy" },
-    { label: "Cost Efficiency", value: "↓ 12%", icon: TrendingUp, color: "status-healthy" },
-  ];
-
-  const uptimeData = [
-    { month: "Jan", value: 99.2 },
-    { month: "Feb", value: 99.5 },
-    { month: "Mar", value: 99.7 },
-    { month: "Apr", value: 99.6 },
-    { month: "May", value: 99.8 },
-    { month: "Jun", value: 99.97 },
-  ];
-
-  const incidentTrendData = [
-    { month: "Jan", incidents: 24 },
-    { month: "Feb", incidents: 19 },
-    { month: "Mar", incidents: 14 },
-    { month: "Apr", incidents: 11 },
-    { month: "May", incidents: 8 },
-    { month: "Jun", incidents: 5 },
-  ];
-
-  const getSeverityBadge = (severity: string) => {
-    switch (severity) {
-      case "critical":
-        return "badge-critical";
-      case "degraded":
-        return "badge-degraded";
-      default:
-        return "badge-pending";
-    }
-  };
+  // Filter visible widgets
+  const visibleWidgets = sortedWidgets.filter((w) => widgetLayout[w.id]?.visible !== false);
 
   return (
     <div className="space-y-6">
-      {/* Health Summary Strip */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Overall Health */}
-        <div className="card-elevated p-6">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Overall Network Health</p>
-              <h2 className="text-3xl font-bold mt-1">
-                <span className="status-healthy">{healthStatus}</span>
-              </h2>
-            </div>
-            <CheckCircle2 className="w-8 h-8 text-status-healthy" />
-          </div>
-          <div className="w-full bg-muted rounded-full h-2">
-            <div
-              className="bg-status-healthy h-2 rounded-full"
-              style={{ width: `${healthPercentage}%` }}
-            ></div>
-          </div>
-          <p className="text-xs text-muted-foreground mt-2">{healthPercentage}% uptime this month</p>
-        </div>
-
-        {/* KPI Cards */}
-        {kpiData.map((kpi) => {
-          const Icon = kpi.icon;
-          return (
-            <div key={kpi.label} className="card-elevated p-6">
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">{kpi.label}</p>
-                  <h3 className="text-2xl font-bold mt-1">{kpi.value}</h3>
-                </div>
-                <Icon className={`w-8 h-8 ${kpi.color}`} />
-              </div>
-              <p className="text-xs text-muted-foreground">Last 30 days</p>
-            </div>
-          );
-        })}
+      {/* Header Section */}
+      <div className="space-y-2">
+        <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+        <p className="text-muted-foreground">
+          Real-time network operations overview. Customize widgets in{" "}
+          <a href="/settings" className="text-primary hover:underline font-medium">
+            Settings
+          </a>
+        </p>
       </div>
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* AI Activity Panel */}
-        <div className="lg:col-span-2 card-elevated p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Activity className="w-5 h-5 text-accent" />
-            <h3 className="font-semibold text-lg">AI Activity</h3>
-            <span className="ml-auto text-xs font-medium text-accent bg-accent bg-opacity-10 px-2.5 py-1 rounded-full">
-              LIVE
-            </span>
-          </div>
-
-          <div className="space-y-3">
-            {aiActivities.map((item) => (
-              <div key={item.id} className="flex items-start gap-3 p-3 bg-muted bg-opacity-30 rounded-lg">
-                <div className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0 animate-pulse bg-accent"></div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium">{item.action}</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {item.status === "in-progress" ? "In progress..." : "Queued"}
-                  </p>
-                </div>
-                {item.status === "in-progress" && (
-                  <Clock className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" />
-                )}
-              </div>
-            ))}
-          </div>
-
-          <button className="w-full mt-4 py-2 text-sm font-medium text-accent hover:bg-accent hover:bg-opacity-5 rounded-lg transition-colors">
-            View All Actions →
-          </button>
-        </div>
-
-        {/* Active Incidents Summary */}
-        <div className="card-elevated p-6">
-          <h3 className="font-semibold text-lg mb-4">Active Incidents</h3>
-          <div className="space-y-3">
-            {activeIncidents.slice(0, 3).map((incident) => (
-              <div
-                key={incident.id}
-                className="p-3 rounded-lg border border-border hover:border-accent hover:border-opacity-50 transition-colors cursor-pointer"
+      {/* Dashboard Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {visibleWidgets.length === 0 ? (
+          <div className="col-span-full card-elevated p-12 flex flex-col items-center justify-center text-center">
+            <div className="text-muted-foreground mb-4">
+              <svg
+                className="w-12 h-12 mx-auto mb-4 opacity-50"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
               >
-                <div className="flex items-start gap-2">
-                  <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0 text-status-critical" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium">{incident.title}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{incident.impact}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <button className="w-full mt-4 py-2 text-sm font-medium text-foreground border border-border hover:bg-muted rounded-lg transition-colors">
-            View All
-          </button>
-        </div>
-      </div>
-
-      {/* Incidents Detail List */}
-      <div className="card-elevated p-6">
-        <h3 className="font-semibold text-lg mb-4">Incident Details</h3>
-        <div className="space-y-4">
-          {activeIncidents.map((incident) => (
-            <div
-              key={incident.id}
-              className="pb-4 border-b border-border last:border-b-0 hover:bg-muted hover:bg-opacity-20 p-3 rounded-lg transition-colors"
-            >
-              <div className="flex items-start justify-between mb-2">
-                <div className="flex items-start gap-3 flex-1">
-                  <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0 text-status-critical" />
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-medium">{incident.title}</h4>
-                    <p className="text-sm text-muted-foreground mt-1">{incident.impact}</p>
-                  </div>
-                </div>
-                <div className={`${getSeverityBadge(incident.severity)} flex-shrink-0`}>
-                  {incident.severity.charAt(0).toUpperCase() + incident.severity.slice(1)}
-                </div>
-              </div>
-              <div className="ml-8 mt-2">
-                <p className="text-sm text-accent font-medium">🤖 {incident.aiAction}</p>
-                <p className="text-xs text-muted-foreground mt-1">{incident.timestamp}</p>
-              </div>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <p className="text-sm font-medium">No widgets visible</p>
+              <p className="text-xs mt-2">
+                Go to{" "}
+                <a href="/settings" className="text-primary hover:underline">
+                  Settings
+                </a>{" "}
+                to show widgets
+              </p>
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Uptime Trend */}
-        <div className="card-elevated p-6">
-          <h3 className="font-semibold text-lg mb-4">Uptime Trend</h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <AreaChart data={uptimeData}>
-              <defs>
-                <linearGradient id="colorUptime" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(var(--accent))" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="hsl(var(--accent))" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
-              <YAxis stroke="hsl(var(--muted-foreground))" domain={[98, 100]} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "8px",
-                }}
-              />
-              <Area
-                type="monotone"
-                dataKey="value"
-                stroke="hsl(var(--accent))"
-                fillOpacity={1}
-                fill="url(#colorUptime)"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Incident Reduction */}
-        <div className="card-elevated p-6">
-          <h3 className="font-semibold text-lg mb-4">Incident Reduction (6 months)</h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <LineChart data={incidentTrendData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
-              <YAxis stroke="hsl(var(--muted-foreground))" />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "8px",
-                }}
-              />
-              <Line
-                type="monotone"
-                dataKey="incidents"
-                stroke="hsl(var(--status-healthy))"
-                strokeWidth={2}
-                dot={{ fill: "hsl(var(--status-healthy))", r: 4 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* Network Overview */}
-      <div className="card-elevated p-6">
-        <h3 className="font-semibold text-lg mb-4">Network Overview</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          {[
-            { region: "North America", sites: 12, status: "healthy" },
-            { region: "Europe", sites: 8, status: "healthy" },
-            { region: "Asia Pacific", sites: 15, status: "degraded" },
-            { region: "LATAM", sites: 6, status: "healthy" },
-            { region: "Africa", sites: 4, status: "healthy" },
-          ].map((region) => {
-            const statusColor =
-              region.status === "healthy" ? "bg-status-healthy" : "bg-status-degraded";
+          </div>
+        ) : (
+          visibleWidgets.map((widget) => {
+            const config = widgetLayout[widget.id] || DEFAULT_WIDGETS[widget.id];
             return (
-              <div key={region.region} className="p-4 border border-border rounded-lg hover:border-accent transition-colors cursor-pointer">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className={`w-2 h-2 rounded-full ${statusColor}`}></div>
-                  <h4 className="font-medium text-sm">{region.region}</h4>
-                </div>
-                <p className="text-lg font-bold">{region.sites}</p>
-                <p className="text-xs text-muted-foreground">sites</p>
-              </div>
+              <DashboardWidget
+                key={widget.id}
+                title={widget.title}
+                subtitle={widget.subtitle}
+                data={widget.data}
+                dataKey={widget.dataKey}
+                categoryKey={widget.categoryKey}
+                chartType={config.chartType}
+                onChartTypeChange={(type) =>
+                  updateWidgetConfig(widget.id, { chartType: type })
+                }
+                showTooltip={config.showTooltip}
+                onTooltipChange={(show) =>
+                  updateWidgetConfig(widget.id, { showTooltip: show })
+                }
+                showLegend={config.showLegend}
+                onLegendChange={(show) =>
+                  updateWidgetConfig(widget.id, { showLegend: show })
+                }
+                onReset={() => resetWidget(widget.id)}
+                onClick={widget.onNavigate}
+                height={320}
+              />
             );
-          })}
-        </div>
+          })
+        )}
       </div>
     </div>
   );
