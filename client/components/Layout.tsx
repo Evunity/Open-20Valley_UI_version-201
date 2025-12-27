@@ -4,9 +4,6 @@ import {
   Menu,
   X,
   LayoutDashboard,
-  Network,
-  AlertTriangle,
-  BarChart3,
   Settings,
   Moon,
   Sun,
@@ -32,9 +29,7 @@ export default function Layout({ children }: LayoutProps) {
 
   const navItems = [
     { path: "/", label: "Dashboard", icon: LayoutDashboard },
-    { path: "/network", label: "Network", icon: Network },
-    { path: "/incidents", label: "Incidents", icon: AlertTriangle },
-    { path: "/reports", label: "Reports", icon: BarChart3 },
+    { path: "/settings", label: "Settings", icon: Settings },
   ];
 
   const isActive = (path: string) => location.pathname === path;
