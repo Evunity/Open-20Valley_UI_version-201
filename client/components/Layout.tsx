@@ -131,29 +131,12 @@ export default function Layout({ children }: LayoutProps) {
         {/* Header */}
         <header className="h-16 border-b border-border bg-card flex items-center px-6 shadow-sm">
           <div className="flex items-center justify-between w-full">
-            <Link to="/" className="flex items-center gap-3 group">
-              <svg
-                className="w-8 h-8 text-primary group-hover:opacity-80 transition-opacity"
-                viewBox="0 0 100 100"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="3" opacity="0.8" />
-                <path
-                  d="M 50 10 A 40 40 0 0 1 70 15"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M 75 20 A 35 35 0 0 1 85 40"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                />
-              </svg>
-              <h1 className="text-lg font-bold text-foreground">Open Valley Dashboard</h1>
+            <Link to="/" className="flex items-center gap-2 group hover:opacity-80 transition-opacity">
+              <img
+                src="https://cdn.builder.io/api/v1/image/assets%2Fc13b4e0240ec42a0981c688ed8e4138d%2F764a7575ec7b41acab908367454597f1?format=webp&width=800"
+                alt="Open Valley"
+                className="h-12"
+              />
             </Link>
             <div className="text-sm text-muted-foreground">
               {new Date().toLocaleDateString("en-US", {
