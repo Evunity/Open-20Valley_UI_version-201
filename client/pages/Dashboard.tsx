@@ -1,68 +1,94 @@
 import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { AlertCircle, CheckCircle2, TrendingDown, TrendingUp } from "lucide-react";
 import DashboardWidget from "@/components/DashboardWidget";
 import { useLocalStorage, DEFAULT_WIDGETS, type DashboardLayout, type WidgetConfig } from "@/hooks/useLocalStorage";
 
-// Mock data generators
+// ===== DATA GENERATORS =====
+
+// Voice section: Number of Calls, Call Drops, Call Blocks, Completed Calls
 const generateVoiceData = () => [
-  { name: "Monday", value: 4200, calls: 240 },
-  { name: "Tuesday", value: 3800, calls: 221 },
-  { name: "Wednesday", value: 2000, calls: 229 },
-  { name: "Thursday", value: 2780, calls: 200 },
-  { name: "Friday", value: 1890, calls: 210 },
-  { name: "Saturday", value: 2390, calls: 222 },
-  { name: "Sunday", value: 3490, calls: 250 },
+  { name: "Number of Calls", value: 24500, change: 12, isAbnormal: false },
+  { name: "Call Drops", value: 145, change: -8, isAbnormal: true },
+  { name: "Call Blocks", value: 89, change: 5, isAbnormal: false },
+  { name: "Completed Calls", value: 24266, change: 13, isAbnormal: false },
 ];
 
+// Data section: Data Sessions, Data Failures
 const generateDataData = () => [
-  { name: "Mon", value: 65, traffic: 2400 },
-  { name: "Tue", value: 59, traffic: 2210 },
-  { name: "Wed", value: 80, traffic: 2290 },
-  { name: "Thu", value: 81, traffic: 2000 },
-  { name: "Fri", value: 56, traffic: 2181 },
-  { name: "Sat", value: 55, traffic: 2500 },
-  { name: "Sun", value: 40, traffic: 2100 },
+  { name: "Data Sessions", value: 15800, change: 15, isAbnormal: false },
+  { name: "Data Failures", value: 23, change: -12, isAbnormal: false },
 ];
 
+// Subscribers: Total Subscribers, Active Subscribers
 const generateSubscriberData = () => [
-  { name: "Prepaid", value: 45 },
-  { name: "Postpaid", value: 35 },
-  { name: "Enterprise", value: 15 },
-  { name: "Trial", value: 5 },
+  { name: "Total Subscribers", value: 4850000, change: 8, isAbnormal: false },
+  { name: "Active Subscribers", value: 3920000, change: 6, isAbnormal: false },
 ];
 
+// Mobile Device Vendors
 const generateVendorData = () => [
   { name: "Apple", value: 2800 },
-  { name: "Samsung", value: 1398 },
-  { name: "Xiaomi", value: 9800 },
-  { name: "OnePlus", value: 3908 },
-  { name: "Google", value: 4800 },
+  { name: "Samsung", value: 3200 },
+  { name: "Nokia", value: 1800 },
+  { name: "Xiaomi", value: 2400 },
+  { name: "Others", value: 1200 },
 ];
 
+// Recent AI-Engine Actions
 const generateAIActionsData = () => [
-  { action: "Traffic Optimization", status: "Completed", timestamp: "2 min ago", impact: "+12% efficiency" },
-  { action: "Auto-scaling Services", status: "In Progress", timestamp: "5 min ago", impact: "Preventing overload" },
-  { action: "Anomaly Detection", status: "Completed", timestamp: "8 min ago", impact: "Found 3 issues" },
-  { action: "Load Balancing", status: "In Progress", timestamp: "12 min ago", impact: "Optimizing routes" },
-  { action: "Capacity Planning", status: "Queued", timestamp: "15 min ago", impact: "Analyzing trends" },
+  { id: 1, action: "RAN Anomaly Detection", status: "Success", timestamp: "2 min ago" },
+  { id: 2, action: "Media Engine DDoS Protection", status: "Ongoing", timestamp: "5 min ago" },
+  { id: 3, action: "CORE Network Correction", status: "Success", timestamp: "8 min ago" },
+  { id: 4, action: "IP-Backbone Fault Analysis", status: "Failed", timestamp: "12 min ago" },
 ];
 
+// Network Alarms: Down Sites, Network Failures, % Low Traffic Sites, % Congested Sites
 const generateAlarmData = () => [
-  { name: "Mon", value: 24, alarms: 240 },
-  { name: "Tue", value: 19, alarms: 221 },
-  { name: "Wed", value: 14, alarms: 229 },
-  { name: "Thu", value: 11, alarms: 200 },
-  { name: "Fri", value: 8, alarms: 210 },
-  { name: "Sat", value: 5, alarms: 222 },
-  { name: "Sun", value: 2, alarms: 250 },
+  { name: "Down Sites", value: 12, isAbnormal: true },
+  { name: "Network Failures", value: 45, isAbnormal: true },
+  { name: "Low Traffic Sites (%)", value: 22, isAbnormal: false },
+  { name: "Congested Sites (%)", value: 18, isAbnormal: true },
 ];
 
+// Total Failures per Vendor: Huawei, Nokia, Samsung, Cisco, Ericsson
 const generateFailureData = () => [
-  { name: "Ericsson", value: 2400 },
-  { name: "Nokia", value: 1398 },
-  { name: "ZTE", value: 1200 },
-  { name: "Cisco", value: 780 },
-  { name: "Huawei", value: 390 },
+  { name: "Huawei", value: 156 },
+  { name: "Nokia", value: 203 },
+  { name: "Samsung", value: 89 },
+  { name: "Cisco", value: 124 },
+  { name: "Ericsson", value: 178 },
+];
+
+// Chart data for visualization
+const generateVoiceChartData = () => [
+  { name: "Mon", calls: 3500, drops: 18, blocks: 12 },
+  { name: "Tue", calls: 3200, drops: 15, blocks: 10 },
+  { name: "Wed", calls: 3800, drops: 20, blocks: 14 },
+  { name: "Thu", calls: 3600, drops: 17, blocks: 11 },
+  { name: "Fri", calls: 4200, drops: 22, blocks: 16 },
+  { name: "Sat", calls: 2900, drops: 12, blocks: 8 },
+  { name: "Sun", calls: 2700, drops: 10, blocks: 7 },
+];
+
+const generateDataChartData = () => [
+  { name: "Mon", sessions: 2100, failures: 4 },
+  { name: "Tue", sessions: 2250, failures: 3 },
+  { name: "Wed", sessions: 2380, failures: 5 },
+  { name: "Thu", sessions: 2200, failures: 2 },
+  { name: "Fri", sessions: 2500, failures: 6 },
+  { name: "Sat", sessions: 1900, failures: 1 },
+  { name: "Sun", sessions: 1870, failures: 2 },
+];
+
+const generateAlarmsChartData = () => [
+  { name: "Mon", sites: 24, failures: 8 },
+  { name: "Tue", sites: 19, failures: 6 },
+  { name: "Wed", sites: 28, failures: 10 },
+  { name: "Thu", sites: 15, failures: 5 },
+  { name: "Fri", sites: 32, failures: 12 },
+  { name: "Sat", sites: 8, failures: 2 },
+  { name: "Sun", sites: 6, failures: 1 },
 ];
 
 export default function Dashboard() {
@@ -72,16 +98,6 @@ export default function Dashboard() {
     DEFAULT_WIDGETS
   );
 
-  // Data sources
-  const voiceData = generateVoiceData();
-  const dataData = generateDataData();
-  const subscriberData = generateSubscriberData();
-  const vendorData = generateVendorData();
-  const aiActionsData = generateAIActionsData();
-  const alarmData = generateAlarmData();
-  const failureData = generateFailureData();
-
-  // Widget state management
   const updateWidgetConfig = useCallback((widgetId: string, updates: Partial<WidgetConfig>) => {
     setWidgetLayout((prev) => ({
       ...prev,
@@ -96,40 +112,91 @@ export default function Dashboard() {
     }));
   }, [setWidgetLayout]);
 
-  // Widget definitions with navigation
+  // ===== KPI DISPLAY COMPONENTS =====
+  const KPIRow = ({ label, value, change, isAbnormal }: any) => (
+    <div className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-muted/30 transition-colors">
+      <span className="text-sm text-muted-foreground">{label}</span>
+      <div className="flex items-center gap-2">
+        <span className={`font-semibold ${isAbnormal ? "text-status-critical" : "text-foreground"}`}>
+          {typeof value === "number" && value > 1000 ? (value / 1000000).toFixed(2) + "M" : value.toLocaleString()}
+        </span>
+        {change !== undefined && (
+          <div className={`flex items-center gap-0.5 text-xs font-medium ${change > 0 ? "text-status-healthy" : "text-status-degraded"}`}>
+            {change > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+            {Math.abs(change)}%
+          </div>
+        )}
+        {isAbnormal && <AlertCircle className="w-4 h-4 text-status-critical flex-shrink-0" />}
+      </div>
+    </div>
+  );
+
+  const ActionItem = ({ action, status, timestamp }: any) => {
+    const statusColor =
+      status === "Success"
+        ? "badge-healthy"
+        : status === "Ongoing"
+          ? "badge-pending"
+          : "badge-critical";
+
+    return (
+      <div
+        className="p-3 border border-border rounded-lg hover:border-primary hover:bg-muted/30 transition-colors cursor-pointer"
+        onClick={() => navigate(`/detail/ai-actions/${action.replace(/\s+/g, "-")}`)}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-foreground">{action}</p>
+            <p className="text-xs text-muted-foreground mt-1">{timestamp}</p>
+          </div>
+          <span className={statusColor}>{status}</span>
+        </div>
+      </div>
+    );
+  };
+
   const widgets = [
     {
       id: "voice",
       title: "Voice",
-      subtitle: "Weekly call volume & quality metrics",
-      data: voiceData,
-      dataKey: "value",
+      subtitle: "Call volume & quality metrics",
+      data: generateVoiceChartData(),
+      dataKey: "calls",
       categoryKey: "name",
+      renderKpis: () => generateVoiceData().map((kpi: any) => (
+        <KPIRow key={kpi.name} {...kpi} />
+      )),
       onNavigate: () => navigate("/detail/voice"),
     },
     {
       id: "data",
       title: "Data",
-      subtitle: "Data traffic & consumption",
-      data: dataData,
-      dataKey: "value",
+      subtitle: "Data sessions & failures",
+      data: generateDataChartData(),
+      dataKey: "sessions",
       categoryKey: "name",
+      renderKpis: () => generateDataData().map((kpi: any) => (
+        <KPIRow key={kpi.name} {...kpi} />
+      )),
       onNavigate: () => navigate("/detail/data"),
     },
     {
       id: "subscribers",
       title: "Subscribers",
-      subtitle: "Subscriber distribution by type",
-      data: subscriberData,
+      subtitle: "Total & active subscribers",
+      data: generateSubscriberData(),
       dataKey: "value",
       categoryKey: "name",
+      renderKpis: () => generateSubscriberData().map((kpi: any) => (
+        <KPIRow key={kpi.name} {...kpi} />
+      )),
       onNavigate: () => navigate("/detail/subscribers"),
     },
     {
       id: "vendors",
       title: "Mobile Device Vendors",
-      subtitle: "Device distribution across vendors",
-      data: vendorData,
+      subtitle: "Device distribution across manufacturers",
+      data: generateVendorData(),
       dataKey: "value",
       categoryKey: "name",
       onNavigate: () => navigate("/detail/vendors"),
@@ -137,38 +204,41 @@ export default function Dashboard() {
     {
       id: "aiActions",
       title: "Recent AI-Engine Actions",
-      subtitle: "Recent automated network operations",
-      data: aiActionsData,
-      dataKey: "impact",
-      categoryKey: "action",
+      subtitle: "Automated network operations",
+      data: generateAIActionsData(),
+      isActionList: true,
+      renderActions: () => generateAIActionsData().map((action: any) => (
+        <ActionItem key={action.id} {...action} />
+      )),
       onNavigate: () => navigate("/detail/ai-actions"),
     },
     {
       id: "alarms",
       title: "Network Alarms",
-      subtitle: "Weekly alarm trend (improving)",
-      data: alarmData,
-      dataKey: "value",
+      subtitle: "Alarm status & trends",
+      data: generateAlarmsChartData(),
+      dataKey: "sites",
       categoryKey: "name",
+      renderKpis: () => generateAlarmData().map((kpi: any) => (
+        <KPIRow key={kpi.name} {...kpi} />
+      )),
       onNavigate: () => navigate("/detail/alarms"),
     },
     {
       id: "failures",
       title: "Total Failures per Vendor",
-      subtitle: "Failure count by equipment vendor",
-      data: failureData,
+      subtitle: "Equipment failure distribution",
+      data: generateFailureData(),
       dataKey: "value",
       categoryKey: "name",
       onNavigate: () => navigate("/detail/failures"),
     },
   ];
 
-  // Sort widgets by order
   const sortedWidgets = widgets.sort(
     (a, b) => (widgetLayout[a.id]?.order || 0) - (widgetLayout[b.id]?.order || 0)
   );
 
-  // Filter visible widgets
   const visibleWidgets = sortedWidgets.filter((w) => widgetLayout[w.id]?.visible !== false);
 
   return (
@@ -177,7 +247,7 @@ export default function Dashboard() {
       <div className="space-y-2">
         <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
         <p className="text-muted-foreground">
-          Real-time network operations overview. Customize widgets in{" "}
+          Real-time network operations overview. Customize in{" "}
           <a href="/settings" className="text-primary hover:underline font-medium">
             Settings
           </a>
@@ -189,18 +259,8 @@ export default function Dashboard() {
         {visibleWidgets.length === 0 ? (
           <div className="col-span-full card-elevated p-12 flex flex-col items-center justify-center text-center">
             <div className="text-muted-foreground mb-4">
-              <svg
-                className="w-12 h-12 mx-auto mb-4 opacity-50"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
+              <svg className="w-12 h-12 mx-auto mb-4 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <p className="text-sm font-medium">No widgets visible</p>
               <p className="text-xs mt-2">
@@ -215,6 +275,46 @@ export default function Dashboard() {
         ) : (
           visibleWidgets.map((widget) => {
             const config = widgetLayout[widget.id] || DEFAULT_WIDGETS[widget.id];
+
+            // For AI Actions (list view)
+            if (widget.isActionList) {
+              return (
+                <div
+                  key={widget.id}
+                  className="card-elevated p-6 flex flex-col h-full cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={widget.onNavigate}
+                >
+                  <div className="mb-4">
+                    <h3 className="text-lg font-semibold text-foreground">{widget.title}</h3>
+                    {widget.subtitle && <p className="text-sm text-muted-foreground mt-1">{widget.subtitle}</p>}
+                  </div>
+                  <div className="flex-1 space-y-2 min-h-0 overflow-y-auto">
+                    {widget.renderActions?.()}
+                  </div>
+                </div>
+              );
+            }
+
+            // For KPI display sections (Voice, Data, Subscribers, Alarms)
+            if (widget.renderKpis) {
+              return (
+                <div
+                  key={widget.id}
+                  className="card-elevated p-6 flex flex-col h-full cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={widget.onNavigate}
+                >
+                  <div className="mb-4">
+                    <h3 className="text-lg font-semibold text-foreground">{widget.title}</h3>
+                    {widget.subtitle && <p className="text-sm text-muted-foreground mt-1">{widget.subtitle}</p>}
+                  </div>
+                  <div className="flex-1 space-y-0">
+                    {widget.renderKpis?.()}
+                  </div>
+                </div>
+              );
+            }
+
+            // For chart sections (Vendors, Failures)
             return (
               <DashboardWidget
                 key={widget.id}
@@ -237,7 +337,7 @@ export default function Dashboard() {
                 }
                 onReset={() => resetWidget(widget.id)}
                 onClick={widget.onNavigate}
-                height={320}
+                height={280}
               />
             );
           })
