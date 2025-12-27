@@ -22,16 +22,16 @@
     --popover: 0 0% 100%;
     --popover-foreground: 210 15% 8%;
 
-    /* Primary - Deep Blue (Trust, Professional) */
-    --primary: 216 98% 35%;
+    /* Primary - Open Valley Deep Purple (Modern, Premium) */
+    --primary: 270 100% 42%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary - Slate Gray */
-    --secondary: 213 27% 84%;
-    --secondary-foreground: 210 15% 8%;
+    /* Secondary - Light Purple */
+    --secondary: 270 70% 88%;
+    --secondary-foreground: 270 30% 25%;
 
-    /* Accent - Cyan (AI/Intelligence) */
-    --accent: 188 100% 45%;
+    /* Accent - Purple Mid-tone (Highlight, Interactive) */
+    --accent: 270 80% 56%;
     --accent-foreground: 0 0% 100%;
 
     /* Destructive - Red (Critical) */
@@ -45,23 +45,23 @@
     /* Border & Input */
     --border: 210 10% 88%;
     --input: 210 10% 95%;
-    --ring: 216 98% 35%;
+    --ring: 270 100% 42%;
 
-    /* Status Colors */
+    /* Status Colors - Aligned with Purple Theme */
     --status-healthy: 142 76% 36%;
     --status-degraded: 38 92% 50%;
     --status-critical: 0 84.2% 60.2%;
-    --status-pending: 188 100% 45%;
+    --status-pending: 270 80% 56%;
 
     /* Sidebar */
-    --sidebar-background: 210 40% 96%;
-    --sidebar-foreground: 210 15% 20%;
-    --sidebar-primary: 216 98% 35%;
+    --sidebar-background: 270 30% 96%;
+    --sidebar-foreground: 270 30% 25%;
+    --sidebar-primary: 270 100% 42%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 188 100% 45%;
+    --sidebar-accent: 270 80% 56%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 210 10% 88%;
-    --sidebar-ring: 216 98% 35%;
+    --sidebar-border: 270 20% 88%;
+    --sidebar-ring: 270 100% 42%;
 
     --radius: 0.5rem;
   }
