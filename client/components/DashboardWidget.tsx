@@ -39,12 +39,14 @@ interface DashboardWidgetProps {
 }
 
 const CHART_TYPES: ChartType[] = ["bar", "pie", "line", "histogram", "table"];
+
+// Color palette that matches the CSS variables
 const COLORS = [
-  "hsl(var(--primary))",
-  "hsl(var(--accent))",
-  "hsl(var(--status-healthy))",
-  "hsl(var(--status-degraded))",
-  "hsl(var(--status-critical))",
+  "#7c3aed", // purple primary
+  "#a78bfa", // purple accent
+  "#22c55e", // green healthy
+  "#eab308", // yellow degraded
+  "#ef4444", // red critical
 ];
 
 export default function DashboardWidget({
