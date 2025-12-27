@@ -205,9 +205,9 @@ export default function DashboardWidget({
         </div>
 
         {/* Controls */}
-        <div className="flex flex-wrap gap-2 mt-4 items-center">
+        <div className="flex flex-col sm:flex-row flex-wrap gap-2 mt-4 items-start sm:items-center">
           {/* Chart Type Selector */}
-          <div className="flex gap-1 bg-muted/30 p-1 rounded-lg">
+          <div className="flex gap-1 bg-muted/30 p-1 rounded-lg overflow-x-auto">
             {CHART_TYPES.map((type) => (
               <button
                 key={type}
@@ -216,7 +216,7 @@ export default function DashboardWidget({
                   onChartTypeChange(type);
                 }}
                 className={cn(
-                  "px-2.5 py-1 rounded text-xs font-medium transition-all capitalize",
+                  "px-2.5 py-1 rounded text-xs font-medium transition-all capitalize whitespace-nowrap flex-shrink-0",
                   chartType === type
                     ? "bg-primary text-primary-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
@@ -228,51 +228,54 @@ export default function DashboardWidget({
             ))}
           </div>
 
-          {/* Tooltip Toggle */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onTooltipChange(!showTooltip);
-            }}
-            className={cn(
-              "p-1.5 rounded-lg transition-colors",
-              showTooltip
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted text-muted-foreground hover:bg-muted/70"
-            )}
-            title="Toggle tooltip"
-          >
-            <Eye className="w-4 h-4" />
-          </button>
+          {/* Control Buttons */}
+          <div className="flex gap-1.5 ml-auto">
+            {/* Tooltip Toggle */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onTooltipChange(!showTooltip);
+              }}
+              className={cn(
+                "p-1.5 rounded-lg transition-colors",
+                showTooltip
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:bg-muted/70"
+              )}
+              title="Toggle tooltip"
+            >
+              <Eye className="w-4 h-4" />
+            </button>
 
-          {/* Legend Toggle */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onLegendChange(!showLegend);
-            }}
-            className={cn(
-              "p-1.5 rounded-lg transition-colors",
-              showLegend
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted text-muted-foreground hover:bg-muted/70"
-            )}
-            title="Toggle legend"
-          >
-            <EyeOff className="w-4 h-4" />
-          </button>
+            {/* Legend Toggle */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onLegendChange(!showLegend);
+              }}
+              className={cn(
+                "p-1.5 rounded-lg transition-colors",
+                showLegend
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:bg-muted/70"
+              )}
+              title="Toggle legend"
+            >
+              <EyeOff className="w-4 h-4" />
+            </button>
 
-          {/* Reset Button */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onReset();
-            }}
-            className="p-1.5 rounded-lg bg-muted text-muted-foreground hover:bg-muted/70 transition-colors"
-            title="Reset to defaults"
-          >
-            <RotateCcw className="w-4 h-4" />
-          </button>
+            {/* Reset Button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onReset();
+              }}
+              className="p-1.5 rounded-lg bg-muted text-muted-foreground hover:bg-muted/70 transition-colors"
+              title="Reset to defaults"
+            >
+              <RotateCcw className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
 
