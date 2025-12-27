@@ -108,7 +108,7 @@ export default function Layout({ children }: LayoutProps) {
         </nav>
 
         {/* Bottom Actions */}
-        <div className="p-4 border-t border-sidebar-border space-y-2">
+        <div className="p-4 border-t border-sidebar-border">
           <button
             onClick={toggleDarkMode}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
@@ -123,15 +123,6 @@ export default function Layout({ children }: LayoutProps) {
               <span className="text-sm">{darkMode ? "Light" : "Dark"}</span>
             )}
           </button>
-
-          <Link
-            to="/settings"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
-            title="Settings"
-          >
-            <Settings className="w-5 h-5 flex-shrink-0" />
-            {sidebarOpen && <span className="text-sm">Settings</span>}
-          </Link>
         </div>
       </aside>
 
