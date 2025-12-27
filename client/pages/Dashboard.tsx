@@ -113,20 +113,33 @@ export default function Dashboard() {
   }, [setWidgetLayout]);
 
   // ===== KPI DISPLAY COMPONENTS =====
+  const formatValue = (value: number) => {
+    if (value >= 1000000) {
+      return (value / 1000000).toFixed(1) + "M";
+    } else if (value >= 1000) {
+      return (value / 1000).toFixed(1) + "K";
+    }
+    return value.toLocaleString();
+  };
+
   const KPIRow = ({ label, value, change, isAbnormal }: any) => (
-    <div className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-muted/30 transition-colors">
-      <span className="text-sm text-muted-foreground">{label}</span>
-      <div className="flex items-center gap-2">
-        <span className={`font-semibold ${isAbnormal ? "text-status-critical" : "text-foreground"}`}>
-          {typeof value === "number" && value > 1000 ? (value / 1000000).toFixed(2) + "M" : value.toLocaleString()}
-        </span>
-        {change !== undefined && (
-          <div className={`flex items-center gap-0.5 text-xs font-medium ${change > 0 ? "text-status-healthy" : "text-status-degraded"}`}>
-            {change > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-            {Math.abs(change)}%
+    <div className="p-3 rounded-lg hover:bg-muted/40 transition-colors border border-transparent hover:border-muted">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{label}</p>
+          <div className="flex items-baseline gap-2 mt-1">
+            <span className={`text-xl font-bold ${isAbnormal ? "text-status-critical" : "text-foreground"}`}>
+              {formatValue(value)}
+            </span>
+            {change !== undefined && (
+              <span className={`text-xs font-medium flex items-center gap-1 ${change > 0 ? "text-status-healthy" : "text-status-degraded"}`}>
+                {change > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                {Math.abs(change)}%
+              </span>
+            )}
           </div>
-        )}
-        {isAbnormal && <AlertCircle className="w-4 h-4 text-status-critical flex-shrink-0" />}
+        </div>
+        {isAbnormal && <AlertCircle className="w-5 h-5 text-status-critical flex-shrink-0 mt-1" />}
       </div>
     </div>
   );
