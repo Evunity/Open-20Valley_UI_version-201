@@ -43,21 +43,41 @@ export default function Layout({ children }: LayoutProps) {
         } bg-sidebar border-r border-sidebar-border transition-all duration-300 flex flex-col`}
       >
         {/* Logo & Toggle */}
-        <div className="p-4 border-b border-sidebar-border flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3 flex-1">
-            <div className="w-10 h-10 bg-sidebar-primary rounded-lg flex items-center justify-center font-bold text-sidebar-primary-foreground text-lg">
-              O
-            </div>
+        <div className="p-4 border-b border-sidebar-border flex items-center justify-between gap-3">
+          <Link to="/" className="flex items-center gap-3 flex-1 min-w-0">
+            {/* Open Valley Logo */}
+            <svg
+              className="w-10 h-10 flex-shrink-0"
+              viewBox="0 0 100 100"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              {/* Spiraling design */}
+              <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="3" opacity="0.8" />
+              <path
+                d="M 50 10 A 40 40 0 0 1 70 15"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+              <path
+                d="M 75 20 A 35 35 0 0 1 85 40"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+            </svg>
             {sidebarOpen && (
-              <div className="flex flex-col">
-                <span className="font-bold text-sm">OVscale</span>
+              <div className="flex flex-col min-w-0">
+                <span className="font-bold text-sm">Open Valley</span>
                 <span className="text-xs text-sidebar-foreground">Network Ops</span>
               </div>
             )}
           </Link>
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-1.5 hover:bg-sidebar-accent rounded-md transition-colors"
+            className="p-1.5 hover:bg-sidebar-accent rounded-md transition-colors flex-shrink-0"
             aria-label="Toggle sidebar"
           >
             {sidebarOpen ? (
