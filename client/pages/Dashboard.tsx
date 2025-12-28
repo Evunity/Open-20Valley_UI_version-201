@@ -1,8 +1,10 @@
 import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { AlertCircle, CheckCircle2, TrendingDown, TrendingUp, Zap } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from "recharts";
 import DashboardWidget from "@/components/DashboardWidget";
 import { useLocalStorage, DEFAULT_WIDGETS, type DashboardLayout, type WidgetConfig } from "@/hooks/useLocalStorage";
+import { cn } from "@/lib/utils";
 
 // ===== DATA GENERATORS =====
 
