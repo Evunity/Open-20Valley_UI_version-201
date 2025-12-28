@@ -83,21 +83,14 @@ export default function DashboardWidget({
       );
     }
 
-    const commonProps = {
-      width: "100%",
-      height: height,
-      data: chartData,
-      margin: { top: 20, right: 30, left: 0, bottom: 20 },
-    };
-
-    const tooltipContent = showTooltip ? <Tooltip /> : null;
+    const tooltipContent = showTooltip ? <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "6px" }} /> : null;
     const legendContent = showLegend ? <Legend /> : null;
 
     switch (chartType) {
       case "pie":
         return (
-          <ResponsiveContainer {...commonProps}>
-            <PieChart>
+          <ResponsiveContainer width="100%" height={height}>
+            <PieChart data={chartData}>
               <Pie
                 data={chartData}
                 dataKey={dataKey}
@@ -120,11 +113,11 @@ export default function DashboardWidget({
       case "line":
       case "histogram":
         return (
-          <ResponsiveContainer {...commonProps}>
-            <LineChart>
+          <ResponsiveContainer width="100%" height={height}>
+            <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey={categoryKey} />
-              <YAxis />
+              <XAxis dataKey={categoryKey} stroke="hsl(var(--muted-foreground))" />
+              <YAxis stroke="hsl(var(--muted-foreground))" />
               {tooltipContent}
               {legendContent}
               <Line
@@ -144,7 +137,7 @@ export default function DashboardWidget({
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-border">
+                <tr className="border-b border-border bg-muted/30">
                   <th className="text-left py-2 px-3 font-semibold text-foreground">
                     {categoryKey}
                   </th>
@@ -155,10 +148,10 @@ export default function DashboardWidget({
               </thead>
               <tbody>
                 {chartData.map((row, idx) => (
-                  <tr key={idx} className="border-b border-border hover:bg-muted/30">
-                    <td className="py-2 px-3 text-foreground">{row[categoryKey]}</td>
-                    <td className="text-right py-2 px-3 text-foreground font-semibold">
-                      {row[dataKey]}
+                  <tr key={idx} className="border-b border-border hover:bg-muted/30 transition-colors">
+                    <td className="py-3 px-3 text-foreground">{row[categoryKey]}</td>
+                    <td className="text-right py-3 px-3 text-foreground font-semibold">
+                      {typeof row[dataKey] === "number" ? row[dataKey].toLocaleString() : row[dataKey]}
                     </td>
                   </tr>
                 ))}
@@ -170,11 +163,11 @@ export default function DashboardWidget({
       case "bar":
       default:
         return (
-          <ResponsiveContainer {...commonProps}>
-            <BarChart>
+          <ResponsiveContainer width="100%" height={height}>
+            <BarChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey={categoryKey} />
-              <YAxis />
+              <XAxis dataKey={categoryKey} stroke="hsl(var(--muted-foreground))" />
+              <YAxis stroke="hsl(var(--muted-foreground))" />
               {tooltipContent}
               {legendContent}
               <Bar dataKey={dataKey} fill={colors[0]} radius={[8, 8, 0, 0]} />
