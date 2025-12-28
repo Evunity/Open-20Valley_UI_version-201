@@ -26,6 +26,13 @@ const generateDataChartData = () => [
   { name: "Sun", sessions: 1870, failures: 2 },
 ];
 
+const generateSubscriberChartData = () => [
+  { name: "Week 1", subscribers: 4650000, active: 3720000 },
+  { name: "Week 2", subscribers: 4710000, active: 3760000 },
+  { name: "Week 3", subscribers: 4780000, active: 3830000 },
+  { name: "Week 4", subscribers: 4850000, active: 3920000 },
+];
+
 const generateVendorData = () => [
   { name: "Apple", value: 2800 },
   { name: "Samsung", value: 3200 },
