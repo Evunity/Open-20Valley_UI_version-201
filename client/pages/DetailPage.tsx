@@ -233,7 +233,7 @@ export default function DetailPage() {
         <div className="lg:col-span-2 card-elevated p-6">
           <h2 className="text-lg font-semibold text-foreground mb-4">Trend Analysis</h2>
           <ResponsiveContainer width="100%" height={350}>
-            <LineChart data={analytics.mainChart}>
+            <BarChart data={analytics.mainChart} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
               <YAxis stroke="hsl(var(--muted-foreground))" />
@@ -245,9 +245,9 @@ export default function DetailPage() {
                 }}
               />
               <Legend />
-              <Line type="monotone" dataKey="value" stroke="#7c3aed" strokeWidth={2} dot={{ r: 4 }} />
-              <Line type="monotone" dataKey="completed" stroke="#22c55e" strokeWidth={2} dot={{ r: 4 }} opacity={0.7} />
-            </LineChart>
+              <Bar dataKey="value" fill="#7c3aed" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="completed" fill="#22c55e" radius={[8, 8, 0, 0]} opacity={0.7} />
+            </BarChart>
           </ResponsiveContainer>
         </div>
 
