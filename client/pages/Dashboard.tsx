@@ -296,8 +296,7 @@ export default function Dashboard() {
               return (
                 <div
                   key={widget.id}
-                  className="card-elevated p-6 cursor-pointer hover:shadow-lg transition-all hover:border-primary/50 lg:col-span-2"
-                  onClick={widget.onNavigate}
+                  className="card-elevated p-6 hover:shadow-lg transition-all lg:col-span-2"
                 >
                   <div className="mb-4">
                     <h3 className="text-lg font-semibold text-foreground">{widget.title}</h3>
