@@ -168,8 +168,10 @@ export default function Dashboard() {
       id: "subscribers",
       title: "Subscribers",
       subtitle: "Active subscriber base",
-      type: "kpi",
-      data: [],
+      type: "kpi-chart",
+      data: generateSubscriberChartData(),
+      dataKey: "subscribers",
+      categoryKey: "name",
       primaryMetric: { label: "Total", value: 4850000, change: 8, isAbnormal: false },
       secondaryMetrics: [
         { label: "Active", value: 3920000, change: 6, isAbnormal: false },
