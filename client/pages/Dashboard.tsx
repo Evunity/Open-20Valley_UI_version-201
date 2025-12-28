@@ -109,7 +109,7 @@ export default function Dashboard() {
     return (
       <div
         className="p-3 border border-muted rounded-lg hover:border-primary/50 hover:bg-muted/40 transition-all cursor-pointer"
-        onClick={() => navigate(`/detail/ai-actions/${action.replace(/\s+/g, "-")}`)}
+        onClick={() => navigate(`/detail/ai-actions/${action.replace(/\s+/g, "-").toLowerCase()}`)}
       >
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
