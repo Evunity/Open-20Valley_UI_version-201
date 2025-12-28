@@ -302,6 +302,135 @@ export default function Dashboard() {
               );
             }
 
+            // KPI Cards with Charts (Data, Subscribers)
+            if (widget.type === "kpi-chart") {
+              const COLORS = ["#7c3aed", "#a78bfa", "#22c55e", "#eab308", "#ef4444"];
+              const CHART_TYPES = ["bar", "pie", "line", "histogram", "table"];
+
+              return (
+                <div
+                  key={widget.id}
+                  className="card-elevated p-6 cursor-pointer hover:shadow-lg transition-all hover:border-primary/50"
+                  onClick={widget.onNavigate}
+                >
+                  <div className="mb-4">
+                    <h3 className="text-lg font-semibold text-foreground">{widget.title}</h3>
+                    <p className="text-xs text-muted-foreground mt-1">{widget.subtitle}</p>
+                  </div>
+
+                  <div className="space-y-4">
+                    {/* Metrics Section */}
+                    <div className="space-y-3">
+                      {/* Primary Metric */}
+                      {widget.primaryMetric && (
+                        <MetricBadge {...widget.primaryMetric} />
+                      )}
+
+                      {/* Secondary Metrics */}
+                      {widget.secondaryMetrics && widget.secondaryMetrics.length > 0 && (
+                        <div className="space-y-2">
+                          {widget.secondaryMetrics.map((metric: any, idx: number) => (
+                            <div key={idx} className="flex items-center justify-between p-2 rounded hover:bg-muted/20 transition-colors">
+                              <span className="text-xs font-medium text-muted-foreground">{metric.label}</span>
+                              <div className="flex items-center gap-2">
+                                <span className={`font-semibold ${metric.isAbnormal ? "text-status-critical" : "text-foreground"}`}>
+                                  {typeof metric.value === "number" && metric.value > 1000 ? (metric.value / 1000).toFixed(0) + "K" : metric.value}
+                                </span>
+                                {metric.change !== undefined && (
+                                  <span className={`text-xs ${metric.change < 0 ? "text-status-healthy" : "text-status-degraded"}`}>
+                                    {metric.change < 0 ? "−" : "+"}{Math.abs(metric.change)}%
+                                  </span>
+                                )}
+                                {metric.isAbnormal && <AlertCircle className="w-3 h-3 text-status-critical" />}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Chart Section */}
+                    {widget.data && widget.data.length > 0 && (
+                      <div className="border-t border-border pt-4 mt-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <p className="text-xs font-medium text-muted-foreground">Trend Chart</p>
+                          <div className="flex gap-1 bg-muted/30 p-1 rounded-lg overflow-x-auto">
+                            {CHART_TYPES.slice(0, 3).map((type) => (
+                              <button
+                                key={type}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  updateWidgetConfig(widget.id, { chartType: type as any });
+                                }}
+                                className={cn(
+                                  "px-2 py-1 rounded text-xs font-medium transition-all capitalize whitespace-nowrap flex-shrink-0",
+                                  config.chartType === type
+                                    ? "bg-primary text-primary-foreground shadow-sm"
+                                    : "text-muted-foreground hover:text-foreground"
+                                )}
+                              >
+                                {type}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="h-48">
+                          {config.chartType === "pie" ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                              <PieChart data={widget.data}>
+                                <Pie
+                                  data={widget.data}
+                                  dataKey={widget.dataKey}
+                                  nameKey={widget.categoryKey}
+                                  cx="50%"
+                                  cy="50%"
+                                  outerRadius={50}
+                                >
+                                  {widget.data.map((entry: any, index: number) => (
+                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                  ))}
+                                </Pie>
+                                {config.showTooltip && <Tooltip />}
+                                {config.showLegend && <Legend />}
+                              </PieChart>
+                            </ResponsiveContainer>
+                          ) : (
+                            <ResponsiveContainer width="100%" height="100%">
+                              <LineChart data={widget.data} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                                <XAxis dataKey={widget.categoryKey} stroke="hsl(var(--muted-foreground))" tick={{ fontSize: 12 }} />
+                                <YAxis stroke="hsl(var(--muted-foreground))" tick={{ fontSize: 12 }} />
+                                {config.showTooltip && (
+                                  <Tooltip
+                                    contentStyle={{
+                                      backgroundColor: "hsl(var(--card))",
+                                      border: "1px solid hsl(var(--border))",
+                                      borderRadius: "6px",
+                                      fontSize: "12px",
+                                    }}
+                                  />
+                                )}
+                                {config.showLegend && <Legend />}
+                                <Line
+                                  type="monotone"
+                                  dataKey={widget.dataKey}
+                                  stroke={COLORS[0]}
+                                  strokeWidth={2}
+                                  dot={{ fill: COLORS[0], r: 3 }}
+                                  activeDot={{ r: 5 }}
+                                />
+                              </LineChart>
+                            </ResponsiveContainer>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            }
+
             // AI Actions List
             if (widget.type === "actions") {
               return (
