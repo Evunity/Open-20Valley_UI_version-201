@@ -154,7 +154,7 @@ export default function Dashboard() {
       id: "data",
       title: "Data",
       subtitle: "Sessions & failures",
-      type: "kpi",
+      type: "kpi-chart",
       data: generateDataChartData(),
       dataKey: "sessions",
       categoryKey: "name",
