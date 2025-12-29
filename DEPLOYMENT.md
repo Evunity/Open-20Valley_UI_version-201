@@ -22,6 +22,7 @@ This creates an optimized production build in the `dist/` folder.
 ### 1. Netlify (Recommended for Ease)
 
 **Via Web UI:**
+
 1. Push your code to GitHub
 2. Go to [Netlify](https://app.netlify.com)
 3. Click "New site from Git"
@@ -31,6 +32,7 @@ This creates an optimized production build in the `dist/` folder.
 7. Click "Deploy"
 
 **Via CLI:**
+
 ```bash
 npm install -g netlify-cli
 netlify login
@@ -44,6 +46,7 @@ netlify deploy --prod
 ### 2. Vercel (Automatic Detection)
 
 **Via Web UI:**
+
 1. Push your code to GitHub
 2. Go to [Vercel](https://vercel.com/new)
 3. Import your repository
@@ -51,6 +54,7 @@ netlify deploy --prod
 5. Click "Deploy"
 
 **Via CLI:**
+
 ```bash
 npm install -g vercel
 vercel --prod
@@ -65,9 +69,10 @@ vercel --prod
 **Step 1: Update Vite Config**
 
 Edit `vite.config.ts`:
+
 ```typescript
 export default defineConfig({
-  base: '/your-repo-name/',  // Change to your repository name
+  base: "/your-repo-name/", // Change to your repository name
   // ... rest of config
 });
 ```
@@ -75,11 +80,13 @@ export default defineConfig({
 **Step 2: Add Deploy Scripts**
 
 Install gh-pages:
+
 ```bash
 npm install --save-dev gh-pages
 ```
 
 Update `package.json`:
+
 ```json
 {
   "scripts": {
@@ -90,11 +97,13 @@ Update `package.json`:
 ```
 
 **Step 3: Deploy**
+
 ```bash
 npm run deploy
 ```
 
 **Step 4: Enable GitHub Pages**
+
 - Go to your repository settings
 - Scroll to "Pages"
 - Select "Deploy from a branch"
@@ -108,6 +117,7 @@ Your site will be available at: `https://your-username.github.io/your-repo-name/
 ### 4. Traditional Web Server (Apache, Nginx)
 
 1. Build the project:
+
 ```bash
 npm run build
 ```
@@ -117,13 +127,14 @@ npm run build
 3. **Important:** Configure server for SPA routing
 
 **For Nginx:**
+
 ```nginx
 server {
   listen 80;
   server_name example.com;
-  
+
   root /var/www/dist;
-  
+
   location / {
     try_files $uri /index.html;
   }
@@ -132,6 +143,7 @@ server {
 
 **For Apache:**
 Create `.htaccess` in the `dist/` folder:
+
 ```apache
 <IfModule mod_rewrite.c>
   RewriteEngine On
@@ -148,6 +160,7 @@ Create `.htaccess` in the `dist/` folder:
 ### 5. AWS S3 + CloudFront
 
 1. Build the project:
+
 ```bash
 npm run build
 ```
@@ -155,6 +168,7 @@ npm run build
 2. Create S3 bucket with static website hosting enabled
 
 3. Upload `dist/` contents:
+
 ```bash
 aws s3 sync dist/ s3://your-bucket-name --delete
 ```
@@ -189,16 +203,19 @@ aws s3 sync dist/ s3://your-bucket-name --delete
 ### Pointing a Custom Domain
 
 **For Netlify:**
+
 1. Go to Site Settings → Domain Management
 2. Add your domain
 3. Follow DNS instructions
 
 **For Vercel:**
+
 1. Go to Settings → Domains
 2. Add your domain
 3. Follow DNS configuration
 
 **For GitHub Pages:**
+
 1. Go to Settings → Pages
 2. Add custom domain in "Custom domain" field
 3. Update DNS records to point to GitHub Pages
@@ -206,20 +223,24 @@ aws s3 sync dist/ s3://your-bucket-name --delete
 ## Troubleshooting
 
 ### Blank Page on Load
+
 - Check browser console for errors
 - Verify `index.html` is being served
 - Check that routing is configured correctly
 
 ### 404 Errors on Navigation
+
 - Ensure server redirects `404` to `index.html`
 - For SPA routing to work, all routes must serve `index.html`
 
 ### Charts Not Displaying
+
 - Verify Recharts library is included in build
 - Check browser console for errors
 - Verify data is available
 
 ### Dark Mode Not Working
+
 - Check localStorage access in browser
 - Verify Tailwind dark mode class on `<html>`
 - Clear browser cache and reload

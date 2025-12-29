@@ -5,6 +5,7 @@ OVscale Dashboard is built with modern, production-ready technologies.
 ## Core Framework
 
 ### React 18
+
 - **Version:** ^18.3.1
 - **Purpose:** UI library and component framework
 - **Why:** Industry standard, excellent ecosystem, great documentation
@@ -15,6 +16,7 @@ OVscale Dashboard is built with modern, production-ready technologies.
   - Excellent developer experience
 
 ### TypeScript
+
 - **Version:** ^5.9.2
 - **Purpose:** Type-safe JavaScript
 - **Benefits:**
@@ -24,6 +26,7 @@ OVscale Dashboard is built with modern, production-ready technologies.
   - Easier refactoring
 
 ### Vite
+
 - **Version:** ^7.1.2
 - **Purpose:** Build tool and dev server
 - **Features:**
@@ -35,6 +38,7 @@ OVscale Dashboard is built with modern, production-ready technologies.
 ## Routing
 
 ### React Router DOM
+
 - **Version:** ^6.30.1
 - **Purpose:** Client-side routing
 - **Capabilities:**
@@ -46,6 +50,7 @@ OVscale Dashboard is built with modern, production-ready technologies.
 ## UI & Styling
 
 ### Tailwind CSS
+
 - **Version:** ^3.4.17
 - **Purpose:** Utility-first CSS framework
 - **Advantages:**
@@ -55,6 +60,7 @@ OVscale Dashboard is built with modern, production-ready technologies.
   - Responsive design built-in
 
 ### Radix UI
+
 - **Purpose:** Accessible component primitives
 - **Provides:**
   - Buttons, dialogs, menus
@@ -63,21 +69,25 @@ OVscale Dashboard is built with modern, production-ready technologies.
   - Fully accessible (WCAG AA)
 
 ### Class Variance Authority (CVA)
+
 - **Version:** ^0.7.1
 - **Purpose:** Component variant management
 - **Use Case:** Create flexible, type-safe component variants
 
 ### Tailwind Merge
+
 - **Version:** ^2.6.0
 - **Purpose:** Merge Tailwind classes intelligently
 - **Prevents:** Conflicting CSS class overrides
 
 ### Embla Carousel
+
 - **Version:** ^8.6.0
 - **Purpose:** Carousel component
 - **Features:** Responsive, accessible carousels
 
 ### Lucide React
+
 - **Version:** ^0.539.0
 - **Purpose:** Icon library
 - **Benefits:** Consistent, lightweight SVG icons
@@ -85,6 +95,7 @@ OVscale Dashboard is built with modern, production-ready technologies.
 ## Data Visualization
 
 ### Recharts
+
 - **Version:** ^2.12.7
 - **Purpose:** React charting library
 - **Supported Charts:**
@@ -102,6 +113,7 @@ OVscale Dashboard is built with modern, production-ready technologies.
 ## State Management
 
 ### React Query (@tanstack/react-query)
+
 - **Version:** ^5.84.2
 - **Purpose:** Server state management
 - **Features:**
@@ -111,10 +123,12 @@ OVscale Dashboard is built with modern, production-ready technologies.
   - Devtools integration
 
 ### Context API + Hooks
+
 - **Purpose:** Client state management
 - **Usage:** Theme, user preferences
 
 ### React Hook Form
+
 - **Version:** ^7.62.0
 - **Purpose:** Form state management
 - **Benefits:** Small bundle size, performance optimized
@@ -122,6 +136,7 @@ OVscale Dashboard is built with modern, production-ready technologies.
 ## Animations
 
 ### Framer Motion
+
 - **Version:** ^12.23.12
 - **Purpose:** React animation library
 - **Capabilities:**
@@ -131,6 +146,7 @@ OVscale Dashboard is built with modern, production-ready technologies.
   - Layout animations
 
 ### Tailwind Animate
+
 - **Version:** ^1.0.7
 - **Purpose:** Tailwind animation plugin
 - **Animations:**
@@ -141,26 +157,31 @@ OVscale Dashboard is built with modern, production-ready technologies.
 ## Component Libraries
 
 ### Sonner
+
 - **Version:** ^1.7.4
 - **Purpose:** Toast notifications
 - **Features:** Simple, beautiful toast messages
 
 ### React Day Picker
+
 - **Version:** ^9.8.1
 - **Purpose:** Date picker component
 - **Features:** Accessible, customizable calendar
 
 ### Input OTP
+
 - **Version:** ^1.4.2
 - **Purpose:** One-Time Password input
 - **Use Case:** Secure authentication flows
 
 ### Vaul
+
 - **Version:** ^1.1.2
 - **Purpose:** Drawer component
 - **Features:** Accessible, animated drawer
 
 ### Next Themes
+
 - **Version:** ^0.4.6
 - **Purpose:** Theme management
 - **Features:**
@@ -169,6 +190,7 @@ OVscale Dashboard is built with modern, production-ready technologies.
   - Persisted user choice
 
 ### React Resizable Panels
+
 - **Version:** ^3.0.4
 - **Purpose:** Resizable panel layout
 - **Use Case:** Dashboard widget sizing
@@ -176,21 +198,25 @@ OVscale Dashboard is built with modern, production-ready technologies.
 ## Development Tools
 
 ### @vitejs/plugin-react-swc
+
 - **Version:** ^4.0.0
 - **Purpose:** Fast JSX transformation with SWC
 - **Benefits:** Much faster builds than Babel
 
 ### TypeScript Types
+
 - **@types/react:** ^18.3.23
 - **@types/react-dom:** ^18.3.7
 - **@types/node:** ^24.2.1
 
 ### PostCSS
+
 - **Version:** ^8.5.6
 - **Purpose:** CSS transformations
 - **With:** Autoprefixer, Tailwind
 
 ### Prettier
+
 - **Version:** ^3.6.2
 - **Purpose:** Code formatter
 - **Ensures:** Consistent code style
@@ -259,7 +285,9 @@ OVscale Dashboard is built with modern, production-ready technologies.
 ## Dependencies Summary
 
 ### Production Dependencies (32)
+
 Focused on UI, routing, and data visualization:
+
 - React ecosystem: react, react-dom, react-router-dom
 - UI: radix-ui (11 packages), recharts, embla-carousel-react
 - Utilities: clsx, class-variance-authority, tailwind-merge
@@ -269,7 +297,9 @@ Focused on UI, routing, and data visualization:
 - Other: zod, date-fns, sonner, next-themes, lucide-react
 
 ### Development Dependencies (20)
+
 Tools for development and building:
+
 - Build: vite, @vitejs/plugin-react-swc
 - Styling: tailwindcss, autoprefixer, postcss
 - TypeScript: typescript, type definitions
@@ -279,6 +309,7 @@ Tools for development and building:
 ## Performance Characteristics
 
 ### Bundle Size (Gzipped)
+
 - React + ReactDOM: ~100KB
 - Recharts: ~60KB
 - Radix UI components: ~40KB
@@ -287,11 +318,13 @@ Tools for development and building:
 - **Total:** ~250KB (typical for this feature set)
 
 ### Load Time Targets
+
 - First Contentful Paint (FCP): < 1.5s
 - Largest Contentful Paint (LCP): < 2.5s
 - Time to Interactive (TTI): < 3.5s
 
 ### Runtime Performance
+
 - React: ~60fps animations
 - Recharts: Smooth chart interactions
 - Tailwind: No runtime overhead (CSS-in-JS)
@@ -299,6 +332,7 @@ Tools for development and building:
 ## Security
 
 ### Security Features
+
 - **HTTPS:** Enforced by hosting provider
 - **XSS Protection:** React's built-in escaping
 - **CSP Headers:** Configured by hosting provider
@@ -308,6 +342,7 @@ Tools for development and building:
 ## Compliance
 
 ### Accessibility
+
 - **WCAG 2.1 Level AA:** Target compliance
 - **Keyboard Navigation:** Full support
 - **Screen Readers:** ARIA labels and roles
@@ -315,6 +350,7 @@ Tools for development and building:
 - **Semantic HTML:** Proper markup structure
 
 ### Browser Support
+
 - Chrome/Edge: Latest 2 versions
 - Firefox: Latest 2 versions
 - Safari: Latest 2 versions
@@ -323,12 +359,14 @@ Tools for development and building:
 ## Scalability
 
 ### Code Organization
+
 - Component-based architecture
 - Clear separation of concerns
 - Reusable hooks and utilities
 - Scalable folder structure
 
 ### Performance Optimization
+
 - Code splitting with Vite
 - Lazy loading with React.lazy()
 - Image optimization
@@ -338,12 +376,14 @@ Tools for development and building:
 ## Maintenance
 
 ### Update Strategy
+
 - Monthly dependency checks
 - Security updates immediately
 - Major versions: Quarterly review
 - Minor/patch updates: Monthly
 
 ### Support Status
+
 - **React 18:** Active maintenance through 2026
 - **TypeScript:** Continuous updates
 - **Vite:** Rapid release cycle
@@ -353,6 +393,7 @@ Tools for development and building:
 ## Migration Path
 
 If you need to add:
+
 - **Backend:** Add Express/Node server
 - **Database:** Add Postgres/MongoDB
 - **Authentication:** Add Auth0/Firebase

@@ -5,6 +5,7 @@ This document describes how to set up your development environment and contribut
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js 18+ ([Download](https://nodejs.org))
 - npm, yarn, or pnpm
 - Git
@@ -13,12 +14,14 @@ This document describes how to set up your development environment and contribut
 ### Initial Setup
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/yourusername/ovscale-dashboard.git
 cd ovscale-dashboard
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 # or
@@ -26,6 +29,7 @@ pnpm install
 ```
 
 3. Start development server:
+
 ```bash
 npm run dev
 ```
@@ -62,6 +66,7 @@ npm run dev
 ```
 
 The server supports:
+
 - Hot Module Replacement (HMR)
 - TypeScript checking
 - CSS hot reload
@@ -70,16 +75,19 @@ The server supports:
 ### Code Quality
 
 #### Type Checking
+
 ```bash
 npm run typecheck
 ```
 
 #### Formatting
+
 ```bash
 npm run format
 ```
 
 #### Build Verification
+
 ```bash
 npm run build
 ```
@@ -87,21 +95,25 @@ npm run build
 ## Key Technologies
 
 ### React 18
+
 - Functional components with hooks
 - Context API for state management
 - React Router for navigation
 
 ### TypeScript
+
 - Strict type checking enabled
 - Path aliases configured
 - Global types in `types/`
 
 ### Tailwind CSS
+
 - Utility-first styling
 - CSS variables for theming
 - Dark mode support
 
 ### Recharts
+
 - Interactive data visualization
 - Multiple chart types (Bar, Line, Pie)
 - Responsive containers
@@ -111,6 +123,7 @@ npm run build
 ### Creating a New Component
 
 1. Create file in appropriate directory:
+
 ```typescript
 // client/components/MyComponent.tsx
 import { FC } from 'react';
@@ -128,6 +141,7 @@ export default MyComponent;
 ```
 
 2. Use in parent component:
+
 ```typescript
 import MyComponent from '@/components/MyComponent';
 
@@ -164,12 +178,13 @@ function Component({ isActive }: { isActive: boolean }) {
 ### LocalStorage for Persistence
 
 Use the `useLocalStorage` hook:
+
 ```typescript
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 
 function Component() {
   const [value, setValue] = useLocalStorage('key', 'default');
-  
+
   return (
     <button onClick={() => setValue('new-value')}>
       Current: {value}
@@ -181,6 +196,7 @@ function Component() {
 ### React Query (TanStack Query)
 
 For data fetching:
+
 ```typescript
 import { useQuery } from '@tanstack/react-query';
 
@@ -195,7 +211,7 @@ function DataComponent() {
 
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
-  
+
   return <div>{JSON.stringify(data)}</div>;
 }
 ```
@@ -221,6 +237,7 @@ function DataComponent() {
 ### CSS Variables
 
 Edit `client/global.css` to customize theme:
+
 ```css
 :root {
   --primary: 280 100% 50%;
@@ -235,6 +252,7 @@ Edit `client/global.css` to customize theme:
 ### Adding a New Route
 
 Edit `client/App.tsx`:
+
 ```typescript
 <Routes>
   <Route path="/" element={<Layout><Dashboard /></Layout>} />
@@ -247,12 +265,13 @@ Edit `client/App.tsx`:
 ### Navigation
 
 Use React Router hooks:
+
 ```typescript
 import { useNavigate } from 'react-router-dom';
 
 function Component() {
   const navigate = useNavigate();
-  
+
   return (
     <button onClick={() => navigate('/settings')}>
       Go to Settings
@@ -303,6 +322,7 @@ function ChartComponent() {
 ## Testing
 
 ### Running Tests
+
 ```bash
 npm run test
 ```
@@ -310,6 +330,7 @@ npm run test
 ### Writing Tests
 
 Create test files next to components:
+
 ```typescript
 // MyComponent.test.ts
 import { describe, it, expect } from 'vitest';
@@ -327,21 +348,24 @@ describe('MyComponent', () => {
 ## Debugging
 
 ### Browser DevTools
+
 - Inspect React components with React DevTools
 - View component props and state
 - Track component re-renders
 
 ### Console Logging
+
 ```typescript
 // Use console for debugging
-console.log('Value:', value);
-console.warn('Warning message');
-console.error('Error message');
+console.log("Value:", value);
+console.warn("Warning message");
+console.error("Error message");
 ```
 
 ### VS Code Debugging
 
 Create `.vscode/launch.json`:
+
 ```json
 {
   "version": "0.2.0",
@@ -364,12 +388,14 @@ npm run build
 ```
 
 This creates:
+
 - Optimized JavaScript bundles
 - Minified CSS
 - Source maps (optional)
 - Assets in `dist/` folder
 
 Verify build:
+
 ```bash
 npm run preview
 ```
@@ -377,6 +403,7 @@ npm run preview
 ## Git Workflow
 
 ### Commit Message Format
+
 ```
 [feature|fix|docs|style|test] Brief description
 
@@ -385,6 +412,7 @@ and why it was made.
 ```
 
 ### Example Commits
+
 ```
 git commit -m "feature: Add chart type switcher to detail pages"
 git commit -m "fix: Resolve AI action navigation bug"
@@ -394,15 +422,18 @@ git commit -m "docs: Update deployment guide"
 ## Performance Optimization
 
 ### Code Splitting
+
 - Use React.lazy() for route-based splitting
 - Vite automatically handles dynamic imports
 
 ### Image Optimization
+
 - Use WebP format when possible
 - Optimize SVG files
 - Lazy load images below the fold
 
 ### Bundle Analysis
+
 ```bash
 npm run build
 # Check dist/ folder size
@@ -411,21 +442,25 @@ npm run build
 ## Troubleshooting
 
 ### HMR Not Working
+
 1. Check firewall settings
 2. Ensure port 8080 is available
 3. Try `npm run dev -- --host`
 
 ### Module Not Found Errors
+
 1. Verify import path is correct
 2. Check file extension (.tsx, .ts, .css)
 3. Ensure alias is configured in tsconfig.json
 
 ### TypeScript Errors
+
 ```bash
 npm run typecheck
 ```
 
 ### Build Fails
+
 1. Run `npm install` to update dependencies
 2. Delete `node_modules` and `.vite` cache
 3. Check for circular dependencies

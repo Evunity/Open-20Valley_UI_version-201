@@ -5,7 +5,8 @@ AI-Powered Zero-Touch Network Operations Dashboard built with React 18, TypeScri
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+ 
+
+- Node.js 18+
 - npm, yarn, or pnpm
 
 ### Installation
@@ -109,6 +110,7 @@ This is a client-side only application. It can be deployed to any static hosting
 5. Deploy!
 
 **CLI deployment:**
+
 ```bash
 npm i -g vercel
 vercel
@@ -117,19 +119,22 @@ vercel
 ### GitHub Pages
 
 1. Add to `vite.config.ts`:
+
 ```typescript
 export default defineConfig({
-  base: '/ovscale-dashboard/',  // Replace with your repo name
+  base: "/ovscale-dashboard/", // Replace with your repo name
   // ... rest of config
 });
 ```
 
 2. Install deployment tools:
+
 ```bash
 npm install --save-dev gh-pages
 ```
 
 3. Update `package.json`:
+
 ```json
 {
   "scripts": {
@@ -140,6 +145,7 @@ npm install --save-dev gh-pages
 ```
 
 4. Deploy:
+
 ```bash
 npm run deploy
 ```
@@ -163,7 +169,7 @@ Edit `client/global.css` to customize the purple color scheme:
 
 ```css
 :root {
-  --primary: 280 100% 50%;  /* Adjust hue, saturation, lightness */
+  --primary: 280 100% 50%; /* Adjust hue, saturation, lightness */
   --primary-foreground: 0 0% 100%;
   /* ... other colors ... */
 }
@@ -194,6 +200,7 @@ This application does NOT require any environment variables. It runs entirely on
 ## 🚢 Building for Production
 
 The production build is optimized for:
+
 - Code splitting
 - Tree shaking
 - Minification
