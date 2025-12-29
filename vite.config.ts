@@ -26,6 +26,7 @@ export default defineConfig({
         },
       },
     },
+    chunkSizeWarningLimit: 1000,
   },
   plugins: [react()],
   resolve: {
