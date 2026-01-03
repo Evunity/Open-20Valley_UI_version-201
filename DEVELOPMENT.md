@@ -24,8 +24,6 @@ cd ovscale-dashboard
 
 ```bash
 npm install
-# or
-pnpm install
 ```
 
 3. Start development server:
