@@ -26,8 +26,8 @@ import {
 } from "recharts";
 import DashboardWidget from "@/components/DashboardWidget";
 import { useLocalStorage, DEFAULT_WIDGETS, type DashboardLayout, type WidgetConfig } from "@/hooks/useLocalStorage";
+import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { toast } from "@/components/ui/toaster";
 
 // ===== GLOBAL STATE & TYPES =====
 
