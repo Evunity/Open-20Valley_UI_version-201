@@ -268,6 +268,7 @@ const downloadFile = (content: string, filename: string, type: string) => {
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [timeGranularity, setTimeGranularity] = useState<TimeGranularity>("daily");
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
