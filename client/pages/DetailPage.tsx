@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Download, TrendingUp, TrendingDown, AlertCircle, CheckCircle2, Eye, EyeOff, RotateCcw } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import {
   BarChart,
   Bar,
