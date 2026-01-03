@@ -354,6 +354,7 @@ const downloadFile = (content: string, filename: string, type: string) => {
 export default function DetailPage() {
   const { section, action } = useParams<{ section: string; action?: string }>();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [chartType, setChartType] = useLocalStorage<ChartType>(
     `detail-chart-type-${section}`,
     "bar"
