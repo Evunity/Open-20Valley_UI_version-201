@@ -434,11 +434,17 @@ export default function Dashboard() {
             {/* Dashboard-wide Export */}
             <button
               onClick={() => {
-                exportToJSON({
+                const success = exportToJSON({
                   timestamp: new Date().toISOString(),
                   filters,
                   data: memoizedData,
                 }, "dashboard-export");
+                if (success) {
+                  toast({
+                    title: "Export successful",
+                    description: "Downloaded dashboard-export.json",
+                  });
+                }
               }}
               className="flex items-center gap-1 px-3 py-1 rounded-lg bg-muted hover:bg-muted/70 transition-colors text-xs font-medium"
             >
