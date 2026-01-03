@@ -220,12 +220,7 @@ const CHART_COLORS = [
 
 const exportToCSV = (data: any[], filename: string) => {
   if (!data || data.length === 0) {
-    toast({
-      title: "No data",
-      description: "Cannot export empty dataset",
-      variant: "destructive",
-    });
-    return;
+    return false;
   }
 
   const headers = Object.keys(data[0]);
@@ -240,11 +235,13 @@ const exportToCSV = (data: any[], filename: string) => {
   ].join("\n");
 
   downloadFile(csv, `${filename}.csv`, "text/csv");
+  return true;
 };
 
 const exportToJSON = (data: any[], filename: string) => {
   const json = JSON.stringify(data, null, 2);
   downloadFile(json, `${filename}.json`, "application/json");
+  return true;
 };
 
 const downloadFile = (content: string, filename: string, type: string) => {
@@ -257,11 +254,6 @@ const downloadFile = (content: string, filename: string, type: string) => {
   link.click();
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
-
-  toast({
-    title: "Export successful",
-    description: `Downloaded ${filename}`,
-  });
 };
 
 // ===== MAIN COMPONENT =====
