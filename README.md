@@ -7,16 +7,12 @@ AI-Powered Zero-Touch Network Operations Dashboard built with React 18, TypeScri
 ### Prerequisites
 
 - Node.js 18+
-- npm, yarn, or pnpm
+- npm
 
 ### Installation
 
 ```bash
 npm install
-# or
-pnpm install
-# or
-yarn install
 ```
 
 ### Development
@@ -25,8 +21,6 @@ Start the local development server:
 
 ```bash
 npm run dev
-# or
-pnpm run dev
 ```
 
 The app will be available at `http://localhost:8080`
@@ -37,8 +31,6 @@ Create an optimized production build:
 
 ```bash
 npm run build
-# or
-pnpm run build
 ```
 
 The output will be in the `dist/` folder.
@@ -49,8 +41,6 @@ Preview the production build locally:
 
 ```bash
 npm run preview
-# or
-pnpm run preview
 ```
 
 ## 📁 Project Structure
