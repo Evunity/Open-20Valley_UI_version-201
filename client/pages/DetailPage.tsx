@@ -779,7 +779,7 @@ export default function DetailPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <button
             onClick={() => navigate("/")}
@@ -790,10 +790,34 @@ export default function DetailPage() {
           </button>
           <h1 className="text-3xl font-bold text-foreground">{analytics.title}</h1>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-muted hover:bg-muted/70 rounded-lg transition-colors text-sm font-medium">
-          <Download className="w-4 h-4" />
-          Export
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => {
+              exportToCSV(analytics.breakdown, analytics.title.toLowerCase().replace(/\s+/g, "-"));
+              toast({
+                title: "Export successful",
+                description: `Downloaded ${analytics.title} as CSV`,
+              });
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-muted hover:bg-muted/70 rounded-lg transition-colors text-sm font-medium"
+          >
+            <Download className="w-4 h-4" />
+            CSV
+          </button>
+          <button
+            onClick={() => {
+              exportToJSON(analytics.breakdown, analytics.title.toLowerCase().replace(/\s+/g, "-"));
+              toast({
+                title: "Export successful",
+                description: `Downloaded ${analytics.title} as JSON`,
+              });
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-muted hover:bg-muted/70 rounded-lg transition-colors text-sm font-medium"
+          >
+            <Download className="w-4 h-4" />
+            JSON
+          </button>
+        </div>
       </div>
 
       {/* KPI Summary Row */}
