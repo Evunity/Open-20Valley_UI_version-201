@@ -339,7 +339,21 @@ export default function Dashboard() {
   const ExportButton = ({ data, widgetId, filename }: { data: any; widgetId: string; filename: string }) => (
     <div className="flex gap-2">
       <button
-        onClick={() => exportToCSV(data, filename)}
+        onClick={() => {
+          const success = exportToCSV(data, filename);
+          if (success) {
+            toast({
+              title: "Export successful",
+              description: `Downloaded ${filename}.csv`,
+            });
+          } else {
+            toast({
+              title: "No data",
+              description: "Cannot export empty dataset",
+              variant: "destructive",
+            });
+          }
+        }}
         className="p-2 rounded-lg bg-muted hover:bg-muted/70 transition-colors text-xs font-medium flex items-center gap-1"
         title="Export as CSV"
       >
@@ -347,7 +361,15 @@ export default function Dashboard() {
         CSV
       </button>
       <button
-        onClick={() => exportToJSON(data, filename)}
+        onClick={() => {
+          const success = exportToJSON(data, filename);
+          if (success) {
+            toast({
+              title: "Export successful",
+              description: `Downloaded ${filename}.json`,
+            });
+          }
+        }}
         className="p-2 rounded-lg bg-muted hover:bg-muted/70 transition-colors text-xs font-medium flex items-center gap-1"
         title="Export as JSON"
       >
