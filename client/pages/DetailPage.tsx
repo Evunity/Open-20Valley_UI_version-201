@@ -22,6 +22,15 @@ import { cn } from "@/lib/utils";
 import { Filter, Clock } from "lucide-react";
 
 type ChartType = "bar" | "pie" | "line" | "histogram" | "table";
+type Technology = "2G" | "3G" | "4G" | "5G" | "ORAN";
+type Region = "North" | "South" | "East" | "West" | "Central";
+
+interface FilterState {
+  vendors: string[];
+  technologies: Technology[];
+  regions: Region[];
+  timeRange: "24h" | "7d" | "30d";
+}
 
 // ===== AI ACTION DATA =====
 
