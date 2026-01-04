@@ -382,17 +382,17 @@ export default function Dashboard() {
   // ===== RENDER =====
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-4">
       {/* ===== HEADER & GLOBAL CONTROLS ===== */}
       <div className="space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Network Operations Dashboard</h1>
-            <p className="text-muted-foreground text-sm mt-1">Real-time monitoring and insights</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground">Network Operations Dashboard</h1>
+            <p className="text-muted-foreground text-xs md:text-sm mt-1">Real-time monitoring and insights</p>
           </div>
           <a
             href="/settings"
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium text-sm"
+            className="px-3 md:px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 active:scale-95 transition-all duration-200 font-medium text-xs md:text-sm flex-shrink-0"
           >
             Settings
           </a>
