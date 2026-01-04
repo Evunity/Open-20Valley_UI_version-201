@@ -592,7 +592,7 @@ export default function Dashboard() {
         </div>
 
         {/* Distribution Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
           {/* Sites by Technology */}
           <div className="card-elevated p-6">
             <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
