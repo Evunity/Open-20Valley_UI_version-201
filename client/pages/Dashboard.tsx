@@ -313,18 +313,18 @@ export default function Dashboard() {
     const changeTrend = change >= 0 ? "positive" : "negative";
 
     return (
-      <div className="card-elevated p-4 hover:shadow-md transition-shadow">
-        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
+      <div className="card-elevated p-4 md:p-5 hover:shadow-lg hover:border-primary/50 transition-all duration-300 rounded-xl border border-border/50 group cursor-default">
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 group-hover:text-foreground/70 transition-colors">
           {label}
         </p>
         <div className="flex items-end justify-between gap-2">
-          <p className={`text-2xl font-bold ${statusColor}`}>{value}</p>
+          <p className={`text-xl md:text-2xl font-bold ${statusColor} transition-colors`}>{value}</p>
           {change !== undefined && (
             <div className="flex items-center gap-1 text-xs font-semibold">
               {changeTrend === "positive" ? (
-                <TrendingUp className={`w-3 h-3 ${change > 0 ? "text-status-healthy" : "text-status-degraded"}`} />
+                <TrendingUp className={`w-4 h-4 ${change > 0 ? "text-status-healthy" : "text-status-degraded"}`} />
               ) : (
-                <TrendingDown className={`w-3 h-3 ${change < 0 ? "text-status-healthy" : "text-status-degraded"}`} />
+                <TrendingDown className={`w-4 h-4 ${change < 0 ? "text-status-healthy" : "text-status-degraded"}`} />
               )}
               <span className={change < 0 ? "text-status-healthy" : "text-status-degraded"}>
                 {Math.abs(change)}%
