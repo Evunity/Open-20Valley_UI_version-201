@@ -377,6 +377,13 @@ export default function DetailPage() {
     `detail-show-legend-${section}`,
     true
   );
+  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState<FilterState>({
+    vendors: [],
+    technologies: [],
+    regions: [],
+    timeRange: "24h",
+  });
 
   // Handle AI Action Detail View
   if (section === "ai-actions" && action) {
