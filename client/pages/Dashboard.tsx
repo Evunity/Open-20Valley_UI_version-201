@@ -668,8 +668,11 @@ export default function Dashboard() {
 
       {/* ===== CORE NETWORK KPIs ===== */}
       <div className="space-y-4">
-        <h2 className="text-xl font-semibold text-foreground">Core Network KPIs</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div>
+          <h2 className="text-xl md:text-2xl font-bold text-foreground">Core Network KPIs</h2>
+          <p className="text-xs md:text-sm text-muted-foreground mt-1">Key performance indicators across the network</p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
           {memoizedData.networkKPIs.map((kpi, idx) => (
             <KPICard key={idx} {...kpi} />
           ))}
