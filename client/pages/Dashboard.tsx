@@ -559,6 +559,9 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* ===== ANALYTICS SECTIONS ===== */}
+      <AnalyticsSections />
+
       {/* ===== NETWORK OVERVIEW SECTION ===== */}
       <div className="space-y-4">
         <div>
