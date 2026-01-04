@@ -399,24 +399,24 @@ export default function Dashboard() {
         </div>
 
         {/* Global Controls */}
-        <div className="card-elevated p-4 space-y-4">
-          <div className="flex items-center justify-between flex-wrap gap-4">
+        <div className="card-elevated p-3 md:p-4 space-y-4 rounded-xl border border-border/50 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between flex-wrap gap-2 md:gap-4">
             {/* Time Granularity */}
-            <div className="flex items-center gap-3 flex-wrap">
-              <Clock className="w-4 h-4 text-muted-foreground" />
-              <div className="flex gap-2">
+            <div className="flex items-center gap-2 md:gap-3 flex-wrap">
+              <Clock className="w-4 h-4 text-muted-foreground hidden md:block" />
+              <div className="flex gap-1 md:gap-2">
                 {(["15min", "hourly", "daily"] as TimeGranularity[]).map((granule) => (
                   <button
                     key={granule}
                     onClick={() => setTimeGranularity(granule)}
                     className={cn(
-                      "px-3 py-1 rounded text-xs font-medium transition-all",
+                      "px-2 md:px-3 py-1 rounded text-xs font-medium transition-all duration-200 active:scale-95",
                       timeGranularity === granule
-                        ? "bg-primary text-primary-foreground"
+                        ? "bg-primary text-primary-foreground shadow-md"
                         : "bg-muted text-muted-foreground hover:bg-muted/70"
                     )}
                   >
-                    {granule === "15min" ? "15-min" : granule === "hourly" ? "Hourly" : "Daily"}
+                    {granule === "15min" ? "15m" : granule === "hourly" ? "1h" : "Daily"}
                   </button>
                 ))}
               </div>
@@ -425,10 +425,17 @@ export default function Dashboard() {
             {/* Filter Button */}
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center gap-2 px-3 py-1 rounded-lg bg-muted hover:bg-muted/70 transition-colors text-xs font-medium"
+              className={cn(
+                "flex items-center gap-2 px-2 md:px-3 py-1 rounded-lg transition-all duration-200 text-xs font-medium active:scale-95",
+                showFilters
+                  ? "bg-primary text-primary-foreground shadow-md"
+                  : "bg-muted hover:bg-muted/70"
+              )}
             >
               <Filter className="w-4 h-4" />
-              Filters {filters.technologies.length > 0 || filters.regions.length > 0 || filters.vendors.length > 0 ? `(${filters.technologies.length + filters.regions.length + filters.vendors.length})` : ""}
+              <span className="hidden sm:inline">
+                {filters.technologies.length > 0 || filters.regions.length > 0 || filters.vendors.length > 0 ? `(${filters.technologies.length + filters.regions.length + filters.vendors.length})` : "Filters"}
+              </span>
             </button>
 
             {/* Dashboard-wide Export */}
@@ -446,10 +453,10 @@ export default function Dashboard() {
                   });
                 }
               }}
-              className="flex items-center gap-1 px-3 py-1 rounded-lg bg-muted hover:bg-muted/70 transition-colors text-xs font-medium"
+              className="flex items-center gap-1 px-2 md:px-3 py-1 rounded-lg bg-muted hover:bg-muted/70 transition-all duration-200 text-xs font-medium active:scale-95"
             >
               <Download className="w-4 h-4" />
-              Export
+              <span className="hidden sm:inline">Export</span>
             </button>
           </div>
 
