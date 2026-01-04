@@ -203,11 +203,11 @@ export default function Layout({ children }: LayoutProps) {
       </nav>
 
       {/* Bottom Actions */}
-      <div className="p-4 border-t border-sidebar-border space-y-2">
+      <div className="p-4 border-t border-sidebar-border space-y-2 flex-shrink-0">
         <button
           onClick={toggleDarkMode}
           className={cn(
-            "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors",
+            "w-full flex items-center justify-center md:justify-start gap-3 px-3 py-2.5 rounded-lg transition-colors",
             "text-sidebar-foreground hover:bg-sidebar-accent/50"
           )}
           title="Toggle dark mode"
@@ -219,29 +219,22 @@ export default function Layout({ children }: LayoutProps) {
               <Moon className="w-5 h-5" />
             )}
           </div>
-          {(sidebarOpen || !isMobile) && (
+          {sidebarOpen && (
             <span className="text-sm">{darkMode ? "Light" : "Dark"}</span>
           )}
         </button>
 
-        {sidebarOpen && !isMobile && (
+        {!isMobile && (
           <button
-            onClick={() => setSidebarOpen(false)}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors"
-            title="Collapse sidebar"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className={cn(
+              "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors",
+              sidebarOpen ? "justify-start" : "justify-center"
+            )}
+            title={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
           >
-            <ChevronDown className="w-5 h-5 flex-shrink-0 rotate-90" />
-            <span className="text-sm">Collapse</span>
-          </button>
-        )}
-
-        {!sidebarOpen && !isMobile && (
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="w-full flex items-center justify-center p-2.5 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors"
-            title="Expand sidebar"
-          >
-            <ChevronDown className="w-5 h-5 -rotate-90" />
+            <ChevronDown className={cn("w-5 h-5 flex-shrink-0 transition-transform", sidebarOpen ? "rotate-90" : "-rotate-90")} />
+            {sidebarOpen && <span className="text-sm">Collapse</span>}
           </button>
         )}
       </div>
