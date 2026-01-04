@@ -681,7 +681,10 @@ export default function Dashboard() {
 
       {/* ===== TREND INSIGHTS SECTION ===== */}
       <div className="space-y-4">
-        <h2 className="text-xl font-semibold text-foreground">Trend Insights</h2>
+        <div>
+          <h2 className="text-xl md:text-2xl font-bold text-foreground">Trend Insights</h2>
+          <p className="text-xs md:text-sm text-muted-foreground mt-1">Traffic patterns and performance trends</p>
+        </div>
         <div className="card-elevated p-6">
           <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
             <h3 className="text-lg font-semibold text-foreground">Traffic & Performance Trends</h3>
