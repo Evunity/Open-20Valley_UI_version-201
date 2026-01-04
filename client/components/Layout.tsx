@@ -99,37 +99,62 @@ export default function Layout({ children }: LayoutProps) {
   const SidebarContent = () => (
     <>
       {/* Logo & Toggle */}
-      <div className="p-4 border-b border-sidebar-border flex items-center justify-between gap-3">
-        <Link to="/" className="flex items-center gap-3 flex-1 min-w-0">
-          {/* Open Valley Logo */}
-          <svg
-            className="w-10 h-10 flex-shrink-0 text-primary"
-            viewBox="0 0 100 100"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="3" opacity="0.8" />
-            <path
-              d="M 50 10 A 40 40 0 0 1 70 15"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-            />
-            <path
-              d="M 75 20 A 35 35 0 0 1 85 40"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-            />
-          </svg>
-          {(sidebarOpen || !isMobile) && (
+      <div className="p-4 border-b border-sidebar-border flex items-center justify-between gap-2 flex-shrink-0">
+        {sidebarOpen && (
+          <Link to="/" className="flex items-center gap-3 flex-1 min-w-0">
+            {/* Open Valley Logo */}
+            <svg
+              className="w-10 h-10 flex-shrink-0 text-primary"
+              viewBox="0 0 100 100"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="3" opacity="0.8" />
+              <path
+                d="M 50 10 A 40 40 0 0 1 70 15"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+              <path
+                d="M 75 20 A 35 35 0 0 1 85 40"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+            </svg>
             <div className="flex flex-col min-w-0">
               <span className="font-bold text-sm text-foreground">Open Valley</span>
               <span className="text-xs text-muted-foreground">Network Ops</span>
             </div>
-          )}
-        </Link>
+          </Link>
+        )}
+        {!sidebarOpen && (
+          <Link to="/" className="flex items-center justify-center flex-1" title="Open Valley">
+            <svg
+              className="w-10 h-10 flex-shrink-0 text-primary"
+              viewBox="0 0 100 100"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="3" opacity="0.8" />
+              <path
+                d="M 50 10 A 40 40 0 0 1 70 15"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+              <path
+                d="M 75 20 A 35 35 0 0 1 85 40"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+            </svg>
+          </Link>
+        )}
         {isMobile && (
           <button
             onClick={() => setMobileMenuOpen(false)}
