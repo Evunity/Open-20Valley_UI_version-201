@@ -716,15 +716,18 @@ export default function Dashboard() {
       {/* VOICE SECTION */}
       <div className="space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <h2 className="text-xl font-semibold text-foreground">Voice Services</h2>
+          <div>
+            <h2 className="text-xl md:text-2xl font-bold text-foreground">Voice Services</h2>
+            <p className="text-xs md:text-sm text-muted-foreground mt-1">Call quality and performance metrics</p>
+          </div>
           <button
             onClick={() => navigate("/detail/voice")}
-            className="text-sm text-primary hover:underline font-medium"
+            className="text-xs md:text-sm text-primary hover:text-primary/80 hover:underline font-medium transition-colors"
           >
             View Details →
           </button>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-4">
           <KPICard
             label="Total Calls"
             value="24.5K"
