@@ -893,10 +893,13 @@ export default function Dashboard() {
       {/* AI ENGINE ACTIONS */}
       <div className="space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <h2 className="text-xl font-semibold text-foreground">Recent AI Engine Actions</h2>
+          <div>
+            <h2 className="text-xl md:text-2xl font-bold text-foreground">Recent AI Engine Actions</h2>
+            <p className="text-xs md:text-sm text-muted-foreground mt-1">Automated remediation and optimization actions</p>
+          </div>
           <button
             onClick={() => navigate("/detail/ai-actions")}
-            className="text-sm text-primary hover:underline font-medium"
+            className="text-xs md:text-sm text-primary hover:text-primary/80 hover:underline font-medium transition-colors"
           >
             View All →
           </button>
