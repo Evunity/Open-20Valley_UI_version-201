@@ -834,15 +834,18 @@ export default function Dashboard() {
       {/* ALARMS SECTION */}
       <div className="space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <h2 className="text-xl font-semibold text-foreground">Network Alarms</h2>
+          <div>
+            <h2 className="text-xl md:text-2xl font-bold text-foreground">Network Alarms</h2>
+            <p className="text-xs md:text-sm text-muted-foreground mt-1">Active incidents and resolution tracking</p>
+          </div>
           <button
             onClick={() => navigate("/detail/alarms")}
-            className="text-sm text-primary hover:underline font-medium"
+            className="text-xs md:text-sm text-primary hover:text-primary/80 hover:underline font-medium transition-colors"
           >
             View Details →
           </button>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-4">
           <KPICard
             label="Active Issues"
             value="12"
