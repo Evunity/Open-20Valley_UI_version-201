@@ -19,6 +19,7 @@ import {
 import { useState, useMemo } from "react";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { cn } from "@/lib/utils";
+import { Filter, Clock } from "lucide-react";
 
 type ChartType = "bar" | "pie" | "line" | "histogram" | "table";
 
