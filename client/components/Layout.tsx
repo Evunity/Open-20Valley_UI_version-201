@@ -142,10 +142,10 @@ export default function Layout({ children }: LayoutProps) {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-4">
+      <nav className="flex-1 overflow-y-auto py-4 px-0">
         {navSections.map((section) => (
           <div key={section.title} className="mb-4">
-            {(sidebarOpen || !isMobile) && (
+            {sidebarOpen && (
               <h3 className="px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                 {section.title}
               </h3>
@@ -159,15 +159,15 @@ export default function Layout({ children }: LayoutProps) {
                     if (isMobile) setMobileMenuOpen(false);
                   }}
                   className={cn(
-                    "mx-2 flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200",
+                    "mx-2 flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 whitespace-nowrap",
                     isActive(path)
                       ? "bg-primary/20 text-primary font-medium border-l-2 border-primary"
                       : "text-sidebar-foreground hover:bg-sidebar-accent/50"
                   )}
-                  title={!sidebarOpen && isMobile ? label : undefined}
+                  title={!sidebarOpen ? label : undefined}
                 >
-                  <div className="flex-shrink-0">{icon}</div>
-                  {(sidebarOpen || !isMobile) && (
+                  <div className="flex-shrink-0 flex items-center justify-center">{icon}</div>
+                  {sidebarOpen && (
                     <span className="text-sm truncate">{label}</span>
                   )}
                 </Link>
