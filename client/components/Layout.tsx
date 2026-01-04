@@ -228,7 +228,7 @@ export default function Layout({ children }: LayoutProps) {
       {/* Desktop Sidebar */}
       <aside
         className={cn(
-          "hidden md:flex md:flex-col bg-sidebar border-r border-sidebar-border transition-all duration-300",
+          "hidden md:flex md:flex-col bg-sidebar border-r border-sidebar-border transition-all duration-300 flex-shrink-0",
           sidebarOpen ? "md:w-64" : "md:w-20"
         )}
       >
