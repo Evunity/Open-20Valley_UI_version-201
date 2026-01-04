@@ -7,25 +7,11 @@ import {
   Settings,
   Moon,
   Sun,
-  BarChart3,
-  Globe,
-  AlertTriangle,
-  FileText,
-  ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface LayoutProps {
   children: React.ReactNode;
-}
-
-interface NavSection {
-  title: string;
-  items: {
-    path: string;
-    label: string;
-    icon: React.ReactNode;
-  }[];
 }
 
 export default function Layout({ children }: LayoutProps) {
@@ -58,51 +44,19 @@ export default function Layout({ children }: LayoutProps) {
     }
   };
 
-  const navSections: NavSection[] = [
-    {
-      title: "MAIN",
-      items: [
-        { path: "/", label: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
-      ],
-    },
-    {
-      title: "ANALYTICS",
-      items: [
-        { path: "/detail/voice", label: "Voice Analytics", icon: <BarChart3 className="w-5 h-5" /> },
-        { path: "/detail/data", label: "Data Services", icon: <BarChart3 className="w-5 h-5" /> },
-        { path: "/detail/alarms", label: "Alarms", icon: <AlertTriangle className="w-5 h-5" /> },
-      ],
-    },
-    {
-      title: "NETWORK",
-      items: [
-        { path: "/network", label: "Network Status", icon: <Globe className="w-5 h-5" /> },
-        { path: "/incidents", label: "Incidents", icon: <AlertTriangle className="w-5 h-5" /> },
-      ],
-    },
-    {
-      title: "REPORTS",
-      items: [
-        { path: "/reports", label: "Reports", icon: <FileText className="w-5 h-5" /> },
-      ],
-    },
-    {
-      title: "ADMIN",
-      items: [
-        { path: "/settings", label: "Settings", icon: <Settings className="w-5 h-5" /> },
-      ],
-    },
+  const mainNavItems = [
+    { path: "/", label: "Dashboard", icon: LayoutDashboard },
+    { path: "/settings", label: "Settings", icon: Settings },
   ];
 
   const isActive = (path: string) => location.pathname === path;
 
   const SidebarContent = () => (
     <>
-      {/* Logo & Toggle */}
+      {/* Logo & Header */}
       <div className="p-4 border-b border-sidebar-border flex items-center justify-between gap-2 flex-shrink-0">
         {sidebarOpen && (
           <Link to="/" className="flex items-center gap-3 flex-1 min-w-0">
-            {/* Open Valley Logo */}
             <svg
               className="w-10 h-10 flex-shrink-0 text-primary"
               viewBox="0 0 100 100"
@@ -166,40 +120,33 @@ export default function Layout({ children }: LayoutProps) {
         )}
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-4 px-0">
-        {navSections.map((section) => (
-          <div key={section.title} className="mb-4">
-            {sidebarOpen && (
-              <h3 className="px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                {section.title}
-              </h3>
-            )}
-            <div className="space-y-1">
-              {section.items.map(({ path, label, icon }) => (
-                <Link
-                  key={path}
-                  to={path}
-                  onClick={() => {
-                    if (isMobile) setMobileMenuOpen(false);
-                  }}
-                  className={cn(
-                    "mx-2 flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 whitespace-nowrap",
-                    isActive(path)
-                      ? "bg-primary/20 text-primary font-medium border-l-2 border-primary"
-                      : "text-sidebar-foreground hover:bg-sidebar-accent/50"
-                  )}
-                  title={!sidebarOpen ? label : undefined}
-                >
-                  <div className="flex-shrink-0 flex items-center justify-center">{icon}</div>
-                  {sidebarOpen && (
-                    <span className="text-sm truncate">{label}</span>
-                  )}
-                </Link>
-              ))}
-            </div>
-          </div>
-        ))}
+      {/* Main Navigation */}
+      <nav className="flex-1 overflow-y-auto py-6 px-0">
+        <div className="space-y-1">
+          {mainNavItems.map(({ path, label, icon: Icon }) => (
+            <Link
+              key={path}
+              to={path}
+              onClick={() => {
+                if (isMobile) setMobileMenuOpen(false);
+              }}
+              className={cn(
+                "mx-2 flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 whitespace-nowrap",
+                isActive(path)
+                  ? "bg-primary/20 text-primary font-medium border-l-2 border-primary"
+                  : "text-sidebar-foreground hover:bg-sidebar-accent/50"
+              )}
+              title={!sidebarOpen ? label : undefined}
+            >
+              <div className="flex-shrink-0 flex items-center justify-center">
+                <Icon className="w-5 h-5" />
+              </div>
+              {sidebarOpen && (
+                <span className="text-sm truncate">{label}</span>
+              )}
+            </Link>
+          ))}
+        </div>
       </nav>
 
       {/* Bottom Actions */}
@@ -233,7 +180,11 @@ export default function Layout({ children }: LayoutProps) {
             )}
             title={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
           >
-            <ChevronDown className={cn("w-5 h-5 flex-shrink-0 transition-transform", sidebarOpen ? "rotate-90" : "-rotate-90")} />
+            <div className="flex-shrink-0">
+              <svg className={cn("w-5 h-5 transition-transform", sidebarOpen ? "rotate-90" : "-rotate-90")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
             {sidebarOpen && <span className="text-sm">Collapse</span>}
           </button>
         )}
