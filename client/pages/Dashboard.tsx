@@ -462,14 +462,14 @@ export default function Dashboard() {
 
           {/* Filters Panel */}
           {showFilters && (
-            <div className="border-t border-border pt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="border-t border-border pt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4 animate-in fade-in slide-in-from-top-2 duration-200">
               <div>
-                <label className="text-xs font-medium text-muted-foreground block mb-2">
+                <label className="text-xs font-semibold text-muted-foreground block mb-2 uppercase tracking-wide">
                   Technology
                 </label>
                 <select
                   multiple
-                  className="w-full px-2 py-1 rounded border border-border bg-background text-sm"
+                  className="w-full px-2.5 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
                   value={filters.technologies}
                   onChange={(e) => {
                     const selected = Array.from(e.target.selectedOptions, (option) => option.value as Technology);
@@ -484,12 +484,12 @@ export default function Dashboard() {
                 </select>
               </div>
               <div>
-                <label className="text-xs font-medium text-muted-foreground block mb-2">
+                <label className="text-xs font-semibold text-muted-foreground block mb-2 uppercase tracking-wide">
                   Region
                 </label>
                 <select
                   multiple
-                  className="w-full px-2 py-1 rounded border border-border bg-background text-sm"
+                  className="w-full px-2.5 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
                   value={filters.regions}
                   onChange={(e) => {
                     const selected = Array.from(e.target.selectedOptions, (option) => option.value as Region);
@@ -504,12 +504,12 @@ export default function Dashboard() {
                 </select>
               </div>
               <div>
-                <label className="text-xs font-medium text-muted-foreground block mb-2">
+                <label className="text-xs font-semibold text-muted-foreground block mb-2 uppercase tracking-wide">
                   Vendor
                 </label>
                 <select
                   multiple
-                  className="w-full px-2 py-1 rounded border border-border bg-background text-sm"
+                  className="w-full px-2.5 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
                   value={filters.vendors}
                   onChange={(e) => {
                     const selected = Array.from(e.target.selectedOptions, (option) => option.value);
@@ -523,11 +523,11 @@ export default function Dashboard() {
                 </select>
               </div>
               <div>
-                <label className="text-xs font-medium text-muted-foreground block mb-2">
+                <label className="text-xs font-semibold text-muted-foreground block mb-2 uppercase tracking-wide">
                   Time Range
                 </label>
                 <select
-                  className="w-full px-2 py-1 rounded border border-border bg-background text-sm"
+                  className="w-full px-2.5 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
                   value={filters.timeRange}
                   onChange={(e) =>
                     setFilters((prev) => ({ ...prev, timeRange: e.target.value as any }))
@@ -548,7 +548,7 @@ export default function Dashboard() {
                       timeRange: "24h",
                     })
                   }
-                  className="flex-1 px-3 py-1 rounded bg-muted hover:bg-muted/70 transition-colors text-xs font-medium"
+                  className="flex-1 px-3 py-2 rounded-lg bg-muted hover:bg-muted/70 active:scale-95 transition-all duration-200 text-xs font-medium"
                 >
                   Reset
                 </button>
