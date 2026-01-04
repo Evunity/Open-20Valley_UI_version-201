@@ -909,11 +909,11 @@ export default function Dashboard() {
             <div
               key={action.id}
               onClick={() => navigate(`/detail/ai-actions/${action.action.replace(/\s+/g, "-").toLowerCase()}`)}
-              className="card-elevated p-4 hover:shadow-lg transition-all cursor-pointer border-l-4 border-primary"
+              className="card-elevated p-4 md:p-5 hover:shadow-lg hover:border-primary/50 transition-all duration-300 cursor-pointer border-l-4 border-primary rounded-lg group"
             >
-              <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center justify-between flex-wrap gap-2 md:gap-4">
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-foreground">{action.action}</p>
+                  <p className="font-semibold text-foreground text-sm md:text-base group-hover:text-primary transition-colors">{action.action}</p>
                   <p className="text-xs text-muted-foreground mt-1">{action.timestamp}</p>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
