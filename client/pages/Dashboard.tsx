@@ -25,6 +25,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import DashboardWidget from "@/components/DashboardWidget";
+import AnalyticsSections from "@/components/AnalyticsSections";
 import { useLocalStorage, DEFAULT_WIDGETS, type DashboardLayout, type WidgetConfig } from "@/hooks/useLocalStorage";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
