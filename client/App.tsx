@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from "@/components/Layout";
 import Dashboard from "@/pages/Dashboard";
 import Settings from "@/pages/Settings";
+import Reports from "@/pages/Reports";
 import DetailPage from "@/pages/DetailPage";
 import NotFound from "@/pages/NotFound";
 
