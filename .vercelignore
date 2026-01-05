@@ -1,0 +1,23 @@
+# Vercel Deployment Ignore
+# Only deploy the compiled frontend (dist/), exclude backend server code
+
+# Server code (not needed for static frontend deployment)
+server/
+vite.config.server.ts
+
+# Development files
+.builder/
+AGENTS.md
+DEVELOPMENT.md
+
+# Documentation (optional - remove if you want docs in deployment)
+*.md
+!README.md
+
+# Test files (add if you have tests)
+**/*.test.*
+**/*.spec.*
+
+# Environment files
+.env*
+!.env.example
