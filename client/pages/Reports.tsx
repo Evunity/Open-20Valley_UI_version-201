@@ -12,8 +12,23 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import { Filter } from "lucide-react";
+import { useState } from "react";
+import { cn } from "@/lib/utils";
+
+interface FilterState {
+  regions: string[];
+  reportType: string[];
+  timeRange: "24h" | "7d" | "30d";
+}
 
 export default function Reports() {
+  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState<FilterState>({
+    regions: [],
+    reportType: [],
+    timeRange: "30d",
+  });
   // Mock data
   const stabilityData = [
     { month: "Jan", uptime: 97.8, incidents: 24 },
