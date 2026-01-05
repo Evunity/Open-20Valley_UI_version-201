@@ -8,8 +8,8 @@ import Layout from "@/components/Layout";
 import DashboardNew from "@/pages/DashboardNew";
 import Settings from "@/pages/Settings";
 import ReportsPage from "@/pages/ReportsPage";
-import Network from "@/pages/Network";
-import Incidents from "@/pages/Incidents";
+import NetworkNew from "@/pages/NetworkNew";
+import IncidentsNew from "@/pages/IncidentsNew";
 import DetailPage from "@/pages/DetailPage";
 import NotFound from "@/pages/NotFound";
 
@@ -26,8 +26,8 @@ export default function App() {
             <Routes>
               <Route path="/" element={<Layout><DashboardNew /></Layout>} />
               <Route path="/settings" element={<Layout><Settings /></Layout>} />
-              <Route path="/network" element={<Layout><Network /></Layout>} />
-              <Route path="/incidents" element={<Layout><Incidents /></Layout>} />
+              <Route path="/network" element={<Layout><NetworkNew /></Layout>} />
+              <Route path="/incidents" element={<Layout><IncidentsNew /></Layout>} />
               <Route path="/reports" element={<Layout><ReportsPage /></Layout>} />
               <Route path="/detail/:section" element={<Layout><DetailPage /></Layout>} />
               <Route path="/detail/:section/:action" element={<Layout><DetailPage /></Layout>} />
