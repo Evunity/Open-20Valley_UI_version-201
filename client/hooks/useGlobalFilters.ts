@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useContext, useState, createElement, type ReactNode } from "react";
 
 export interface GlobalFilterState {
   vendors: string[];
@@ -28,7 +28,8 @@ interface FilterProviderProps {
   children: ReactNode;
 }
 
-export function FilterProvider({ children }: FilterProviderProps) {
+export function FilterProvider(props: FilterProviderProps) {
+  const { children } = props;
   const [filters, setFilters] = useState<GlobalFilterState>(DEFAULT_FILTERS);
 
   const resetFilters = () => {
@@ -41,10 +42,10 @@ export function FilterProvider({ children }: FilterProviderProps) {
     resetFilters,
   };
 
-  return (
-    <FilterContext.Provider value={value}>
-      {children}
-    </FilterContext.Provider>
+  return createElement(
+    FilterContext.Provider,
+    { value },
+    children
   );
 }
 
