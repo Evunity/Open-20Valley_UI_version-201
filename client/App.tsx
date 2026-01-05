@@ -22,6 +22,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Layout><Dashboard /></Layout>} />
             <Route path="/settings" element={<Layout><Settings /></Layout>} />
+            <Route path="/reports" element={<Layout><Reports /></Layout>} />
             <Route path="/detail/:section" element={<Layout><DetailPage /></Layout>} />
             <Route path="/detail/:section/:action" element={<Layout><DetailPage /></Layout>} />
             <Route path="*" element={<NotFound />} />
