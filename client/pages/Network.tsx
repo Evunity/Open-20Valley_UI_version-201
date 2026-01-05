@@ -1,9 +1,22 @@
-import { ChevronRight, ChevronDown } from "lucide-react";
+import { ChevronRight, ChevronDown, Filter } from "lucide-react";
 import { useState } from "react";
+import { cn } from "@/lib/utils";
+
+interface FilterState {
+  regions: string[];
+  status: string[];
+  timeRange: "24h" | "7d" | "30d";
+}
 
 export default function Network() {
   const [expandedRegions, setExpandedRegions] = useState<string[]>(["NA"]);
   const [expandedClusters, setExpandedClusters] = useState<string[]>(["NA-1"]);
+  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState<FilterState>({
+    regions: [],
+    status: [],
+    timeRange: "24h",
+  });
 
   const toggleRegion = (id: string) => {
     setExpandedRegions((prev) =>
