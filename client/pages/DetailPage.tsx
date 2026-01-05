@@ -18,6 +18,8 @@ import {
 } from "recharts";
 import { useState, useMemo } from "react";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { useGlobalFilters } from "@/hooks/useGlobalFilters";
+import FilterPanel from "@/components/FilterPanel";
 import { cn } from "@/lib/utils";
 import { Filter, Clock } from "lucide-react";
 
