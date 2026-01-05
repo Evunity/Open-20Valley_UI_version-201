@@ -15,7 +15,8 @@ export default function IncidentsNew() {
       severity: "critical",
       status: "in-progress",
       impact: "User-facing API response time increased by 45%",
-      rootCause: "Network routing anomaly detected in BGP configuration. Traffic is being inefficiently routed through secondary paths instead of primary paths.",
+      rootCause:
+        "Network routing anomaly detected in BGP configuration. Traffic is being inefficiently routed through secondary paths instead of primary paths.",
       affectedServices: ["API Gateway", "Load Balancer", "Core Network"],
       timeline: [
         { time: "14:32", event: "Incident detected by AI monitoring", type: "detection" },
@@ -25,7 +26,8 @@ export default function IncidentsNew() {
         { time: "14:38", event: "Monitoring latency recovery", type: "monitoring" },
       ],
       aiAction: "Automatically re-routing traffic through optimal paths",
-      recommendation: "Review BGP policies and implement automated health checks for path selection",
+      recommendation:
+        "Review BGP policies and implement automated health checks for path selection",
     },
     {
       id: 2,
@@ -33,7 +35,8 @@ export default function IncidentsNew() {
       severity: "degraded",
       status: "needs-attention",
       impact: "CPU utilization at 78%, trending upward. Potential for cascading failures.",
-      rootCause: "Traffic spike from automated backup jobs coinciding with peak user load. No auto-scaling policy in place.",
+      rootCause:
+        "Traffic spike from automated backup jobs coinciding with peak user load. No auto-scaling policy in place.",
       affectedServices: ["Compute Cluster 2", "Storage", "Database"],
       timeline: [
         { time: "13:45", event: "CPU utilization exceeds 70%", type: "detection" },
@@ -49,7 +52,8 @@ export default function IncidentsNew() {
       severity: "degraded",
       status: "resolved",
       impact: "Increased latency by 12% in Cluster A",
-      rootCause: "One load balancer was processing 35% more traffic than others due to misconfigured weights.",
+      rootCause:
+        "One load balancer was processing 35% more traffic than others due to misconfigured weights.",
       affectedServices: ["Load Balancer", "Cluster A-1", "Cluster A-2"],
       timeline: [
         { time: "12:15", event: "Traffic imbalance detected", type: "detection" },
@@ -136,13 +140,20 @@ export default function IncidentsNew() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2 mb-1">
                         <h3 className="font-semibold text-foreground text-sm">{incident.title}</h3>
-                        <div className={cn("px-2 py-1 rounded text-xs font-semibold text-white", 
-                          incident.severity === "critical" ? "bg-status-critical" : "bg-status-degraded"
-                        )}>
+                        <div
+                          className={cn(
+                            "px-2 py-1 rounded text-xs font-semibold text-white",
+                            incident.severity === "critical"
+                              ? "bg-status-critical"
+                              : "bg-status-degraded"
+                          )}
+                        >
                           {incident.severity.charAt(0).toUpperCase() + incident.severity.slice(1)}
                         </div>
                       </div>
-                      <p className="text-xs text-muted-foreground line-clamp-2">{incident.impact}</p>
+                      <p className="text-xs text-muted-foreground line-clamp-2">
+                        {incident.impact}
+                      </p>
                     </div>
                     <ChevronRight className="w-4 h-4 flex-shrink-0 mt-1 opacity-50" />
                   </div>
@@ -154,11 +165,15 @@ export default function IncidentsNew() {
           {/* Statistics */}
           <div className="grid grid-cols-2 gap-4">
             <div className="card-elevated rounded-xl border border-border/50 p-4">
-              <p className="text-xs text-muted-foreground font-semibold mb-1 uppercase">Critical Issues</p>
+              <p className="text-xs text-muted-foreground font-semibold mb-1 uppercase">
+                Critical Issues
+              </p>
               <p className="text-2xl font-bold text-status-critical">1</p>
             </div>
             <div className="card-elevated rounded-xl border border-border/50 p-4">
-              <p className="text-xs text-muted-foreground font-semibold mb-1 uppercase">This Month</p>
+              <p className="text-xs text-muted-foreground font-semibold mb-1 uppercase">
+                This Month
+              </p>
               <p className="text-2xl font-bold text-foreground">{incidents.length}</p>
             </div>
           </div>
@@ -170,10 +185,16 @@ export default function IncidentsNew() {
             <div className="card-elevated rounded-xl border border-border/50 p-6 sticky top-6">
               <div className="flex items-start justify-between gap-2 mb-4">
                 <h2 className="font-bold text-foreground text-lg">Details</h2>
-                <div className={cn("px-2 py-1 rounded text-xs font-semibold text-white",
-                  currentIncident.severity === "critical" ? "bg-status-critical" : "bg-status-degraded"
-                )}>
-                  {currentIncident.severity.charAt(0).toUpperCase() + currentIncident.severity.slice(1)}
+                <div
+                  className={cn(
+                    "px-2 py-1 rounded text-xs font-semibold text-white",
+                    currentIncident.severity === "critical"
+                      ? "bg-status-critical"
+                      : "bg-status-degraded"
+                  )}
+                >
+                  {currentIncident.severity.charAt(0).toUpperCase() +
+                    currentIncident.severity.slice(1)}
                 </div>
               </div>
 
@@ -185,8 +206,8 @@ export default function IncidentsNew() {
                     {currentIncident.status === "in-progress"
                       ? "In Progress"
                       : currentIncident.status === "needs-attention"
-                      ? "Needs Attention"
-                      : "Resolved"}
+                        ? "Needs Attention"
+                        : "Resolved"}
                   </p>
                 </div>
 
@@ -204,10 +225,15 @@ export default function IncidentsNew() {
 
                 {/* Affected Services */}
                 <div>
-                  <p className="text-xs font-semibold text-muted-foreground mb-2">AFFECTED SERVICES</p>
+                  <p className="text-xs font-semibold text-muted-foreground mb-2">
+                    AFFECTED SERVICES
+                  </p>
                   <div className="space-y-1">
                     {currentIncident.affectedServices.map((service) => (
-                      <div key={service} className="text-sm px-2.5 py-1 bg-muted rounded text-foreground">
+                      <div
+                        key={service}
+                        className="text-sm px-2.5 py-1 bg-muted rounded text-foreground"
+                      >
                         {service}
                       </div>
                     ))}

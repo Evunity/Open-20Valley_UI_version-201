@@ -1,5 +1,15 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Download, TrendingUp, TrendingDown, AlertCircle, CheckCircle2, Eye, EyeOff, RotateCcw } from "lucide-react";
+import {
+  ArrowLeft,
+  Download,
+  TrendingUp,
+  TrendingDown,
+  AlertCircle,
+  CheckCircle2,
+  Eye,
+  EyeOff,
+  RotateCcw,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   BarChart,
@@ -43,9 +53,12 @@ const aiActionsDataMap: Record<string, any> = {
     status: "Success",
     timestamp: "2 min ago",
     impact: "high",
-    issueDetected: "Unusual spike in packet loss rates detected in RAN layer, affecting 2.3% of active subscribers",
-    rootCause: "Interference from nearby 2.4GHz WiFi equipment in cellular band. Signal-to-noise ratio dropped by 18dB.",
-    resolution: "AI-Engine automatically adjusted power allocation and beam steering parameters to mitigate interference. Initiated communication with spectrum monitoring team.",
+    issueDetected:
+      "Unusual spike in packet loss rates detected in RAN layer, affecting 2.3% of active subscribers",
+    rootCause:
+      "Interference from nearby 2.4GHz WiFi equipment in cellular band. Signal-to-noise ratio dropped by 18dB.",
+    resolution:
+      "AI-Engine automatically adjusted power allocation and beam steering parameters to mitigate interference. Initiated communication with spectrum monitoring team.",
     timeline: [
       { time: "14:32:15", event: "Anomaly detected via ML clustering algorithm" },
       { time: "14:32:18", event: "Correlation analysis with RF metrics completed" },
@@ -69,9 +82,12 @@ const aiActionsDataMap: Record<string, any> = {
     status: "Ongoing",
     timestamp: "5 min ago",
     impact: "high",
-    issueDetected: "Distributed Denial of Service (DDoS) attack detected targeting media delivery nodes. Attack vector: UDP flood from 47 botnet IPs.",
-    rootCause: "Coordinated botnet infrastructure targeting CDN edge nodes. Attack peaked at 2.3 Tbps of traffic.",
-    resolution: "Automatic DDoS mitigation engaged: rate-limiting activated, suspicious IPs blacklisted, traffic rerouted through scrubbing center. Ongoing monitoring.",
+    issueDetected:
+      "Distributed Denial of Service (DDoS) attack detected targeting media delivery nodes. Attack vector: UDP flood from 47 botnet IPs.",
+    rootCause:
+      "Coordinated botnet infrastructure targeting CDN edge nodes. Attack peaked at 2.3 Tbps of traffic.",
+    resolution:
+      "Automatic DDoS mitigation engaged: rate-limiting activated, suspicious IPs blacklisted, traffic rerouted through scrubbing center. Ongoing monitoring.",
     timeline: [
       { time: "14:25:30", event: "Anomalous traffic pattern detected" },
       { time: "14:25:45", event: "DDoS signature matched (UDP flood pattern)" },
@@ -95,9 +111,12 @@ const aiActionsDataMap: Record<string, any> = {
     status: "Success",
     timestamp: "8 min ago",
     impact: "medium",
-    issueDetected: "Routing inconsistencies in core network causing suboptimal path selection. 450 sessions rerouted to longer paths.",
-    rootCause: "BGP convergence delay due to edge router misconfiguration. Metric values propagated incorrectly causing suboptimal route selection.",
-    resolution: "BGP configuration corrected and redistributed. Routing table optimized. All affected sessions maintained with minimal latency impact.",
+    issueDetected:
+      "Routing inconsistencies in core network causing suboptimal path selection. 450 sessions rerouted to longer paths.",
+    rootCause:
+      "BGP convergence delay due to edge router misconfiguration. Metric values propagated incorrectly causing suboptimal route selection.",
+    resolution:
+      "BGP configuration corrected and redistributed. Routing table optimized. All affected sessions maintained with minimal latency impact.",
     timeline: [
       { time: "14:18:10", event: "BGP route instability detected" },
       { time: "14:18:25", event: "Configuration audit initiated" },
@@ -121,9 +140,12 @@ const aiActionsDataMap: Record<string, any> = {
     status: "Failed",
     timestamp: "12 min ago",
     impact: "high",
-    issueDetected: "Transient fiber cut detected on backbone segment connecting regional datacenters. Optical signal loss on 4 fiber pairs.",
-    rootCause: "Physical fiber damage from construction work. Manual traffic rerouting required due to limited redundancy on this segment.",
-    resolution: "Automatic failover triggered. However, secondary path capacity exceeded threshold. Manual intervention required to coordinate load balancing across tertiary path.",
+    issueDetected:
+      "Transient fiber cut detected on backbone segment connecting regional datacenters. Optical signal loss on 4 fiber pairs.",
+    rootCause:
+      "Physical fiber damage from construction work. Manual traffic rerouting required due to limited redundancy on this segment.",
+    resolution:
+      "Automatic failover triggered. However, secondary path capacity exceeded threshold. Manual intervention required to coordinate load balancing across tertiary path.",
     timeline: [
       { time: "14:08:00", event: "Optical signal loss detected" },
       { time: "14:08:15", event: "Automatic failover initiated" },
@@ -334,10 +356,12 @@ const exportToCSV = (data: any[], filename: string) => {
   const csv = [
     headers.join(","),
     ...data.map((row) =>
-      headers.map((header) => {
-        const value = row[header];
-        return typeof value === "string" ? `"${value}"` : value;
-      }).join(",")
+      headers
+        .map((header) => {
+          const value = row[header];
+          return typeof value === "string" ? `"${value}"` : value;
+        })
+        .join(",")
     ),
   ].join("\n");
 
@@ -371,14 +395,8 @@ export default function DetailPage() {
     `detail-chart-type-${section}`,
     "bar"
   );
-  const [showTooltip, setShowTooltip] = useLocalStorage(
-    `detail-show-tooltip-${section}`,
-    true
-  );
-  const [showLegend, setShowLegend] = useLocalStorage(
-    `detail-show-legend-${section}`,
-    true
-  );
+  const [showTooltip, setShowTooltip] = useLocalStorage(`detail-show-tooltip-${section}`, true);
+  const [showLegend, setShowLegend] = useLocalStorage(`detail-show-legend-${section}`, true);
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
     vendors: [],
@@ -424,22 +442,26 @@ export default function DetailPage() {
             <p className="text-muted-foreground text-sm mt-1">{aiAction.timestamp}</p>
           </div>
           <div className="flex items-center gap-3">
-            <div className={`text-xs font-semibold px-3 py-1 rounded ${
-              aiAction.impact === "high"
-                ? "bg-status-critical/10 text-status-critical"
-                : aiAction.impact === "medium"
-                ? "bg-status-degraded/10 text-status-degraded"
-                : "bg-status-healthy/10 text-status-healthy"
-            }`}>
+            <div
+              className={`text-xs font-semibold px-3 py-1 rounded ${
+                aiAction.impact === "high"
+                  ? "bg-status-critical/10 text-status-critical"
+                  : aiAction.impact === "medium"
+                    ? "bg-status-degraded/10 text-status-degraded"
+                    : "bg-status-healthy/10 text-status-healthy"
+              }`}
+            >
               {aiAction.impact.toUpperCase()} IMPACT
             </div>
-            <div className={`text-xs font-bold ${
-              aiAction.status === "Success"
-                ? "text-status-healthy"
-                : aiAction.status === "Ongoing"
-                ? "text-status-pending"
-                : "text-status-critical"
-            }`}>
+            <div
+              className={`text-xs font-bold ${
+                aiAction.status === "Success"
+                  ? "text-status-healthy"
+                  : aiAction.status === "Ongoing"
+                    ? "text-status-pending"
+                    : "text-status-critical"
+              }`}
+            >
               {aiAction.status}
             </div>
           </div>
@@ -489,12 +511,16 @@ export default function DetailPage() {
 
         {/* Timeline */}
         <div className="card-elevated p-6">
-          <h3 className="text-lg font-semibold text-foreground mb-4">Detection & Resolution Timeline</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-4">
+            Detection & Resolution Timeline
+          </h3>
           <div className="space-y-3">
             {aiAction.timeline.map((entry: any, idx: number) => (
               <div key={idx} className="flex gap-4 items-start">
                 <div className="flex flex-col items-center">
-                  <div className={`w-3 h-3 rounded-full ${idx === 0 ? "bg-status-critical" : idx === aiAction.timeline.length - 1 ? "bg-status-healthy" : "bg-status-pending"}`} />
+                  <div
+                    className={`w-3 h-3 rounded-full ${idx === 0 ? "bg-status-critical" : idx === aiAction.timeline.length - 1 ? "bg-status-healthy" : "bg-status-pending"}`}
+                  />
                   {idx !== aiAction.timeline.length - 1 && (
                     <div className="w-0.5 h-8 bg-border mt-1" />
                   )}
@@ -536,7 +562,10 @@ export default function DetailPage() {
                 <PieChart data={aiAction.metrics}>
                   <Pie
                     data={aiAction.metrics}
-                    dataKey={Object.keys(aiAction.metrics[0] || {}).find(k => k !== "name") || "recovered"}
+                    dataKey={
+                      Object.keys(aiAction.metrics[0] || {}).find((k) => k !== "name") ||
+                      "recovered"
+                    }
                     nameKey="name"
                     cx="50%"
                     cy="50%"
@@ -553,7 +582,10 @@ export default function DetailPage() {
               </ResponsiveContainer>
             ) : chartType === "line" || chartType === "histogram" ? (
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={aiAction.metrics} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                <LineChart
+                  data={aiAction.metrics}
+                  margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
                   <YAxis stroke="hsl(var(--muted-foreground))" />
@@ -568,7 +600,7 @@ export default function DetailPage() {
                   )}
                   {showLegend && <Legend />}
                   {Object.keys(aiAction.metrics[0] || {})
-                    .filter(key => key !== "name")
+                    .filter((key) => key !== "name")
                     .map((key, idx) => (
                       <Line
                         key={key}
@@ -604,7 +636,10 @@ export default function DetailPage() {
                   </thead>
                   <tbody>
                     {aiAction.metrics.map((row: any, idx: number) => (
-                      <tr key={idx} className="border-b border-border hover:bg-muted/30 transition-colors">
+                      <tr
+                        key={idx}
+                        className="border-b border-border hover:bg-muted/30 transition-colors"
+                      >
                         {Object.entries(row).map(([key, value]: any) => (
                           <td
                             key={key}
@@ -623,7 +658,10 @@ export default function DetailPage() {
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={aiAction.metrics} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                <BarChart
+                  data={aiAction.metrics}
+                  margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
                   <YAxis stroke="hsl(var(--muted-foreground))" />
@@ -638,7 +676,7 @@ export default function DetailPage() {
                   )}
                   {showLegend && <Legend />}
                   {Object.keys(aiAction.metrics[0] || {})
-                    .filter(key => key !== "name")
+                    .filter((key) => key !== "name")
                     .map((key, idx) => (
                       <Bar
                         key={key}
@@ -679,9 +717,7 @@ export default function DetailPage() {
           <ArrowLeft className="w-4 h-4" />
           Back to Dashboard
         </button>
-        <div className="card-elevated p-8 text-center text-muted-foreground">
-          Section not found
-        </div>
+        <div className="card-elevated p-8 text-center text-muted-foreground">Section not found</div>
       </div>
     );
   }
@@ -747,17 +783,16 @@ export default function DetailPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/30">
-                <th className="text-left py-2 px-3 font-semibold text-foreground">
-                  {categoryKey}
-                </th>
-                <th className="text-right py-2 px-3 font-semibold text-foreground">
-                  {dataKey}
-                </th>
+                <th className="text-left py-2 px-3 font-semibold text-foreground">{categoryKey}</th>
+                <th className="text-right py-2 px-3 font-semibold text-foreground">{dataKey}</th>
               </tr>
             </thead>
             <tbody>
               {chartData.map((row: any, idx: number) => (
-                <tr key={idx} className="border-b border-border hover:bg-muted/30 transition-colors">
+                <tr
+                  key={idx}
+                  className="border-b border-border hover:bg-muted/30 transition-colors"
+                >
                   <td className="py-3 px-3 text-foreground">{row[categoryKey]}</td>
                   <td className="text-right py-3 px-3 text-foreground font-semibold">
                     {typeof row[dataKey] === "number"
@@ -849,8 +884,8 @@ export default function DetailPage() {
             kpi.status === "critical"
               ? "text-status-critical"
               : kpi.status === "improving"
-              ? "text-status-healthy"
-              : "text-foreground";
+                ? "text-status-healthy"
+                : "text-foreground";
           const trendIcon =
             kpi.change > 0 ? (
               <TrendingUp className="w-4 h-4" />
@@ -868,9 +903,7 @@ export default function DetailPage() {
                 {kpi.change !== undefined && (
                   <p
                     className={`flex items-center gap-1 text-xs font-semibold ${
-                      kpi.change < 0
-                        ? "text-status-healthy"
-                        : "text-status-degraded"
+                      kpi.change < 0 ? "text-status-healthy" : "text-status-degraded"
                     }`}
                   >
                     {kpi.change < 0 ? (
@@ -912,9 +945,7 @@ export default function DetailPage() {
             </div>
           </div>
 
-          <div className="h-96">
-            {renderChart()}
-          </div>
+          <div className="h-96">{renderChart()}</div>
         </div>
 
         {/* Summary Stats */}
@@ -977,9 +1008,7 @@ export default function DetailPage() {
                     key={key}
                     className={cn(
                       "py-3 px-4 font-semibold text-foreground",
-                      typeof analytics.breakdown[0][key] === "number"
-                        ? "text-right"
-                        : "text-left"
+                      typeof analytics.breakdown[0][key] === "number" ? "text-right" : "text-left"
                     )}
                   >
                     {key.charAt(0).toUpperCase() + key.slice(1)}
@@ -989,7 +1018,10 @@ export default function DetailPage() {
             </thead>
             <tbody>
               {analytics.breakdown.map((row: any, idx: number) => (
-                <tr key={idx} className="border-b border-border hover:bg-muted/30 transition-colors">
+                <tr
+                  key={idx}
+                  className="border-b border-border hover:bg-muted/30 transition-colors"
+                >
                   {Object.entries(row).map(([key, value]: any) => (
                     <td
                       key={key}

@@ -24,13 +24,62 @@ export default function App() {
           <Sonner />
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<Layout><DashboardNew /></Layout>} />
-              <Route path="/settings" element={<Layout><Settings /></Layout>} />
-              <Route path="/network" element={<Layout><NetworkNew /></Layout>} />
-              <Route path="/incidents" element={<Layout><IncidentsNew /></Layout>} />
-              <Route path="/reports" element={<Layout><ReportsPage /></Layout>} />
-              <Route path="/detail/:section" element={<Layout><DetailPage /></Layout>} />
-              <Route path="/detail/:section/:action" element={<Layout><DetailPage /></Layout>} />
+              <Route
+                path="/"
+                element={
+                  <Layout>
+                    <DashboardNew />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/settings"
+                element={
+                  <Layout>
+                    <Settings />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/network"
+                element={
+                  <Layout>
+                    <NetworkNew />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/incidents"
+                element={
+                  <Layout>
+                    <IncidentsNew />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/reports"
+                element={
+                  <Layout>
+                    <ReportsPage />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/detail/:section"
+                element={
+                  <Layout>
+                    <DetailPage />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/detail/:section/:action"
+                element={
+                  <Layout>
+                    <DetailPage />
+                  </Layout>
+                }
+              />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

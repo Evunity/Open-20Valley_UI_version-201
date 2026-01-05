@@ -124,22 +124,30 @@ export default function NetworkNew() {
       {/* Network Statistics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="card-elevated rounded-xl border border-border/50 p-6">
-          <p className="text-sm font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Total Regions</p>
+          <p className="text-sm font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
+            Total Regions
+          </p>
           <p className="text-3xl font-bold text-foreground mb-2">5</p>
           <p className="text-xs text-muted-foreground">Global coverage</p>
         </div>
         <div className="card-elevated rounded-xl border border-border/50 p-6">
-          <p className="text-sm font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Total Clusters</p>
+          <p className="text-sm font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
+            Total Clusters
+          </p>
           <p className="text-3xl font-bold text-foreground mb-2">12</p>
           <p className="text-xs text-muted-foreground">Distributed systems</p>
         </div>
         <div className="card-elevated rounded-xl border border-border/50 p-6">
-          <p className="text-sm font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Total Sites</p>
+          <p className="text-sm font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
+            Total Sites
+          </p>
           <p className="text-3xl font-bold text-foreground mb-2">47</p>
           <p className="text-xs text-muted-foreground">Operational sites</p>
         </div>
         <div className="card-elevated rounded-xl border border-border/50 p-6">
-          <p className="text-sm font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Infrastructure Health</p>
+          <p className="text-sm font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
+            Infrastructure Health
+          </p>
           <p className="text-3xl font-bold text-status-healthy mb-2">98%</p>
           <p className="text-xs text-muted-foreground">Overall uptime</p>
         </div>
@@ -164,7 +172,12 @@ export default function NetworkNew() {
                 ) : (
                   <ChevronRight className="w-4 h-4 flex-shrink-0 text-foreground" />
                 )}
-                <div className={cn("w-2.5 h-2.5 rounded-full flex-shrink-0", getStatusBgColor(region.status))}></div>
+                <div
+                  className={cn(
+                    "w-2.5 h-2.5 rounded-full flex-shrink-0",
+                    getStatusBgColor(region.status)
+                  )}
+                ></div>
                 <span className="font-semibold text-foreground">{region.name}</span>
                 <span className="ml-auto text-xs text-muted-foreground">
                   {region.clusters.length} cluster{region.clusters.length !== 1 ? "s" : ""}
@@ -185,7 +198,12 @@ export default function NetworkNew() {
                         ) : (
                           <ChevronRight className="w-4 h-4 flex-shrink-0 text-foreground" />
                         )}
-                        <div className={cn("w-2 h-2 rounded-full flex-shrink-0", getStatusBgColor(cluster.status))}></div>
+                        <div
+                          className={cn(
+                            "w-2 h-2 rounded-full flex-shrink-0",
+                            getStatusBgColor(cluster.status)
+                          )}
+                        ></div>
                         <span className="text-sm font-medium text-foreground">{cluster.name}</span>
                         <span className="ml-auto text-xs text-muted-foreground">
                           {cluster.sites.length} site{cluster.sites.length !== 1 ? "s" : ""}
@@ -200,9 +218,19 @@ export default function NetworkNew() {
                               key={site.name}
                               className="flex items-center gap-3 p-2.5 hover:bg-muted rounded-lg transition-colors"
                             >
-                              <div className={cn("w-1.5 h-1.5 rounded-full", getStatusBgColor(site.status))}></div>
+                              <div
+                                className={cn(
+                                  "w-1.5 h-1.5 rounded-full",
+                                  getStatusBgColor(site.status)
+                                )}
+                              ></div>
                               <span className="text-sm text-foreground">{site.name}</span>
-                              <span className={cn("ml-auto text-xs font-medium", getStatusColor(site.status))}>
+                              <span
+                                className={cn(
+                                  "ml-auto text-xs font-medium",
+                                  getStatusColor(site.status)
+                                )}
+                              >
                                 {site.status.charAt(0).toUpperCase() + site.status.slice(1)}
                               </span>
                             </div>
@@ -233,7 +261,9 @@ export default function NetworkNew() {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Sites</span>
-                <span className="font-semibold text-foreground">{region.clusters.reduce((acc, c) => acc + c.sites.length, 0)}</span>
+                <span className="font-semibold text-foreground">
+                  {region.clusters.reduce((acc, c) => acc + c.sites.length, 0)}
+                </span>
               </div>
               <div className="border-t border-border pt-3 flex justify-between text-sm">
                 <span className="text-muted-foreground">Status</span>
