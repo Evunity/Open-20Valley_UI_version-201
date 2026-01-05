@@ -24,15 +24,25 @@ const DEFAULT_FILTERS: GlobalFilterState = {
   timeRange: "24h",
 };
 
-export function FilterProvider({ children }: { children: ReactNode }) {
+interface FilterProviderProps {
+  children: ReactNode;
+}
+
+export function FilterProvider({ children }: FilterProviderProps) {
   const [filters, setFilters] = useState<GlobalFilterState>(DEFAULT_FILTERS);
 
   const resetFilters = () => {
     setFilters(DEFAULT_FILTERS);
   };
 
+  const value: FilterContextType = {
+    filters,
+    setFilters,
+    resetFilters,
+  };
+
   return (
-    <FilterContext.Provider value={{ filters, setFilters, resetFilters }}>
+    <FilterContext.Provider value={value}>
       {children}
     </FilterContext.Provider>
   );
