@@ -130,6 +130,98 @@ export default function Incidents() {
         </p>
       </div>
 
+      {/* Filter Controls */}
+      <div className="card-elevated p-4 space-y-4 rounded-xl border border-border/50 shadow-sm">
+        <div className="flex items-center justify-between gap-4">
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={cn(
+              "flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 text-sm font-medium",
+              showFilters
+                ? "bg-primary text-primary-foreground shadow-md"
+                : "bg-muted hover:bg-muted/70"
+            )}
+          >
+            <Filter className="w-4 h-4" />
+            <span>
+              {filters.severity.length > 0 || filters.status.length > 0 ? `(${filters.severity.length + filters.status.length})` : "Filters"}
+            </span>
+          </button>
+        </div>
+
+        {/* Filters Panel */}
+        {showFilters && (
+          <div className="border-t border-border pt-4 grid grid-cols-1 md:grid-cols-3 gap-4 animate-in fade-in slide-in-from-top-2 duration-200">
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground block mb-2 uppercase tracking-wide">
+                Severity
+              </label>
+              <select
+                multiple
+                className="w-full px-2.5 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                value={filters.severity}
+                onChange={(e) => {
+                  const selected = Array.from(e.target.selectedOptions, (option) => option.value);
+                  setFilters((prev) => ({ ...prev, severity: selected }));
+                }}
+              >
+                <option value="critical">Critical</option>
+                <option value="degraded">Degraded</option>
+                <option value="minor">Minor</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground block mb-2 uppercase tracking-wide">
+                Status
+              </label>
+              <select
+                multiple
+                className="w-full px-2.5 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                value={filters.status}
+                onChange={(e) => {
+                  const selected = Array.from(e.target.selectedOptions, (option) => option.value);
+                  setFilters((prev) => ({ ...prev, status: selected }));
+                }}
+              >
+                <option value="in-progress">In Progress</option>
+                <option value="needs-attention">Needs Attention</option>
+                <option value="resolved">Resolved</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground block mb-2 uppercase tracking-wide">
+                Time Range
+              </label>
+              <select
+                className="w-full px-2.5 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                value={filters.timeRange}
+                onChange={(e) =>
+                  setFilters((prev) => ({ ...prev, timeRange: e.target.value as any }))
+                }
+              >
+                <option value="24h">Last 24h</option>
+                <option value="7d">Last 7 days</option>
+                <option value="30d">Last 30 days</option>
+              </select>
+            </div>
+            <div className="md:col-span-3 flex items-end gap-2">
+              <button
+                onClick={() =>
+                  setFilters({
+                    severity: [],
+                    status: [],
+                    timeRange: "24h",
+                  })
+                }
+                className="px-3 py-2 rounded-lg bg-muted hover:bg-muted/70 transition-all duration-200 text-xs font-medium"
+              >
+                Reset Filters
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Incident List */}
         <div className="lg:col-span-2 space-y-4">
