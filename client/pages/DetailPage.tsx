@@ -839,6 +839,9 @@ export default function DetailPage() {
         </div>
       </div>
 
+      {/* Global Filters */}
+      <FilterPanel showTimeRange={true} />
+
       {/* KPI Summary Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {analytics.kpis.map((kpi: any, idx: number) => {
