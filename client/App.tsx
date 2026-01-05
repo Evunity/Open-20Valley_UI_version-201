@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { FilterProvider } from "@/hooks/useGlobalFilters";
 import Layout from "@/components/Layout";
-import Dashboard from "@/pages/Dashboard";
+import DashboardNew from "@/pages/DashboardNew";
 import Settings from "@/pages/Settings";
 import ReportsPage from "@/pages/ReportsPage";
 import Network from "@/pages/Network";
