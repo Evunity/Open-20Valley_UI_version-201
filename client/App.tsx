@@ -24,7 +24,7 @@ export default function App() {
           <Sonner />
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<Layout><Dashboard /></Layout>} />
+              <Route path="/" element={<Layout><DashboardNew /></Layout>} />
               <Route path="/settings" element={<Layout><Settings /></Layout>} />
               <Route path="/network" element={<Layout><Network /></Layout>} />
               <Route path="/incidents" element={<Layout><Incidents /></Layout>} />
