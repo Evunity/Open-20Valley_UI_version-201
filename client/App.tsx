@@ -7,7 +7,7 @@ import { FilterProvider } from "@/hooks/useGlobalFilters";
 import Layout from "@/components/Layout";
 import Dashboard from "@/pages/Dashboard";
 import Settings from "@/pages/Settings";
-import Reports from "@/pages/Reports";
+import ReportsPage from "@/pages/ReportsPage";
 import Network from "@/pages/Network";
 import Incidents from "@/pages/Incidents";
 import DetailPage from "@/pages/DetailPage";
