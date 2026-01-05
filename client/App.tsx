@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { FilterProvider } from "@/hooks/useGlobalFilters";
 import Layout from "@/components/Layout";
 import Dashboard from "@/pages/Dashboard";
 import Settings from "@/pages/Settings";
@@ -17,22 +18,24 @@ const queryClient = new QueryClient();
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Layout><Dashboard /></Layout>} />
-            <Route path="/settings" element={<Layout><Settings /></Layout>} />
-            <Route path="/network" element={<Layout><Network /></Layout>} />
-            <Route path="/incidents" element={<Layout><Incidents /></Layout>} />
-            <Route path="/reports" element={<Layout><Reports /></Layout>} />
-            <Route path="/detail/:section" element={<Layout><DetailPage /></Layout>} />
-            <Route path="/detail/:section/:action" element={<Layout><DetailPage /></Layout>} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+      <FilterProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Layout><Dashboard /></Layout>} />
+              <Route path="/settings" element={<Layout><Settings /></Layout>} />
+              <Route path="/network" element={<Layout><Network /></Layout>} />
+              <Route path="/incidents" element={<Layout><Incidents /></Layout>} />
+              <Route path="/reports" element={<Layout><Reports /></Layout>} />
+              <Route path="/detail/:section" element={<Layout><DetailPage /></Layout>} />
+              <Route path="/detail/:section/:action" element={<Layout><DetailPage /></Layout>} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </FilterProvider>
     </QueryClientProvider>
   );
 }
