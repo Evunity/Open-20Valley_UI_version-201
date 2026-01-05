@@ -7,6 +7,8 @@ import Layout from "@/components/Layout";
 import Dashboard from "@/pages/Dashboard";
 import Settings from "@/pages/Settings";
 import Reports from "@/pages/Reports";
+import Network from "@/pages/Network";
+import Incidents from "@/pages/Incidents";
 import DetailPage from "@/pages/DetailPage";
 import NotFound from "@/pages/NotFound";
 
