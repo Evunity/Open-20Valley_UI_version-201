@@ -1,8 +1,21 @@
-import { AlertTriangle, CheckCircle2, Clock, ChevronRight } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Clock, ChevronRight, Filter } from "lucide-react";
 import { useState } from "react";
+import { cn } from "@/lib/utils";
+
+interface FilterState {
+  severity: string[];
+  status: string[];
+  timeRange: "24h" | "7d" | "30d";
+}
 
 export default function Incidents() {
   const [selectedIncident, setSelectedIncident] = useState<number | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState<FilterState>({
+    severity: [],
+    status: [],
+    timeRange: "24h",
+  });
 
   const incidents = [
     {
