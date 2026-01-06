@@ -431,35 +431,35 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
         </div>
       )}
 
-      {/* Save Cluster Dialog */}
-      {showClusterDialog && (
+      {/* Create Cluster Location Dialog */}
+      {showCreateClusterDialog && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-card border border-border rounded-lg p-6 w-full max-w-md mx-4 space-y-4 shadow-lg">
-            <h3 className="text-lg font-bold text-foreground">Save as Cluster</h3>
-            <p className="text-sm text-muted-foreground">Give this filter combination a name to save it for later use</p>
+            <h3 className="text-lg font-bold text-foreground">Create New Cluster Location</h3>
+            <p className="text-sm text-muted-foreground">Enter a location name for this cluster</p>
             <input
               type="text"
-              value={clusterName}
-              onChange={(e) => setClusterName(e.target.value)}
-              placeholder="e.g., Ericsson 5G North..."
+              value={newClusterName}
+              onChange={(e) => setNewClusterName(e.target.value)}
+              placeholder="e.g., New York, DataCenter North..."
               className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
               onKeyDown={(e) => {
-                if (e.key === "Enter") handleSaveCluster();
-                if (e.key === "Escape") setShowClusterDialog(false);
+                if (e.key === "Enter") handleCreateCluster();
+                if (e.key === "Escape") setShowCreateClusterDialog(false);
               }}
               autoFocus
             />
             <div className="flex gap-3">
               <button
-                onClick={handleSaveCluster}
+                onClick={handleCreateCluster}
                 className="flex-1 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-all"
               >
-                Save Cluster
+                Create Cluster
               </button>
               <button
                 onClick={() => {
-                  setShowClusterDialog(false);
-                  setClusterName("");
+                  setShowCreateClusterDialog(false);
+                  setNewClusterName("");
                 }}
                 className="flex-1 px-4 py-2 rounded-lg bg-muted text-foreground text-sm font-medium hover:bg-muted/70 transition-all"
               >
