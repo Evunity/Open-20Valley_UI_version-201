@@ -48,6 +48,32 @@ interface KPIValue {
 
 type ChartType = "line" | "bar" | "pie" | "histogram";
 
+// Get active filters summary for display on KPI cards
+const getActiveFiltersSummary = (filters: any) => {
+  const activeFilters: string[] = [];
+
+  if (filters.vendors && filters.vendors.length > 0) {
+    activeFilters.push(...filters.vendors);
+  }
+  if (filters.technologies && filters.technologies.length > 0) {
+    activeFilters.push(...filters.technologies);
+  }
+  if (filters.regions && filters.regions.length > 0) {
+    activeFilters.push(...filters.regions);
+  }
+  if (filters.clusters && filters.clusters.length > 0) {
+    activeFilters.push(...filters.clusters);
+  }
+  if (filters.countries && filters.countries.length > 0) {
+    activeFilters.push(...filters.countries);
+  }
+
+  return {
+    count: activeFilters.length,
+    names: activeFilters,
+  };
+};
+
 // Calculate KPI values based on filters AND date range
 const calculateKPIValue = (kpiId: string, filters: any): KPIValue => {
   const baseValues: Record<string, { value: number | string; unit: string; status: "healthy" | "degraded" | "critical" | "normal"; change: number }> = {
