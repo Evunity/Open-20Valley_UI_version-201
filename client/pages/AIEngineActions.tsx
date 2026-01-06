@@ -77,55 +77,51 @@ export default function AIEngineActions() {
   };
 
   const exportToExcel = () => {
-    const csvHeader = ["AI ENGINE ACTIONS EXPORT"];
-    const csvSubHeader = [
-      `Generated: ${new Date().toLocaleString()}`,
-      "",
-      "SUMMARY METRICS:",
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new();
+
+    // Sheet data with sections
+    const sheetData: any[] = [];
+
+    // Header
+    sheetData.push(["AI ENGINE ACTIONS EXPORT"]);
+    sheetData.push([`Generated: ${new Date().toLocaleString()}`]);
+    sheetData.push([]);
+
+    // Summary metrics section
+    sheetData.push(["SUMMARY METRICS:"]);
+    sheetData.push(["Total Actions", aiSummary.totalActions]);
+    sheetData.push(["Successful Actions", aiSummary.successfulActions]);
+    sheetData.push(["Failed Actions", aiSummary.failedActions]);
+    sheetData.push(["Success Rate", `${((aiSummary.successfulActions / aiSummary.totalActions) * 100).toFixed(1)}%`]);
+    sheetData.push([]);
+
+    // Detailed actions section
+    sheetData.push(["DETAILED ACTION LIST:"]);
+    sheetData.push(["Action Name", "Time", "Severity", "Status"]);
+    aiActionsDetailList.forEach((action) => {
+      sheetData.push([action.name, action.time, action.severity, action.status]);
+    });
+
+    const ws = XLSX.utils.aoa_to_sheet(sheetData);
+
+    // Set column widths
+    ws["!cols"] = [
+      { wch: 25 },
+      { wch: 20 },
+      { wch: 15 },
+      { wch: 15 },
     ];
 
-    const csvSummaryRows = [
-      ["Total Actions", aiSummary.totalActions],
-      ["Successful Actions", aiSummary.successfulActions],
-      ["Failed Actions", aiSummary.failedActions],
-      ["Success Rate", `${((aiSummary.successfulActions / aiSummary.totalActions) * 100).toFixed(1)}%`],
-    ];
+    XLSX.utils.book_append_sheet(wb, ws, "AI Actions");
 
-    const csvDetailHeader = ["", "", "DETAILED ACTION LIST:"];
-    const csvDetailLabels = ["Action Name", "Time", "Severity", "Status"];
-    const csvDetailRows = aiActionsDetailList.map((action) => [
-      action.name,
-      action.time,
-      action.severity,
-      action.status,
-    ]);
-
-    const allRows = [
-      csvHeader,
-      csvSubHeader,
-      ...csvSummaryRows,
-      csvDetailHeader,
-      [csvDetailLabels],
-      ...csvDetailRows,
-    ];
-
-    const csvContent = allRows
-      .map((row) => row.map((cell) => `"${cell}"`).join(","))
-      .join("\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", `ai-actions-export-${new Date().getTime()}.csv`);
-    link.style.visibility = "hidden";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // Generate file
+    const fileName = `ai-actions-export-${new Date().getTime()}.xlsx`;
+    XLSX.writeFile(wb, fileName);
 
     toast({
       title: "Export successful",
-      description: "Downloaded AI actions data as Excel CSV",
+      description: "Downloaded AI actions data as Excel file",
     });
   };
 
