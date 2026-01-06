@@ -470,59 +470,6 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
         </div>
       )}
 
-      {/* Saved Clusters List */}
-      {savedClusters.length > 0 && (
-        <div className="space-y-2">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-4">Saved Clusters</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 px-4">
-            {savedClusters.map((cluster) => (
-              <div
-                key={cluster.id}
-                className="p-3 rounded-lg border border-border/50 bg-card hover:bg-card/80 transition-colors space-y-2"
-              >
-                <p className="text-sm font-medium text-foreground truncate">{cluster.name}</p>
-                <p className="text-xs text-muted-foreground line-clamp-2">
-                  {[
-                    cluster.vendors.length > 0 && `${cluster.vendors.length} vendor(s)`,
-                    cluster.technologies.length > 0 && `${cluster.technologies.length} tech(s)`,
-                    cluster.regions.length > 0 && `${cluster.regions.length} region(s)`,
-                    cluster.countries.length > 0 && `${cluster.countries.length} country(ies)`,
-                  ]
-                    .filter(Boolean)
-                    .join(" • ") || "No filters"}
-                </p>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => {
-                      loadCluster(cluster);
-                      toast({
-                        title: "Cluster loaded",
-                        description: `Filters have been reapplied from "${cluster.name}"`,
-                      });
-                    }}
-                    className="flex-1 px-2 py-1 rounded text-xs bg-primary/10 text-primary hover:bg-primary/20 transition-colors font-medium flex items-center justify-center gap-1"
-                  >
-                    <Download className="w-3 h-3" />
-                    Load
-                  </button>
-                  <button
-                    onClick={() => {
-                      deleteCluster(cluster.id);
-                      toast({
-                        title: "Cluster deleted",
-                        description: `"${cluster.name}" has been removed`,
-                      });
-                    }}
-                    className="px-2 py-1 rounded text-xs bg-status-critical/10 text-status-critical hover:bg-status-critical/20 transition-colors"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
