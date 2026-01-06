@@ -15,6 +15,7 @@ import FilterPanel from "@/components/FilterPanel";
 import { useGlobalFilters } from "@/hooks/useGlobalFilters";
 import { useToast } from "@/hooks/use-toast";
 import { Download, Clock, CheckCircle2, XCircle } from "lucide-react";
+import * as XLSX from "xlsx";
 import {
   generateAIActionsData,
   generateAIActionsSummary,
