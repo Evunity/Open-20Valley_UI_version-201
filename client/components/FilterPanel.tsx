@@ -312,10 +312,11 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
             }}
             title="Hold Ctrl/Cmd to select multiple clusters"
           >
-            <option value="Cluster-A">Cluster A</option>
-            <option value="Cluster-B">Cluster B</option>
-            <option value="Cluster-C">Cluster C</option>
-            <option value="Cluster-D">Cluster D</option>
+            {availableClusters.map((cluster) => (
+              <option key={cluster.id} value={cluster.name}>
+                {cluster.name}
+              </option>
+            ))}
           </select>
         </div>
 
