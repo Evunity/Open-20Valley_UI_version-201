@@ -348,18 +348,16 @@ export default function DashboardNew() {
                         : "bg-muted"
                     )}
                   >
-                    <div
-                      className={cn(
-                        "w-5 h-5",
-                        kpiValue.status === "healthy"
-                          ? "text-status-healthy"
-                          : kpiValue.status === "critical"
-                          ? "text-status-critical"
-                          : "text-foreground"
-                      )}
-                    >
-                      {IconComponent}
-                    </div>
+                    <IconComponent
+                    className={cn(
+                      "w-5 h-5",
+                      kpiValue.status === "healthy"
+                        ? "text-status-healthy"
+                        : kpiValue.status === "critical"
+                        ? "text-status-critical"
+                        : "text-foreground"
+                    )}
+                  />
                   </div>
                   {getStatusIcon(kpiValue.change)}
                 </div>
