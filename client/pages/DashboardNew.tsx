@@ -494,70 +494,64 @@ export default function DashboardNew() {
             >
               <option value="bar">Bar Chart</option>
               <option value="line">Line Chart</option>
-              <option value="pie">Pie Chart</option>
+              <option value="histogram">Histogram</option>
             </select>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* LEFT: Chart Visualization */}
-          <div className="lg:col-span-2 rounded-lg border border-border/50 bg-background p-4">
-            <ResponsiveContainer width="100%" height={300}>
+          <div className="rounded-lg border border-border/50 bg-background p-4">
+            <ResponsiveContainer width="100%" height={350}>
               {renderChart(aiChartType, aiActionsData, ["successful", "failed"])}
             </ResponsiveContainer>
           </div>
 
-          {/* RIGHT: Summary Metrics */}
-          <div className="space-y-4">
-            {/* Total Actions */}
-            <div className="p-6 rounded-xl border border-border/50 bg-card">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wide">
-                    Total Actions Taken
-                  </p>
-                  <p className="text-3xl font-bold text-foreground">{aiSummary.totalActions}</p>
+          {/* RIGHT: AI Actions List */}
+          <div className="rounded-lg border border-border/50 bg-background p-4 overflow-y-auto" style={{ maxHeight: "420px" }}>
+            <div className="space-y-2">
+              <h3 className="text-sm font-semibold text-foreground mb-4 sticky top-0 bg-background py-2">Recent Actions</h3>
+              {aiActionsDetailList.map((action) => (
+                <div
+                  key={action.id}
+                  className="p-3 rounded-lg border border-border/30 bg-card hover:bg-card/80 transition-colors space-y-2"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">{action.name}</p>
+                      <p className="text-xs text-muted-foreground">{action.time}</p>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <span
+                        className={cn(
+                          "px-2 py-1 rounded text-xs font-semibold whitespace-nowrap",
+                          action.severity === "HIGH"
+                            ? "bg-status-critical/20 text-status-critical"
+                            : action.severity === "MED"
+                            ? "bg-status-degraded/20 text-status-degraded"
+                            : "bg-status-healthy/20 text-status-healthy"
+                        )}
+                      >
+                        {action.severity}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span
+                      className={cn(
+                        "text-xs font-medium px-2 py-1 rounded",
+                        action.status === "Success"
+                          ? "bg-status-healthy/20 text-status-healthy"
+                          : action.status === "Failed"
+                          ? "bg-status-critical/20 text-status-critical"
+                          : "bg-primary/20 text-primary"
+                      )}
+                    >
+                      {action.status}
+                    </span>
+                  </div>
                 </div>
-                <div className="p-2.5 rounded-lg bg-primary/10">
-                  <Clock className="w-5 h-5 text-primary" />
-                </div>
-              </div>
-            </div>
-
-            {/* Successful */}
-            <div className="p-6 rounded-xl border border-border/50 bg-card">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wide">
-                    Successful
-                  </p>
-                  <p className="text-3xl font-bold text-status-healthy">{aiSummary.successfulActions}</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {((aiSummary.successfulActions / aiSummary.totalActions) * 100).toFixed(1)}% success
-                  </p>
-                </div>
-                <div className="p-2.5 rounded-lg bg-status-healthy/10">
-                  <CheckCircle2 className="w-5 h-5 text-status-healthy" />
-                </div>
-              </div>
-            </div>
-
-            {/* Failed */}
-            <div className="p-6 rounded-xl border border-border/50 bg-card">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wide">
-                    Failed
-                  </p>
-                  <p className="text-3xl font-bold text-status-critical">{aiSummary.failedActions}</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {((aiSummary.failedActions / aiSummary.totalActions) * 100).toFixed(1)}% failure
-                  </p>
-                </div>
-                <div className="p-2.5 rounded-lg bg-status-critical/10">
-                  <XCircle className="w-5 h-5 text-status-critical" />
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>
