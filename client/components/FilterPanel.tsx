@@ -435,6 +435,99 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
           </button>
         </div>
       )}
+
+      {/* Save Cluster Dialog */}
+      {showClusterDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-card border border-border rounded-lg p-6 w-full max-w-md mx-4 space-y-4 shadow-lg">
+            <h3 className="text-lg font-bold text-foreground">Save as Cluster</h3>
+            <p className="text-sm text-muted-foreground">Give this filter combination a name to save it for later use</p>
+            <input
+              type="text"
+              value={clusterName}
+              onChange={(e) => setClusterName(e.target.value)}
+              placeholder="e.g., Ericsson 5G North..."
+              className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSaveCluster();
+                if (e.key === "Escape") setShowClusterDialog(false);
+              }}
+              autoFocus
+            />
+            <div className="flex gap-3">
+              <button
+                onClick={handleSaveCluster}
+                className="flex-1 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-all"
+              >
+                Save Cluster
+              </button>
+              <button
+                onClick={() => {
+                  setShowClusterDialog(false);
+                  setClusterName("");
+                }}
+                className="flex-1 px-4 py-2 rounded-lg bg-muted text-foreground text-sm font-medium hover:bg-muted/70 transition-all"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Saved Clusters List */}
+      {savedClusters.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-4">Saved Clusters</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 px-4">
+            {savedClusters.map((cluster) => (
+              <div
+                key={cluster.id}
+                className="p-3 rounded-lg border border-border/50 bg-card hover:bg-card/80 transition-colors space-y-2"
+              >
+                <p className="text-sm font-medium text-foreground truncate">{cluster.name}</p>
+                <p className="text-xs text-muted-foreground line-clamp-2">
+                  {[
+                    cluster.vendors.length > 0 && `${cluster.vendors.length} vendor(s)`,
+                    cluster.technologies.length > 0 && `${cluster.technologies.length} tech(s)`,
+                    cluster.regions.length > 0 && `${cluster.regions.length} region(s)`,
+                    cluster.countries.length > 0 && `${cluster.countries.length} country(ies)`,
+                  ]
+                    .filter(Boolean)
+                    .join(" • ") || "No filters"}
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      loadCluster(cluster);
+                      toast({
+                        title: "Cluster loaded",
+                        description: `Filters have been reapplied from "${cluster.name}"`,
+                      });
+                    }}
+                    className="flex-1 px-2 py-1 rounded text-xs bg-primary/10 text-primary hover:bg-primary/20 transition-colors font-medium flex items-center justify-center gap-1"
+                  >
+                    <Download className="w-3 h-3" />
+                    Load
+                  </button>
+                  <button
+                    onClick={() => {
+                      deleteCluster(cluster.id);
+                      toast({
+                        title: "Cluster deleted",
+                        description: `"${cluster.name}" has been removed`,
+                      });
+                    }}
+                    className="px-2 py-1 rounded text-xs bg-status-critical/10 text-status-critical hover:bg-status-critical/20 transition-colors"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
