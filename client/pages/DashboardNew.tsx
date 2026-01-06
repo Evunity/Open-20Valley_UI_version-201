@@ -135,6 +135,7 @@ export default function DashboardNew() {
   const vendorData = useMemo(() => generateVendorData(filters), [filters]);
   const aiActionsData = useMemo(() => generateAIActionsData(filters), [filters]);
   const aiSummary = useMemo(() => generateAIActionsSummary(filters), [filters]);
+  const aiActionsDetailList = useMemo(() => generateAIActionsDetailList(filters), [filters]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
