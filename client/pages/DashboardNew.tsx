@@ -620,7 +620,7 @@ export default function DashboardNew() {
             >
               <option value="pie">Pie Chart</option>
               <option value="bar">Bar Chart</option>
-              <option value="line">Line Chart</option>
+              <option value="histogram">Histogram</option>
             </select>
           </div>
         </div>
