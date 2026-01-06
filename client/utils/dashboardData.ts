@@ -202,12 +202,67 @@ export const calculateFilterMultiplier = (filters: GlobalFilterState): number =>
  */
 export const calculateDateMultiplier = (filters: GlobalFilterState): number => {
   const dayCount = getDaysDifference(filters.dateRange);
-  
+
   // If single day selected, show reduced numbers (subset of daily activity)
   if (dayCount === 1) {
     return 1;
   }
-  
+
   // For multiple days, scale up proportionally
   return Math.min(dayCount / 7, 1.5); // Cap at 1.5x to avoid exponential growth
+};
+
+/**
+ * Generate detailed AI Engine Actions list with action names, times, severity, and status
+ */
+export const generateAIActionsDetailList = (filters: GlobalFilterState) => {
+  const actionTypes = [
+    "Auto-scale Resources",
+    "Reroute Traffic",
+    "Clear Cache",
+    "Restart Service",
+    "Update Configuration",
+    "Backup Data",
+    "Optimize Network",
+    "Patch Security",
+    "Monitor Health",
+    "Load Balance",
+    "Failover Activate",
+    "Sync Database",
+    "Compress Logs",
+    "Verify Integrity",
+    "Clean Temp Files",
+  ];
+
+  const severities: Array<"HIGH" | "MED" | "LOW"> = ["HIGH", "MED", "LOW"];
+  const statuses: Array<"Success" | "Failed" | "Ongoing"> = ["Success", "Failed", "Ongoing"];
+
+  const dayCount = getDaysDifference(filters.dateRange);
+  const isHourly = isHourlyGranularity(filters.dateRange);
+
+  const baseMultiplier = 1 - (filters.vendors.length * 0.1 + filters.technologies.length * 0.05);
+
+  // Generate list based on granularity
+  const actionCount = isHourly ? Math.round(8 * baseMultiplier) : Math.round(20 * baseMultiplier * Math.min(dayCount, 5));
+
+  const actions = [];
+  const now = new Date();
+
+  for (let i = 0; i < actionCount; i++) {
+    const actionTime = new Date(now.getTime() - i * (isHourly ? 3600000 : 86400000 * (dayCount > 1 ? dayCount / actionCount : 0.5)));
+
+    const timeStr = isHourly
+      ? actionTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })
+      : actionTime.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+
+    actions.push({
+      id: `action-${i}`,
+      name: actionTypes[Math.floor(Math.random() * actionTypes.length)],
+      time: timeStr,
+      severity: severities[Math.floor(Math.random() * severities.length)],
+      status: statuses[Math.floor(Math.random() * statuses.length)],
+    });
+  }
+
+  return actions;
 };
