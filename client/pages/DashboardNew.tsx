@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   XCircle,
   Clock,
+  Zap,
 } from "lucide-react";
 import {
   LineChart,
@@ -36,6 +37,8 @@ interface KPIValue {
   change?: number;
 }
 
+type ChartType = "line" | "bar" | "pie";
+
 // Calculate KPI values based on filters (mock logic with filter-aware simulation)
 const calculateKPIValue = (kpiId: string, filters: any): KPIValue => {
   // Base values when no filters are applied
@@ -61,23 +64,23 @@ const calculateKPIValue = (kpiId: string, filters: any): KPIValue => {
 
   // Apply filter multipliers to simulate different data
   let filterMultiplier = 1;
-
+  
   // Vendor filter impact
   if (filters.vendors.length > 0) {
     filterMultiplier *= 0.85; // Reduce by 15% per vendor filter
   }
-
+  
   // Technology filter impact
   if (filters.technologies.length > 0) {
     filterMultiplier *= 0.9; // Reduce by 10% per tech filter
   }
-
+  
   // Region filter impact
   if (filters.regions.length > 0) {
     filterMultiplier = 1 - (filters.regions.length * 0.15); // 15% per region
     filterMultiplier = Math.max(0.4, filterMultiplier); // Min 40% of base value
   }
-
+  
   // Country filter impact
   if (filters.countries.length > 0) {
     filterMultiplier *= 0.95;
@@ -130,43 +133,56 @@ export default function DashboardNew() {
   ]);
   const [showKPISelector, setShowKPISelector] = useState(false);
 
-  // Mock data for charts
-  const trafficData = [
-    { time: "00:00", traffic: 2.1, success: 98.2 },
-    { time: "04:00", traffic: 1.8, success: 99.1 },
-    { time: "08:00", traffic: 3.4, success: 97.8 },
-    { time: "12:00", traffic: 3.9, success: 98.9 },
-    { time: "16:00", traffic: 3.2, success: 99.2 },
-    { time: "20:00", traffic: 2.7, success: 98.5 },
-  ];
+  // Chart type states
+  const [trafficChartType, setTrafficChartType] = useState<ChartType>("line");
+  const [regionChartType, setRegionChartType] = useState<ChartType>("bar");
+  const [vendorChartType, setVendorChartType] = useState<ChartType>("pie");
 
-  const regionData = [
-    { region: "North", sites: 684 },
-    { region: "South", sites: 512 },
-    { region: "East", sites: 721 },
-    { region: "West", sites: 598 },
-    { region: "Central", sites: 332 },
-  ];
+  // Mock data for charts (filter-aware)
+  const trafficData = useMemo(() => [
+    { time: "00:00", traffic: 2.1 * (1 - filters.vendors.length * 0.1), success: 98.2 - filters.vendors.length * 0.5 },
+    { time: "04:00", traffic: 1.8 * (1 - filters.vendors.length * 0.1), success: 99.1 - filters.vendors.length * 0.5 },
+    { time: "08:00", traffic: 3.4 * (1 - filters.vendors.length * 0.1), success: 97.8 - filters.vendors.length * 0.5 },
+    { time: "12:00", traffic: 3.9 * (1 - filters.vendors.length * 0.1), success: 98.9 - filters.vendors.length * 0.5 },
+    { time: "16:00", traffic: 3.2 * (1 - filters.vendors.length * 0.1), success: 99.2 - filters.vendors.length * 0.5 },
+    { time: "20:00", traffic: 2.7 * (1 - filters.vendors.length * 0.1), success: 98.5 - filters.vendors.length * 0.5 },
+  ], [filters]);
 
-  const vendorData = [
-    { vendor: "Ericsson", sites: 892, fill: "#7c3aed" },
-    { vendor: "Huawei", sites: 756, fill: "#3b82f6" },
-    { vendor: "Nokia", sites: 634, fill: "#22c55e" },
-    { vendor: "Samsung", sites: 389, fill: "#f59e0b" },
-    { vendor: "Others", sites: 176, fill: "#ef4444" },
-  ];
+  const regionData = useMemo(() => {
+    const baseData = [
+      { region: "North", sites: 684 },
+      { region: "South", sites: 512 },
+      { region: "East", sites: 721 },
+      { region: "West", sites: 598 },
+      { region: "Central", sites: 332 },
+    ];
+    // Apply region filter
+    const multiplier = filters.regions.length > 0 ? 0.7 : 1;
+    return baseData.map(d => ({ ...d, sites: Math.round(d.sites * multiplier) }));
+  }, [filters]);
 
-  // AI Engine Actions data (mocked)
-  const aiActionsData = {
-    totalActions: 342,
-    successfulActions: 298,
-    failedActions: 44,
-  };
+  const vendorData = useMemo(() => {
+    const baseData = [
+      { vendor: "Ericsson", sites: 892, fill: "#7c3aed" },
+      { vendor: "Huawei", sites: 756, fill: "#3b82f6" },
+      { vendor: "Nokia", sites: 634, fill: "#22c55e" },
+      { vendor: "Samsung", sites: 389, fill: "#f59e0b" },
+      { vendor: "Others", sites: 176, fill: "#ef4444" },
+    ];
+    // Apply vendor filter
+    const multiplier = filters.vendors.length > 0 ? 0.8 : 1;
+    return baseData.map(d => ({ ...d, sites: Math.round(d.sites * multiplier) }));
+  }, [filters]);
 
-  // Memoize chart data based on filters
-  const memoizedTrafficData = useMemo(() => trafficData, [filters]);
-  const memoizedRegionData = useMemo(() => regionData, [filters]);
-  const memoizedVendorData = useMemo(() => vendorData, [filters]);
+  // AI Engine Actions data (filter-aware)
+  const aiActionsData = useMemo(() => {
+    const baseTotal = 342;
+    const multiplier = 1 - (filters.vendors.length * 0.1 + filters.technologies.length * 0.05);
+    const total = Math.round(baseTotal * multiplier);
+    const successful = Math.round(total * 0.87);
+    const failed = total - successful;
+    return { totalActions: total, successfulActions: successful, failedActions: failed };
+  }, [filters]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -194,12 +210,6 @@ export default function DashboardNew() {
     setSelectedKPIIds((prev) =>
       prev.includes(kpiId) ? prev.filter((id) => id !== kpiId) : [...prev, kpiId]
     );
-  };
-
-  const handleInlineKPIChange = (cardIndex: number, newKpiId: string) => {
-    const newSelectedKPIs = [...selectedKPIIds];
-    newSelectedKPIs[cardIndex] = newKpiId;
-    setSelectedKPIIds(newSelectedKPIs);
   };
 
   const exportToExcel = () => {
@@ -282,6 +292,68 @@ export default function DashboardNew() {
     .map((id) => getKPIById(id))
     .filter(Boolean);
 
+  // Helper function to render charts
+  const renderChart = (chartType: ChartType, data: any, dataKey: string, isRegion = false) => {
+    switch (chartType) {
+      case "line":
+        return (
+          <LineChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <XAxis dataKey={isRegion ? "region" : "time"} stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+            <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+            <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px" }} />
+            <Legend />
+            {isRegion ? (
+              <Line type="monotone" dataKey="sites" stroke="#3b82f6" strokeWidth={2} dot={{ fill: "#3b82f6", r: 4 }} />
+            ) : (
+              <>
+                <Line type="monotone" dataKey="traffic" stroke="#7c3aed" strokeWidth={2} dot={{ fill: "#7c3aed", r: 4 }} name="Traffic (Tbps)" />
+                <Line type="monotone" dataKey="success" stroke="#22c55e" strokeWidth={2} dot={{ fill: "#22c55e", r: 4 }} name="Success Rate (%)" />
+              </>
+            )}
+          </LineChart>
+        );
+      case "bar":
+        return (
+          <BarChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <XAxis dataKey={isRegion ? "region" : "time"} stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+            <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+            <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px" }} />
+            <Legend />
+            {isRegion ? (
+              <Bar dataKey="sites" fill="#3b82f6" radius={[8, 8, 0, 0]} />
+            ) : (
+              <>
+                <Bar dataKey="traffic" fill="#7c3aed" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="success" fill="#22c55e" radius={[8, 8, 0, 0]} />
+              </>
+            )}
+          </BarChart>
+        );
+      case "pie":
+        return (
+          <PieChart>
+            <Pie
+              data={data}
+              cx="50%"
+              cy="50%"
+              labelLine={false}
+              label={({ vendor, sites, region }) => `${vendor || region}: ${sites}`}
+              outerRadius={100}
+              fill="#8884d8"
+              dataKey="sites"
+            >
+              {data.map((entry: any, index: number) => (
+                <Cell key={`cell-${index}`} fill={entry.fill || ["#7c3aed", "#3b82f6", "#22c55e", "#f59e0b", "#ef4444"][index % 5]} />
+              ))}
+            </Pie>
+            <Tooltip />
+          </PieChart>
+        );
+    }
+  };
+
   return (
     <div className="space-y-8 pb-6">
       {/* ===== HEADER SECTION ===== */}
@@ -320,7 +392,7 @@ export default function DashboardNew() {
                 Key Performance Indicators
               </h2>
               <p className="text-sm text-muted-foreground">
-                Select which KPIs to display ({selectedKPIIds.length} of {AVAILABLE_KPIS.length})
+                Real-time metrics reflecting current filters ({selectedKPIIds.length} of {AVAILABLE_KPIS.length} displayed)
               </p>
             </div>
             <button
@@ -373,13 +445,13 @@ export default function DashboardNew() {
 
         {/* KPI Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {selectedKPIs.map((kpi, idx) => {
+          {selectedKPIs.map((kpi) => {
             const kpiValue = calculateKPIValue(kpi.id, filters);
             const IconComponent = kpi.icon;
 
             return (
               <div
-                key={`${kpi.id}-${idx}`}
+                key={kpi.id}
                 className={cn(
                   "p-6 rounded-xl border transition-all duration-300 hover:shadow-lg hover:border-primary/50",
                   kpiValue.status === "healthy"
@@ -401,15 +473,15 @@ export default function DashboardNew() {
                     )}
                   >
                     <IconComponent
-                    className={cn(
-                      "w-5 h-5",
-                      kpiValue.status === "healthy"
-                        ? "text-status-healthy"
-                        : kpiValue.status === "critical"
-                        ? "text-status-critical"
-                        : "text-foreground"
-                    )}
-                  />
+                      className={cn(
+                        "w-5 h-5",
+                        kpiValue.status === "healthy"
+                          ? "text-status-healthy"
+                          : kpiValue.status === "critical"
+                          ? "text-status-critical"
+                          : "text-foreground"
+                      )}
+                    />
                   </div>
                   {getStatusIcon(kpiValue.change)}
                 </div>
@@ -437,173 +509,174 @@ export default function DashboardNew() {
                             : "text-status-degraded"
                         )}
                       >
-                        {kpiValue.change < 0 ? "↓" : "↑"} {Math.abs(kpiValue.change)}%
+                        {kpiValue.change < 0 ? "↓" : "↑"} {Math.abs(kpiValue.change).toFixed(1)}%
                       </span>
                     )}
                   </div>
                 </div>
-
               </div>
             );
           })}
         </div>
       </div>
 
-      {/* ===== AI ENGINE ACTIONS SECTION ===== */}
-      <div>
-        <div className="mb-4 space-y-1">
-          <h2 className="text-2xl font-bold text-foreground">AI Engine Actions</h2>
-          <p className="text-sm text-muted-foreground">Automated network operations and resolution</p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Total Actions */}
-          <div className="p-6 rounded-xl border border-border/50 bg-card">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wide">
-                  Total Actions
-                </p>
-                <p className="text-3xl font-bold text-foreground">{aiActionsData.totalActions}</p>
-              </div>
-              <div className="p-2.5 rounded-lg bg-primary/10">
-                <Clock className="w-5 h-5 text-primary" />
-              </div>
-            </div>
-          </div>
+      {/* ===== ANALYTICS SECTIONS ===== */}
+      <AnalyticsSections />
 
-          {/* Successful Actions */}
-          <div className="p-6 rounded-xl border border-border/50 bg-card">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wide">
-                  Successful
-                </p>
-                <p className="text-3xl font-bold text-status-healthy">{aiActionsData.successfulActions}</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {((aiActionsData.successfulActions / aiActionsData.totalActions) * 100).toFixed(1)}% success rate
-                </p>
-              </div>
-              <div className="p-2.5 rounded-lg bg-status-healthy/10">
-                <CheckCircle2 className="w-5 h-5 text-status-healthy" />
-              </div>
-            </div>
-          </div>
-
-          {/* Failed Actions */}
-          <div className="p-6 rounded-xl border border-border/50 bg-card">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wide">
-                  Failed
-                </p>
-                <p className="text-3xl font-bold text-status-critical">{aiActionsData.failedActions}</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {((aiActionsData.failedActions / aiActionsData.totalActions) * 100).toFixed(1)}% failure rate
-                </p>
-              </div>
-              <div className="p-2.5 rounded-lg bg-status-critical/10">
-                <XCircle className="w-5 h-5 text-status-critical" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ===== TRAFFIC TRENDS & SITE DISTRIBUTION ===== */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Traffic Trends */}
-        <div className="card-elevated rounded-xl border border-border/50 p-6">
-          <div className="mb-6 space-y-1">
-            <h3 className="text-lg font-bold text-foreground">Traffic Trends</h3>
-            <p className="text-sm text-muted-foreground">Last 24 hours</p>
-          </div>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={memoizedTrafficData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="time" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
-              <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "8px",
-                }}
-              />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="traffic"
-                stroke="#7c3aed"
-                strokeWidth={2}
-                dot={{ fill: "#7c3aed", r: 4 }}
-                name="Traffic (Tbps)"
-              />
-              <Line
-                type="monotone"
-                dataKey="success"
-                stroke="#22c55e"
-                strokeWidth={2}
-                dot={{ fill: "#22c55e", r: 4 }}
-                name="Success Rate (%)"
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Region Distribution */}
-        <div className="card-elevated rounded-xl border border-border/50 p-6">
-          <div className="mb-6 space-y-1">
-            <h3 className="text-lg font-bold text-foreground">Sites by Region</h3>
-            <p className="text-sm text-muted-foreground">Geographic distribution</p>
-          </div>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={memoizedRegionData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="region" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
-              <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "8px",
-                }}
-              />
-              <Bar dataKey="sites" fill="#3b82f6" radius={[8, 8, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* ===== VENDOR PIE CHART ===== */}
+      {/* ===== AI ENGINE ACTIONS SECTION (2-COLUMN LAYOUT) ===== */}
       <div className="card-elevated rounded-xl border border-border/50 p-6">
         <div className="mb-6 space-y-1">
-          <h3 className="text-lg font-bold text-foreground">Vendor Distribution</h3>
-          <p className="text-sm text-muted-foreground">Equipment manufacturer breakdown</p>
+          <h2 className="text-2xl font-bold text-foreground">AI Engine Actions</h2>
+          <p className="text-sm text-muted-foreground">Automated network operations and resolution activities</p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* LEFT SIDE: Visual Element */}
+          <div className="flex items-center justify-center p-8 rounded-lg bg-gradient-to-br from-primary/10 to-accent/10 border border-border/50 min-h-[300px]">
+            <div className="text-center">
+              <div className="flex justify-center mb-4">
+                <div className="p-4 rounded-full bg-primary/20">
+                  <Zap className="w-12 h-12 text-primary" />
+                </div>
+              </div>
+              <h3 className="text-xl font-bold text-foreground mb-2">AI-Powered Automation</h3>
+              <p className="text-sm text-muted-foreground max-w-xs">
+                Real-time automation engine detecting and resolving network anomalies autonomously
+              </p>
+            </div>
+          </div>
+
+          {/* RIGHT SIDE: Action Metrics Cards */}
+          <div className="space-y-4">
+            {/* Total Actions */}
+            <div className="p-6 rounded-xl border border-border/50 bg-card">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wide">
+                    Total Actions Taken
+                  </p>
+                  <p className="text-3xl font-bold text-foreground">{aiActionsData.totalActions}</p>
+                </div>
+                <div className="p-2.5 rounded-lg bg-primary/10">
+                  <Clock className="w-5 h-5 text-primary" />
+                </div>
+              </div>
+            </div>
+
+            {/* Successful Actions */}
+            <div className="p-6 rounded-xl border border-border/50 bg-card">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wide">
+                    Successful Actions
+                  </p>
+                  <p className="text-3xl font-bold text-status-healthy">{aiActionsData.successfulActions}</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {((aiActionsData.successfulActions / aiActionsData.totalActions) * 100).toFixed(1)}% success rate
+                  </p>
+                </div>
+                <div className="p-2.5 rounded-lg bg-status-healthy/10">
+                  <CheckCircle2 className="w-5 h-5 text-status-healthy" />
+                </div>
+              </div>
+            </div>
+
+            {/* Failed Actions */}
+            <div className="p-6 rounded-xl border border-border/50 bg-card">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wide">
+                    Failed Actions
+                  </p>
+                  <p className="text-3xl font-bold text-status-critical">{aiActionsData.failedActions}</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {((aiActionsData.failedActions / aiActionsData.totalActions) * 100).toFixed(1)}% failure rate
+                  </p>
+                </div>
+                <div className="p-2.5 rounded-lg bg-status-critical/10">
+                  <XCircle className="w-5 h-5 text-status-critical" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ===== TRAFFIC TRENDS ===== */}
+      <div className="card-elevated rounded-xl border border-border/50 p-6">
+        <div className="mb-6 space-y-1">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <h3 className="text-lg font-bold text-foreground">Traffic Trends</h3>
+              <p className="text-sm text-muted-foreground">Last 24 hours</p>
+            </div>
+            <select
+              value={trafficChartType}
+              onChange={(e) => setTrafficChartType(e.target.value as ChartType)}
+              className="px-3 py-1 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50"
+            >
+              <option value="line">Line Chart</option>
+              <option value="bar">Bar Chart</option>
+              <option value="pie">Pie Chart</option>
+            </select>
+          </div>
+        </div>
+        <ResponsiveContainer width="100%" height={300}>
+          {renderChart(trafficChartType, trafficData, "traffic")}
+        </ResponsiveContainer>
+      </div>
+
+      {/* ===== SITES BY REGION ===== */}
+      <div className="card-elevated rounded-xl border border-border/50 p-6">
+        <div className="mb-6 space-y-1">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <h3 className="text-lg font-bold text-foreground">Sites by Region</h3>
+              <p className="text-sm text-muted-foreground">Geographic distribution</p>
+            </div>
+            <select
+              value={regionChartType}
+              onChange={(e) => setRegionChartType(e.target.value as ChartType)}
+              className="px-3 py-1 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50"
+            >
+              <option value="line">Line Chart</option>
+              <option value="bar">Bar Chart</option>
+              <option value="pie">Pie Chart</option>
+            </select>
+          </div>
+        </div>
+        <ResponsiveContainer width="100%" height={300}>
+          {renderChart(regionChartType, regionData, "sites", true)}
+        </ResponsiveContainer>
+      </div>
+
+      {/* ===== VENDOR DISTRIBUTION ===== */}
+      <div className="card-elevated rounded-xl border border-border/50 p-6">
+        <div className="mb-6 space-y-1">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <h3 className="text-lg font-bold text-foreground">Vendor Distribution</h3>
+              <p className="text-sm text-muted-foreground">Equipment manufacturer breakdown</p>
+            </div>
+            <select
+              value={vendorChartType}
+              onChange={(e) => setVendorChartType(e.target.value as ChartType)}
+              className="px-3 py-1 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50"
+            >
+              <option value="line">Line Chart</option>
+              <option value="bar">Bar Chart</option>
+              <option value="pie">Pie Chart</option>
+            </select>
+          </div>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
             <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={memoizedVendorData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ vendor, sites }) => `${vendor}: ${sites}`}
-                  outerRadius={100}
-                  fill="#8884d8"
-                  dataKey="sites"
-                >
-                  {memoizedVendorData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
+              {renderChart(vendorChartType, vendorData, "sites")}
             </ResponsiveContainer>
           </div>
           <div className="space-y-3 flex flex-col justify-center">
-            {memoizedVendorData.map((vendor, idx) => (
+            {vendorData.map((vendor, idx) => (
               <div key={idx} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50">
                 <div className="w-3 h-3 rounded-full" style={{ backgroundColor: vendor.fill }} />
                 <div className="flex-1 min-w-0">
@@ -615,9 +688,6 @@ export default function DashboardNew() {
           </div>
         </div>
       </div>
-
-      {/* ===== ANALYTICS SECTIONS ===== */}
-      <AnalyticsSections />
     </div>
   );
 }
