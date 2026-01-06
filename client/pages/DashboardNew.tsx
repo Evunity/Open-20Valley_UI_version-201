@@ -191,52 +191,50 @@ export default function DashboardNew() {
           : "All Time",
     };
 
-    const csvHeader = ["NETWORK OPERATIONS DASHBOARD EXPORT"];
-    const csvSubHeader = [
-      `Generated: ${new Date().toLocaleString()}`,
-      "",
-      "APPLIED FILTERS:",
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new();
+
+    // Sheet data with sections
+    const sheetData: any[] = [];
+
+    // Header
+    sheetData.push(["NETWORK OPERATIONS DASHBOARD EXPORT"]);
+    sheetData.push([`Generated: ${new Date().toLocaleString()}`]);
+    sheetData.push([]);
+
+    // Filters section
+    sheetData.push(["APPLIED FILTERS:"]);
+    Object.entries(filtersApplied).forEach(([key, value]) => {
+      sheetData.push([key, value]);
+    });
+    sheetData.push([]);
+
+    // KPI section
+    sheetData.push(["SELECTED KPI VALUES:"]);
+    sheetData.push(["KPI", "Value", "Unit", "Status"]);
+    selectedKPIs.forEach((kpi) => {
+      sheetData.push([kpi.KPI, kpi.Value, kpi.Unit, kpi.Status]);
+    });
+
+    const ws = XLSX.utils.aoa_to_sheet(sheetData);
+
+    // Set column widths
+    ws["!cols"] = [
+      { wch: 25 },
+      { wch: 20 },
+      { wch: 15 },
+      { wch: 15 },
     ];
-    const csvFiltersRows = Object.entries(filtersApplied).map(([key, value]) => [
-      key,
-      value,
-    ]);
 
-    const csvKPIHeader = ["", "", "SELECTED KPI VALUES:"];
-    const csvKPILabels = ["KPI", "Value", "Unit", "Status"];
-    const csvKPIRows = selectedKPIs.map((kpi) => [
-      kpi.KPI,
-      kpi.Value,
-      kpi.Unit,
-      kpi.Status,
-    ]);
+    XLSX.utils.book_append_sheet(wb, ws, "Dashboard");
 
-    const allRows = [
-      csvHeader,
-      csvSubHeader,
-      ...csvFiltersRows,
-      csvKPIHeader,
-      [csvKPILabels],
-      ...csvKPIRows,
-    ];
-
-    const csvContent = allRows
-      .map((row) => row.map((cell) => `"${cell}"`).join(","))
-      .join("\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", `dashboard-export-${new Date().getTime()}.csv`);
-    link.style.visibility = "hidden";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // Generate file
+    const fileName = `dashboard-export-${new Date().getTime()}.xlsx`;
+    XLSX.writeFile(wb, fileName);
 
     toast({
       title: "Export successful",
-      description: `Downloaded dashboard data as Excel CSV`,
+      description: `Downloaded dashboard data as Excel file`,
     });
   };
 
