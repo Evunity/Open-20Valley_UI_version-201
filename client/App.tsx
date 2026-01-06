@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { FilterProvider } from "@/hooks/useGlobalFilters";
 import Layout from "@/components/Layout";
 import DashboardNew from "@/pages/DashboardNew";
+import AIEngineActions from "@/pages/AIEngineActions";
 import Settings from "@/pages/Settings";
 import ReportsPage from "@/pages/ReportsPage";
 import NetworkNew from "@/pages/NetworkNew";
