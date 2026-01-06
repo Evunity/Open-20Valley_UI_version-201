@@ -82,7 +82,17 @@ export default function AnalyticsSections() {
           {sections.map((section, index) => (
             <button
               key={section.path}
-              onClick={() => navigate(section.path)}
+              onClick={() => {
+                if (section.isExternal && section.path?.startsWith("#")) {
+                  // Scroll to element by ID
+                  const element = document.querySelector(section.path);
+                  if (element) {
+                    element.scrollIntoView({ behavior: "smooth" });
+                  }
+                } else if (section.path) {
+                  navigate(section.path);
+                }
+              }}
               className={cn(
                 "flex items-start gap-3 p-4 hover:bg-primary/5 transition-all duration-200 text-left group border-b border-border/30",
                 index % 2 === 1 && "md:border-l md:border-b md:border-border/30"
