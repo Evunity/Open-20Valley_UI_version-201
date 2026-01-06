@@ -420,6 +420,7 @@ export default function DashboardNew() {
           {selectedKPIs.map((kpi) => {
             const kpiValue = calculateKPIValue(kpi.id, filters);
             const IconComponent = kpi.icon;
+            const activeFilters = getActiveFiltersSummary(filters);
 
             return (
               <div
@@ -433,7 +434,7 @@ export default function DashboardNew() {
                     : "border-border bg-card"
                 )}
               >
-                <div className="mb-4">
+                <div className="flex items-start justify-between gap-4 mb-4">
                   <div
                     className={cn(
                       "p-2.5 rounded-lg w-fit",
@@ -455,6 +456,17 @@ export default function DashboardNew() {
                       )}
                     />
                   </div>
+
+                  {activeFilters.count > 0 && (
+                    <div className="text-right flex-1">
+                      <p className="text-xs font-semibold text-muted-foreground mb-1">
+                        {activeFilters.count} {activeFilters.count === 1 ? "filter" : "filters"}
+                      </p>
+                      <p className="text-xs text-muted-foreground line-clamp-2">
+                        {activeFilters.names.join(", ")}
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 <div>
