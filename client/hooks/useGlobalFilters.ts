@@ -5,7 +5,8 @@ export interface GlobalFilterState {
   technologies: string[];
   regions: string[];
   clusters: string[];
-  timeRange: "24h" | "7d" | "30d";
+  countries: string[];
+  dateRange: { from: Date | null; to: Date | null };
 }
 
 interface FilterContextType {
@@ -21,7 +22,8 @@ const DEFAULT_FILTERS: GlobalFilterState = {
   technologies: [],
   regions: [],
   clusters: [],
-  timeRange: "24h",
+  countries: [],
+  dateRange: { from: null, to: null },
 };
 
 interface FilterProviderProps {
