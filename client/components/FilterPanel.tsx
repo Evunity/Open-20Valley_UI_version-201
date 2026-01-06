@@ -31,30 +31,32 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
     });
   };
 
-  const handleSaveCluster = () => {
-    if (!clusterName.trim()) {
+  const handleCreateCluster = () => {
+    if (!newClusterName.trim()) {
       toast({
-        title: "Invalid cluster name",
-        description: "Please enter a name for this cluster",
+        title: "Invalid location name",
+        description: "Please enter a location name",
       });
       return;
     }
 
-    saveAsCluster(clusterName, {
-      vendors: filters.vendors,
-      technologies: filters.technologies,
-      regions: filters.regions,
-      countries: filters.countries,
-      dateRange: filters.dateRange,
-    });
+    const success = addCluster(newClusterName);
+
+    if (!success) {
+      toast({
+        title: "Cluster already exists",
+        description: `A cluster with the name "${newClusterName}" already exists`,
+      });
+      return;
+    }
 
     toast({
-      title: "Cluster saved",
-      description: `"${clusterName}" has been saved as a filter preset`,
+      title: "Cluster created",
+      description: `"${newClusterName}" has been added to the cluster list`,
     });
 
-    setClusterName("");
-    setShowClusterDialog(false);
+    setNewClusterName("");
+    setShowCreateClusterDialog(false);
   };
 
   const activeFilterCount =
