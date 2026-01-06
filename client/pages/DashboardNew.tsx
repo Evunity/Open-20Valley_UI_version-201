@@ -276,6 +276,22 @@ export default function DashboardNew() {
             {dataKeys.includes("failed") && <Bar dataKey="failed" fill="#ef4444" radius={[8, 8, 0, 0]} name="Failed" />}
           </BarChart>
         );
+      case "histogram":
+        // Histogram is rendered as a Bar chart with tight grouping
+        return (
+          <BarChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <XAxis dataKey="time" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+            <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+            <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px" }} />
+            <Legend />
+            {dataKeys.includes("traffic") && <Bar dataKey="traffic" fill="#7c3aed" name="Traffic Distribution" />}
+            {dataKeys.includes("success") && <Bar dataKey="success" fill="#22c55e" name="Success Distribution" />}
+            {dataKeys.includes("sites") && <Bar dataKey="sites" fill="#3b82f6" name="Sites Distribution" />}
+            {dataKeys.includes("successful") && <Bar dataKey="successful" fill="#22c55e" name="Successful Distribution" />}
+            {dataKeys.includes("failed") && <Bar dataKey="failed" fill="#ef4444" name="Failed Distribution" />}
+          </BarChart>
+        );
       case "pie":
         return (
           <PieChart>
