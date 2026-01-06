@@ -362,22 +362,14 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
           </button>
         </div>
 
-        {/* Save as Cluster Button */}
+        {/* Add Cluster Location Button */}
         <div className="flex items-end lg:col-span-1">
           <button
-            onClick={() => setShowClusterDialog(true)}
-            disabled={
-              filters.vendors.length === 0 &&
-              filters.technologies.length === 0 &&
-              filters.regions.length === 0 &&
-              filters.countries.length === 0 &&
-              !filters.dateRange.from &&
-              !filters.dateRange.to
-            }
-            className="w-full px-3 py-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-all duration-200 text-xs font-medium active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1"
+            onClick={() => setShowCreateClusterDialog(true)}
+            className="w-full px-3 py-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-all duration-200 text-xs font-medium active:scale-95 flex items-center justify-center gap-1"
           >
-            <Save className="w-3 h-3" />
-            Save as Cluster
+            <Plus className="w-3 h-3" />
+            Add Location
           </button>
         </div>
 
