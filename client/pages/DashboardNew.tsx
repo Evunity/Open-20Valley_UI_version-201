@@ -391,23 +391,6 @@ export default function DashboardNew() {
                   </div>
                 </div>
 
-                {/* Inline KPI Selector */}
-                <div className="pt-3 border-t border-border">
-                  <label className="block text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
-                    Change KPI
-                  </label>
-                  <select
-                    value={kpi.id}
-                    onChange={(e) => handleInlineKPIChange(idx, e.target.value)}
-                    className="w-full px-2 py-1 rounded-lg border border-border bg-background text-xs focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                  >
-                    {AVAILABLE_KPIS.map((option) => (
-                      <option key={option.id} value={option.id}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
               </div>
             );
           })}
