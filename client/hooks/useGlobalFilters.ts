@@ -29,7 +29,7 @@ interface FilterContextType {
   setFilters: (filters: GlobalFilterState) => void;
   resetFilters: () => void;
   savedClusters: SavedCluster[];
-  saveAsCluster: (name: string, filterState: Omit<GlobalFilterState, 'clusters'>) => void;
+  saveAsCluster: (name: string, filterState: Omit<GlobalFilterState, "clusters">) => void;
   loadCluster: (cluster: SavedCluster) => void;
   deleteCluster: (clusterId: string) => void;
   availableClusters: LocationCluster[];
@@ -75,7 +75,7 @@ export function FilterProvider(props: FilterProviderProps) {
     setFilters(DEFAULT_FILTERS);
   };
 
-  const saveAsCluster = (name: string, filterState: Omit<GlobalFilterState, 'clusters'>) => {
+  const saveAsCluster = (name: string, filterState: Omit<GlobalFilterState, "clusters">) => {
     const newCluster: SavedCluster = {
       id: `cluster-${Date.now()}`,
       name,
@@ -102,7 +102,7 @@ export function FilterProvider(props: FilterProviderProps) {
   };
 
   const deleteCluster = (clusterId: string) => {
-    const updated = savedClusters.filter(c => c.id !== clusterId);
+    const updated = savedClusters.filter((c) => c.id !== clusterId);
     setSavedClusters(updated);
     localStorage.setItem("savedClusters", JSON.stringify(updated));
   };
@@ -115,7 +115,7 @@ export function FilterProvider(props: FilterProviderProps) {
 
     // Check for duplicates (case-insensitive)
     const isDuplicate = availableClusters.some(
-      c => c.name.toLowerCase() === locationName.toLowerCase()
+      (c) => c.name.toLowerCase() === locationName.toLowerCase()
     );
     if (isDuplicate) {
       return false;
@@ -133,7 +133,7 @@ export function FilterProvider(props: FilterProviderProps) {
   };
 
   const removeCluster = (clusterId: string) => {
-    const updated = availableClusters.filter(c => c.id !== clusterId);
+    const updated = availableClusters.filter((c) => c.id !== clusterId);
     setAvailableClusters(updated);
     localStorage.setItem("customClusters", JSON.stringify(updated));
   };
@@ -151,11 +151,7 @@ export function FilterProvider(props: FilterProviderProps) {
     removeCluster,
   };
 
-  return createElement(
-    FilterContext.Provider,
-    { value },
-    children
-  );
+  return createElement(FilterContext.Provider, { value }, children);
 }
 
 export function useGlobalFilters() {

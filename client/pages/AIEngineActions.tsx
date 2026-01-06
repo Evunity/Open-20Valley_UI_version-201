@@ -41,11 +41,27 @@ export default function AIEngineActions() {
         return (
           <LineChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <XAxis dataKey="time" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+            <XAxis
+              dataKey="time"
+              stroke="hsl(var(--muted-foreground))"
+              style={{ fontSize: "12px" }}
+            />
             <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
-            <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px" }} />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "hsl(var(--card))",
+                border: "1px solid hsl(var(--border))",
+                borderRadius: "8px",
+              }}
+            />
             <Legend />
-            <Line type="monotone" dataKey="successful" stroke="#22c55e" strokeWidth={2} name="Successful" />
+            <Line
+              type="monotone"
+              dataKey="successful"
+              stroke="#22c55e"
+              strokeWidth={2}
+              name="Successful"
+            />
             <Line type="monotone" dataKey="failed" stroke="#ef4444" strokeWidth={2} name="Failed" />
           </LineChart>
         );
@@ -53,9 +69,19 @@ export default function AIEngineActions() {
         return (
           <BarChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <XAxis dataKey="time" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+            <XAxis
+              dataKey="time"
+              stroke="hsl(var(--muted-foreground))"
+              style={{ fontSize: "12px" }}
+            />
             <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
-            <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px" }} />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "hsl(var(--card))",
+                border: "1px solid hsl(var(--border))",
+                borderRadius: "8px",
+              }}
+            />
             <Legend />
             <Bar dataKey="successful" fill="#22c55e" radius={[8, 8, 0, 0]} name="Successful" />
             <Bar dataKey="failed" fill="#ef4444" radius={[8, 8, 0, 0]} name="Failed" />
@@ -65,9 +91,19 @@ export default function AIEngineActions() {
         return (
           <BarChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <XAxis dataKey="time" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+            <XAxis
+              dataKey="time"
+              stroke="hsl(var(--muted-foreground))"
+              style={{ fontSize: "12px" }}
+            />
             <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
-            <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px" }} />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "hsl(var(--card))",
+                border: "1px solid hsl(var(--border))",
+                borderRadius: "8px",
+              }}
+            />
             <Legend />
             <Bar dataKey="successful" fill="#22c55e" name="Successful Distribution" />
             <Bar dataKey="failed" fill="#ef4444" name="Failed Distribution" />
@@ -93,7 +129,10 @@ export default function AIEngineActions() {
     sheetData.push(["Total Actions", aiSummary.totalActions]);
     sheetData.push(["Successful Actions", aiSummary.successfulActions]);
     sheetData.push(["Failed Actions", aiSummary.failedActions]);
-    sheetData.push(["Success Rate", `${((aiSummary.successfulActions / aiSummary.totalActions) * 100).toFixed(1)}%`]);
+    sheetData.push([
+      "Success Rate",
+      `${((aiSummary.successfulActions / aiSummary.totalActions) * 100).toFixed(1)}%`,
+    ]);
     sheetData.push([]);
 
     // Detailed actions section
@@ -106,12 +145,7 @@ export default function AIEngineActions() {
     const ws = XLSX.utils.aoa_to_sheet(sheetData);
 
     // Set column widths
-    ws["!cols"] = [
-      { wch: 25 },
-      { wch: 20 },
-      { wch: 15 },
-      { wch: 15 },
-    ];
+    ws["!cols"] = [{ wch: 25 }, { wch: 20 }, { wch: 15 }, { wch: 15 }];
 
     XLSX.utils.book_append_sheet(wb, ws, "AI Actions");
 
@@ -173,7 +207,9 @@ export default function AIEngineActions() {
               <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wide">
                 Successful
               </p>
-              <p className="text-3xl font-bold text-status-healthy">{aiSummary.successfulActions}</p>
+              <p className="text-3xl font-bold text-status-healthy">
+                {aiSummary.successfulActions}
+              </p>
               <p className="text-xs text-muted-foreground mt-1">
                 {((aiSummary.successfulActions / aiSummary.totalActions) * 100).toFixed(1)}% success
               </p>
@@ -226,7 +262,9 @@ export default function AIEngineActions() {
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <h2 className="text-2xl font-bold text-foreground">Actions Timeline</h2>
-              <p className="text-sm text-muted-foreground">Success and failure distribution over time</p>
+              <p className="text-sm text-muted-foreground">
+                Success and failure distribution over time
+              </p>
             </div>
             <select
               value={chartType}
@@ -257,9 +295,13 @@ export default function AIEngineActions() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border/50">
-                <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Action Name</th>
+                <th className="text-left px-4 py-3 font-semibold text-muted-foreground">
+                  Action Name
+                </th>
                 <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Time</th>
-                <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Severity</th>
+                <th className="text-left px-4 py-3 font-semibold text-muted-foreground">
+                  Severity
+                </th>
                 <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Status</th>
               </tr>
             </thead>
@@ -278,8 +320,8 @@ export default function AIEngineActions() {
                         action.severity === "HIGH"
                           ? "bg-status-critical/20 text-status-critical"
                           : action.severity === "MED"
-                          ? "bg-status-degraded/20 text-status-degraded"
-                          : "bg-status-healthy/20 text-status-healthy"
+                            ? "bg-status-degraded/20 text-status-degraded"
+                            : "bg-status-healthy/20 text-status-healthy"
                       )}
                     >
                       {action.severity}
@@ -292,8 +334,8 @@ export default function AIEngineActions() {
                         action.status === "Success"
                           ? "bg-status-healthy/20 text-status-healthy"
                           : action.status === "Failed"
-                          ? "bg-status-critical/20 text-status-critical"
-                          : "bg-primary/20 text-primary"
+                            ? "bg-status-critical/20 text-status-critical"
+                            : "bg-primary/20 text-primary"
                       )}
                     >
                       {action.status}

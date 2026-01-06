@@ -226,10 +226,7 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
             className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
             value={filters.vendors}
             onChange={(e) => {
-              const selected = Array.from(
-                e.target.selectedOptions,
-                (option) => option.value
-              );
+              const selected = Array.from(e.target.selectedOptions, (option) => option.value);
               handleFilterChange({ ...filters, vendors: selected });
             }}
             title="Hold Ctrl/Cmd to select multiple vendors"
@@ -252,10 +249,7 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
             className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
             value={filters.technologies}
             onChange={(e) => {
-              const selected = Array.from(
-                e.target.selectedOptions,
-                (option) => option.value
-              );
+              const selected = Array.from(e.target.selectedOptions, (option) => option.value);
               handleFilterChange({ ...filters, technologies: selected });
             }}
             title="Hold Ctrl/Cmd to select multiple technologies"
@@ -278,10 +272,7 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
             className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
             value={filters.regions}
             onChange={(e) => {
-              const selected = Array.from(
-                e.target.selectedOptions,
-                (option) => option.value
-              );
+              const selected = Array.from(e.target.selectedOptions, (option) => option.value);
               handleFilterChange({ ...filters, regions: selected });
             }}
             title="Hold Ctrl/Cmd to select multiple regions"
@@ -304,10 +295,7 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
             className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
             value={filters.clusters}
             onChange={(e) => {
-              const selected = Array.from(
-                e.target.selectedOptions,
-                (option) => option.value
-              );
+              const selected = Array.from(e.target.selectedOptions, (option) => option.value);
               handleFilterChange({ ...filters, clusters: selected });
             }}
             title="Hold Ctrl/Cmd to select multiple clusters"
@@ -330,10 +318,7 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
             className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
             value={filters.countries}
             onChange={(e) => {
-              const selected = Array.from(
-                e.target.selectedOptions,
-                (option) => option.value
-              );
+              const selected = Array.from(e.target.selectedOptions, (option) => option.value);
               handleFilterChange({ ...filters, countries: selected });
             }}
             title="Hold Ctrl/Cmd to select multiple countries"
@@ -469,7 +454,6 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
           </div>
         </div>
       )}
-
     </div>
   );
 }

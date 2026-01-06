@@ -1,11 +1,5 @@
 import { useState, useMemo } from "react";
-import {
-  Download,
-  ChevronDown,
-  CheckCircle2,
-  XCircle,
-  Clock,
-} from "lucide-react";
+import { Download, ChevronDown, CheckCircle2, XCircle, Clock } from "lucide-react";
 import * as XLSX from "xlsx";
 import {
   LineChart,
@@ -76,7 +70,15 @@ const getActiveFiltersSummary = (filters: any) => {
 
 // Calculate KPI values based on filters AND date range
 const calculateKPIValue = (kpiId: string, filters: any): KPIValue => {
-  const baseValues: Record<string, { value: number | string; unit: string; status: "healthy" | "degraded" | "critical" | "normal"; change: number }> = {
+  const baseValues: Record<
+    string,
+    {
+      value: number | string;
+      unit: string;
+      status: "healthy" | "degraded" | "critical" | "normal";
+      change: number;
+    }
+  > = {
     total_sites: { value: 2847, unit: "", status: "healthy", change: -2.1 },
     active_sites: { value: 2721, unit: "", status: "healthy", change: -0.8 },
     down_sites: { value: 126, unit: "", status: "critical", change: 8.2 },
@@ -102,11 +104,29 @@ const calculateKPIValue = (kpiId: string, filters: any): KPIValue => {
   const totalMultiplier = filterMultiplier * dateMultiplier;
 
   // Apply multipliers to count-based KPIs
-  if (typeof calculatedValue === "number" && ["total_sites", "active_sites", "down_sites", "incident_count", "data_throughput"].includes(kpiId)) {
+  if (
+    typeof calculatedValue === "number" &&
+    ["total_sites", "active_sites", "down_sites", "incident_count", "data_throughput"].includes(
+      kpiId
+    )
+  ) {
     calculatedValue = Math.round(calculatedValue * totalMultiplier);
-  } else if (typeof calculatedValue === "number" && ["uptime", "success_rate", "packet_loss", "network_availability", "call_completion_rate", "network_health"].includes(kpiId)) {
+  } else if (
+    typeof calculatedValue === "number" &&
+    [
+      "uptime",
+      "success_rate",
+      "packet_loss",
+      "network_availability",
+      "call_completion_rate",
+      "network_health",
+    ].includes(kpiId)
+  ) {
     // For percentages, adjust slightly based on filters
-    calculatedValue = Math.max(85, calculatedValue - (filters.vendors.length * 0.5) - (filters.technologies.length * 0.3));
+    calculatedValue = Math.max(
+      85,
+      calculatedValue - filters.vendors.length * 0.5 - filters.technologies.length * 0.3
+    );
   }
 
   // Adjust change based on filters
@@ -117,7 +137,16 @@ const calculateKPIValue = (kpiId: string, filters: any): KPIValue => {
   // Format the value with unit
   let formattedValue = String(calculatedValue);
   if (typeof calculatedValue === "number" && kpiId !== "incident_count") {
-    if (["uptime", "success_rate", "packet_loss", "network_availability", "call_completion_rate", "network_health"].includes(kpiId)) {
+    if (
+      [
+        "uptime",
+        "success_rate",
+        "packet_loss",
+        "network_availability",
+        "call_completion_rate",
+        "network_health",
+      ].includes(kpiId)
+    ) {
       formattedValue = calculatedValue.toFixed(2) + base.unit;
     } else if (kpiId === "avg_latency") {
       formattedValue = Math.round(calculatedValue) + base.unit;
@@ -175,7 +204,6 @@ export default function DashboardNew() {
     }
   };
 
-
   const toggleKPISelection = (kpiId: string) => {
     setSelectedKPIIds((prev) =>
       prev.includes(kpiId) ? prev.filter((id) => id !== kpiId) : [...prev, kpiId]
@@ -183,17 +211,16 @@ export default function DashboardNew() {
   };
 
   const exportToExcel = () => {
-    const selectedKPIs = selectedKPIIds
-      .map((id) => {
-        const kpi = getKPIById(id);
-        const kpiValue = calculateKPIValue(id, filters);
-        return {
-          KPI: kpi?.label || id,
-          Value: kpiValue.value,
-          Unit: kpi?.unit || "",
-          Status: kpiValue.status,
-        };
-      });
+    const selectedKPIs = selectedKPIIds.map((id) => {
+      const kpi = getKPIById(id);
+      const kpiValue = calculateKPIValue(id, filters);
+      return {
+        KPI: kpi?.label || id,
+        Value: kpiValue.value,
+        Unit: kpi?.unit || "",
+        Status: kpiValue.status,
+      };
+    });
 
     const filtersApplied = {
       Vendors: filters.vendors.length > 0 ? filters.vendors.join(", ") : "All",
@@ -235,12 +262,7 @@ export default function DashboardNew() {
     const ws = XLSX.utils.aoa_to_sheet(sheetData);
 
     // Set column widths
-    ws["!cols"] = [
-      { wch: 25 },
-      { wch: 20 },
-      { wch: 15 },
-      { wch: 15 },
-    ];
+    ws["!cols"] = [{ wch: 25 }, { wch: 20 }, { wch: 15 }, { wch: 15 }];
 
     XLSX.utils.book_append_sheet(wb, ws, "Dashboard");
 
@@ -254,9 +276,7 @@ export default function DashboardNew() {
     });
   };
 
-  const selectedKPIs = selectedKPIIds
-    .map((id) => getKPIById(id))
-    .filter(Boolean);
+  const selectedKPIs = selectedKPIIds.map((id) => getKPIById(id)).filter(Boolean);
 
   // Helper function to render charts based on type
   const renderChart = (chartType: ChartType, data: any[], dataKeys: string[]) => {
@@ -265,30 +285,94 @@ export default function DashboardNew() {
         return (
           <LineChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <XAxis dataKey="time" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+            <XAxis
+              dataKey="time"
+              stroke="hsl(var(--muted-foreground))"
+              style={{ fontSize: "12px" }}
+            />
             <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
-            <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px" }} />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "hsl(var(--card))",
+                border: "1px solid hsl(var(--border))",
+                borderRadius: "8px",
+              }}
+            />
             <Legend />
-            {dataKeys.includes("traffic") && <Line type="monotone" dataKey="traffic" stroke="#7c3aed" strokeWidth={2} name="Traffic (Tbps)" />}
-            {dataKeys.includes("success") && <Line type="monotone" dataKey="success" stroke="#22c55e" strokeWidth={2} name="Success Rate (%)" />}
-            {dataKeys.includes("sites") && <Line type="monotone" dataKey="sites" stroke="#3b82f6" strokeWidth={2} name="Sites" />}
-            {dataKeys.includes("successful") && <Line type="monotone" dataKey="successful" stroke="#22c55e" strokeWidth={2} name="Successful" />}
-            {dataKeys.includes("failed") && <Line type="monotone" dataKey="failed" stroke="#ef4444" strokeWidth={2} name="Failed" />}
+            {dataKeys.includes("traffic") && (
+              <Line
+                type="monotone"
+                dataKey="traffic"
+                stroke="#7c3aed"
+                strokeWidth={2}
+                name="Traffic (Tbps)"
+              />
+            )}
+            {dataKeys.includes("success") && (
+              <Line
+                type="monotone"
+                dataKey="success"
+                stroke="#22c55e"
+                strokeWidth={2}
+                name="Success Rate (%)"
+              />
+            )}
+            {dataKeys.includes("sites") && (
+              <Line type="monotone" dataKey="sites" stroke="#3b82f6" strokeWidth={2} name="Sites" />
+            )}
+            {dataKeys.includes("successful") && (
+              <Line
+                type="monotone"
+                dataKey="successful"
+                stroke="#22c55e"
+                strokeWidth={2}
+                name="Successful"
+              />
+            )}
+            {dataKeys.includes("failed") && (
+              <Line
+                type="monotone"
+                dataKey="failed"
+                stroke="#ef4444"
+                strokeWidth={2}
+                name="Failed"
+              />
+            )}
           </LineChart>
         );
       case "bar":
         return (
           <BarChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <XAxis dataKey="time" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+            <XAxis
+              dataKey="time"
+              stroke="hsl(var(--muted-foreground))"
+              style={{ fontSize: "12px" }}
+            />
             <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
-            <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px" }} />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "hsl(var(--card))",
+                border: "1px solid hsl(var(--border))",
+                borderRadius: "8px",
+              }}
+            />
             <Legend />
-            {dataKeys.includes("traffic") && <Bar dataKey="traffic" fill="#7c3aed" radius={[8, 8, 0, 0]} name="Traffic" />}
-            {dataKeys.includes("success") && <Bar dataKey="success" fill="#22c55e" radius={[8, 8, 0, 0]} name="Success Rate" />}
-            {dataKeys.includes("sites") && <Bar dataKey="sites" fill="#3b82f6" radius={[8, 8, 0, 0]} name="Sites" />}
-            {dataKeys.includes("successful") && <Bar dataKey="successful" fill="#22c55e" radius={[8, 8, 0, 0]} name="Successful" />}
-            {dataKeys.includes("failed") && <Bar dataKey="failed" fill="#ef4444" radius={[8, 8, 0, 0]} name="Failed" />}
+            {dataKeys.includes("traffic") && (
+              <Bar dataKey="traffic" fill="#7c3aed" radius={[8, 8, 0, 0]} name="Traffic" />
+            )}
+            {dataKeys.includes("success") && (
+              <Bar dataKey="success" fill="#22c55e" radius={[8, 8, 0, 0]} name="Success Rate" />
+            )}
+            {dataKeys.includes("sites") && (
+              <Bar dataKey="sites" fill="#3b82f6" radius={[8, 8, 0, 0]} name="Sites" />
+            )}
+            {dataKeys.includes("successful") && (
+              <Bar dataKey="successful" fill="#22c55e" radius={[8, 8, 0, 0]} name="Successful" />
+            )}
+            {dataKeys.includes("failed") && (
+              <Bar dataKey="failed" fill="#ef4444" radius={[8, 8, 0, 0]} name="Failed" />
+            )}
           </BarChart>
         );
       case "histogram":
@@ -296,15 +380,35 @@ export default function DashboardNew() {
         return (
           <BarChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <XAxis dataKey="time" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+            <XAxis
+              dataKey="time"
+              stroke="hsl(var(--muted-foreground))"
+              style={{ fontSize: "12px" }}
+            />
             <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
-            <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px" }} />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "hsl(var(--card))",
+                border: "1px solid hsl(var(--border))",
+                borderRadius: "8px",
+              }}
+            />
             <Legend />
-            {dataKeys.includes("traffic") && <Bar dataKey="traffic" fill="#7c3aed" name="Traffic Distribution" />}
-            {dataKeys.includes("success") && <Bar dataKey="success" fill="#22c55e" name="Success Distribution" />}
-            {dataKeys.includes("sites") && <Bar dataKey="sites" fill="#3b82f6" name="Sites Distribution" />}
-            {dataKeys.includes("successful") && <Bar dataKey="successful" fill="#22c55e" name="Successful Distribution" />}
-            {dataKeys.includes("failed") && <Bar dataKey="failed" fill="#ef4444" name="Failed Distribution" />}
+            {dataKeys.includes("traffic") && (
+              <Bar dataKey="traffic" fill="#7c3aed" name="Traffic Distribution" />
+            )}
+            {dataKeys.includes("success") && (
+              <Bar dataKey="success" fill="#22c55e" name="Success Distribution" />
+            )}
+            {dataKeys.includes("sites") && (
+              <Bar dataKey="sites" fill="#3b82f6" name="Sites Distribution" />
+            )}
+            {dataKeys.includes("successful") && (
+              <Bar dataKey="successful" fill="#22c55e" name="Successful Distribution" />
+            )}
+            {dataKeys.includes("failed") && (
+              <Bar dataKey="failed" fill="#ef4444" name="Failed Distribution" />
+            )}
           </BarChart>
         );
       case "pie":
@@ -321,7 +425,12 @@ export default function DashboardNew() {
               dataKey="sites"
             >
               {data.map((entry: any, index: number) => (
-                <Cell key={`cell-${index}`} fill={entry.fill || ["#7c3aed", "#3b82f6", "#22c55e", "#f59e0b", "#ef4444"][index % 5]} />
+                <Cell
+                  key={`cell-${index}`}
+                  fill={
+                    entry.fill || ["#7c3aed", "#3b82f6", "#22c55e", "#f59e0b", "#ef4444"][index % 5]
+                  }
+                />
               ))}
             </Pie>
             <Tooltip />
@@ -336,9 +445,7 @@ export default function DashboardNew() {
       <div className="space-y-6">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="space-y-1">
-            <h1 className="text-4xl font-bold text-foreground">
-              Network Operations Dashboard
-            </h1>
+            <h1 className="text-4xl font-bold text-foreground">Network Operations Dashboard</h1>
             <p className="text-muted-foreground">
               Real-time monitoring and AI-driven insights across your infrastructure
             </p>
@@ -361,11 +468,10 @@ export default function DashboardNew() {
         <div className="space-y-4 mb-6">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <h2 className="text-2xl font-bold text-foreground">
-                Key Performance Indicators
-              </h2>
+              <h2 className="text-2xl font-bold text-foreground">Key Performance Indicators</h2>
               <p className="text-sm text-muted-foreground">
-                Real-time metrics reflecting current filters ({selectedKPIIds.length} of {AVAILABLE_KPIS.length} displayed)
+                Real-time metrics reflecting current filters ({selectedKPIIds.length} of{" "}
+                {AVAILABLE_KPIS.length} displayed)
               </p>
             </div>
             <button
@@ -379,10 +485,7 @@ export default function DashboardNew() {
             >
               <span>Customize KPIs</span>
               <ChevronDown
-                className={cn(
-                  "w-4 h-4 transition-transform",
-                  showKPISelector ? "rotate-180" : ""
-                )}
+                className={cn("w-4 h-4 transition-transform", showKPISelector ? "rotate-180" : "")}
               />
             </button>
           </div>
@@ -430,8 +533,8 @@ export default function DashboardNew() {
                   kpiValue.status === "healthy"
                     ? "border-status-healthy/20 bg-status-healthy/5"
                     : kpiValue.status === "critical"
-                    ? "border-status-critical/20 bg-status-critical/5"
-                    : "border-border bg-card"
+                      ? "border-status-critical/20 bg-status-critical/5"
+                      : "border-border bg-card"
                 )}
               >
                 <div className="flex items-start justify-between gap-4 mb-4">
@@ -441,8 +544,8 @@ export default function DashboardNew() {
                       kpiValue.status === "healthy"
                         ? "bg-status-healthy/10"
                         : kpiValue.status === "critical"
-                        ? "bg-status-critical/10"
-                        : "bg-muted"
+                          ? "bg-status-critical/10"
+                          : "bg-muted"
                     )}
                   >
                     <IconComponent
@@ -451,8 +554,8 @@ export default function DashboardNew() {
                         kpiValue.status === "healthy"
                           ? "text-status-healthy"
                           : kpiValue.status === "critical"
-                          ? "text-status-critical"
-                          : "text-foreground"
+                            ? "text-status-critical"
+                            : "text-foreground"
                       )}
                     />
                   </div>
@@ -473,12 +576,7 @@ export default function DashboardNew() {
                   <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
                     {kpi.label}
                   </p>
-                  <p
-                    className={cn(
-                      "text-3xl font-bold",
-                      getStatusColor(kpiValue.status)
-                    )}
-                  >
+                  <p className={cn("text-3xl font-bold", getStatusColor(kpiValue.status))}>
                     {kpiValue.value}
                   </p>
                 </div>
@@ -497,7 +595,9 @@ export default function DashboardNew() {
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <h2 className="text-2xl font-bold text-foreground">AI Engine Actions</h2>
-              <p className="text-sm text-muted-foreground">Automated network operations and resolution activities</p>
+              <p className="text-sm text-muted-foreground">
+                Automated network operations and resolution activities
+              </p>
             </div>
             <select
               value={aiChartType}
@@ -520,9 +620,14 @@ export default function DashboardNew() {
           </div>
 
           {/* RIGHT: AI Actions List */}
-          <div className="rounded-lg border border-border/50 bg-background p-4 overflow-y-auto" style={{ maxHeight: "420px" }}>
+          <div
+            className="rounded-lg border border-border/50 bg-background p-4 overflow-y-auto"
+            style={{ maxHeight: "420px" }}
+          >
             <div className="space-y-2">
-              <h3 className="text-sm font-semibold text-foreground mb-4 sticky top-0 bg-background py-2">Recent Actions</h3>
+              <h3 className="text-sm font-semibold text-foreground mb-4 sticky top-0 bg-background py-2">
+                Recent Actions
+              </h3>
               {aiActionsDetailList.map((action) => (
                 <div
                   key={action.id}
@@ -540,8 +645,8 @@ export default function DashboardNew() {
                           action.severity === "HIGH"
                             ? "bg-status-critical/20 text-status-critical"
                             : action.severity === "MED"
-                            ? "bg-status-degraded/20 text-status-degraded"
-                            : "bg-status-healthy/20 text-status-healthy"
+                              ? "bg-status-degraded/20 text-status-degraded"
+                              : "bg-status-healthy/20 text-status-healthy"
                         )}
                       >
                         {action.severity}
@@ -555,8 +660,8 @@ export default function DashboardNew() {
                         action.status === "Success"
                           ? "bg-status-healthy/20 text-status-healthy"
                           : action.status === "Failed"
-                          ? "bg-status-critical/20 text-status-critical"
-                          : "bg-primary/20 text-primary"
+                            ? "bg-status-critical/20 text-status-critical"
+                            : "bg-primary/20 text-primary"
                       )}
                     >
                       {action.status}

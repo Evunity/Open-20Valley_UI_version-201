@@ -5,12 +5,12 @@ import type { GlobalFilterState } from "@/hooks/useGlobalFilters";
  */
 export const getDaysDifference = (dateRange: { from: Date | null; to: Date | null }): number => {
   if (!dateRange.from || !dateRange.to) return 1;
-  
+
   const from = new Date(dateRange.from);
   const to = new Date(dateRange.to);
   const diffTime = Math.abs(to.getTime() - from.getTime());
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  
+
   return Math.max(1, diffDays);
 };
 
@@ -26,12 +26,12 @@ export const isHourlyGranularity = (dateRange: { from: Date | null; to: Date | n
  */
 export const generateHourlyTrafficData = (filters: GlobalFilterState) => {
   const baseMultiplier = 1 - (filters.vendors.length * 0.1 + filters.technologies.length * 0.05);
-  
+
   return Array.from({ length: 24 }, (_, i) => {
     const hour = String(i).padStart(2, "0");
     const traffic = (2 + Math.random() * 2) * baseMultiplier;
-    const success = 97 + Math.random() * 3 - (filters.vendors.length * 0.5);
-    
+    const success = 97 + Math.random() * 3 - filters.vendors.length * 0.5;
+
     return {
       time: `${hour}:00`,
       traffic: Math.round(traffic * 100) / 100,
@@ -46,11 +46,11 @@ export const generateHourlyTrafficData = (filters: GlobalFilterState) => {
 export const generateDailyTrafficData = (filters: GlobalFilterState, dayCount: number) => {
   const baseMultiplier = 1 - (filters.vendors.length * 0.1 + filters.technologies.length * 0.05);
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-  
+
   return Array.from({ length: Math.min(dayCount, 30) }, (_, i) => {
     const traffic = (2.5 + Math.random() * 1.5) * baseMultiplier;
-    const success = 98 + Math.random() * 2 - (filters.vendors.length * 0.5);
-    
+    const success = 98 + Math.random() * 2 - filters.vendors.length * 0.5;
+
     return {
       time: days[i % 7],
       traffic: Math.round(traffic * 100) / 100,
@@ -65,8 +65,10 @@ export const generateDailyTrafficData = (filters: GlobalFilterState, dayCount: n
 export const generateTrafficData = (filters: GlobalFilterState) => {
   const dayCount = getDaysDifference(filters.dateRange);
   const isHourly = isHourlyGranularity(filters.dateRange);
-  
-  return isHourly ? generateHourlyTrafficData(filters) : generateDailyTrafficData(filters, dayCount);
+
+  return isHourly
+    ? generateHourlyTrafficData(filters)
+    : generateDailyTrafficData(filters, dayCount);
 };
 
 /**
@@ -80,11 +82,11 @@ export const generateRegionData = (filters: GlobalFilterState) => {
     { region: "West", sites: 598 },
     { region: "Central", sites: 332 },
   ];
-  
+
   const multiplier = filters.regions.length > 0 ? 0.7 : 1;
-  const vendorMultiplier = 1 - (filters.vendors.length * 0.1);
-  
-  return baseData.map(d => ({
+  const vendorMultiplier = 1 - filters.vendors.length * 0.1;
+
+  return baseData.map((d) => ({
     ...d,
     sites: Math.round(d.sites * multiplier * vendorMultiplier),
   }));
@@ -101,11 +103,11 @@ export const generateVendorData = (filters: GlobalFilterState) => {
     { vendor: "Samsung", sites: 389, fill: "#f59e0b" },
     { vendor: "Others", sites: 176, fill: "#ef4444" },
   ];
-  
+
   const multiplier = filters.vendors.length > 0 ? 0.8 : 1;
-  const techMultiplier = 1 - (filters.technologies.length * 0.05);
-  
-  return baseData.map(d => ({
+  const techMultiplier = 1 - filters.technologies.length * 0.05;
+
+  return baseData.map((d) => ({
     ...d,
     sites: Math.round(d.sites * multiplier * techMultiplier),
   }));
@@ -117,9 +119,9 @@ export const generateVendorData = (filters: GlobalFilterState) => {
 export const generateAIActionsData = (filters: GlobalFilterState) => {
   const dayCount = getDaysDifference(filters.dateRange);
   const isHourly = isHourlyGranularity(filters.dateRange);
-  
+
   const baseMultiplier = 1 - (filters.vendors.length * 0.1 + filters.technologies.length * 0.05);
-  
+
   if (isHourly) {
     // Hourly data
     return Array.from({ length: 24 }, (_, i) => {
@@ -127,7 +129,7 @@ export const generateAIActionsData = (filters: GlobalFilterState) => {
       const total = Math.round((12 + Math.random() * 8) * baseMultiplier);
       const successful = Math.round(total * (0.85 + Math.random() * 0.1));
       const failed = total - successful;
-      
+
       return {
         time: `${hour}:00`,
         total,
@@ -138,12 +140,12 @@ export const generateAIActionsData = (filters: GlobalFilterState) => {
   } else {
     // Daily data
     const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-    
+
     return Array.from({ length: Math.min(dayCount, 30) }, (_, i) => {
       const total = Math.round((150 + Math.random() * 100) * baseMultiplier);
       const successful = Math.round(total * (0.85 + Math.random() * 0.1));
       const failed = total - successful;
-      
+
       return {
         time: days[i % 7],
         total,
@@ -160,13 +162,13 @@ export const generateAIActionsData = (filters: GlobalFilterState) => {
 export const generateAIActionsSummary = (filters: GlobalFilterState) => {
   const dayCount = getDaysDifference(filters.dateRange);
   const baseMultiplier = 1 - (filters.vendors.length * 0.1 + filters.technologies.length * 0.05);
-  
+
   // Scale total based on day count
   const baseTotal = 342 * (dayCount > 1 ? dayCount : 1);
   const total = Math.round(baseTotal * baseMultiplier);
   const successful = Math.round(total * 0.87);
   const failed = total - successful;
-  
+
   return {
     totalActions: total,
     successfulActions: successful,
@@ -179,7 +181,7 @@ export const generateAIActionsSummary = (filters: GlobalFilterState) => {
  */
 export const calculateFilterMultiplier = (filters: GlobalFilterState): number => {
   let multiplier = 1;
-  
+
   if (filters.vendors.length > 0) {
     multiplier *= 0.85;
   }
@@ -187,13 +189,13 @@ export const calculateFilterMultiplier = (filters: GlobalFilterState): number =>
     multiplier *= 0.9;
   }
   if (filters.regions.length > 0) {
-    multiplier = 1 - (filters.regions.length * 0.15);
+    multiplier = 1 - filters.regions.length * 0.15;
     multiplier = Math.max(0.4, multiplier);
   }
   if (filters.countries.length > 0) {
     multiplier *= 0.95;
   }
-  
+
   return multiplier;
 };
 
@@ -243,16 +245,25 @@ export const generateAIActionsDetailList = (filters: GlobalFilterState) => {
   const baseMultiplier = 1 - (filters.vendors.length * 0.1 + filters.technologies.length * 0.05);
 
   // Generate list based on granularity
-  const actionCount = isHourly ? Math.round(8 * baseMultiplier) : Math.round(20 * baseMultiplier * Math.min(dayCount, 5));
+  const actionCount = isHourly
+    ? Math.round(8 * baseMultiplier)
+    : Math.round(20 * baseMultiplier * Math.min(dayCount, 5));
 
   const actions = [];
   const now = new Date();
 
   for (let i = 0; i < actionCount; i++) {
-    const actionTime = new Date(now.getTime() - i * (isHourly ? 3600000 : 86400000 * (dayCount > 1 ? dayCount / actionCount : 0.5)));
+    const actionTime = new Date(
+      now.getTime() -
+        i * (isHourly ? 3600000 : 86400000 * (dayCount > 1 ? dayCount / actionCount : 0.5))
+    );
 
     const timeStr = isHourly
-      ? actionTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })
+      ? actionTime.toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        })
       : actionTime.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 
     actions.push({

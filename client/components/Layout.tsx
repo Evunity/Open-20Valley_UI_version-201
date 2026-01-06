@@ -1,13 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import {
-  Menu,
-  X,
-  LayoutDashboard,
-  Settings,
-  Moon,
-  Sun,
-} from "lucide-react";
+import { Menu, X, LayoutDashboard, Settings, Moon, Sun } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface LayoutProps {
@@ -62,7 +55,15 @@ export default function Layout({ children }: LayoutProps) {
               viewBox="0 0 100 100"
               xmlns="http://www.w3.org/2000/svg"
             >
-              <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="3" opacity="0.8" />
+              <circle
+                cx="50"
+                cy="50"
+                r="45"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3"
+                opacity="0.8"
+              />
               <path
                 d="M 50 10 A 40 40 0 0 1 70 15"
                 fill="none"
@@ -91,7 +92,15 @@ export default function Layout({ children }: LayoutProps) {
               viewBox="0 0 100 100"
               xmlns="http://www.w3.org/2000/svg"
             >
-              <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="3" opacity="0.8" />
+              <circle
+                cx="50"
+                cy="50"
+                r="45"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3"
+                opacity="0.8"
+              />
               <path
                 d="M 50 10 A 40 40 0 0 1 70 15"
                 fill="none"
@@ -141,9 +150,7 @@ export default function Layout({ children }: LayoutProps) {
               <div className="flex-shrink-0 flex items-center justify-center">
                 <Icon className="w-5 h-5" />
               </div>
-              {sidebarOpen && (
-                <span className="text-sm truncate">{label}</span>
-              )}
+              {sidebarOpen && <span className="text-sm truncate">{label}</span>}
             </Link>
           ))}
         </div>
@@ -160,15 +167,9 @@ export default function Layout({ children }: LayoutProps) {
           title="Toggle dark mode"
         >
           <div className="flex-shrink-0">
-            {darkMode ? (
-              <Sun className="w-5 h-5" />
-            ) : (
-              <Moon className="w-5 h-5" />
-            )}
+            {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
           </div>
-          {sidebarOpen && (
-            <span className="text-sm">{darkMode ? "Light" : "Dark"}</span>
-          )}
+          {sidebarOpen && <span className="text-sm">{darkMode ? "Light" : "Dark"}</span>}
         </button>
 
         {!isMobile && (
@@ -181,8 +182,21 @@ export default function Layout({ children }: LayoutProps) {
             title={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
           >
             <div className="flex-shrink-0">
-              <svg className={cn("w-5 h-5 transition-transform", sidebarOpen ? "rotate-90" : "-rotate-90")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              <svg
+                className={cn(
+                  "w-5 h-5 transition-transform",
+                  sidebarOpen ? "rotate-90" : "-rotate-90"
+                )}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
               </svg>
             </div>
             {sidebarOpen && <span className="text-sm">Collapse</span>}
@@ -206,7 +220,10 @@ export default function Layout({ children }: LayoutProps) {
 
       {/* Mobile Overlay & Drawer */}
       {isMobile && mobileMenuOpen && (
-        <div className="fixed inset-0 z-40 bg-black/50 md:hidden" onClick={() => setMobileMenuOpen(false)} />
+        <div
+          className="fixed inset-0 z-40 bg-black/50 md:hidden"
+          onClick={() => setMobileMenuOpen(false)}
+        />
       )}
 
       {isMobile && (
@@ -234,7 +251,10 @@ export default function Layout({ children }: LayoutProps) {
                 <Menu className="w-5 h-5" />
               </button>
             )}
-            <Link to="/" className="flex items-center gap-2 group hover:opacity-80 transition-opacity flex-1 min-w-0">
+            <Link
+              to="/"
+              className="flex items-center gap-2 group hover:opacity-80 transition-opacity flex-1 min-w-0"
+            >
               <img
                 src="https://cdn.builder.io/api/v1/image/assets%2Fc13b4e0240ec42a0981c688ed8e4138d%2F764a7575ec7b41acab908367454597f1?format=webp&width=800"
                 alt="Open Valley"

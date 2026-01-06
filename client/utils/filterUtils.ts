@@ -5,9 +5,10 @@ import type { GlobalFilterState } from "@/hooks/useGlobalFilters";
  * - Multiple days: day-by-day distribution
  * - Single day: hour-by-hour distribution
  */
-export const getTimeDistribution = (
-  dateRange: { from: Date | null; to: Date | null }
-): "hourly" | "daily" => {
+export const getTimeDistribution = (dateRange: {
+  from: Date | null;
+  to: Date | null;
+}): "hourly" | "daily" => {
   if (!dateRange.from || !dateRange.to) {
     return "daily"; // Default to daily if no date range
   }
@@ -23,10 +24,7 @@ export const getTimeDistribution = (
 /**
  * Generates time-series data based on selected granularity
  */
-export const generateTimeSeriesData = (
-  baseData: any[],
-  granularity: "hourly" | "daily"
-) => {
+export const generateTimeSeriesData = (baseData: any[], granularity: "hourly" | "daily") => {
   if (granularity === "hourly") {
     // Generate 24 hours of data
     return Array.from({ length: 24 }, (_, i) => ({
@@ -202,9 +200,7 @@ export const getActiveFiltersString = (filters: GlobalFilterState): string => {
     const from = filters.dateRange.from
       ? new Date(filters.dateRange.from).toLocaleDateString()
       : "N/A";
-    const to = filters.dateRange.to
-      ? new Date(filters.dateRange.to).toLocaleDateString()
-      : "N/A";
+    const to = filters.dateRange.to ? new Date(filters.dateRange.to).toLocaleDateString() : "N/A";
     parts.push(`Date: ${from} to ${to}`);
   }
 
