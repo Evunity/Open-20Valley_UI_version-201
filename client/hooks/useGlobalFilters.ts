@@ -52,12 +52,23 @@ interface FilterProviderProps {
   children: ReactNode;
 }
 
+const DEFAULT_LOCATION_CLUSTERS: LocationCluster[] = [
+  { id: "cluster-default-a", name: "Cluster A" },
+  { id: "cluster-default-b", name: "Cluster B" },
+  { id: "cluster-default-c", name: "Cluster C" },
+  { id: "cluster-default-d", name: "Cluster D" },
+];
+
 export function FilterProvider(props: FilterProviderProps) {
   const { children } = props;
   const [filters, setFilters] = useState<GlobalFilterState>(DEFAULT_FILTERS);
   const [savedClusters, setSavedClusters] = useState<SavedCluster[]>(() => {
     const stored = localStorage.getItem("savedClusters");
     return stored ? JSON.parse(stored) : [];
+  });
+  const [availableClusters, setAvailableClusters] = useState<LocationCluster[]>(() => {
+    const stored = localStorage.getItem("customClusters");
+    return stored ? JSON.parse(stored) : DEFAULT_LOCATION_CLUSTERS;
   });
 
   const resetFilters = () => {
@@ -96,6 +107,37 @@ export function FilterProvider(props: FilterProviderProps) {
     localStorage.setItem("savedClusters", JSON.stringify(updated));
   };
 
+  const addCluster = (locationName: string): boolean => {
+    // Validate input
+    if (!locationName.trim()) {
+      return false;
+    }
+
+    // Check for duplicates (case-insensitive)
+    const isDuplicate = availableClusters.some(
+      c => c.name.toLowerCase() === locationName.toLowerCase()
+    );
+    if (isDuplicate) {
+      return false;
+    }
+
+    const newCluster: LocationCluster = {
+      id: `location-cluster-${Date.now()}`,
+      name: locationName.trim(),
+    };
+
+    const updated = [...availableClusters, newCluster];
+    setAvailableClusters(updated);
+    localStorage.setItem("customClusters", JSON.stringify(updated));
+    return true;
+  };
+
+  const removeCluster = (clusterId: string) => {
+    const updated = availableClusters.filter(c => c.id !== clusterId);
+    setAvailableClusters(updated);
+    localStorage.setItem("customClusters", JSON.stringify(updated));
+  };
+
   const value: FilterContextType = {
     filters,
     setFilters,
@@ -104,6 +146,9 @@ export function FilterProvider(props: FilterProviderProps) {
     saveAsCluster,
     loadCluster,
     deleteCluster,
+    availableClusters,
+    addCluster,
+    removeCluster,
   };
 
   return createElement(
