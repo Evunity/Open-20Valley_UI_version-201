@@ -49,9 +49,8 @@ export default function AnalyticsSections() {
     {
       title: "AI Engine Actions",
       icon: <Zap className="w-5 h-5" />,
-      path: "#ai-actions",
+      path: "/ai-actions",
       description: "View AI automation activities",
-      isExternal: true,
     },
   ];
 
