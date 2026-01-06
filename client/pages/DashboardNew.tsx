@@ -417,10 +417,10 @@ export default function DashboardNew() {
                     : "border-border bg-card"
                 )}
               >
-                <div className="flex items-start justify-between mb-3">
+                <div className="mb-4">
                   <div
                     className={cn(
-                      "p-2.5 rounded-lg",
+                      "p-2.5 rounded-lg w-fit",
                       kpiValue.status === "healthy"
                         ? "bg-status-healthy/10"
                         : kpiValue.status === "critical"
@@ -439,35 +439,20 @@ export default function DashboardNew() {
                       )}
                     />
                   </div>
-                  {getStatusIcon(kpiValue.change)}
                 </div>
 
-                <div className="mb-3">
-                  <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wide">
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
                     {kpi.label}
                   </p>
-                  <div className="flex items-baseline gap-2 mb-1">
-                    <p
-                      className={cn(
-                        "text-3xl font-bold",
-                        getStatusColor(kpiValue.status)
-                      )}
-                    >
-                      {kpiValue.value}
-                    </p>
-                    {kpiValue.change !== undefined && (
-                      <span
-                        className={cn(
-                          "text-xs font-semibold",
-                          kpiValue.change < 0
-                            ? "text-status-healthy"
-                            : "text-status-degraded"
-                        )}
-                      >
-                        {kpiValue.change < 0 ? "↓" : "↑"} {Math.abs(kpiValue.change).toFixed(1)}%
-                      </span>
+                  <p
+                    className={cn(
+                      "text-3xl font-bold",
+                      getStatusColor(kpiValue.status)
                     )}
-                  </div>
+                  >
+                    {kpiValue.value}
+                  </p>
                 </div>
               </div>
             );
