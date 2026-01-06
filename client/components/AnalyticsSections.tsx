@@ -33,24 +33,6 @@ export default function AnalyticsSections() {
       path: "/detail/alarms",
       description: "Active incidents and resolution tracking",
     },
-    {
-      title: "Network Status",
-      icon: <Globe className="w-5 h-5" />,
-      path: "/network",
-      description: "Network topology and cluster health",
-    },
-    {
-      title: "Incidents",
-      icon: <AlertTriangle className="w-5 h-5" />,
-      path: "/incidents",
-      description: "Incident management and tracking",
-    },
-    {
-      title: "Reports",
-      icon: <FileText className="w-5 h-5" />,
-      path: "/reports",
-      description: "Generate and download reports",
-    },
   ];
 
   return (
