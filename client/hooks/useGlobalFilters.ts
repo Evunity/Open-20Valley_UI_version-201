@@ -9,10 +9,24 @@ export interface GlobalFilterState {
   dateRange: { from: Date | null; to: Date | null };
 }
 
+export interface SavedCluster {
+  id: string;
+  name: string;
+  vendors: string[];
+  technologies: string[];
+  regions: string[];
+  countries: string[];
+  dateRange: { from: Date | null; to: Date | null };
+}
+
 interface FilterContextType {
   filters: GlobalFilterState;
   setFilters: (filters: GlobalFilterState) => void;
   resetFilters: () => void;
+  savedClusters: SavedCluster[];
+  saveAsCluster: (name: string, filterState: Omit<GlobalFilterState, 'clusters'>) => void;
+  loadCluster: (cluster: SavedCluster) => void;
+  deleteCluster: (clusterId: string) => void;
 }
 
 const FilterContext = createContext<FilterContextType | undefined>(undefined);
@@ -33,15 +47,55 @@ interface FilterProviderProps {
 export function FilterProvider(props: FilterProviderProps) {
   const { children } = props;
   const [filters, setFilters] = useState<GlobalFilterState>(DEFAULT_FILTERS);
+  const [savedClusters, setSavedClusters] = useState<SavedCluster[]>(() => {
+    const stored = localStorage.getItem("savedClusters");
+    return stored ? JSON.parse(stored) : [];
+  });
 
   const resetFilters = () => {
     setFilters(DEFAULT_FILTERS);
+  };
+
+  const saveAsCluster = (name: string, filterState: Omit<GlobalFilterState, 'clusters'>) => {
+    const newCluster: SavedCluster = {
+      id: `cluster-${Date.now()}`,
+      name,
+      vendors: filterState.vendors,
+      technologies: filterState.technologies,
+      regions: filterState.regions,
+      countries: filterState.countries,
+      dateRange: filterState.dateRange,
+    };
+    const updated = [...savedClusters, newCluster];
+    setSavedClusters(updated);
+    localStorage.setItem("savedClusters", JSON.stringify(updated));
+  };
+
+  const loadCluster = (cluster: SavedCluster) => {
+    setFilters({
+      vendors: cluster.vendors,
+      technologies: cluster.technologies,
+      regions: cluster.regions,
+      countries: cluster.countries,
+      clusters: [], // Clusters filter itself is empty
+      dateRange: cluster.dateRange,
+    });
+  };
+
+  const deleteCluster = (clusterId: string) => {
+    const updated = savedClusters.filter(c => c.id !== clusterId);
+    setSavedClusters(updated);
+    localStorage.setItem("savedClusters", JSON.stringify(updated));
   };
 
   const value: FilterContextType = {
     filters,
     setFilters,
     resetFilters,
+    savedClusters,
+    saveAsCluster,
+    loadCluster,
+    deleteCluster,
   };
 
   return createElement(
