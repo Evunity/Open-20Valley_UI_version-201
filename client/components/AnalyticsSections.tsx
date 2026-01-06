@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronDown, BarChart3, AlertTriangle, Globe, FileText } from "lucide-react";
+import { ChevronDown, BarChart3, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Section {
