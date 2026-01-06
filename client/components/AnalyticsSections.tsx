@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronDown, BarChart3, AlertTriangle } from "lucide-react";
+import { ChevronDown, BarChart3, AlertTriangle, Globe, FileText, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Section {
   title: string;
   icon: React.ReactNode;
-  path: string;
+  path?: string;
   description: string;
+  isExternal?: boolean;
 }
 
 export default function AnalyticsSections() {
@@ -32,6 +33,25 @@ export default function AnalyticsSections() {
       icon: <AlertTriangle className="w-5 h-5" />,
       path: "/detail/alarms",
       description: "Active incidents and resolution tracking",
+    },
+    {
+      title: "Network Status",
+      icon: <Globe className="w-5 h-5" />,
+      path: "/network",
+      description: "Network topology and cluster health",
+    },
+    {
+      title: "Reports",
+      icon: <FileText className="w-5 h-5" />,
+      path: "/reports",
+      description: "Generate and download reports",
+    },
+    {
+      title: "AI Engine Actions",
+      icon: <Zap className="w-5 h-5" />,
+      path: "#ai-actions",
+      description: "View AI automation activities",
+      isExternal: true,
     },
   ];
 
