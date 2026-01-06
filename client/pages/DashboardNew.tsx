@@ -1,7 +1,5 @@
 import { useState, useMemo } from "react";
 import {
-  TrendingUp,
-  TrendingDown,
   Download,
   ChevronDown,
   CheckCircle2,
