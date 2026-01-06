@@ -1,0 +1,213 @@
+import type { GlobalFilterState } from "@/hooks/useGlobalFilters";
+
+/**
+ * Calculate how many days are in the selected date range
+ */
+export const getDaysDifference = (dateRange: { from: Date | null; to: Date | null }): number => {
+  if (!dateRange.from || !dateRange.to) return 1;
+  
+  const from = new Date(dateRange.from);
+  const to = new Date(dateRange.to);
+  const diffTime = Math.abs(to.getTime() - from.getTime());
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  return Math.max(1, diffDays);
+};
+
+/**
+ * Determine if we should show hourly or daily data
+ */
+export const isHourlyGranularity = (dateRange: { from: Date | null; to: Date | null }): boolean => {
+  return getDaysDifference(dateRange) === 1;
+};
+
+/**
+ * Generate hourly traffic data (24 hours)
+ */
+export const generateHourlyTrafficData = (filters: GlobalFilterState) => {
+  const baseMultiplier = 1 - (filters.vendors.length * 0.1 + filters.technologies.length * 0.05);
+  
+  return Array.from({ length: 24 }, (_, i) => {
+    const hour = String(i).padStart(2, "0");
+    const traffic = (2 + Math.random() * 2) * baseMultiplier;
+    const success = 97 + Math.random() * 3 - (filters.vendors.length * 0.5);
+    
+    return {
+      time: `${hour}:00`,
+      traffic: Math.round(traffic * 100) / 100,
+      success: Math.round(success * 100) / 100,
+    };
+  });
+};
+
+/**
+ * Generate daily traffic data
+ */
+export const generateDailyTrafficData = (filters: GlobalFilterState, dayCount: number) => {
+  const baseMultiplier = 1 - (filters.vendors.length * 0.1 + filters.technologies.length * 0.05);
+  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  
+  return Array.from({ length: Math.min(dayCount, 30) }, (_, i) => {
+    const traffic = (2.5 + Math.random() * 1.5) * baseMultiplier;
+    const success = 98 + Math.random() * 2 - (filters.vendors.length * 0.5);
+    
+    return {
+      time: days[i % 7],
+      traffic: Math.round(traffic * 100) / 100,
+      success: Math.round(success * 100) / 100,
+    };
+  });
+};
+
+/**
+ * Generate traffic data based on date range
+ */
+export const generateTrafficData = (filters: GlobalFilterState) => {
+  const dayCount = getDaysDifference(filters.dateRange);
+  const isHourly = isHourlyGranularity(filters.dateRange);
+  
+  return isHourly ? generateHourlyTrafficData(filters) : generateDailyTrafficData(filters, dayCount);
+};
+
+/**
+ * Generate region data with filter impact
+ */
+export const generateRegionData = (filters: GlobalFilterState) => {
+  const baseData = [
+    { region: "North", sites: 684 },
+    { region: "South", sites: 512 },
+    { region: "East", sites: 721 },
+    { region: "West", sites: 598 },
+    { region: "Central", sites: 332 },
+  ];
+  
+  const multiplier = filters.regions.length > 0 ? 0.7 : 1;
+  const vendorMultiplier = 1 - (filters.vendors.length * 0.1);
+  
+  return baseData.map(d => ({
+    ...d,
+    sites: Math.round(d.sites * multiplier * vendorMultiplier),
+  }));
+};
+
+/**
+ * Generate vendor data with filter impact
+ */
+export const generateVendorData = (filters: GlobalFilterState) => {
+  const baseData = [
+    { vendor: "Ericsson", sites: 892, fill: "#7c3aed" },
+    { vendor: "Huawei", sites: 756, fill: "#3b82f6" },
+    { vendor: "Nokia", sites: 634, fill: "#22c55e" },
+    { vendor: "Samsung", sites: 389, fill: "#f59e0b" },
+    { vendor: "Others", sites: 176, fill: "#ef4444" },
+  ];
+  
+  const multiplier = filters.vendors.length > 0 ? 0.8 : 1;
+  const techMultiplier = 1 - (filters.technologies.length * 0.05);
+  
+  return baseData.map(d => ({
+    ...d,
+    sites: Math.round(d.sites * multiplier * techMultiplier),
+  }));
+};
+
+/**
+ * Generate AI Engine Actions data
+ */
+export const generateAIActionsData = (filters: GlobalFilterState) => {
+  const dayCount = getDaysDifference(filters.dateRange);
+  const isHourly = isHourlyGranularity(filters.dateRange);
+  
+  const baseMultiplier = 1 - (filters.vendors.length * 0.1 + filters.technologies.length * 0.05);
+  
+  if (isHourly) {
+    // Hourly data
+    return Array.from({ length: 24 }, (_, i) => {
+      const hour = String(i).padStart(2, "0");
+      const total = Math.round((12 + Math.random() * 8) * baseMultiplier);
+      const successful = Math.round(total * (0.85 + Math.random() * 0.1));
+      const failed = total - successful;
+      
+      return {
+        time: `${hour}:00`,
+        total,
+        successful,
+        failed,
+      };
+    });
+  } else {
+    // Daily data
+    const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    
+    return Array.from({ length: Math.min(dayCount, 30) }, (_, i) => {
+      const total = Math.round((150 + Math.random() * 100) * baseMultiplier);
+      const successful = Math.round(total * (0.85 + Math.random() * 0.1));
+      const failed = total - successful;
+      
+      return {
+        time: days[i % 7],
+        total,
+        successful,
+        failed,
+      };
+    });
+  }
+};
+
+/**
+ * Generate summary metrics for AI Engine Actions
+ */
+export const generateAIActionsSummary = (filters: GlobalFilterState) => {
+  const dayCount = getDaysDifference(filters.dateRange);
+  const baseMultiplier = 1 - (filters.vendors.length * 0.1 + filters.technologies.length * 0.05);
+  
+  // Scale total based on day count
+  const baseTotal = 342 * (dayCount > 1 ? dayCount : 1);
+  const total = Math.round(baseTotal * baseMultiplier);
+  const successful = Math.round(total * 0.87);
+  const failed = total - successful;
+  
+  return {
+    totalActions: total,
+    successfulActions: successful,
+    failedActions: failed,
+  };
+};
+
+/**
+ * Calculate filter impact multiplier (for KPIs)
+ */
+export const calculateFilterMultiplier = (filters: GlobalFilterState): number => {
+  let multiplier = 1;
+  
+  if (filters.vendors.length > 0) {
+    multiplier *= 0.85;
+  }
+  if (filters.technologies.length > 0) {
+    multiplier *= 0.9;
+  }
+  if (filters.regions.length > 0) {
+    multiplier = 1 - (filters.regions.length * 0.15);
+    multiplier = Math.max(0.4, multiplier);
+  }
+  if (filters.countries.length > 0) {
+    multiplier *= 0.95;
+  }
+  
+  return multiplier;
+};
+
+/**
+ * Calculate date range multiplier (for KPIs)
+ */
+export const calculateDateMultiplier = (filters: GlobalFilterState): number => {
+  const dayCount = getDaysDifference(filters.dateRange);
+  
+  // If single day selected, show reduced numbers (subset of daily activity)
+  if (dayCount === 1) {
+    return 1;
+  }
+  
+  // For multiple days, scale up proportionally
+  return Math.min(dayCount / 7, 1.5); // Cap at 1.5x to avoid exponential growth
+};
