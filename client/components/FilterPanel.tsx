@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { X } from "lucide-react";
+import { X, Save, Trash2, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGlobalFilters, type GlobalFilterState } from "@/hooks/useGlobalFilters";
+import { useToast } from "@/hooks/use-toast";
 import { Calendar } from "@/components/ui/calendar";
 
 interface FilterPanelProps {
@@ -9,8 +10,11 @@ interface FilterPanelProps {
 }
 
 export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
-  const { filters, setFilters, resetFilters } = useGlobalFilters();
+  const { filters, setFilters, resetFilters, savedClusters, saveAsCluster, loadCluster, deleteCluster } = useGlobalFilters();
+  const { toast } = useToast();
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showClusterDialog, setShowClusterDialog] = useState(false);
+  const [clusterName, setClusterName] = useState("");
 
   const handleFilterChange = (newFilters: GlobalFilterState) => {
     setFilters(newFilters);
