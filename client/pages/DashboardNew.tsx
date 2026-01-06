@@ -36,33 +36,85 @@ interface KPIValue {
   change?: number;
 }
 
-// Calculate KPI values based on filters (mock logic)
+// Calculate KPI values based on filters (mock logic with filter-aware simulation)
 const calculateKPIValue = (kpiId: string, filters: any): KPIValue => {
-  const baseValues: Record<string, KPIValue> = {
-    total_sites: { value: "2,847", status: "healthy", change: -2.1 },
-    active_sites: { value: "2,721", status: "healthy", change: -0.8 },
-    down_sites: { value: "126", status: "critical", change: 8.2 },
-    uptime: { value: "99.87%", status: "healthy", change: 0.15 },
-    avg_latency: { value: "42ms", status: "normal", change: 5.2 },
-    success_rate: { value: "98.9%", status: "healthy", change: 0.3 },
-    packet_loss: { value: "0.12%", status: "healthy", change: -0.05 },
-    network_availability: { value: "99.92%", status: "healthy", change: 0.08 },
-    call_completion_rate: { value: "97.45%", status: "healthy", change: 1.2 },
-    data_throughput: { value: "3.42 Tbps", status: "healthy", change: 2.3 },
-    incident_count: { value: "12", status: "degraded", change: 3.0 },
-    network_health: { value: "94.2%", status: "healthy", change: 0.5 },
+  // Base values when no filters are applied
+  const baseValues: Record<string, { value: number | string; unit: string; status: "healthy" | "degraded" | "critical" | "normal"; change: number }> = {
+    total_sites: { value: 2847, unit: "", status: "healthy", change: -2.1 },
+    active_sites: { value: 2721, unit: "", status: "healthy", change: -0.8 },
+    down_sites: { value: 126, unit: "", status: "critical", change: 8.2 },
+    uptime: { value: 99.87, unit: "%", status: "healthy", change: 0.15 },
+    avg_latency: { value: 42, unit: "ms", status: "normal", change: 5.2 },
+    success_rate: { value: 98.9, unit: "%", status: "healthy", change: 0.3 },
+    packet_loss: { value: 0.12, unit: "%", status: "healthy", change: -0.05 },
+    network_availability: { value: 99.92, unit: "%", status: "healthy", change: 0.08 },
+    call_completion_rate: { value: 97.45, unit: "%", status: "healthy", change: 1.2 },
+    data_throughput: { value: 3.42, unit: "Tbps", status: "healthy", change: 2.3 },
+    incident_count: { value: 12, unit: "", status: "degraded", change: 3.0 },
+    network_health: { value: 94.2, unit: "%", status: "healthy", change: 0.5 },
   };
 
-  // Apply filter multipliers for mock data variation
-  let value = baseValues[kpiId] || { value: "N/A", status: "normal" };
+  const base = baseValues[kpiId] || { value: "N/A", unit: "", status: "normal", change: 0 };
+  let calculatedValue = typeof base.value === "number" ? base.value : base.value;
+  let status = base.status;
+  let change = base.change;
 
-  // Simulate filter impact on values
-  if (filters.vendors.length > 0 || filters.technologies.length > 0) {
-    const multiplier = Math.max(0.7, 1 - filters.vendors.length * 0.1);
-    // In real scenario, recalculate based on filtered data
+  // Apply filter multipliers to simulate different data
+  let filterMultiplier = 1;
+
+  // Vendor filter impact
+  if (filters.vendors.length > 0) {
+    filterMultiplier *= 0.85; // Reduce by 15% per vendor filter
   }
 
-  return value;
+  // Technology filter impact
+  if (filters.technologies.length > 0) {
+    filterMultiplier *= 0.9; // Reduce by 10% per tech filter
+  }
+
+  // Region filter impact
+  if (filters.regions.length > 0) {
+    filterMultiplier = 1 - (filters.regions.length * 0.15); // 15% per region
+    filterMultiplier = Math.max(0.4, filterMultiplier); // Min 40% of base value
+  }
+
+  // Country filter impact
+  if (filters.countries.length > 0) {
+    filterMultiplier *= 0.95;
+  }
+
+  // Apply multiplier to count-based KPIs
+  if (typeof calculatedValue === "number" && ["total_sites", "active_sites", "down_sites", "incident_count", "data_throughput"].includes(kpiId)) {
+    calculatedValue = Math.round(calculatedValue * filterMultiplier);
+  } else if (typeof calculatedValue === "number" && ["uptime", "success_rate", "packet_loss", "network_availability", "call_completion_rate", "network_health"].includes(kpiId)) {
+    // For percentages, adjust slightly based on filters
+    calculatedValue = Math.max(85, calculatedValue - (filters.vendors.length * 0.5) - (filters.technologies.length * 0.3));
+  }
+
+  // Adjust change based on filters
+  if (filters.vendors.length > 0 || filters.technologies.length > 0) {
+    change *= 0.6; // Reduce volatility when filters are applied
+  }
+
+  // Format the value with unit
+  let formattedValue = String(calculatedValue);
+  if (typeof calculatedValue === "number" && kpiId !== "incident_count") {
+    if (["uptime", "success_rate", "packet_loss", "network_availability", "call_completion_rate", "network_health"].includes(kpiId)) {
+      formattedValue = calculatedValue.toFixed(2) + base.unit;
+    } else if (kpiId === "avg_latency") {
+      formattedValue = Math.round(calculatedValue) + base.unit;
+    } else if (kpiId === "data_throughput") {
+      formattedValue = calculatedValue.toFixed(2) + base.unit;
+    } else {
+      formattedValue = calculatedValue.toLocaleString() + base.unit;
+    }
+  }
+
+  return {
+    value: formattedValue,
+    status: status,
+    change: change,
+  };
 };
 
 export default function DashboardNew() {
