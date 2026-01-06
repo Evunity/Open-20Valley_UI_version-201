@@ -34,6 +34,7 @@ import {
   generateVendorData,
   generateAIActionsData,
   generateAIActionsSummary,
+  generateAIActionsDetailList,
   calculateFilterMultiplier,
   calculateDateMultiplier,
   getDaysDifference,
@@ -46,7 +47,7 @@ interface KPIValue {
   change?: number;
 }
 
-type ChartType = "line" | "bar" | "pie";
+type ChartType = "line" | "bar" | "pie" | "histogram";
 
 // Calculate KPI values based on filters AND date range
 const calculateKPIValue = (kpiId: string, filters: any): KPIValue => {
