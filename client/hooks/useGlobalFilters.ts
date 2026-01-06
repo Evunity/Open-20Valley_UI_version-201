@@ -9,6 +9,11 @@ export interface GlobalFilterState {
   dateRange: { from: Date | null; to: Date | null };
 }
 
+export interface LocationCluster {
+  id: string;
+  name: string;
+}
+
 export interface SavedCluster {
   id: string;
   name: string;
@@ -27,6 +32,9 @@ interface FilterContextType {
   saveAsCluster: (name: string, filterState: Omit<GlobalFilterState, 'clusters'>) => void;
   loadCluster: (cluster: SavedCluster) => void;
   deleteCluster: (clusterId: string) => void;
+  availableClusters: LocationCluster[];
+  addCluster: (locationName: string) => boolean;
+  removeCluster: (clusterId: string) => void;
 }
 
 const FilterContext = createContext<FilterContextType | undefined>(undefined);
