@@ -7,7 +7,6 @@ import {
   CheckCircle2,
   XCircle,
   Clock,
-  Zap,
 } from "lucide-react";
 import {
   LineChart,
@@ -29,6 +28,16 @@ import AnalyticsSections from "@/components/AnalyticsSections";
 import { useGlobalFilters } from "@/hooks/useGlobalFilters";
 import { useToast } from "@/hooks/use-toast";
 import { AVAILABLE_KPIS, getKPIById } from "@/constants/kpis";
+import {
+  generateTrafficData,
+  generateRegionData,
+  generateVendorData,
+  generateAIActionsData,
+  generateAIActionsSummary,
+  calculateFilterMultiplier,
+  calculateDateMultiplier,
+  getDaysDifference,
+} from "@/utils/dashboardData";
 import { cn } from "@/lib/utils";
 
 interface KPIValue {
@@ -39,9 +48,8 @@ interface KPIValue {
 
 type ChartType = "line" | "bar" | "pie";
 
-// Calculate KPI values based on filters (mock logic with filter-aware simulation)
+// Calculate KPI values based on filters AND date range
 const calculateKPIValue = (kpiId: string, filters: any): KPIValue => {
-  // Base values when no filters are applied
   const baseValues: Record<string, { value: number | string; unit: string; status: "healthy" | "degraded" | "critical" | "normal"; change: number }> = {
     total_sites: { value: 2847, unit: "", status: "healthy", change: -2.1 },
     active_sites: { value: 2721, unit: "", status: "healthy", change: -0.8 },
@@ -62,33 +70,14 @@ const calculateKPIValue = (kpiId: string, filters: any): KPIValue => {
   let status = base.status;
   let change = base.change;
 
-  // Apply filter multipliers to simulate different data
-  let filterMultiplier = 1;
-  
-  // Vendor filter impact
-  if (filters.vendors.length > 0) {
-    filterMultiplier *= 0.85; // Reduce by 15% per vendor filter
-  }
-  
-  // Technology filter impact
-  if (filters.technologies.length > 0) {
-    filterMultiplier *= 0.9; // Reduce by 10% per tech filter
-  }
-  
-  // Region filter impact
-  if (filters.regions.length > 0) {
-    filterMultiplier = 1 - (filters.regions.length * 0.15); // 15% per region
-    filterMultiplier = Math.max(0.4, filterMultiplier); // Min 40% of base value
-  }
-  
-  // Country filter impact
-  if (filters.countries.length > 0) {
-    filterMultiplier *= 0.95;
-  }
+  // Apply filter multiplier
+  const filterMultiplier = calculateFilterMultiplier(filters);
+  const dateMultiplier = calculateDateMultiplier(filters);
+  const totalMultiplier = filterMultiplier * dateMultiplier;
 
-  // Apply multiplier to count-based KPIs
+  // Apply multipliers to count-based KPIs
   if (typeof calculatedValue === "number" && ["total_sites", "active_sites", "down_sites", "incident_count", "data_throughput"].includes(kpiId)) {
-    calculatedValue = Math.round(calculatedValue * filterMultiplier);
+    calculatedValue = Math.round(calculatedValue * totalMultiplier);
   } else if (typeof calculatedValue === "number" && ["uptime", "success_rate", "packet_loss", "network_availability", "call_completion_rate", "network_health"].includes(kpiId)) {
     // For percentages, adjust slightly based on filters
     calculatedValue = Math.max(85, calculatedValue - (filters.vendors.length * 0.5) - (filters.technologies.length * 0.3));
@@ -96,7 +85,7 @@ const calculateKPIValue = (kpiId: string, filters: any): KPIValue => {
 
   // Adjust change based on filters
   if (filters.vendors.length > 0 || filters.technologies.length > 0) {
-    change *= 0.6; // Reduce volatility when filters are applied
+    change *= 0.6;
   }
 
   // Format the value with unit
@@ -137,52 +126,14 @@ export default function DashboardNew() {
   const [trafficChartType, setTrafficChartType] = useState<ChartType>("line");
   const [regionChartType, setRegionChartType] = useState<ChartType>("bar");
   const [vendorChartType, setVendorChartType] = useState<ChartType>("pie");
+  const [aiChartType, setAiChartType] = useState<ChartType>("bar");
 
-  // Mock data for charts (filter-aware)
-  const trafficData = useMemo(() => [
-    { time: "00:00", traffic: 2.1 * (1 - filters.vendors.length * 0.1), success: 98.2 - filters.vendors.length * 0.5 },
-    { time: "04:00", traffic: 1.8 * (1 - filters.vendors.length * 0.1), success: 99.1 - filters.vendors.length * 0.5 },
-    { time: "08:00", traffic: 3.4 * (1 - filters.vendors.length * 0.1), success: 97.8 - filters.vendors.length * 0.5 },
-    { time: "12:00", traffic: 3.9 * (1 - filters.vendors.length * 0.1), success: 98.9 - filters.vendors.length * 0.5 },
-    { time: "16:00", traffic: 3.2 * (1 - filters.vendors.length * 0.1), success: 99.2 - filters.vendors.length * 0.5 },
-    { time: "20:00", traffic: 2.7 * (1 - filters.vendors.length * 0.1), success: 98.5 - filters.vendors.length * 0.5 },
-  ], [filters]);
-
-  const regionData = useMemo(() => {
-    const baseData = [
-      { region: "North", sites: 684 },
-      { region: "South", sites: 512 },
-      { region: "East", sites: 721 },
-      { region: "West", sites: 598 },
-      { region: "Central", sites: 332 },
-    ];
-    // Apply region filter
-    const multiplier = filters.regions.length > 0 ? 0.7 : 1;
-    return baseData.map(d => ({ ...d, sites: Math.round(d.sites * multiplier) }));
-  }, [filters]);
-
-  const vendorData = useMemo(() => {
-    const baseData = [
-      { vendor: "Ericsson", sites: 892, fill: "#7c3aed" },
-      { vendor: "Huawei", sites: 756, fill: "#3b82f6" },
-      { vendor: "Nokia", sites: 634, fill: "#22c55e" },
-      { vendor: "Samsung", sites: 389, fill: "#f59e0b" },
-      { vendor: "Others", sites: 176, fill: "#ef4444" },
-    ];
-    // Apply vendor filter
-    const multiplier = filters.vendors.length > 0 ? 0.8 : 1;
-    return baseData.map(d => ({ ...d, sites: Math.round(d.sites * multiplier) }));
-  }, [filters]);
-
-  // AI Engine Actions data (filter-aware)
-  const aiActionsData = useMemo(() => {
-    const baseTotal = 342;
-    const multiplier = 1 - (filters.vendors.length * 0.1 + filters.technologies.length * 0.05);
-    const total = Math.round(baseTotal * multiplier);
-    const successful = Math.round(total * 0.87);
-    const failed = total - successful;
-    return { totalActions: total, successfulActions: successful, failedActions: failed };
-  }, [filters]);
+  // Generate all chart data with memoization (re-renders on filter change)
+  const trafficData = useMemo(() => generateTrafficData(filters), [filters]);
+  const regionData = useMemo(() => generateRegionData(filters), [filters]);
+  const vendorData = useMemo(() => generateVendorData(filters), [filters]);
+  const aiActionsData = useMemo(() => generateAIActionsData(filters), [filters]);
+  const aiSummary = useMemo(() => generateAIActionsSummary(filters), [filters]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -237,7 +188,6 @@ export default function DashboardNew() {
           : "All Time",
     };
 
-    // Build CSV content
     const csvHeader = ["NETWORK OPERATIONS DASHBOARD EXPORT"];
     const csvSubHeader = [
       `Generated: ${new Date().toLocaleString()}`,
@@ -271,7 +221,6 @@ export default function DashboardNew() {
       .map((row) => row.map((cell) => `"${cell}"`).join(","))
       .join("\n");
 
-    // Create and download file
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
@@ -292,43 +241,37 @@ export default function DashboardNew() {
     .map((id) => getKPIById(id))
     .filter(Boolean);
 
-  // Helper function to render charts
-  const renderChart = (chartType: ChartType, data: any, dataKey: string, isRegion = false) => {
+  // Helper function to render charts based on type
+  const renderChart = (chartType: ChartType, data: any[], dataKeys: string[]) => {
     switch (chartType) {
       case "line":
         return (
           <LineChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <XAxis dataKey={isRegion ? "region" : "time"} stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+            <XAxis dataKey="time" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
             <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
             <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px" }} />
             <Legend />
-            {isRegion ? (
-              <Line type="monotone" dataKey="sites" stroke="#3b82f6" strokeWidth={2} dot={{ fill: "#3b82f6", r: 4 }} />
-            ) : (
-              <>
-                <Line type="monotone" dataKey="traffic" stroke="#7c3aed" strokeWidth={2} dot={{ fill: "#7c3aed", r: 4 }} name="Traffic (Tbps)" />
-                <Line type="monotone" dataKey="success" stroke="#22c55e" strokeWidth={2} dot={{ fill: "#22c55e", r: 4 }} name="Success Rate (%)" />
-              </>
-            )}
+            {dataKeys.includes("traffic") && <Line type="monotone" dataKey="traffic" stroke="#7c3aed" strokeWidth={2} name="Traffic (Tbps)" />}
+            {dataKeys.includes("success") && <Line type="monotone" dataKey="success" stroke="#22c55e" strokeWidth={2} name="Success Rate (%)" />}
+            {dataKeys.includes("sites") && <Line type="monotone" dataKey="sites" stroke="#3b82f6" strokeWidth={2} name="Sites" />}
+            {dataKeys.includes("successful") && <Line type="monotone" dataKey="successful" stroke="#22c55e" strokeWidth={2} name="Successful" />}
+            {dataKeys.includes("failed") && <Line type="monotone" dataKey="failed" stroke="#ef4444" strokeWidth={2} name="Failed" />}
           </LineChart>
         );
       case "bar":
         return (
           <BarChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <XAxis dataKey={isRegion ? "region" : "time"} stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+            <XAxis dataKey="time" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
             <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
             <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px" }} />
             <Legend />
-            {isRegion ? (
-              <Bar dataKey="sites" fill="#3b82f6" radius={[8, 8, 0, 0]} />
-            ) : (
-              <>
-                <Bar dataKey="traffic" fill="#7c3aed" radius={[8, 8, 0, 0]} />
-                <Bar dataKey="success" fill="#22c55e" radius={[8, 8, 0, 0]} />
-              </>
-            )}
+            {dataKeys.includes("traffic") && <Bar dataKey="traffic" fill="#7c3aed" radius={[8, 8, 0, 0]} name="Traffic" />}
+            {dataKeys.includes("success") && <Bar dataKey="success" fill="#22c55e" radius={[8, 8, 0, 0]} name="Success Rate" />}
+            {dataKeys.includes("sites") && <Bar dataKey="sites" fill="#3b82f6" radius={[8, 8, 0, 0]} name="Sites" />}
+            {dataKeys.includes("successful") && <Bar dataKey="successful" fill="#22c55e" radius={[8, 8, 0, 0]} name="Successful" />}
+            {dataKeys.includes("failed") && <Bar dataKey="failed" fill="#ef4444" radius={[8, 8, 0, 0]} name="Failed" />}
           </BarChart>
         );
       case "pie":
@@ -339,7 +282,7 @@ export default function DashboardNew() {
               cx="50%"
               cy="50%"
               labelLine={false}
-              label={({ vendor, sites, region }) => `${vendor || region}: ${sites}`}
+              label={({ region, vendor, sites }) => `${region || vendor}: ${sites}`}
               outerRadius={100}
               fill="#8884d8"
               dataKey="sites"
@@ -358,7 +301,6 @@ export default function DashboardNew() {
     <div className="space-y-8 pb-6">
       {/* ===== HEADER SECTION ===== */}
       <div className="space-y-6">
-        {/* Page Title */}
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="space-y-1">
             <h1 className="text-4xl font-bold text-foreground">
@@ -371,7 +313,6 @@ export default function DashboardNew() {
           <button
             onClick={exportToExcel}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-border bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium"
-            title="Export as Excel"
           >
             <Download className="w-4 h-4" />
             Export to Excel
@@ -384,7 +325,6 @@ export default function DashboardNew() {
 
       {/* ===== KPI SECTION ===== */}
       <div>
-        {/* KPI Selection Bar */}
         <div className="space-y-4 mb-6">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
@@ -414,7 +354,6 @@ export default function DashboardNew() {
             </button>
           </div>
 
-          {/* KPI Selection Dropdown */}
           {showKPISelector && (
             <div className="p-4 rounded-lg border border-border bg-card grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
               {AVAILABLE_KPIS.map((kpi) => (
@@ -486,7 +425,6 @@ export default function DashboardNew() {
                   {getStatusIcon(kpiValue.change)}
                 </div>
 
-                {/* KPI Value Display */}
                 <div className="mb-3">
                   <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wide">
                     {kpi.label}
@@ -523,30 +461,35 @@ export default function DashboardNew() {
       {/* ===== ANALYTICS SECTIONS ===== */}
       <AnalyticsSections />
 
-      {/* ===== AI ENGINE ACTIONS SECTION (2-COLUMN LAYOUT) ===== */}
-      <div className="card-elevated rounded-xl border border-border/50 p-6">
+      {/* ===== AI ENGINE ACTIONS (2-COLUMN LAYOUT) ===== */}
+      <div id="ai-actions" className="card-elevated rounded-xl border border-border/50 p-6">
         <div className="mb-6 space-y-1">
-          <h2 className="text-2xl font-bold text-foreground">AI Engine Actions</h2>
-          <p className="text-sm text-muted-foreground">Automated network operations and resolution activities</p>
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <h2 className="text-2xl font-bold text-foreground">AI Engine Actions</h2>
+              <p className="text-sm text-muted-foreground">Automated network operations and resolution activities</p>
+            </div>
+            <select
+              value={aiChartType}
+              onChange={(e) => setAiChartType(e.target.value as ChartType)}
+              className="px-3 py-1 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50"
+            >
+              <option value="bar">Bar Chart</option>
+              <option value="line">Line Chart</option>
+              <option value="pie">Pie Chart</option>
+            </select>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* LEFT SIDE: Visual Element */}
-          <div className="flex items-center justify-center p-8 rounded-lg bg-gradient-to-br from-primary/10 to-accent/10 border border-border/50 min-h-[300px]">
-            <div className="text-center">
-              <div className="flex justify-center mb-4">
-                <div className="p-4 rounded-full bg-primary/20">
-                  <Zap className="w-12 h-12 text-primary" />
-                </div>
-              </div>
-              <h3 className="text-xl font-bold text-foreground mb-2">AI-Powered Automation</h3>
-              <p className="text-sm text-muted-foreground max-w-xs">
-                Real-time automation engine detecting and resolving network anomalies autonomously
-              </p>
-            </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* LEFT: Chart Visualization */}
+          <div className="lg:col-span-2 rounded-lg border border-border/50 bg-background p-4">
+            <ResponsiveContainer width="100%" height={300}>
+              {renderChart(aiChartType, aiActionsData, ["successful", "failed"])}
+            </ResponsiveContainer>
           </div>
 
-          {/* RIGHT SIDE: Action Metrics Cards */}
+          {/* RIGHT: Summary Metrics */}
           <div className="space-y-4">
             {/* Total Actions */}
             <div className="p-6 rounded-xl border border-border/50 bg-card">
@@ -555,7 +498,7 @@ export default function DashboardNew() {
                   <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wide">
                     Total Actions Taken
                   </p>
-                  <p className="text-3xl font-bold text-foreground">{aiActionsData.totalActions}</p>
+                  <p className="text-3xl font-bold text-foreground">{aiSummary.totalActions}</p>
                 </div>
                 <div className="p-2.5 rounded-lg bg-primary/10">
                   <Clock className="w-5 h-5 text-primary" />
@@ -563,16 +506,16 @@ export default function DashboardNew() {
               </div>
             </div>
 
-            {/* Successful Actions */}
+            {/* Successful */}
             <div className="p-6 rounded-xl border border-border/50 bg-card">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wide">
-                    Successful Actions
+                    Successful
                   </p>
-                  <p className="text-3xl font-bold text-status-healthy">{aiActionsData.successfulActions}</p>
+                  <p className="text-3xl font-bold text-status-healthy">{aiSummary.successfulActions}</p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {((aiActionsData.successfulActions / aiActionsData.totalActions) * 100).toFixed(1)}% success rate
+                    {((aiSummary.successfulActions / aiSummary.totalActions) * 100).toFixed(1)}% success
                   </p>
                 </div>
                 <div className="p-2.5 rounded-lg bg-status-healthy/10">
@@ -581,16 +524,16 @@ export default function DashboardNew() {
               </div>
             </div>
 
-            {/* Failed Actions */}
+            {/* Failed */}
             <div className="p-6 rounded-xl border border-border/50 bg-card">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wide">
-                    Failed Actions
+                    Failed
                   </p>
-                  <p className="text-3xl font-bold text-status-critical">{aiActionsData.failedActions}</p>
+                  <p className="text-3xl font-bold text-status-critical">{aiSummary.failedActions}</p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {((aiActionsData.failedActions / aiActionsData.totalActions) * 100).toFixed(1)}% failure rate
+                    {((aiSummary.failedActions / aiSummary.totalActions) * 100).toFixed(1)}% failure
                   </p>
                 </div>
                 <div className="p-2.5 rounded-lg bg-status-critical/10">
@@ -622,7 +565,7 @@ export default function DashboardNew() {
           </div>
         </div>
         <ResponsiveContainer width="100%" height={300}>
-          {renderChart(trafficChartType, trafficData, "traffic")}
+          {renderChart(trafficChartType, trafficData, ["traffic", "success"])}
         </ResponsiveContainer>
       </div>
 
@@ -639,14 +582,14 @@ export default function DashboardNew() {
               onChange={(e) => setRegionChartType(e.target.value as ChartType)}
               className="px-3 py-1 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50"
             >
-              <option value="line">Line Chart</option>
               <option value="bar">Bar Chart</option>
+              <option value="line">Line Chart</option>
               <option value="pie">Pie Chart</option>
             </select>
           </div>
         </div>
         <ResponsiveContainer width="100%" height={300}>
-          {renderChart(regionChartType, regionData, "sites", true)}
+          {renderChart(regionChartType, regionData, ["sites"])}
         </ResponsiveContainer>
       </div>
 
@@ -663,16 +606,16 @@ export default function DashboardNew() {
               onChange={(e) => setVendorChartType(e.target.value as ChartType)}
               className="px-3 py-1 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50"
             >
-              <option value="line">Line Chart</option>
-              <option value="bar">Bar Chart</option>
               <option value="pie">Pie Chart</option>
+              <option value="bar">Bar Chart</option>
+              <option value="line">Line Chart</option>
             </select>
           </div>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
             <ResponsiveContainer width="100%" height={300}>
-              {renderChart(vendorChartType, vendorData, "sites")}
+              {renderChart(vendorChartType, vendorData, ["sites"])}
             </ResponsiveContainer>
           </div>
           <div className="space-y-3 flex flex-col justify-center">
