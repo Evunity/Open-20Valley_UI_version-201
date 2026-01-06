@@ -151,14 +151,6 @@ export default function DashboardNew() {
     }
   };
 
-  const getStatusIcon = (change?: number) => {
-    if (!change) return null;
-    return change < 0 ? (
-      <TrendingDown className="w-4 h-4 text-status-healthy" />
-    ) : (
-      <TrendingUp className="w-4 h-4 text-status-degraded" />
-    );
-  };
 
   const toggleKPISelection = (kpiId: string) => {
     setSelectedKPIIds((prev) =>
