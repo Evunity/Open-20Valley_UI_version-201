@@ -42,6 +42,14 @@ export default function App() {
                 }
               />
               <Route
+                path="/ai-actions"
+                element={
+                  <Layout>
+                    <AIEngineActions />
+                  </Layout>
+                }
+              />
+              <Route
                 path="/network"
                 element={
                   <Layout>
