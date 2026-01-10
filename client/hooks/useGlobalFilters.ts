@@ -47,6 +47,7 @@ const DEFAULT_FILTERS: GlobalFilterState = {
   clusters: [],
   countries: [],
   dateRange: { from: null, to: null },
+  timeGranularity: "days",
 };
 
 interface FilterProviderProps {
