@@ -902,7 +902,7 @@ export default function DashboardNew() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
             <ResponsiveContainer width="100%" height={300}>
-              {renderChart(vendorChartType, vendorData, ["sites"])}
+              {renderChart("pie", vendorData, ["sites"])}
             </ResponsiveContainer>
           </div>
           <div className="space-y-3 flex flex-col justify-center">
