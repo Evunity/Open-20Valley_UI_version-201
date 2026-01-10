@@ -252,6 +252,18 @@ export default function DashboardNew() {
     );
   };
 
+  // Calculate active filter count for export
+  const getActiveFilterCount = () => {
+    let count = 0;
+    if (filters.vendors.length > 0) count += filters.vendors.length;
+    if (filters.technologies.length > 0) count += filters.technologies.length;
+    if (filters.regions.length > 0) count += filters.regions.length;
+    if (filters.clusters.length > 0) count += filters.clusters.length;
+    if (filters.countries.length > 0) count += filters.countries.length;
+    if (filters.dateRange.from && filters.dateRange.to) count += 1;
+    return count;
+  };
+
   const exportToExcel = () => {
     const selectedKPIs = selectedKPIIds.map((id) => {
       const kpi = getKPIById(id);
