@@ -259,57 +259,92 @@ export default function DashboardNew() {
       };
     });
 
-    const filtersApplied = {
-      Vendors: filters.vendors.length > 0 ? filters.vendors.join(", ") : "All",
-      Technologies: filters.technologies.length > 0 ? filters.technologies.join(", ") : "All",
-      Regions: filters.regions.length > 0 ? filters.regions.join(", ") : "All",
-      Clusters: filters.clusters.length > 0 ? filters.clusters.join(", ") : "All",
-      Countries: filters.countries.length > 0 ? filters.countries.join(", ") : "All",
-      "Date Range":
-        filters.dateRange.from && filters.dateRange.to
-          ? `${new Date(filters.dateRange.from).toLocaleDateString()} - ${new Date(filters.dateRange.to).toLocaleDateString()}`
-          : "All Time",
-    };
+    // Prepare chart data for all 4 graph cards
+    const graphCardsData = graphCards.map((card) => ({
+      cardId: card.id,
+      selectedKPIs: card.selectedKPIs,
+      chartType: card.chartType,
+      data:
+        card.selectedKPIs[0] === "total_sites" || card.selectedKPIs[0] === "active_sites"
+          ? trafficData
+          : trafficData,
+    }));
 
     // Create workbook and worksheet
     const wb = XLSX.utils.book_new();
 
-    // Sheet data with sections
-    const sheetData: any[] = [];
-
-    // Header
-    sheetData.push(["NETWORK OPERATIONS DASHBOARD EXPORT"]);
-    sheetData.push([`Generated: ${new Date().toLocaleString()}`]);
-    sheetData.push([]);
-
-    // Filters section
-    sheetData.push(["APPLIED FILTERS:"]);
-    Object.entries(filtersApplied).forEach(([key, value]) => {
-      sheetData.push([key, value]);
-    });
-    sheetData.push([]);
-
-    // KPI section
-    sheetData.push(["SELECTED KPI VALUES:"]);
-    sheetData.push(["KPI", "Value", "Unit", "Status"]);
+    // Sheet 1: KPI Values
+    const kpiSheetData: any[] = [];
+    kpiSheetData.push(["KPI", "Value", "Unit", "Status"]);
     selectedKPIs.forEach((kpi) => {
-      sheetData.push([kpi.KPI, kpi.Value, kpi.Unit, kpi.Status]);
+      kpiSheetData.push([kpi.KPI, kpi.Value, kpi.Unit, kpi.Status]);
     });
 
-    const ws = XLSX.utils.aoa_to_sheet(sheetData);
+    const ws1 = XLSX.utils.aoa_to_sheet(kpiSheetData);
+    ws1["!cols"] = [{ wch: 25 }, { wch: 20 }, { wch: 15 }, { wch: 15 }];
+    XLSX.utils.book_append_sheet(wb, ws1, "KPI Values");
 
-    // Set column widths
-    ws["!cols"] = [{ wch: 25 }, { wch: 20 }, { wch: 15 }, { wch: 15 }];
+    // Sheet 2: Traffic Data
+    const trafficSheetData: any[] = [];
+    trafficSheetData.push(["Time", "Traffic", "Success Rate"]);
+    trafficData.forEach((item) => {
+      trafficSheetData.push([item.time, item.traffic, item.success]);
+    });
 
-    XLSX.utils.book_append_sheet(wb, ws, "Dashboard");
+    const ws2 = XLSX.utils.aoa_to_sheet(trafficSheetData);
+    ws2["!cols"] = [{ wch: 20 }, { wch: 15 }, { wch: 15 }];
+    XLSX.utils.book_append_sheet(wb, ws2, "Traffic Data");
 
-    // Generate file
-    const fileName = `dashboard-export-${new Date().getTime()}.xlsx`;
+    // Sheet 3: Region Data
+    const regionSheetData: any[] = [];
+    regionSheetData.push(["Region", "Sites"]);
+    regionData.forEach((item) => {
+      regionSheetData.push([item.region, item.sites]);
+    });
+
+    const ws3 = XLSX.utils.aoa_to_sheet(regionSheetData);
+    ws3["!cols"] = [{ wch: 20 }, { wch: 15 }];
+    XLSX.utils.book_append_sheet(wb, ws3, "Region Data");
+
+    // Sheet 4: Vendor Data
+    const vendorSheetData: any[] = [];
+    vendorSheetData.push(["Vendor", "Sites"]);
+    vendorData.forEach((item) => {
+      vendorSheetData.push([item.vendor, item.sites]);
+    });
+
+    const ws4 = XLSX.utils.aoa_to_sheet(vendorSheetData);
+    ws4["!cols"] = [{ wch: 20 }, { wch: 15 }];
+    XLSX.utils.book_append_sheet(wb, ws4, "Vendor Data");
+
+    // Sheet 5: Applied Filters
+    const filtersData: any[] = [];
+    filtersData.push(["Filter Type", "Values"]);
+    filtersData.push(["Vendors", filters.vendors.join(", ") || "All"]);
+    filtersData.push(["Technologies", filters.technologies.join(", ") || "All"]);
+    filtersData.push(["Regions", filters.regions.join(", ") || "All"]);
+    filtersData.push(["Clusters", filters.clusters.join(", ") || "All"]);
+    filtersData.push(["Countries", filters.countries.join(", ") || "All"]);
+    filtersData.push([
+      "Date Range",
+      filters.dateRange.from && filters.dateRange.to
+        ? `${new Date(filters.dateRange.from).toLocaleDateString()} - ${new Date(filters.dateRange.to).toLocaleDateString()}`
+        : "All Time",
+    ]);
+
+    const ws5 = XLSX.utils.aoa_to_sheet(filtersData);
+    ws5["!cols"] = [{ wch: 20 }, { wch: 40 }];
+    XLSX.utils.book_append_sheet(wb, ws5, "Filters");
+
+    // Generate file with proper naming
+    const now = new Date();
+    const dateStr = now.toISOString().split("T")[0];
+    const fileName = `Network_Operations_Dashboard_${dateStr}.xlsx`;
     XLSX.writeFile(wb, fileName);
 
     toast({
       title: "Export successful",
-      description: `Downloaded dashboard data as Excel file`,
+      description: `Downloaded as ${fileName}`,
     });
   };
 
