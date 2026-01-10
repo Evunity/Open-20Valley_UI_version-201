@@ -381,6 +381,95 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
           </button>
         </div>
 
+        {/* Calendar Dropdown Button */}
+        <div className="relative">
+          <button
+            onClick={() => setShowCalendarDropdown(!showCalendarDropdown)}
+            className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all flex items-center justify-between hover:bg-muted/30"
+          >
+            <div className="flex flex-col items-start gap-1">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide block">
+                Choose Dates
+              </span>
+              {filters.dateRange.from && filters.dateRange.to ? (
+                <span className="text-xs text-foreground font-medium">
+                  {new Date(filters.dateRange.from).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                  })} - {new Date(filters.dateRange.to).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                  })}
+                </span>
+              ) : filters.dateRange.from ? (
+                <span className="text-xs text-muted-foreground">
+                  From {new Date(filters.dateRange.from).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                  })}
+                </span>
+              ) : (
+                <span className="text-xs text-muted-foreground">Select range</span>
+              )}
+            </div>
+            <svg
+              className={cn(
+                "w-4 h-4 text-muted-foreground transition-transform",
+                showCalendarDropdown && "rotate-180"
+              )}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 14l-7 7m0 0l-7-7m7 7V3"
+              />
+            </svg>
+          </button>
+
+          {/* Calendar Dropdown Content */}
+          {showCalendarDropdown && (
+            <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-lg p-4 shadow-xl z-40">
+              <DualMonthCalendar
+                startDate={filters.dateRange.from}
+                endDate={filters.dateRange.to}
+                onDateSelect={(date, isStart) => {
+                  if (isStart) {
+                    handleFilterChange({
+                      ...filters,
+                      dateRange: {
+                        from: date,
+                        to: null,
+                      },
+                    });
+                  } else {
+                    handleFilterChange({
+                      ...filters,
+                      dateRange: {
+                        from: filters.dateRange.from,
+                        to: date,
+                      },
+                    });
+                  }
+                }}
+                onRangeComplete={(start, end) => {
+                  handleFilterChange({
+                    ...filters,
+                    dateRange: {
+                      from: start,
+                      to: end,
+                    },
+                  });
+                  setShowCalendarDropdown(false);
+                }}
+              />
+            </div>
+          )}
+        </div>
+
         {/* Reset Button */}
         <div className="flex items-end">
           <button
@@ -395,6 +484,7 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
                 dateRange: { from: null, to: null },
                 timeGranularity: "days",
               });
+              setShowCalendarDropdown(false);
             }}
             className="w-full px-3 py-2 rounded-lg bg-muted hover:bg-muted/70 transition-all duration-200 text-xs font-medium active:scale-95"
           >
