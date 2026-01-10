@@ -366,6 +366,27 @@ export default function DashboardNew() {
     }
   };
 
+  // KPI to chart color mapping
+  const kpiColorMap: Record<string, string> = {
+    traffic: "#7c3aed",
+    success: "#22c55e",
+    total_sites: "#3b82f6",
+    active_sites: "#06b6d4",
+    uptime: "#8b5cf6",
+    success_rate: "#22c55e",
+    avg_latency: "#f59e0b",
+    network_health: "#10b981",
+    sites: "#3b82f6",
+    successful: "#22c55e",
+    failed: "#ef4444",
+  };
+
+  // Get KPI label from ID
+  const getKPILabel = (kpiId: string): string => {
+    const kpi = AVAILABLE_KPIS.find((k) => k.id === kpiId);
+    return kpi?.label || kpiId;
+  };
+
   // Helper function to render charts based on type with strict date formatting
   const renderChart = (chartType: ChartType, data: any[], dataKeys: string[]) => {
     // Transform all data to ensure dates are in YYYY-MM-DD format
@@ -378,6 +399,11 @@ export default function DashboardNew() {
       }
 
       return formatted;
+    });
+
+    // Filter to only data keys that actually exist in the data
+    const validDataKeys = dataKeys.filter((key) => {
+      return formattedData.length > 0 && key in formattedData[0];
     });
 
     switch (chartType) {
@@ -401,45 +427,16 @@ export default function DashboardNew() {
               }}
             />
             <Legend />
-            {dataKeys.includes("traffic") && (
+            {validDataKeys.map((key, idx) => (
               <Line
+                key={key}
                 type="monotone"
-                dataKey="traffic"
-                stroke="#7c3aed"
+                dataKey={key}
+                stroke={kpiColorMap[key] || ["#7c3aed", "#3b82f6", "#22c55e", "#f59e0b"][idx % 4]}
                 strokeWidth={2}
-                name="Traffic (Tbps)"
+                name={getKPILabel(key)}
               />
-            )}
-            {dataKeys.includes("success") && (
-              <Line
-                type="monotone"
-                dataKey="success"
-                stroke="#22c55e"
-                strokeWidth={2}
-                name="Success Rate (%)"
-              />
-            )}
-            {dataKeys.includes("sites") && (
-              <Line type="monotone" dataKey="sites" stroke="#3b82f6" strokeWidth={2} name="Sites" />
-            )}
-            {dataKeys.includes("successful") && (
-              <Line
-                type="monotone"
-                dataKey="successful"
-                stroke="#22c55e"
-                strokeWidth={2}
-                name="Successful"
-              />
-            )}
-            {dataKeys.includes("failed") && (
-              <Line
-                type="monotone"
-                dataKey="failed"
-                stroke="#ef4444"
-                strokeWidth={2}
-                name="Failed"
-              />
-            )}
+            ))}
           </LineChart>
         );
       case "bar":
@@ -462,21 +459,15 @@ export default function DashboardNew() {
               }}
             />
             <Legend />
-            {dataKeys.includes("traffic") && (
-              <Bar dataKey="traffic" fill="#7c3aed" radius={[8, 8, 0, 0]} name="Traffic" />
-            )}
-            {dataKeys.includes("success") && (
-              <Bar dataKey="success" fill="#22c55e" radius={[8, 8, 0, 0]} name="Success Rate" />
-            )}
-            {dataKeys.includes("sites") && (
-              <Bar dataKey="sites" fill="#3b82f6" radius={[8, 8, 0, 0]} name="Sites" />
-            )}
-            {dataKeys.includes("successful") && (
-              <Bar dataKey="successful" fill="#22c55e" radius={[8, 8, 0, 0]} name="Successful" />
-            )}
-            {dataKeys.includes("failed") && (
-              <Bar dataKey="failed" fill="#ef4444" radius={[8, 8, 0, 0]} name="Failed" />
-            )}
+            {validDataKeys.map((key, idx) => (
+              <Bar
+                key={key}
+                dataKey={key}
+                fill={kpiColorMap[key] || ["#7c3aed", "#3b82f6", "#22c55e", "#f59e0b"][idx % 4]}
+                radius={[8, 8, 0, 0]}
+                name={getKPILabel(key)}
+              />
+            ))}
           </BarChart>
         );
       case "pie":
