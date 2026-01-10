@@ -220,6 +220,9 @@ export default function DashboardNew() {
   // AI Chart type state
   const [aiChartType, setAiChartType] = useState<ChartType>("bar");
 
+  // AI Actions sorting state
+  const [actionsSortOrder, setActionsSortOrder] = useState<"low-to-high" | "high-to-low">("high-to-low");
+
   // Generate all chart data with memoization (re-renders on filter change)
   const trafficData = useMemo(() => generateTrafficData(filters), [filters]);
   const regionData = useMemo(() => generateRegionData(filters), [filters]);
