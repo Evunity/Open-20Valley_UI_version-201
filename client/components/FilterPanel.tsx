@@ -370,6 +370,33 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
           </select>
         </div>
 
+        {/* Choose Dates Button */}
+        <div>
+          <button
+            onClick={() => setShowCalendarDropdown(!showCalendarDropdown)}
+            className="w-full h-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all hover:bg-muted/30 flex flex-col items-start justify-center gap-1"
+          >
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide block">
+              Choose Dates
+            </span>
+            {filters.dateRange.from && filters.dateRange.to ? (
+              <span className="text-xs text-foreground font-medium">
+                {new Date(filters.dateRange.from).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                })}{" "}
+                -{" "}
+                {new Date(filters.dateRange.to).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                })}
+              </span>
+            ) : (
+              <span className="text-xs text-muted-foreground">Select range</span>
+            )}
+          </button>
+        </div>
+
         {/* Add Cluster Location Button */}
         <div className="flex items-end">
           <button
