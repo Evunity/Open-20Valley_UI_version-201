@@ -7,6 +7,7 @@ export interface GlobalFilterState {
   clusters: string[];
   countries: string[];
   dateRange: { from: Date | null; to: Date | null };
+  timeGranularity: "hours" | "days";
 }
 
 export interface LocationCluster {
