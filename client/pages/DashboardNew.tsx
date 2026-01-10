@@ -727,49 +727,38 @@ export default function DashboardNew() {
             <div key={card.id} className="card-elevated rounded-xl border border-border/50 p-6 space-y-4">
               {/* Card Header with KPI Selection and Chart Type */}
               <div className="space-y-3">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex-1">
-                    <label className="block text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
-                      KPI Selection
-                    </label>
-                    <select
-                      multiple
-                      className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                      value={card.selectedKPIs}
-                      onChange={(e) => {
-                        const selected = Array.from(e.target.selectedOptions, (option) => option.value).slice(0, 2);
-                        setGraphCards((prev) =>
-                          prev.map((c) => (c.id === card.id ? { ...c, selectedKPIs: selected } : c))
-                        );
-                      }}
-                      title="Select up to 2 KPIs - Hold Ctrl/Cmd to select multiple"
-                      size={4}
-                    >
-                      {AVAILABLE_KPIS.map((kpi) => (
-                        <option key={kpi.id} value={kpi.id}>
-                          {kpi.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
+                    KPI Selection (Max 2)
+                  </label>
+                  <SearchableKPISelect
+                    value={card.selectedKPIs}
+                    onChange={(selected) => {
+                      setGraphCards((prev) =>
+                        prev.map((c) => (c.id === card.id ? { ...c, selectedKPIs: selected } : c))
+                      );
+                    }}
+                    placeholder="Search and select KPIs..."
+                    maxItems={2}
+                  />
+                </div>
 
-                  <div className="flex-1">
-                    <label className="block text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
-                      Chart Type
-                    </label>
-                    <select
-                      className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                      value={card.chartType}
-                      onChange={(e) => {
-                        setGraphCards((prev) =>
-                          prev.map((c) => (c.id === card.id ? { ...c, chartType: e.target.value as ChartType } : c))
-                        );
-                      }}
-                    >
-                      <option value="line">Line Chart</option>
-                      <option value="bar">Bar Chart</option>
-                    </select>
-                  </div>
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
+                    Chart Type
+                  </label>
+                  <select
+                    className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                    value={card.chartType}
+                    onChange={(e) => {
+                      setGraphCards((prev) =>
+                        prev.map((c) => (c.id === card.id ? { ...c, chartType: e.target.value as ChartType } : c))
+                      );
+                    }}
+                  >
+                    <option value="line">Line Chart</option>
+                    <option value="bar">Bar Chart</option>
+                  </select>
                 </div>
 
                 {/* Axis Configuration */}
