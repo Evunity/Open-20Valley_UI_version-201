@@ -15,51 +15,10 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
   const { toast } = useToast();
   const [showCreateClusterDialog, setShowCreateClusterDialog] = useState(false);
   const [newClusterName, setNewClusterName] = useState("");
-  const [selectingDateRange, setSelectingDateRange] = useState<"start" | "end" | null>(null);
 
   const handleFilterChange = (newFilters: GlobalFilterState) => {
     setFilters(newFilters);
     onFiltersChange?.(newFilters);
-  };
-
-  const handleDateSelect = (date: Date | undefined) => {
-    if (!date) return;
-
-    if (!selectingDateRange || selectingDateRange === "start") {
-      // Start selecting range
-      handleFilterChange({
-        ...filters,
-        dateRange: {
-          from: date,
-          to: null,
-        },
-      });
-      setSelectingDateRange("end");
-    } else {
-      // Completing range
-      const from = filters.dateRange.from;
-      const to = date;
-
-      // Swap if needed
-      if (from && from > to) {
-        handleFilterChange({
-          ...filters,
-          dateRange: {
-            from: to,
-            to: from,
-          },
-        });
-      } else {
-        handleFilterChange({
-          ...filters,
-          dateRange: {
-            from,
-            to,
-          },
-        });
-      }
-      setSelectingDateRange(null);
-    }
   };
 
   const handleCreateCluster = () => {
