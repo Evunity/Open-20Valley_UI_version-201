@@ -216,50 +216,30 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
       )}
 
       {/* Always-Visible Filter Dropdowns */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3 p-4 rounded-lg border border-border bg-card">
-        {/* Vendor Dropdown */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-3 p-4 rounded-lg border border-border bg-card">
+        {/* Country Dropdown */}
         <div>
           <label className="block text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
-            Vendor
+            Country
           </label>
           <select
             multiple
             className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-            value={filters.vendors}
+            value={filters.countries}
             onChange={(e) => {
               const selected = Array.from(e.target.selectedOptions, (option) => option.value);
-              handleFilterChange({ ...filters, vendors: selected });
+              handleFilterChange({ ...filters, countries: selected });
             }}
-            title="Hold Ctrl/Cmd to select multiple vendors"
+            title="Hold Ctrl/Cmd to select multiple countries"
           >
-            <option value="Ericsson">Ericsson</option>
-            <option value="Huawei">Huawei</option>
-            <option value="Nokia">Nokia</option>
-            <option value="Samsung">Samsung</option>
-            <option value="Cisco">Cisco</option>
-          </select>
-        </div>
-
-        {/* Technology Dropdown */}
-        <div>
-          <label className="block text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
-            Technology
-          </label>
-          <select
-            multiple
-            className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-            value={filters.technologies}
-            onChange={(e) => {
-              const selected = Array.from(e.target.selectedOptions, (option) => option.value);
-              handleFilterChange({ ...filters, technologies: selected });
-            }}
-            title="Hold Ctrl/Cmd to select multiple technologies"
-          >
-            <option value="2G">2G</option>
-            <option value="3G">3G</option>
-            <option value="4G">4G</option>
-            <option value="5G">5G</option>
-            <option value="ORAN">O-RAN</option>
+            <option value="United States">United States</option>
+            <option value="Canada">Canada</option>
+            <option value="United Kingdom">United Kingdom</option>
+            <option value="Germany">Germany</option>
+            <option value="France">France</option>
+            <option value="Japan">Japan</option>
+            <option value="India">India</option>
+            <option value="Australia">Australia</option>
           </select>
         </div>
 
@@ -309,29 +289,49 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
           </select>
         </div>
 
-        {/* Country Dropdown */}
+        {/* Vendor Dropdown */}
         <div>
           <label className="block text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
-            Country
+            Vendor
           </label>
           <select
             multiple
             className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-            value={filters.countries}
+            value={filters.vendors}
             onChange={(e) => {
               const selected = Array.from(e.target.selectedOptions, (option) => option.value);
-              handleFilterChange({ ...filters, countries: selected });
+              handleFilterChange({ ...filters, vendors: selected });
             }}
-            title="Hold Ctrl/Cmd to select multiple countries"
+            title="Hold Ctrl/Cmd to select multiple vendors"
           >
-            <option value="United States">United States</option>
-            <option value="Canada">Canada</option>
-            <option value="United Kingdom">United Kingdom</option>
-            <option value="Germany">Germany</option>
-            <option value="France">France</option>
-            <option value="Japan">Japan</option>
-            <option value="India">India</option>
-            <option value="Australia">Australia</option>
+            <option value="Ericsson">Ericsson</option>
+            <option value="Huawei">Huawei</option>
+            <option value="Nokia">Nokia</option>
+            <option value="Samsung">Samsung</option>
+            <option value="Cisco">Cisco</option>
+          </select>
+        </div>
+
+        {/* Technology Dropdown */}
+        <div>
+          <label className="block text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
+            Technology
+          </label>
+          <select
+            multiple
+            className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+            value={filters.technologies}
+            onChange={(e) => {
+              const selected = Array.from(e.target.selectedOptions, (option) => option.value);
+              handleFilterChange({ ...filters, technologies: selected });
+            }}
+            title="Hold Ctrl/Cmd to select multiple technologies"
+          >
+            <option value="2G">2G</option>
+            <option value="3G">3G</option>
+            <option value="4G">4G</option>
+            <option value="5G">5G</option>
+            <option value="ORAN">O-RAN</option>
           </select>
         </div>
 
@@ -349,7 +349,7 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
         </div>
 
         {/* Add Cluster Location Button */}
-        <div className="flex items-end lg:col-span-1">
+        <div className="flex items-end">
           <button
             onClick={() => setShowCreateClusterDialog(true)}
             className="w-full px-3 py-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-all duration-200 text-xs font-medium active:scale-95 flex items-center justify-center gap-1"
@@ -359,8 +359,28 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
           </button>
         </div>
 
+        {/* Time Granularity Control */}
+        <div>
+          <label className="block text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
+            Granularity
+          </label>
+          <select
+            className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+            value={filters.timeGranularity}
+            onChange={(e) => {
+              handleFilterChange({
+                ...filters,
+                timeGranularity: e.target.value as "hours" | "days",
+              });
+            }}
+          >
+            <option value="hours">Hours</option>
+            <option value="days">Days</option>
+          </select>
+        </div>
+
         {/* Reset Button */}
-        <div className="flex items-end lg:col-span-1">
+        <div className="flex items-end">
           <button
             onClick={() => {
               resetFilters();
@@ -372,6 +392,7 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
                 clusters: [],
                 countries: [],
                 dateRange: { from: null, to: null },
+                timeGranularity: "days",
               });
             }}
             className="w-full px-3 py-2 rounded-lg bg-muted hover:bg-muted/70 transition-all duration-200 text-xs font-medium active:scale-95"
