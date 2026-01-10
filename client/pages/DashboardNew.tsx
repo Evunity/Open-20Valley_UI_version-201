@@ -446,13 +446,13 @@ export default function DashboardNew() {
     // Sheet 12: Dashboard Summary
     const summaryData: any[] = [];
     summaryData.push(["Metric", "Value"]);
-    summaryData.push(["Total Sites", aiSummary.totalActions || "N/A"]);
+    summaryData.push(["Total AI Actions", aiSummary.totalActions || "N/A"]);
     summaryData.push(["Successful Actions", aiSummary.successfulActions || "N/A"]);
     summaryData.push(["Failed Actions", aiSummary.failedActions || "N/A"]);
     summaryData.push(["", ""]);
     summaryData.push(["Granularity", filters.timeGranularity]);
     summaryData.push(["Date Range", filters.dateRange.from && filters.dateRange.to ? `${new Date(filters.dateRange.from).toLocaleDateString()} - ${new Date(filters.dateRange.to).toLocaleDateString()}` : "All Time"]);
-    summaryData.push(["Active Filters", activeFilterCount]);
+    summaryData.push(["Active Filters", getActiveFilterCount()]);
 
     const ws12 = XLSX.utils.aoa_to_sheet(summaryData);
     ws12["!cols"] = [{ wch: 25 }, { wch: 30 }];
