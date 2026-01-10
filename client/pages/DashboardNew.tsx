@@ -868,13 +868,12 @@ export default function DashboardNew() {
               <p className="text-sm text-muted-foreground">Equipment manufacturer breakdown</p>
             </div>
             <select
-              value={vendorChartType}
-              onChange={(e) => setVendorChartType(e.target.value as ChartType)}
               className="px-3 py-1 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50"
+              defaultValue="pie"
+              onChange={(e) => {}}
             >
               <option value="pie">Pie Chart</option>
               <option value="bar">Bar Chart</option>
-              <option value="histogram">Histogram</option>
             </select>
           </div>
         </div>
