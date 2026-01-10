@@ -177,10 +177,47 @@ export default function DashboardNew() {
   ]);
   const [showKPISelector, setShowKPISelector] = useState(false);
 
-  // Chart type states
-  const [trafficChartType, setTrafficChartType] = useState<ChartType>("line");
-  const [regionChartType, setRegionChartType] = useState<ChartType>("bar");
-  const [vendorChartType, setVendorChartType] = useState<ChartType>("pie");
+  // 4 Configurable Graph Cards states
+  const [graphCards, setGraphCards] = useState<
+    Array<{
+      id: number;
+      selectedKPIs: string[];
+      chartType: ChartType;
+      xAxis: string;
+      yAxis: string;
+    }>
+  >([
+    {
+      id: 1,
+      selectedKPIs: ["total_sites", "active_sites"],
+      chartType: "line",
+      xAxis: "time",
+      yAxis: "value",
+    },
+    {
+      id: 2,
+      selectedKPIs: ["uptime", "success_rate"],
+      chartType: "bar",
+      xAxis: "time",
+      yAxis: "value",
+    },
+    {
+      id: 3,
+      selectedKPIs: ["avg_latency"],
+      chartType: "line",
+      xAxis: "time",
+      yAxis: "value",
+    },
+    {
+      id: 4,
+      selectedKPIs: ["network_health"],
+      chartType: "bar",
+      xAxis: "time",
+      yAxis: "value",
+    },
+  ]);
+
+  // AI Chart type state
   const [aiChartType, setAiChartType] = useState<ChartType>("bar");
 
   // Generate all chart data with memoization (re-renders on filter change)
