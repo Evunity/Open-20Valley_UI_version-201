@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Plus, Clock } from "lucide-react";
+import { X, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGlobalFilters, type GlobalFilterState } from "@/hooks/useGlobalFilters";
 import { useToast } from "@/hooks/use-toast";
@@ -13,23 +13,53 @@ interface FilterPanelProps {
 export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
   const { filters, setFilters, resetFilters, availableClusters, addCluster } = useGlobalFilters();
   const { toast } = useToast();
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [showCreateClusterDialog, setShowCreateClusterDialog] = useState(false);
   const [newClusterName, setNewClusterName] = useState("");
+  const [selectingDateRange, setSelectingDateRange] = useState<"start" | "end" | null>(null);
 
   const handleFilterChange = (newFilters: GlobalFilterState) => {
     setFilters(newFilters);
     onFiltersChange?.(newFilters);
   };
 
-  const handleDateChange = (type: "from" | "to", date: Date | null) => {
-    handleFilterChange({
-      ...filters,
-      dateRange: {
-        ...filters.dateRange,
-        [type]: date,
-      },
-    });
+  const handleDateSelect = (date: Date | undefined) => {
+    if (!date) return;
+
+    if (!selectingDateRange || selectingDateRange === "start") {
+      // Start selecting range
+      handleFilterChange({
+        ...filters,
+        dateRange: {
+          from: date,
+          to: null,
+        },
+      });
+      setSelectingDateRange("end");
+    } else {
+      // Completing range
+      const from = filters.dateRange.from;
+      const to = date;
+
+      // Swap if needed
+      if (from && from > to) {
+        handleFilterChange({
+          ...filters,
+          dateRange: {
+            from: to,
+            to: from,
+          },
+        });
+      } else {
+        handleFilterChange({
+          ...filters,
+          dateRange: {
+            from,
+            to,
+          },
+        });
+      }
+      setSelectingDateRange(null);
+    }
   };
 
   const handleCreateCluster = () => {
@@ -59,6 +89,19 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
     setNewClusterName("");
     setShowCreateClusterDialog(false);
   };
+
+  // Determine if hourly is allowed based on date range
+  const daysDiff = getDaysDifference(filters.dateRange);
+  const allowHourly = daysDiff <= 3;
+  const shouldForceDaily = daysDiff > 3;
+
+  // Auto-adjust granularity if needed
+  if (shouldForceDaily && filters.timeGranularity === "hours") {
+    handleFilterChange({
+      ...filters,
+      timeGranularity: "days",
+    });
+  }
 
   const activeFilterCount =
     filters.vendors.length +
@@ -335,17 +378,36 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
           </select>
         </div>
 
-        {/* Date Range */}
+        {/* Time Granularity Control */}
         <div>
           <label className="block text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
-            Date Range
+            Granularity
           </label>
-          <button
-            onClick={() => setShowDatePicker(!showDatePicker)}
-            className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all hover:bg-muted text-left"
+          <select
+            className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+            value={filters.timeGranularity}
+            onChange={(e) => {
+              const granularity = e.target.value as "hours" | "days";
+              // Only allow hourly if date range is 3 days or less
+              if (granularity === "hours" && !allowHourly) {
+                toast({
+                  title: "Cannot select hourly",
+                  description: "Hourly view is only available for date ranges of 3 days or less",
+                });
+                return;
+              }
+              handleFilterChange({
+                ...filters,
+                timeGranularity: granularity,
+              });
+            }}
+            disabled={!allowHourly && filters.timeGranularity === "hours"}
           >
-            {formatDateRange() || "Select dates..."}
-          </button>
+            <option value="hours" disabled={!allowHourly}>
+              Hours {!allowHourly ? "(not available)" : ""}
+            </option>
+            <option value="days">Days</option>
+          </select>
         </div>
 
         {/* Add Cluster Location Button */}
@@ -359,32 +421,12 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
           </button>
         </div>
 
-        {/* Time Granularity Control */}
-        <div>
-          <label className="block text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
-            Granularity
-          </label>
-          <select
-            className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-            value={filters.timeGranularity}
-            onChange={(e) => {
-              handleFilterChange({
-                ...filters,
-                timeGranularity: e.target.value as "hours" | "days",
-              });
-            }}
-          >
-            <option value="hours">Hours</option>
-            <option value="days">Days</option>
-          </select>
-        </div>
-
         {/* Reset Button */}
         <div className="flex items-end">
           <button
             onClick={() => {
               resetFilters();
-              setShowDatePicker(false);
+              setSelectingDateRange(null);
               onFiltersChange?.({
                 vendors: [],
                 technologies: [],
@@ -402,39 +444,82 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
         </div>
       </div>
 
-      {/* Date Range Picker Popover (shown below filter grid) */}
-      {showDatePicker && (
-        <div className="p-4 rounded-lg border border-border bg-card space-y-4">
+      {/* Inline Calendar Range Picker (INSIDE filter area) */}
+      <div className="p-4 rounded-lg border border-border bg-card">
+        <div className="space-y-4">
           <div>
-            <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
-              Select Date Range
-            </p>
-            <Calendar
-              mode="range"
-              selected={{
-                from: filters.dateRange.from || undefined,
-                to: filters.dateRange.to || undefined,
-              }}
-              onSelect={(range) => {
-                handleFilterChange({
-                  ...filters,
-                  dateRange: {
-                    from: range?.from || null,
-                    to: range?.to || null,
-                  },
-                });
-              }}
-              className="scale-90 origin-top-left"
-            />
+            <label className="block text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wide">
+              Date Range Selection
+              {selectingDateRange && (
+                <span className="ml-2 text-primary">
+                  ({selectingDateRange === "start" ? "Click start date" : "Click end date"})
+                </span>
+              )}
+            </label>
+            <div className="flex items-center justify-center">
+              <Calendar
+                mode="range"
+                selected={{
+                  from: filters.dateRange.from || undefined,
+                  to: filters.dateRange.to || undefined,
+                }}
+                onSelect={(range) => {
+                  if (range?.from) {
+                    handleDateSelect(range.from);
+                  }
+                  if (range?.to) {
+                    handleDateSelect(range.to);
+                  }
+                }}
+                disabled={(date) => {
+                  // If selecting end date, disable dates before start date
+                  if (selectingDateRange === "end" && filters.dateRange.from) {
+                    return date < filters.dateRange.from;
+                  }
+                  return false;
+                }}
+              />
+            </div>
           </div>
-          <button
-            onClick={() => setShowDatePicker(false)}
-            className="w-full px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-all"
-          >
-            Done
-          </button>
+
+          {/* Date Range Display & Clear */}
+          <div className="flex items-center justify-between">
+            <div className="text-sm">
+              {filters.dateRange.from && filters.dateRange.to ? (
+                <span className="text-foreground">
+                  <strong>Selected:</strong>{" "}
+                  {new Date(filters.dateRange.from).toLocaleDateString()} →{" "}
+                  {new Date(filters.dateRange.to).toLocaleDateString()}
+                  <br />
+                  <span className="text-muted-foreground text-xs">
+                    {daysDiff} day{daysDiff !== 1 ? "s" : ""}
+                  </span>
+                </span>
+              ) : filters.dateRange.from ? (
+                <span className="text-muted-foreground">
+                  Start: {new Date(filters.dateRange.from).toLocaleDateString()} - Select end date
+                </span>
+              ) : (
+                <span className="text-muted-foreground">Select date range above</span>
+              )}
+            </div>
+            {(filters.dateRange.from || filters.dateRange.to) && (
+              <button
+                onClick={() => {
+                  handleFilterChange({
+                    ...filters,
+                    dateRange: { from: null, to: null },
+                  });
+                  setSelectingDateRange(null);
+                }}
+                className="px-3 py-1 text-xs rounded-lg bg-muted hover:bg-muted/70 transition-all"
+              >
+                Clear Dates
+              </button>
+            )}
+          </div>
         </div>
-      )}
+      </div>
 
       {/* Create Cluster Location Dialog */}
       {showCreateClusterDialog && (
