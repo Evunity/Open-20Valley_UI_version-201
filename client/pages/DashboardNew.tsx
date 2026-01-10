@@ -657,7 +657,6 @@ export default function DashboardNew() {
             >
               <option value="bar">Bar Chart</option>
               <option value="line">Line Chart</option>
-              <option value="histogram">Histogram</option>
             </select>
           </div>
         </div>
