@@ -59,7 +59,12 @@ export default function SearchableKPISelect({
     <div ref={containerRef} className="relative w-full">
       {/* Selected Tags & Input */}
       <div
-        className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus-within:ring-2 focus-within:ring-primary/50 focus-within:border-primary transition-all flex items-center gap-2 flex-wrap cursor-text"
+        className={cn(
+          "w-full px-4 py-3 rounded-lg border bg-background text-sm transition-all flex items-center gap-2 flex-wrap cursor-text",
+          isOpen
+            ? "border-primary ring-2 ring-primary/20 shadow-md"
+            : "border-border hover:border-primary/30 focus-within:ring-2 focus-within:ring-primary/50 focus-within:border-primary"
+        )}
         onClick={() => setIsOpen(true)}
       >
         {selectedKPILabels.map((label) => {
@@ -67,7 +72,7 @@ export default function SearchableKPISelect({
           return (
             <div
               key={label}
-              className="flex items-center gap-1 px-2 py-1 rounded-md bg-primary/10 text-primary text-xs font-medium"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-primary/10 text-primary text-xs font-medium hover:bg-primary/15 transition-colors"
             >
               {label}
               <button
@@ -75,24 +80,28 @@ export default function SearchableKPISelect({
                   e.stopPropagation();
                   if (kpiId) handleRemove(kpiId);
                 }}
-                className="hover:opacity-70 transition-opacity"
+                className="hover:opacity-70 transition-opacity ml-0.5"
+                title="Remove KPI"
               >
-                <X className="w-3 h-3" />
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
           );
         })}
 
         {selectedKPILabels.length === 0 && (
-          <span className="text-muted-foreground">{placeholder}</span>
+          <span className="text-muted-foreground flex-1">{placeholder}</span>
         )}
 
-        <div className="ml-auto flex items-center gap-1">
-          <Search className="w-4 h-4 text-muted-foreground" />
+        <div className="ml-auto flex items-center gap-2 flex-shrink-0">
+          <Search className={cn(
+            "w-4 h-4 transition-colors",
+            isOpen ? "text-primary" : "text-muted-foreground"
+          )} />
           <input
             type="text"
-            className="flex-1 min-w-[100px] bg-transparent outline-none text-foreground placeholder-muted-foreground"
-            placeholder="Search..."
+            className="w-32 bg-transparent outline-none text-foreground placeholder-muted-foreground text-sm"
+            placeholder="Search KPIs..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onClick={(e) => {
@@ -102,8 +111,8 @@ export default function SearchableKPISelect({
           />
           <ChevronDown
             className={cn(
-              "w-4 h-4 text-muted-foreground transition-transform",
-              isOpen ? "rotate-180" : ""
+              "w-4 h-4 text-muted-foreground transition-transform duration-200",
+              isOpen ? "rotate-180 text-primary" : ""
             )}
           />
         </div>
