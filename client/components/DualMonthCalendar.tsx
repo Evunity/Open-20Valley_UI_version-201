@@ -247,25 +247,25 @@ export default function DualMonthCalendar({
                       new Date(month2.getFullYear(), month2.getMonth(), day)
                     )}
                     className={cn(
-                      "w-full h-full rounded-lg text-sm transition-all duration-150 font-medium",
+                      "w-full h-full rounded-lg text-sm font-semibold transition-all duration-150",
                       isDisabled(
                         new Date(month2.getFullYear(), month2.getMonth(), day)
                       )
                         ? "text-muted-foreground/40 cursor-not-allowed"
-                        : "cursor-pointer hover:bg-muted/50",
+                        : "cursor-pointer",
                       isStartDate(
                         new Date(month2.getFullYear(), month2.getMonth(), day)
                       )
-                        ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-1 hover:bg-primary"
+                        ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2 hover:bg-primary/90"
                         : isEndDate(
                             new Date(month2.getFullYear(), month2.getMonth(), day)
                           )
-                          ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-1 hover:bg-primary"
+                          ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2 hover:bg-primary/90"
                           : isInRange(
                               new Date(month2.getFullYear(), month2.getMonth(), day)
                             )
-                            ? "bg-primary/20 text-foreground hover:bg-primary/25"
-                            : "text-foreground hover:bg-accent/50"
+                            ? "bg-primary/25 text-foreground hover:bg-primary/35"
+                            : "text-foreground hover:bg-muted/50"
                     )}
                   >
                     {day}
