@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { ChevronDown, X, Search } from "lucide-react";
+import { ChevronDown, X, Search, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AVAILABLE_KPIS } from "@/constants/kpis";
 
