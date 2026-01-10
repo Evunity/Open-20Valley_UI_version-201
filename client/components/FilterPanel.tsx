@@ -15,6 +15,7 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
   const { toast } = useToast();
   const [showCreateClusterDialog, setShowCreateClusterDialog] = useState(false);
   const [newClusterName, setNewClusterName] = useState("");
+  const [showCalendarDropdown, setShowCalendarDropdown] = useState(false);
 
   const handleFilterChange = (newFilters: GlobalFilterState) => {
     setFilters(newFilters);
