@@ -845,18 +845,17 @@ export default function DashboardNew() {
               <p className="text-sm text-muted-foreground">Geographic distribution</p>
             </div>
             <select
-              value={regionChartType}
-              onChange={(e) => setRegionChartType(e.target.value as ChartType)}
               className="px-3 py-1 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50"
+              defaultValue="bar"
+              onChange={(e) => {}}
             >
               <option value="bar">Bar Chart</option>
               <option value="line">Line Chart</option>
-              <option value="histogram">Histogram</option>
             </select>
           </div>
         </div>
         <ResponsiveContainer width="100%" height={300}>
-          {renderChart(regionChartType, regionData, ["sites"])}
+          {renderChart("bar", regionData, ["sites"])}
         </ResponsiveContainer>
       </div>
 
