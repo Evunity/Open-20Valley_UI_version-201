@@ -79,11 +79,20 @@ export const generateDailyTrafficData = (filters: GlobalFilterState, dayCount: n
   return Array.from({ length: Math.min(dayCount, 30) }, (_, i) => {
     const traffic = (2.5 + Math.random() * 1.5) * baseMultiplier;
     const success = 98 + Math.random() * 2 - filters.vendors.length * 0.5;
+    const totalSites = Math.round((2847 + Math.random() * 300) * baseMultiplier);
+    const activeSites = Math.round(totalSites * (0.94 + Math.random() * 0.05));
+    const latency = 42 + Math.random() * 25 - filters.vendors.length * 2;
 
     return {
       time: days[i % 7],
       traffic: Math.round(traffic * 100) / 100,
       success: Math.round(success * 100) / 100,
+      total_sites: totalSites,
+      active_sites: activeSites,
+      uptime: Math.round((99.7 + Math.random() * 0.3) * 100) / 100,
+      success_rate: Math.round(success * 100) / 100,
+      avg_latency: Math.round(latency * 100) / 100,
+      network_health: Math.round((94 + Math.random() * 4) * 100) / 100,
     };
   });
 };
