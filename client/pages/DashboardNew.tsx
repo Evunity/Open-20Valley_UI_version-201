@@ -40,7 +40,7 @@ interface KPIValue {
   change?: number;
 }
 
-type ChartType = "line" | "bar" | "pie" | "histogram";
+type ChartType = "line" | "bar" | "pie";
 
 // Get active filters summary for display on KPI cards
 const getActiveFiltersSummary = (filters: any) => {
