@@ -402,6 +402,71 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
         </div>
       </div>
 
+      {/* Embedded Dual-Month Calendar (Booking.com Style) */}
+      <div className="p-4 rounded-lg border border-border bg-card">
+        <div className="space-y-4">
+          <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            Choose Dates - Select Start & End Date
+          </label>
+          <DualMonthCalendar
+            startDate={filters.dateRange.from}
+            endDate={filters.dateRange.to}
+            onDateSelect={(date, isStart) => {
+              if (isStart) {
+                handleFilterChange({
+                  ...filters,
+                  dateRange: {
+                    from: date,
+                    to: null,
+                  },
+                });
+              } else {
+                handleFilterChange({
+                  ...filters,
+                  dateRange: {
+                    from: filters.dateRange.from,
+                    to: date,
+                  },
+                });
+              }
+            }}
+            onRangeComplete={(start, end) => {
+              handleFilterChange({
+                ...filters,
+                dateRange: {
+                  from: start,
+                  to: end,
+                },
+              });
+            }}
+          />
+
+          {/* Date Range Summary */}
+          {filters.dateRange.from && filters.dateRange.to && (
+            <div className="pt-3 border-t border-border/50 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">
+                  <strong>Selected Range:</strong> {new Date(filters.dateRange.from).toLocaleDateString()} → {new Date(filters.dateRange.to).toLocaleDateString()}
+                </span>
+                <button
+                  onClick={() => {
+                    handleFilterChange({
+                      ...filters,
+                      dateRange: { from: null, to: null },
+                    });
+                  }}
+                  className="px-2 py-1 text-xs rounded bg-muted hover:bg-muted/70 transition-all"
+                >
+                  Clear
+                </button>
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {daysDiff} day{daysDiff !== 1 ? "s" : ""} selected
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Create Cluster Location Dialog */}
       {showCreateClusterDialog && (
