@@ -402,32 +402,30 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
         </div>
       </div>
 
-      {/* Date Picker Popover (shown below filter grid) */}
+      {/* Date Range Picker Popover (shown below filter grid) */}
       {showDatePicker && (
         <div className="p-4 rounded-lg border border-border bg-card space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
-                From
-              </p>
-              <Calendar
-                mode="single"
-                selected={filters.dateRange.from || undefined}
-                onSelect={(date) => handleDateChange("from", date || null)}
-                className="scale-90 origin-top-left"
-              />
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
-                To
-              </p>
-              <Calendar
-                mode="single"
-                selected={filters.dateRange.to || undefined}
-                onSelect={(date) => handleDateChange("to", date || null)}
-                className="scale-90 origin-top-left"
-              />
-            </div>
+          <div>
+            <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
+              Select Date Range
+            </p>
+            <Calendar
+              mode="range"
+              selected={{
+                from: filters.dateRange.from || undefined,
+                to: filters.dateRange.to || undefined,
+              }}
+              onSelect={(range) => {
+                handleFilterChange({
+                  ...filters,
+                  dateRange: {
+                    from: range?.from || null,
+                    to: range?.to || null,
+                  },
+                });
+              }}
+              className="scale-90 origin-top-left"
+            />
           </div>
           <button
             onClick={() => setShowDatePicker(false)}
