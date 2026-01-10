@@ -473,7 +473,6 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
                     ...filters,
                     dateRange: { from: null, to: null },
                   });
-                  setSelectingDateRange(null);
                 }}
                 className="px-3 py-1 text-xs rounded-lg bg-muted hover:bg-muted/70 transition-all"
               >
