@@ -806,9 +806,13 @@ export default function DashboardNew() {
               {/* Chart Visualization */}
               <div className="rounded-lg border border-border/50 bg-background p-4">
                 <ResponsiveContainer width="100%" height={300}>
-                  {card.selectedKPIs.length > 0
-                    ? renderChart(card.chartType, trafficData, ["traffic", "success"])
-                    : <div className="flex items-center justify-center h-full text-muted-foreground">Select KPIs to display chart</div>}
+                  {card.selectedKPIs.length > 0 ? (
+                    renderChart(card.chartType, trafficData, card.selectedKPIs)
+                  ) : (
+                    <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+                      Select KPIs to display chart
+                    </div>
+                  )}
                 </ResponsiveContainer>
               </div>
             </div>
