@@ -522,56 +522,23 @@ export default function DashboardNew() {
       {/* ===== KPI SECTION ===== */}
       <div>
         <div className="space-y-4 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <h2 className="text-2xl font-bold text-foreground">Key Performance Indicators</h2>
-              <p className="text-sm text-muted-foreground">
-                Real-time metrics reflecting current filters ({selectedKPIIds.length} of{" "}
-                {AVAILABLE_KPIS.length} displayed)
-              </p>
-            </div>
-            <button
-              onClick={() => setShowKPISelector(!showKPISelector)}
-              className={cn(
-                "inline-flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm font-medium",
-                showKPISelector
-                  ? "bg-primary/10 border-primary text-primary"
-                  : "bg-background border-border text-foreground hover:border-primary/50"
-              )}
-            >
-              <span>Customize KPIs</span>
-              <ChevronDown
-                className={cn("w-4 h-4 transition-transform", showKPISelector ? "rotate-180" : "")}
-              />
-            </button>
+          <div className="space-y-1">
+            <h2 className="text-2xl font-bold text-foreground">Key Performance Indicators</h2>
+            <p className="text-sm text-muted-foreground">
+              Real-time metrics reflecting current filters ({selectedKPIIds.length} of{" "}
+              {AVAILABLE_KPIS.length} displayed)
+            </p>
           </div>
 
-          {showKPISelector && (
-            <div className="p-4 rounded-lg border border-border bg-card grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-              {AVAILABLE_KPIS.map((kpi) => (
-                <button
-                  key={kpi.id}
-                  onClick={() => toggleKPISelection(kpi.id)}
-                  className={cn(
-                    "p-3 rounded-lg border-2 transition-all text-left text-sm",
-                    selectedKPIIds.includes(kpi.id)
-                      ? "border-primary bg-primary/5 font-medium"
-                      : "border-border bg-background hover:border-primary/50"
-                  )}
-                >
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={selectedKPIIds.includes(kpi.id)}
-                      onChange={() => {}}
-                      className="rounded"
-                    />
-                    <span className="line-clamp-2">{kpi.label}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
+          {/* Searchable KPI Dropdown */}
+          <div className="max-w-2xl">
+            <SearchableKPISelect
+              value={selectedKPIIds}
+              onChange={setSelectedKPIIds}
+              placeholder="Search and select KPIs (max 6)..."
+              maxItems={6}
+            />
+          </div>
         </div>
 
         {/* KPI Grid */}
