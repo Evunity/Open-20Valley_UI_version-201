@@ -100,6 +100,7 @@ export function FilterProvider(props: FilterProviderProps) {
       countries: cluster.countries,
       clusters: [], // Clusters filter itself is empty
       dateRange: cluster.dateRange,
+      timeGranularity: "days",
     });
   };
 
