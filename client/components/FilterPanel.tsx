@@ -444,46 +444,51 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
         </div>
       </div>
 
-      {/* Inline Calendar Range Picker (INSIDE filter area) */}
+      {/* Dual Month Calendar Range Picker (INSIDE filter area) */}
       <div className="p-4 rounded-lg border border-border bg-card">
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wide">
+            <label className="block text-xs font-semibold text-muted-foreground mb-4 uppercase tracking-wide">
               Date Range Selection
-              {selectingDateRange && (
-                <span className="ml-2 text-primary">
-                  ({selectingDateRange === "start" ? "Click start date" : "Click end date"})
-                </span>
-              )}
             </label>
             <div className="flex items-center justify-center">
-              <Calendar
-                mode="range"
-                selected={{
-                  from: filters.dateRange.from || undefined,
-                  to: filters.dateRange.to || undefined,
+              <DualMonthCalendar
+                startDate={filters.dateRange.from}
+                endDate={filters.dateRange.to}
+                onDateSelect={(date, isStart) => {
+                  if (isStart) {
+                    handleFilterChange({
+                      ...filters,
+                      dateRange: {
+                        from: date,
+                        to: null,
+                      },
+                    });
+                  } else {
+                    handleFilterChange({
+                      ...filters,
+                      dateRange: {
+                        from: filters.dateRange.from,
+                        to: date,
+                      },
+                    });
+                  }
                 }}
-                onSelect={(range) => {
-                  if (range?.from) {
-                    handleDateSelect(range.from);
-                  }
-                  if (range?.to) {
-                    handleDateSelect(range.to);
-                  }
-                }}
-                disabled={(date) => {
-                  // If selecting end date, disable dates before start date
-                  if (selectingDateRange === "end" && filters.dateRange.from) {
-                    return date < filters.dateRange.from;
-                  }
-                  return false;
+                onRangeComplete={(start, end) => {
+                  handleFilterChange({
+                    ...filters,
+                    dateRange: {
+                      from: start,
+                      to: end,
+                    },
+                  });
                 }}
               />
             </div>
           </div>
 
           {/* Date Range Display & Clear */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between pt-2 border-t border-border/50">
             <div className="text-sm">
               {filters.dateRange.from && filters.dateRange.to ? (
                 <span className="text-foreground">
@@ -496,11 +501,11 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
                   </span>
                 </span>
               ) : filters.dateRange.from ? (
-                <span className="text-muted-foreground">
-                  Start: {new Date(filters.dateRange.from).toLocaleDateString()} - Select end date
+                <span className="text-muted-foreground text-xs">
+                  Start: {new Date(filters.dateRange.from).toLocaleDateString()}
                 </span>
               ) : (
-                <span className="text-muted-foreground">Select date range above</span>
+                <span className="text-muted-foreground text-xs">Select a date range</span>
               )}
             </div>
             {(filters.dateRange.from || filters.dateRange.to) && (
@@ -514,7 +519,7 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
                 }}
                 className="px-3 py-1 text-xs rounded-lg bg-muted hover:bg-muted/70 transition-all"
               >
-                Clear Dates
+                Clear
               </button>
             )}
           </div>
