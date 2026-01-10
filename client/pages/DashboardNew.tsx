@@ -341,6 +341,111 @@ export default function DashboardNew() {
     ws5["!cols"] = [{ wch: 20 }, { wch: 40 }];
     XLSX.utils.book_append_sheet(wb, ws5, "Filters");
 
+    // Sheet 6: AI Engine Actions Data
+    const aiActionsSheetData: any[] = [];
+    aiActionsSheetData.push(["Time", "Total", "Successful", "Failed"]);
+    aiActionsData.forEach((item) => {
+      aiActionsSheetData.push([item.time, item.total, item.successful, item.failed]);
+    });
+
+    const ws6 = XLSX.utils.aoa_to_sheet(aiActionsSheetData);
+    ws6["!cols"] = [{ wch: 20 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
+    XLSX.utils.book_append_sheet(wb, ws6, "AI Engine Actions");
+
+    // Sheet 7: AI Actions Detailed List
+    const aiActionsDetailSheetData: any[] = [];
+    aiActionsDetailSheetData.push(["Action Name", "Time", "Severity", "Status"]);
+    aiActionsDetailList.forEach((action) => {
+      aiActionsDetailSheetData.push([action.name, action.time, action.severity, action.status]);
+    });
+
+    const ws7 = XLSX.utils.aoa_to_sheet(aiActionsDetailSheetData);
+    ws7["!cols"] = [{ wch: 30 }, { wch: 20 }, { wch: 15 }, { wch: 15 }];
+    XLSX.utils.book_append_sheet(wb, ws7, "AI Actions Details");
+
+    // Sheet 8: Analytics Graph Data - Card 1
+    if (graphCards[0] && graphCards[0].selectedKPIs.length > 0) {
+      const graphCard1Data: any[] = [];
+      const headers = ["Time", ...graphCards[0].selectedKPIs.map((kpiId) => getKPIById(kpiId)?.label || kpiId)];
+      graphCard1Data.push(headers);
+      trafficData.forEach((item) => {
+        const row = [item.time];
+        graphCards[0].selectedKPIs.forEach((kpiId) => {
+          row.push(item[kpiId] ?? "N/A");
+        });
+        graphCard1Data.push(row);
+      });
+      const ws8 = XLSX.utils.aoa_to_sheet(graphCard1Data);
+      ws8["!cols"] = headers.map(() => ({ wch: 20 }));
+      XLSX.utils.book_append_sheet(wb, ws8, "Graph Card 1");
+    }
+
+    // Sheet 9: Analytics Graph Data - Card 2
+    if (graphCards[1] && graphCards[1].selectedKPIs.length > 0) {
+      const graphCard2Data: any[] = [];
+      const headers = ["Time", ...graphCards[1].selectedKPIs.map((kpiId) => getKPIById(kpiId)?.label || kpiId)];
+      graphCard2Data.push(headers);
+      trafficData.forEach((item) => {
+        const row = [item.time];
+        graphCards[1].selectedKPIs.forEach((kpiId) => {
+          row.push(item[kpiId] ?? "N/A");
+        });
+        graphCard2Data.push(row);
+      });
+      const ws9 = XLSX.utils.aoa_to_sheet(graphCard2Data);
+      ws9["!cols"] = headers.map(() => ({ wch: 20 }));
+      XLSX.utils.book_append_sheet(wb, ws9, "Graph Card 2");
+    }
+
+    // Sheet 10: Analytics Graph Data - Card 3
+    if (graphCards[2] && graphCards[2].selectedKPIs.length > 0) {
+      const graphCard3Data: any[] = [];
+      const headers = ["Time", ...graphCards[2].selectedKPIs.map((kpiId) => getKPIById(kpiId)?.label || kpiId)];
+      graphCard3Data.push(headers);
+      trafficData.forEach((item) => {
+        const row = [item.time];
+        graphCards[2].selectedKPIs.forEach((kpiId) => {
+          row.push(item[kpiId] ?? "N/A");
+        });
+        graphCard3Data.push(row);
+      });
+      const ws10 = XLSX.utils.aoa_to_sheet(graphCard3Data);
+      ws10["!cols"] = headers.map(() => ({ wch: 20 }));
+      XLSX.utils.book_append_sheet(wb, ws10, "Graph Card 3");
+    }
+
+    // Sheet 11: Analytics Graph Data - Card 4
+    if (graphCards[3] && graphCards[3].selectedKPIs.length > 0) {
+      const graphCard4Data: any[] = [];
+      const headers = ["Time", ...graphCards[3].selectedKPIs.map((kpiId) => getKPIById(kpiId)?.label || kpiId)];
+      graphCard4Data.push(headers);
+      trafficData.forEach((item) => {
+        const row = [item.time];
+        graphCards[3].selectedKPIs.forEach((kpiId) => {
+          row.push(item[kpiId] ?? "N/A");
+        });
+        graphCard4Data.push(row);
+      });
+      const ws11 = XLSX.utils.aoa_to_sheet(graphCard4Data);
+      ws11["!cols"] = headers.map(() => ({ wch: 20 }));
+      XLSX.utils.book_append_sheet(wb, ws11, "Graph Card 4");
+    }
+
+    // Sheet 12: Dashboard Summary
+    const summaryData: any[] = [];
+    summaryData.push(["Metric", "Value"]);
+    summaryData.push(["Total Sites", aiSummary.totalActions || "N/A"]);
+    summaryData.push(["Successful Actions", aiSummary.successfulActions || "N/A"]);
+    summaryData.push(["Failed Actions", aiSummary.failedActions || "N/A"]);
+    summaryData.push(["", ""]);
+    summaryData.push(["Granularity", filters.timeGranularity]);
+    summaryData.push(["Date Range", filters.dateRange.from && filters.dateRange.to ? `${new Date(filters.dateRange.from).toLocaleDateString()} - ${new Date(filters.dateRange.to).toLocaleDateString()}` : "All Time"]);
+    summaryData.push(["Active Filters", activeFilterCount]);
+
+    const ws12 = XLSX.utils.aoa_to_sheet(summaryData);
+    ws12["!cols"] = [{ wch: 25 }, { wch: 30 }];
+    XLSX.utils.book_append_sheet(wb, ws12, "Dashboard Summary");
+
     // Generate file with proper naming
     const now = new Date();
     const dateStr = now.toISOString().split("T")[0];
