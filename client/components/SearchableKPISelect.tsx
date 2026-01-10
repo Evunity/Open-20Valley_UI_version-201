@@ -53,7 +53,9 @@ export default function SearchableKPISelect({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const selectedKPILabels = AVAILABLE_KPIS.filter((kpi) => value.includes(kpi.id)).map((kpi) => kpi.label);
+  const selectedKPILabels = AVAILABLE_KPIS.filter((kpi) => value.includes(kpi.id)).map(
+    (kpi) => kpi.label
+  );
 
   return (
     <div ref={containerRef} className="relative w-full">
@@ -94,10 +96,12 @@ export default function SearchableKPISelect({
         )}
 
         <div className="ml-auto flex items-center gap-2 flex-shrink-0">
-          <Search className={cn(
-            "w-4 h-4 transition-colors",
-            isOpen ? "text-primary" : "text-muted-foreground"
-          )} />
+          <Search
+            className={cn(
+              "w-4 h-4 transition-colors",
+              isOpen ? "text-primary" : "text-muted-foreground"
+            )}
+          />
           <input
             type="text"
             className="w-32 bg-transparent outline-none text-foreground placeholder-muted-foreground text-sm"
@@ -163,9 +167,7 @@ export default function SearchableKPISelect({
               })}
             </div>
           ) : (
-            <div className="px-4 py-8 text-center text-sm text-muted-foreground">
-              No KPIs found
-            </div>
+            <div className="px-4 py-8 text-center text-sm text-muted-foreground">No KPIs found</div>
           )}
           {value.length >= maxItems && (
             <div className="px-4 py-2 bg-muted/30 text-xs text-muted-foreground text-center border-t border-border">

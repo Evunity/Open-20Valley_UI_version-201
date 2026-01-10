@@ -444,7 +444,12 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
                 title="Close calendar"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
@@ -486,7 +491,9 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
               <div className="pt-3 border-t border-border/50 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-muted-foreground">
-                    <strong>Selected:</strong> {new Date(filters.dateRange.from).toLocaleDateString()} → {new Date(filters.dateRange.to).toLocaleDateString()}
+                    <strong>Selected:</strong>{" "}
+                    {new Date(filters.dateRange.from).toLocaleDateString()} →{" "}
+                    {new Date(filters.dateRange.to).toLocaleDateString()}
                   </span>
                   <button
                     onClick={() => {

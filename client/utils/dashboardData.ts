@@ -19,7 +19,10 @@ export const getDaysDifference = (dateRange: { from: Date | null; to: Date | nul
  * Hourly is available for 1-3 day ranges
  * For longer ranges, daily is forced
  */
-export const isHourlyGranularity = (dateRange: { from: Date | null; to: Date | null }, manualGranularity?: "hours" | "days"): boolean => {
+export const isHourlyGranularity = (
+  dateRange: { from: Date | null; to: Date | null },
+  manualGranularity?: "hours" | "days"
+): boolean => {
   const daysDiff = getDaysDifference(dateRange);
 
   // If manual granularity is set, respect it (but only if it's allowed)

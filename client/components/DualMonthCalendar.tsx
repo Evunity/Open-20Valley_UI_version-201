@@ -23,7 +23,7 @@ export default function DualMonthCalendar({
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
-  
+
   const [isSelectingStart, setIsSelectingStart] = useState(!startDate);
 
   const weekDays = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
@@ -182,31 +182,19 @@ export default function DualMonthCalendar({
                 {day ? (
                   <button
                     onClick={() =>
-                      handleDateClick(
-                        new Date(month1.getFullYear(), month1.getMonth(), day)
-                      )
+                      handleDateClick(new Date(month1.getFullYear(), month1.getMonth(), day))
                     }
-                    disabled={isDisabled(
-                      new Date(month1.getFullYear(), month1.getMonth(), day)
-                    )}
+                    disabled={isDisabled(new Date(month1.getFullYear(), month1.getMonth(), day))}
                     className={cn(
                       "w-full h-full rounded-lg text-sm font-semibold transition-all duration-150",
-                      isDisabled(
-                        new Date(month1.getFullYear(), month1.getMonth(), day)
-                      )
+                      isDisabled(new Date(month1.getFullYear(), month1.getMonth(), day))
                         ? "text-muted-foreground/40 cursor-not-allowed"
                         : "cursor-pointer",
-                      isStartDate(
-                        new Date(month1.getFullYear(), month1.getMonth(), day)
-                      )
+                      isStartDate(new Date(month1.getFullYear(), month1.getMonth(), day))
                         ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2 hover:bg-primary/90"
-                        : isEndDate(
-                            new Date(month1.getFullYear(), month1.getMonth(), day)
-                          )
+                        : isEndDate(new Date(month1.getFullYear(), month1.getMonth(), day))
                           ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2 hover:bg-primary/90"
-                          : isInRange(
-                              new Date(month1.getFullYear(), month1.getMonth(), day)
-                            )
+                          : isInRange(new Date(month1.getFullYear(), month1.getMonth(), day))
                             ? "bg-primary/25 text-foreground hover:bg-primary/35"
                             : "text-foreground hover:bg-muted/50"
                     )}
@@ -239,31 +227,19 @@ export default function DualMonthCalendar({
                 {day ? (
                   <button
                     onClick={() =>
-                      handleDateClick(
-                        new Date(month2.getFullYear(), month2.getMonth(), day)
-                      )
+                      handleDateClick(new Date(month2.getFullYear(), month2.getMonth(), day))
                     }
-                    disabled={isDisabled(
-                      new Date(month2.getFullYear(), month2.getMonth(), day)
-                    )}
+                    disabled={isDisabled(new Date(month2.getFullYear(), month2.getMonth(), day))}
                     className={cn(
                       "w-full h-full rounded-lg text-sm font-semibold transition-all duration-150",
-                      isDisabled(
-                        new Date(month2.getFullYear(), month2.getMonth(), day)
-                      )
+                      isDisabled(new Date(month2.getFullYear(), month2.getMonth(), day))
                         ? "text-muted-foreground/40 cursor-not-allowed"
                         : "cursor-pointer",
-                      isStartDate(
-                        new Date(month2.getFullYear(), month2.getMonth(), day)
-                      )
+                      isStartDate(new Date(month2.getFullYear(), month2.getMonth(), day))
                         ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2 hover:bg-primary/90"
-                        : isEndDate(
-                            new Date(month2.getFullYear(), month2.getMonth(), day)
-                          )
+                        : isEndDate(new Date(month2.getFullYear(), month2.getMonth(), day))
                           ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2 hover:bg-primary/90"
-                          : isInRange(
-                              new Date(month2.getFullYear(), month2.getMonth(), day)
-                            )
+                          : isInRange(new Date(month2.getFullYear(), month2.getMonth(), day))
                             ? "bg-primary/25 text-foreground hover:bg-primary/35"
                             : "text-foreground hover:bg-muted/50"
                     )}

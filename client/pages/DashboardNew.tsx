@@ -223,7 +223,9 @@ export default function DashboardNew() {
   const [aiChartType, setAiChartType] = useState<ChartType>("bar");
 
   // AI Actions sorting state
-  const [actionsSortOrder, setActionsSortOrder] = useState<"low-to-high" | "high-to-low">("high-to-low");
+  const [actionsSortOrder, setActionsSortOrder] = useState<"low-to-high" | "high-to-low">(
+    "high-to-low"
+  );
 
   // Generate all chart data with memoization (re-renders on filter change)
   const trafficData = useMemo(() => generateTrafficData(filters), [filters]);
@@ -378,7 +380,10 @@ export default function DashboardNew() {
     // Sheet 8: Analytics Graph Data - Card 1
     if (graphCards[0] && graphCards[0].selectedKPIs.length > 0) {
       const graphCard1Data: any[] = [];
-      const headers = ["Time", ...graphCards[0].selectedKPIs.map((kpiId) => getKPIById(kpiId)?.label || kpiId)];
+      const headers = [
+        "Time",
+        ...graphCards[0].selectedKPIs.map((kpiId) => getKPIById(kpiId)?.label || kpiId),
+      ];
       graphCard1Data.push(headers);
       trafficData.forEach((item) => {
         const row = [item.time];
@@ -395,7 +400,10 @@ export default function DashboardNew() {
     // Sheet 9: Analytics Graph Data - Card 2
     if (graphCards[1] && graphCards[1].selectedKPIs.length > 0) {
       const graphCard2Data: any[] = [];
-      const headers = ["Time", ...graphCards[1].selectedKPIs.map((kpiId) => getKPIById(kpiId)?.label || kpiId)];
+      const headers = [
+        "Time",
+        ...graphCards[1].selectedKPIs.map((kpiId) => getKPIById(kpiId)?.label || kpiId),
+      ];
       graphCard2Data.push(headers);
       trafficData.forEach((item) => {
         const row = [item.time];
@@ -412,7 +420,10 @@ export default function DashboardNew() {
     // Sheet 10: Analytics Graph Data - Card 3
     if (graphCards[2] && graphCards[2].selectedKPIs.length > 0) {
       const graphCard3Data: any[] = [];
-      const headers = ["Time", ...graphCards[2].selectedKPIs.map((kpiId) => getKPIById(kpiId)?.label || kpiId)];
+      const headers = [
+        "Time",
+        ...graphCards[2].selectedKPIs.map((kpiId) => getKPIById(kpiId)?.label || kpiId),
+      ];
       graphCard3Data.push(headers);
       trafficData.forEach((item) => {
         const row = [item.time];
@@ -429,7 +440,10 @@ export default function DashboardNew() {
     // Sheet 11: Analytics Graph Data - Card 4
     if (graphCards[3] && graphCards[3].selectedKPIs.length > 0) {
       const graphCard4Data: any[] = [];
-      const headers = ["Time", ...graphCards[3].selectedKPIs.map((kpiId) => getKPIById(kpiId)?.label || kpiId)];
+      const headers = [
+        "Time",
+        ...graphCards[3].selectedKPIs.map((kpiId) => getKPIById(kpiId)?.label || kpiId),
+      ];
       graphCard4Data.push(headers);
       trafficData.forEach((item) => {
         const row = [item.time];
@@ -451,7 +465,12 @@ export default function DashboardNew() {
     summaryData.push(["Failed Actions", aiSummary.failedActions || "N/A"]);
     summaryData.push(["", ""]);
     summaryData.push(["Granularity", filters.timeGranularity]);
-    summaryData.push(["Date Range", filters.dateRange.from && filters.dateRange.to ? `${new Date(filters.dateRange.from).toLocaleDateString()} - ${new Date(filters.dateRange.to).toLocaleDateString()}` : "All Time"]);
+    summaryData.push([
+      "Date Range",
+      filters.dateRange.from && filters.dateRange.to
+        ? `${new Date(filters.dateRange.from).toLocaleDateString()} - ${new Date(filters.dateRange.to).toLocaleDateString()}`
+        : "All Time",
+    ]);
     summaryData.push(["Active Filters", getActiveFilterCount()]);
 
     const ws12 = XLSX.utils.aoa_to_sheet(summaryData);
@@ -770,7 +789,9 @@ export default function DashboardNew() {
               </label>
               <select
                 value={actionsSortOrder}
-                onChange={(e) => setActionsSortOrder(e.target.value as "low-to-high" | "high-to-low")}
+                onChange={(e) =>
+                  setActionsSortOrder(e.target.value as "low-to-high" | "high-to-low")
+                }
                 className="px-3 py-1 rounded-lg border border-border bg-background text-xs focus:ring-2 focus:ring-primary/50"
               >
                 <option value="high-to-low">High → Low</option>
@@ -788,49 +809,53 @@ export default function DashboardNew() {
                   const severityMap = { HIGH: 3, MED: 2, LOW: 1 };
                   const severityA = severityMap[a.severity as keyof typeof severityMap] || 0;
                   const severityB = severityMap[b.severity as keyof typeof severityMap] || 0;
-                  return actionsSortOrder === "high-to-low" ? severityB - severityA : severityA - severityB;
+                  return actionsSortOrder === "high-to-low"
+                    ? severityB - severityA
+                    : severityA - severityB;
                 })
                 .map((action) => (
-                <div
-                  key={action.id}
-                  className="p-3 rounded-lg border border-border/30 bg-card hover:bg-card/80 transition-colors space-y-2"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">{action.name}</p>
-                      <p className="text-xs text-muted-foreground">{action.time}</p>
+                  <div
+                    key={action.id}
+                    className="p-3 rounded-lg border border-border/30 bg-card hover:bg-card/80 transition-colors space-y-2"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">
+                          {action.name}
+                        </p>
+                        <p className="text-xs text-muted-foreground">{action.time}</p>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span
+                          className={cn(
+                            "px-2 py-1 rounded text-xs font-semibold whitespace-nowrap",
+                            action.severity === "HIGH"
+                              ? "bg-status-critical/20 text-status-critical"
+                              : action.severity === "MED"
+                                ? "bg-status-degraded/20 text-status-degraded"
+                                : "bg-status-healthy/20 text-status-healthy"
+                          )}
+                        >
+                          {action.severity}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="flex items-center justify-between">
                       <span
                         className={cn(
-                          "px-2 py-1 rounded text-xs font-semibold whitespace-nowrap",
-                          action.severity === "HIGH"
-                            ? "bg-status-critical/20 text-status-critical"
-                            : action.severity === "MED"
-                              ? "bg-status-degraded/20 text-status-degraded"
-                              : "bg-status-healthy/20 text-status-healthy"
+                          "text-xs font-medium px-2 py-1 rounded",
+                          action.status === "Success"
+                            ? "bg-status-healthy/20 text-status-healthy"
+                            : action.status === "Failed"
+                              ? "bg-status-critical/20 text-status-critical"
+                              : "bg-primary/20 text-primary"
                         )}
                       >
-                        {action.severity}
+                        {action.status}
                       </span>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span
-                      className={cn(
-                        "text-xs font-medium px-2 py-1 rounded",
-                        action.status === "Success"
-                          ? "bg-status-healthy/20 text-status-healthy"
-                          : action.status === "Failed"
-                            ? "bg-status-critical/20 text-status-critical"
-                            : "bg-primary/20 text-primary"
-                      )}
-                    >
-                      {action.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                ))}
             </div>
           </div>
         </div>
@@ -844,7 +869,10 @@ export default function DashboardNew() {
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {graphCards.map((card) => (
-            <div key={card.id} className="card-elevated rounded-xl border border-border/50 p-6 space-y-4">
+            <div
+              key={card.id}
+              className="card-elevated rounded-xl border border-border/50 p-6 space-y-4"
+            >
               {/* Card Header with KPI Selection and Chart Type */}
               <div className="space-y-3">
                 <div>
@@ -872,7 +900,9 @@ export default function DashboardNew() {
                     value={card.chartType}
                     onChange={(e) => {
                       setGraphCards((prev) =>
-                        prev.map((c) => (c.id === card.id ? { ...c, chartType: e.target.value as ChartType } : c))
+                        prev.map((c) =>
+                          c.id === card.id ? { ...c, chartType: e.target.value as ChartType } : c
+                        )
                       );
                     }}
                   >
