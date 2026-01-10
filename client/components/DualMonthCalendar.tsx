@@ -281,8 +281,8 @@ export default function DualMonthCalendar({
 
       {/* Selection Status */}
       {startDate && !endDate && (
-        <div className="text-xs text-center text-muted-foreground py-2 bg-muted/30 rounded-lg">
-          Start date selected • Click to select end date
+        <div className="text-xs text-center text-primary py-2 px-3 bg-primary/10 rounded-lg font-medium">
+          ✓ Start date selected • Click to select end date
         </div>
       )}
     </div>
