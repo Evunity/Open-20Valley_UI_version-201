@@ -355,22 +355,30 @@ export default function DashboardNew() {
 
   const selectedKPIs = selectedKPIIds.map((id) => getKPIById(id)).filter(Boolean);
 
-  // Format date for X-axis display (YYYY-MM-DD)
-  const formatDateForAxis = (dateStr: string): string => {
+  // Format date for X-axis display (YYYY-MM-DD) - ALWAYS used, never day names
+  const formatDateForAxis = (dateStr: string | number): string => {
     try {
       const date = new Date(dateStr);
-      return date.toISOString().split("T")[0];
+      const isoString = date.toISOString();
+      return isoString.split("T")[0]; // Returns YYYY-MM-DD
     } catch {
-      return dateStr;
+      return String(dateStr);
     }
   };
 
-  // Helper function to render charts based on type with date formatting
+  // Helper function to render charts based on type with strict date formatting
   const renderChart = (chartType: ChartType, data: any[], dataKeys: string[]) => {
-    const formattedData = data.map((item: any) => ({
-      ...item,
-      time: formatDateForAxis(item.time),
-    }));
+    // Transform all data to ensure dates are in YYYY-MM-DD format
+    const formattedData = data.map((item: any) => {
+      const formatted: any = { ...item };
+
+      // Always format time as YYYY-MM-DD
+      if (item.time) {
+        formatted.time = formatDateForAxis(item.time);
+      }
+
+      return formatted;
+    });
 
     switch (chartType) {
       case "line":
