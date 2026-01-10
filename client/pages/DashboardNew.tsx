@@ -17,6 +17,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import FilterPanel from "@/components/FilterPanel";
+import SearchableKPISelect from "@/components/SearchableKPISelect";
 import AnalyticsSections from "@/components/AnalyticsSections";
 import { useGlobalFilters } from "@/hooks/useGlobalFilters";
 import { useToast } from "@/hooks/use-toast";
@@ -31,6 +32,7 @@ import {
   calculateFilterMultiplier,
   calculateDateMultiplier,
   getDaysDifference,
+  isHourlyGranularity,
 } from "@/utils/dashboardData";
 import { cn } from "@/lib/utils";
 
