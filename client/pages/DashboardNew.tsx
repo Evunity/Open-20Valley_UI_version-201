@@ -387,8 +387,10 @@ export default function DashboardNew() {
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis
               dataKey="time"
+              type="category"
               stroke="hsl(var(--muted-foreground))"
               style={{ fontSize: "12px" }}
+              tick={{ fontSize: 11 }}
             />
             <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
             <Tooltip
@@ -446,8 +448,10 @@ export default function DashboardNew() {
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis
               dataKey="time"
+              type="category"
               stroke="hsl(var(--muted-foreground))"
               style={{ fontSize: "12px" }}
+              tick={{ fontSize: 11 }}
             />
             <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
             <Tooltip
