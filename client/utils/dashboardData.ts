@@ -51,11 +51,20 @@ export const generateHourlyTrafficData = (filters: GlobalFilterState) => {
     const hour = String(i).padStart(2, "0");
     const traffic = (2 + Math.random() * 2) * baseMultiplier;
     const success = 97 + Math.random() * 3 - filters.vendors.length * 0.5;
+    const totalSites = Math.round((2847 + Math.random() * 200) * baseMultiplier);
+    const activeSites = Math.round(totalSites * (0.95 + Math.random() * 0.04));
+    const latency = 40 + Math.random() * 20 - filters.vendors.length * 2;
 
     return {
       time: `${hour}:00`,
       traffic: Math.round(traffic * 100) / 100,
       success: Math.round(success * 100) / 100,
+      total_sites: totalSites,
+      active_sites: activeSites,
+      uptime: Math.round((99.5 + Math.random() * 0.5) * 100) / 100,
+      success_rate: Math.round(success * 100) / 100,
+      avg_latency: Math.round(latency * 100) / 100,
+      network_health: Math.round((93 + Math.random() * 5) * 100) / 100,
     };
   });
 };
