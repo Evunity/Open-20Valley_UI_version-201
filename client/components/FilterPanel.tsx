@@ -385,7 +385,6 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
           <button
             onClick={() => {
               resetFilters();
-              setSelectingDateRange(null);
               onFiltersChange?.({
                 vendors: [],
                 technologies: [],
