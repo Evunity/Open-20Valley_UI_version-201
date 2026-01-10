@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { X, Plus } from "lucide-react";
+import { X, Plus, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGlobalFilters, type GlobalFilterState } from "@/hooks/useGlobalFilters";
 import { useToast } from "@/hooks/use-toast";
 import { Calendar } from "@/components/ui/calendar";
+import { getDaysDifference } from "@/utils/dashboardData";
 
 interface FilterPanelProps {
   onFiltersChange?: (filters: GlobalFilterState) => void;
