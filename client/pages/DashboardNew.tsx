@@ -673,15 +673,35 @@ export default function DashboardNew() {
           </div>
 
           {/* RIGHT: AI Actions List */}
-          <div
-            className="rounded-lg border border-border/50 bg-background p-4 overflow-y-auto"
-            style={{ maxHeight: "420px" }}
-          >
-            <div className="space-y-2">
-              <h3 className="text-sm font-semibold text-foreground mb-4 sticky top-0 bg-background py-2">
-                Recent Actions
-              </h3>
-              {aiActionsDetailList.map((action) => (
+          <div className="space-y-3">
+            {/* Severity Sorting Filter */}
+            <div className="flex items-center gap-2">
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                Sort by Severity:
+              </label>
+              <select
+                value={actionsSortOrder}
+                onChange={(e) => setActionsSortOrder(e.target.value as "low-to-high" | "high-to-low")}
+                className="px-3 py-1 rounded-lg border border-border bg-background text-xs focus:ring-2 focus:ring-primary/50"
+              >
+                <option value="high-to-low">High → Low</option>
+                <option value="low-to-high">Low → High</option>
+              </select>
+            </div>
+
+            {/* Actions List */}
+            <div
+              className="rounded-lg border border-border/50 bg-background p-4 overflow-y-auto space-y-2"
+              style={{ maxHeight: "350px" }}
+            >
+              {aiActionsDetailList
+                .sort((a, b) => {
+                  const severityMap = { HIGH: 3, MED: 2, LOW: 1 };
+                  const severityA = severityMap[a.severity as keyof typeof severityMap] || 0;
+                  const severityB = severityMap[b.severity as keyof typeof severityMap] || 0;
+                  return actionsSortOrder === "high-to-low" ? severityB - severityA : severityA - severityB;
+                })
+                .map((action) => (
                 <div
                   key={action.id}
                   className="p-3 rounded-lg border border-border/30 bg-card hover:bg-card/80 transition-colors space-y-2"
