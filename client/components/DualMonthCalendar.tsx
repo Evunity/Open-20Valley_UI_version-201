@@ -135,27 +135,27 @@ export default function DualMonthCalendar({
   return (
     <div className="space-y-4">
       {/* Header with Navigation */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-4">
         <button
           onClick={handlePrevMonth}
-          className="p-2 hover:bg-muted rounded-lg transition-colors"
+          className="p-2 hover:bg-muted rounded-lg transition-colors flex-shrink-0"
           title="Previous month"
         >
           <ChevronLeft className="w-5 h-5" />
         </button>
 
-        <div className="flex gap-12">
-          <h3 className="font-semibold text-sm text-foreground min-w-32 text-center">
+        <div className="flex gap-24 flex-1 justify-center">
+          <h3 className="font-bold text-base text-foreground min-w-40 text-center">
             {monthName(month1)}
           </h3>
-          <h3 className="font-semibold text-sm text-foreground min-w-32 text-center">
+          <h3 className="font-bold text-base text-foreground min-w-40 text-center">
             {monthName(month2)}
           </h3>
         </div>
 
         <button
           onClick={handleNextMonth}
-          className="p-2 hover:bg-muted rounded-lg transition-colors"
+          className="p-2 hover:bg-muted rounded-lg transition-colors flex-shrink-0"
           title="Next month"
         >
           <ChevronRight className="w-5 h-5" />
