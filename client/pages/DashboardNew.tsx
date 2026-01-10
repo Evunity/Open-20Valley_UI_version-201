@@ -772,47 +772,6 @@ export default function DashboardNew() {
                     <option value="bar">Bar Chart</option>
                   </select>
                 </div>
-
-                {/* Axis Configuration */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
-                      X-Axis
-                    </label>
-                    <select
-                      className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                      value={card.xAxis}
-                      onChange={(e) => {
-                        setGraphCards((prev) =>
-                          prev.map((c) => (c.id === card.id ? { ...c, xAxis: e.target.value } : c))
-                        );
-                      }}
-                    >
-                      <option value="time">Time</option>
-                      <option value="region">Region</option>
-                      <option value="vendor">Vendor</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
-                      Y-Axis
-                    </label>
-                    <select
-                      className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                      value={card.yAxis}
-                      onChange={(e) => {
-                        setGraphCards((prev) =>
-                          prev.map((c) => (c.id === card.id ? { ...c, yAxis: e.target.value } : c))
-                        );
-                      }}
-                    >
-                      <option value="value">Value</option>
-                      <option value="sites">Sites</option>
-                      <option value="traffic">Traffic</option>
-                    </select>
-                  </div>
-                </div>
               </div>
 
               {/* Chart Visualization */}
