@@ -163,22 +163,22 @@ export default function DualMonthCalendar({
       </div>
 
       {/* Two Month Grid */}
-      <div className="grid grid-cols-2 gap-6 px-2">
+      <div className="grid grid-cols-2 gap-8 px-2">
         {/* Month 1 */}
         <div>
-          <div className="grid grid-cols-7 gap-1 mb-2">
+          <div className="grid grid-cols-7 gap-2 mb-3">
             {weekDays.map((day) => (
               <div
                 key={`m1-${day}`}
-                className="w-8 h-8 flex items-center justify-center text-xs font-semibold text-muted-foreground"
+                className="w-10 h-10 flex items-center justify-center text-xs font-bold text-muted-foreground"
               >
                 {day}
               </div>
             ))}
           </div>
-          <div className="grid grid-cols-7 gap-1">
+          <div className="grid grid-cols-7 gap-2">
             {month1Days.map((day, idx) => (
-              <div key={`m1-day-${idx}`} className="w-8 h-8">
+              <div key={`m1-day-${idx}`} className="w-10 h-10">
                 {day ? (
                   <button
                     onClick={() =>
