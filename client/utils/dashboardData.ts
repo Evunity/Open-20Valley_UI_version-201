@@ -16,9 +16,29 @@ export const getDaysDifference = (dateRange: { from: Date | null; to: Date | nul
 
 /**
  * Determine if we should show hourly or daily data
+ * Hourly is available for 1-3 day ranges
+ * For longer ranges, daily is forced
  */
-export const isHourlyGranularity = (dateRange: { from: Date | null; to: Date | null }): boolean => {
-  return getDaysDifference(dateRange) === 1;
+export const isHourlyGranularity = (dateRange: { from: Date | null; to: Date | null }, manualGranularity?: "hours" | "days"): boolean => {
+  const daysDiff = getDaysDifference(dateRange);
+
+  // If manual granularity is set, respect it (but only if it's allowed)
+  if (manualGranularity) {
+    if (manualGranularity === "hours" && daysDiff <= 3) {
+      return true;
+    }
+    if (manualGranularity === "days") {
+      return false;
+    }
+  }
+
+  // If date range is longer than 3 days, force daily view
+  if (daysDiff > 3) {
+    return false;
+  }
+
+  // For 1-3 days, default to hourly
+  return true;
 };
 
 /**
