@@ -243,6 +243,12 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
             <option value="Japan">Japan</option>
             <option value="India">India</option>
             <option value="Australia">Australia</option>
+            <option value="Egypt">Egypt</option>
+            <option value="Saudi Arabia">Saudi Arabia</option>
+            <option value="United Arab Emirates">United Arab Emirates</option>
+            <option value="Kuwait">Kuwait</option>
+            <option value="Qatar">Qatar</option>
+            <option value="Bahrain">Bahrain</option>
           </select>
         </div>
 
