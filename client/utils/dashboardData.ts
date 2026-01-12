@@ -77,7 +77,6 @@ export const generateHourlyTrafficData = (filters: GlobalFilterState) => {
  */
 export const generateDailyTrafficData = (filters: GlobalFilterState, dayCount: number) => {
   const baseMultiplier = 1 - (filters.vendors.length * 0.1 + filters.technologies.length * 0.05);
-  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   return Array.from({ length: Math.min(dayCount, 30) }, (_, i) => {
     const traffic = (2.5 + Math.random() * 1.5) * baseMultiplier;
@@ -86,8 +85,21 @@ export const generateDailyTrafficData = (filters: GlobalFilterState, dayCount: n
     const activeSites = Math.round(totalSites * (0.94 + Math.random() * 0.05));
     const latency = 42 + Math.random() * 25 - filters.vendors.length * 2;
 
+    // Calculate the actual date by adding i days to the start date
+    let dateStr = "";
+    if (filters.dateRange.from) {
+      const date = new Date(filters.dateRange.from);
+      date.setDate(date.getDate() + i);
+      dateStr = date.toISOString().split("T")[0]; // YYYY-MM-DD format
+    } else {
+      // Fallback if no start date
+      const date = new Date();
+      date.setDate(date.getDate() - (dayCount - i - 1));
+      dateStr = date.toISOString().split("T")[0];
+    }
+
     return {
-      time: days[i % 7],
+      time: dateStr,
       traffic: Math.round(traffic * 100) / 100,
       success: Math.round(success * 100) / 100,
       total_sites: totalSites,
