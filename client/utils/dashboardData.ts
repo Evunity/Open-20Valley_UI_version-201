@@ -192,15 +192,26 @@ export const generateAIActionsData = (filters: GlobalFilterState) => {
     });
   } else {
     // Daily data
-    const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-
     return Array.from({ length: Math.min(dayCount, 30) }, (_, i) => {
       const total = Math.round((150 + Math.random() * 100) * baseMultiplier);
       const successful = Math.round(total * (0.85 + Math.random() * 0.1));
       const failed = total - successful;
 
+      // Calculate the actual date by adding i days to the start date
+      let dateStr = "";
+      if (filters.dateRange.from) {
+        const date = new Date(filters.dateRange.from);
+        date.setDate(date.getDate() + i);
+        dateStr = date.toISOString().split("T")[0]; // YYYY-MM-DD format
+      } else {
+        // Fallback if no start date
+        const date = new Date();
+        date.setDate(date.getDate() - (dayCount - i - 1));
+        dateStr = date.toISOString().split("T")[0];
+      }
+
       return {
-        time: days[i % 7],
+        time: dateStr,
         total,
         successful,
         failed,
