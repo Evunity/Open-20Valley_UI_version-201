@@ -105,7 +105,13 @@ export function FilterProvider(props: FilterProviderProps) {
     };
     const updated = [...savedClusters, newCluster];
     setSavedClusters(updated);
-    localStorage.setItem("savedClusters", JSON.stringify(updated));
+    if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
+      try {
+        localStorage.setItem("savedClusters", JSON.stringify(updated));
+      } catch {
+        // Silently fail if localStorage is unavailable
+      }
+    }
   };
 
   const loadCluster = (cluster: SavedCluster) => {
