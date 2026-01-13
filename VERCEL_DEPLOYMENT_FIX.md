@@ -1,6 +1,7 @@
 # Vercel Deployment Cache Issue - Fixed
 
 ## Problem Description
+
 Builds succeeded but code changes were NOT reflected in Vercel deployments. The issue was configuration-related, not a code problem.
 
 ## Root Causes Identified & Fixed
@@ -8,23 +9,27 @@ Builds succeeded but code changes were NOT reflected in Vercel deployments. The 
 ### 1. **Index.html Script Path (CRITICAL FIX)**
 
 **Issue**: `index.html` referenced the entry point with an absolute path:
+
 ```html
 <!-- BEFORE (Broken) -->
 <script type="module" src="/client/main.tsx"></script>
 ```
 
 **Why This Failed**:
+
 - Absolute paths (`/client/main.tsx`) don't resolve correctly when Vite processes the build
 - After build, this path becomes invalid in the dist folder structure
 - The JavaScript bundle isn't properly linked to the HTML
 
 **Fix Applied**:
+
 ```html
 <!-- AFTER (Fixed) -->
 <script type="module" src="./client/main.tsx"></script>
 ```
 
 **Why This Works**:
+
 - Relative paths (`./client/main.tsx`) allow Vite to properly locate the entry point
 - Vite can track this as the app entry and generate the correct bundle reference
 - After build, dist/index.html gets correct asset references
@@ -36,6 +41,7 @@ Builds succeeded but code changes were NOT reflected in Vercel deployments. The 
 **Issue**: index.html was being cached by browsers and CDNs
 
 **Fix Applied** in `vercel.json`:
+
 ```json
 {
   "source": "/index.html",
@@ -49,12 +55,14 @@ Builds succeeded but code changes were NOT reflected in Vercel deployments. The 
 ```
 
 **Why This Works**:
+
 - `max-age=0`: Forces browser to revalidate with server on every request
 - `must-revalidate`: CDN must check for fresh version
 - `public`: Can be cached by public CDNs but must validate
 - Ensures users always get the latest index.html with current bundle references
 
 **Asset Caching** (Still Optimized):
+
 - JS/CSS/images: `max-age=31536000, immutable`
 - Vite uses content hashing, so file names change when content changes
 - Old assets are never re-served
@@ -64,6 +72,7 @@ Builds succeeded but code changes were NOT reflected in Vercel deployments. The 
 ### 3. **Build Output Directory Cleaning**
 
 **Fix Applied** in `package.json`:
+
 ```json
 {
   "build": "vite build --emptyOutDir"
@@ -71,6 +80,7 @@ Builds succeeded but code changes were NOT reflected in Vercel deployments. The 
 ```
 
 **Why This Works**:
+
 - `--emptyOutDir` ensures dist folder is completely cleaned before build
 - Prevents orphaned or stale files from previous builds
 - Vercel gets a completely fresh deployment
@@ -82,6 +92,7 @@ Builds succeeded but code changes were NOT reflected in Vercel deployments. The 
 After deploying these changes, verify:
 
 ### ✅ Immediate Tests
+
 1. Make a small, obvious code change (e.g., change button text)
 2. Push to main
 3. Wait for Vercel build to complete
@@ -89,6 +100,7 @@ After deploying these changes, verify:
 5. Verify the change is visible immediately
 
 ### ✅ Browser Developer Tools Check
+
 1. Open DevTools → Network tab
 2. Hard refresh (Ctrl+Shift+R or Cmd+Shift+R)
 3. Check `index.html` response headers - should see:
@@ -98,6 +110,7 @@ After deploying these changes, verify:
 4. Check `main-*.js` - should have a different hash if code changed
 
 ### ✅ Vercel Dashboard
+
 1. Go to Vercel project → Deployments
 2. Verify latest deployment completed successfully
 3. Check build logs for "vite build" completion
@@ -107,13 +120,15 @@ After deploying these changes, verify:
 
 ## Why This Fixes the Issue
 
-**Before**: 
+**Before**:
+
 - Build succeeds ✅
 - But dist/index.html points to broken path: `<script src="/client/main.tsx"></script>`
 - Browser can't load the app
 - User sees old cached version from previous deployment
 
 **After**:
+
 - Build succeeds ✅
 - dist/index.html has correct reference: `<script src="./client/main.tsx"></script>`
 - Vite generates proper bundle with hash: `<script src="/assets/main-abc123.js"></script>`
@@ -165,6 +180,7 @@ After deploying these changes, verify:
 ### How Vite Entry Point Works
 
 When Vite builds:
+
 1. Reads index.html
 2. Finds `<script type="module" src="./client/main.tsx"></script>`
 3. Follows the relative path to locate entry point
