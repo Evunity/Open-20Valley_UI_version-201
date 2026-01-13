@@ -159,7 +159,13 @@ export function FilterProvider(props: FilterProviderProps) {
 
     const updated = [...availableClusters, newCluster];
     setAvailableClusters(updated);
-    localStorage.setItem("customClusters", JSON.stringify(updated));
+    if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
+      try {
+        localStorage.setItem("customClusters", JSON.stringify(updated));
+      } catch {
+        // Silently fail if localStorage is unavailable
+      }
+    }
     return true;
   };
 
