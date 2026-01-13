@@ -249,6 +249,7 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
             <option value="Kuwait">Kuwait</option>
             <option value="Qatar">Qatar</option>
             <option value="Bahrain">Bahrain</option>
+            <option value="Morocco">Morocco</option>
           </select>
         </div>
 
