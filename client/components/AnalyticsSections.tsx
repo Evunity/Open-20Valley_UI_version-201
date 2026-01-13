@@ -84,9 +84,11 @@ export default function AnalyticsSections() {
               onClick={() => {
                 if (section.isExternal && section.path?.startsWith("#")) {
                   // Scroll to element by ID
-                  const element = document.querySelector(section.path);
-                  if (element) {
-                    element.scrollIntoView({ behavior: "smooth" });
+                  if (typeof document !== "undefined") {
+                    const element = document.querySelector(section.path);
+                    if (element) {
+                      element.scrollIntoView({ behavior: "smooth" });
+                    }
                   }
                 } else if (section.path) {
                   navigate(section.path);
