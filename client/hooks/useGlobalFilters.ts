@@ -65,12 +65,28 @@ export function FilterProvider(props: FilterProviderProps) {
   const { children } = props;
   const [filters, setFilters] = useState<GlobalFilterState>(DEFAULT_FILTERS);
   const [savedClusters, setSavedClusters] = useState<SavedCluster[]>(() => {
-    const stored = localStorage.getItem("savedClusters");
-    return stored ? JSON.parse(stored) : [];
+    // Safe localStorage access only on client
+    if (typeof window === "undefined" || typeof localStorage === "undefined") {
+      return [];
+    }
+    try {
+      const stored = localStorage.getItem("savedClusters");
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
   });
   const [availableClusters, setAvailableClusters] = useState<LocationCluster[]>(() => {
-    const stored = localStorage.getItem("customClusters");
-    return stored ? JSON.parse(stored) : DEFAULT_LOCATION_CLUSTERS;
+    // Safe localStorage access only on client
+    if (typeof window === "undefined" || typeof localStorage === "undefined") {
+      return DEFAULT_LOCATION_CLUSTERS;
+    }
+    try {
+      const stored = localStorage.getItem("customClusters");
+      return stored ? JSON.parse(stored) : DEFAULT_LOCATION_CLUSTERS;
+    } catch {
+      return DEFAULT_LOCATION_CLUSTERS;
+    }
   });
 
   const resetFilters = () => {
