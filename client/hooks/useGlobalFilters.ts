@@ -172,7 +172,13 @@ export function FilterProvider(props: FilterProviderProps) {
   const removeCluster = (clusterId: string) => {
     const updated = availableClusters.filter((c) => c.id !== clusterId);
     setAvailableClusters(updated);
-    localStorage.setItem("customClusters", JSON.stringify(updated));
+    if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
+      try {
+        localStorage.setItem("customClusters", JSON.stringify(updated));
+      } catch {
+        // Silently fail if localStorage is unavailable
+      }
+    }
   };
 
   const value: FilterContextType = {
