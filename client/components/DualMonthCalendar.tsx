@@ -30,7 +30,6 @@ export default function DualMonthCalendar({
 
   // Get the first and second month to display
   const month1 = new Date(displayMonth.getFullYear(), displayMonth.getMonth(), 1);
-  const month2 = new Date(displayMonth.getFullYear(), displayMonth.getMonth() + 1, 1);
 
   // Get days in month
   const getDaysInMonth = (date: Date) => {
