@@ -15,7 +15,7 @@ import {
 } from "recharts";
 import FilterPanel from "@/components/FilterPanel";
 import KPICard from "@/components/KPICard";
-import ExecutiveInsightSummary from "@/components/ExecutiveInsightSummary";
+import ExecutiveInsightSummary, { type InsightData } from "@/components/ExecutiveInsightSummary";
 import { useGlobalFilters } from "@/hooks/useGlobalFilters";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -24,7 +24,6 @@ import {
   generateVoiceBreakdownByVendor,
   generateVoiceBreakdownByTechnology,
   segmentVoicePerformance,
-  type InsightData,
 } from "@/utils/analyticsData";
 import {
   Headphones,
