@@ -203,12 +203,30 @@ export default function VoiceAnalytics() {
     ws6["!cols"] = [{ wch: 15 }, { wch: 15 }, { wch: 12 }, { wch: 12 }, { wch: 15 }, { wch: 10 }];
     XLSX.utils.book_append_sheet(wb, ws6, "Cluster Breakdown");
 
-    // Sheet 5: Applied Filters
+    // Sheet 7: Degradation Insights
+    const insightsData = [
+      ["Type", "Title", "Description", "Timestamp", "Severity", "Affected Filters"],
+      ...degradationInsights.map((insight) => [
+        insight.type,
+        insight.title,
+        insight.description,
+        insight.timestamp,
+        insight.severity,
+        insight.affectedFilters.join(", "),
+      ]),
+    ];
+
+    const ws7 = XLSX.utils.aoa_to_sheet(insightsData);
+    ws7["!cols"] = [{ wch: 20 }, { wch: 30 }, { wch: 40 }, { wch: 20 }, { wch: 10 }, { wch: 30 }];
+    XLSX.utils.book_append_sheet(wb, ws7, "Insights");
+
+    // Sheet 8: Applied Filters
     const filtersData = [
       ["Filter Type", "Values"],
       ["Vendors", filters.vendors.join(", ") || "All"],
       ["Technologies", filters.technologies.join(", ") || "All"],
       ["Regions", filters.regions.join(", ") || "All"],
+      ["Clusters", filters.clusters.join(", ") || "All"],
       ["Countries", filters.countries.join(", ") || "All"],
       [
         "Date Range",
@@ -216,11 +234,12 @@ export default function VoiceAnalytics() {
           ? `${new Date(filters.dateRange.from).toLocaleDateString()} - ${new Date(filters.dateRange.to).toLocaleDateString()}`
           : "All Time",
       ],
+      ["Time Granularity", filters.timeGranularity],
     ];
 
-    const ws5 = XLSX.utils.aoa_to_sheet(filtersData);
-    ws5["!cols"] = [{ wch: 20 }, { wch: 40 }];
-    XLSX.utils.book_append_sheet(wb, ws5, "Applied Filters");
+    const ws8 = XLSX.utils.aoa_to_sheet(filtersData);
+    ws8["!cols"] = [{ wch: 20 }, { wch: 40 }];
+    XLSX.utils.book_append_sheet(wb, ws8, "Applied Filters");
 
     const dateStr = new Date().toISOString().split("T")[0];
     XLSX.writeFile(wb, `Voice_Analytics_${dateStr}.xlsx`);
