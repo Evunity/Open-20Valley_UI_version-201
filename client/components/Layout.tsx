@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, LayoutDashboard, Settings, Moon, Sun } from "lucide-react";
+import { Menu, X, LayoutDashboard, Settings, Moon, Sun, Headphones, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface LayoutProps {
@@ -47,6 +47,8 @@ export default function Layout({ children }: LayoutProps) {
 
   const mainNavItems = [
     { path: "/", label: "Dashboard", icon: LayoutDashboard },
+    { path: "/voice-analytics", label: "Voice Analytics", icon: Headphones },
+    { path: "/data-analytics", label: "Data Analytics", icon: Activity },
     { path: "/settings", label: "Settings", icon: Settings },
   ];
 
