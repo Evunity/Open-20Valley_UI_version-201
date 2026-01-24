@@ -385,7 +385,8 @@ export const segmentVoicePerformance = (
   return {
     "High quality": data.filter((d) => d.call_success_rate > 98),
     Acceptable: data.filter((d) => d.call_success_rate >= 96 && d.call_success_rate <= 98),
-    Degraded: data.filter((d) => d.call_success_rate < 96),
+    Degraded: data.filter((d) => d.call_success_rate >= 94 && d.call_success_rate < 96),
+    Critical: data.filter((d) => d.call_success_rate < 94),
   };
 };
 
