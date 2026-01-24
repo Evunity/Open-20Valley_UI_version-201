@@ -516,6 +516,7 @@ export default function VoiceAnalytics() {
             success_rate: r.call_success_rate,
             stability: r.call_stability,
             status: r.status,
+            priority: r.priority,
           }))}
           title="Regional Performance"
           dimension="Region"
@@ -530,6 +531,7 @@ export default function VoiceAnalytics() {
             success_rate: c.call_success_rate,
             stability: c.call_stability,
             status: c.status,
+            priority: c.priority,
           }))}
           title="Cluster Performance"
           dimension="Cluster"
