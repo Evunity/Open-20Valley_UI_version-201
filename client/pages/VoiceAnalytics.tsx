@@ -394,6 +394,92 @@ export default function VoiceAnalytics() {
             </LineChart>
           </ResponsiveContainer>
         </div>
+
+        {/* Call Retainability Rate (CRR) */}
+        <TrendChartContainer
+          title="Call Retainability Rate (CRR)"
+          data={trendData}
+          dataKeys={["crr"]}
+          exportable
+        >
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={trendData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis
+                dataKey="time"
+                type="category"
+                stroke="hsl(var(--muted-foreground))"
+                style={{ fontSize: "12px" }}
+              />
+              <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "8px",
+                }}
+              />
+              <Legend />
+              <Line
+                type="monotone"
+                dataKey="crr"
+                stroke="#8b5cf6"
+                strokeWidth={2}
+                name="CRR"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </TrendChartContainer>
+
+        {/* Call Continuity & VPI & VSQI */}
+        <TrendChartContainer
+          title="Voice Quality Indices (VPI, VSQI, Call Continuity)"
+          data={trendData}
+          dataKeys={["call_continuity", "vpi", "vsqi"]}
+          exportable
+        >
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={trendData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis
+                dataKey="time"
+                type="category"
+                stroke="hsl(var(--muted-foreground))"
+                style={{ fontSize: "12px" }}
+              />
+              <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "8px",
+                }}
+              />
+              <Legend />
+              <Line
+                type="monotone"
+                dataKey="call_continuity"
+                stroke="#10b981"
+                strokeWidth={2}
+                name="Call Continuity"
+              />
+              <Line
+                type="monotone"
+                dataKey="vpi"
+                stroke="#06b6d4"
+                strokeWidth={2}
+                name="VPI"
+              />
+              <Line
+                type="monotone"
+                dataKey="vsqi"
+                stroke="#ec4899"
+                strokeWidth={2}
+                name="VSQI"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </TrendChartContainer>
       </div>
 
       {/* Performance Breakdown */}
