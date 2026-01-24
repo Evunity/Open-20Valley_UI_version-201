@@ -367,8 +367,12 @@ export default function VoiceAnalytics() {
         <h2 className="text-2xl font-bold text-foreground">Performance Trends</h2>
 
         {/* Call Volume Trend */}
-        <div className="card-elevated rounded-xl border border-border/50 p-6">
-          <h3 className="text-lg font-bold text-foreground mb-4">Call Volume Trend</h3>
+        <TrendChartContainer
+          title="Call Volume Trend"
+          data={trendData}
+          dataKeys={["call_volume"]}
+          exportable
+        >
           <ResponsiveContainer width="100%" height={300}>
             <LineChart
               data={trendData}
@@ -399,11 +403,15 @@ export default function VoiceAnalytics() {
               />
             </LineChart>
           </ResponsiveContainer>
-        </div>
+        </TrendChartContainer>
 
-        {/* Quality Metrics */}
-        <div className="card-elevated rounded-xl border border-border/50 p-6">
-          <h3 className="text-lg font-bold text-foreground mb-4">Quality Metrics</h3>
+        {/* Call Success Rate Trend */}
+        <TrendChartContainer
+          title="Call Success Rate Trend"
+          data={trendData}
+          dataKeys={["call_success_rate"]}
+          exportable
+        >
           <ResponsiveContainer width="100%" height={300}>
             <LineChart
               data={trendData}
@@ -432,23 +440,48 @@ export default function VoiceAnalytics() {
                 strokeWidth={2}
                 name="Success Rate"
               />
-              <Line
-                type="monotone"
-                dataKey="call_stability"
-                stroke="#3b82f6"
-                strokeWidth={2}
-                name="Stability"
+            </LineChart>
+          </ResponsiveContainer>
+        </TrendChartContainer>
+
+        {/* Drop Rate Trend */}
+        <TrendChartContainer
+          title="Drop Rate Trend"
+          data={trendData}
+          dataKeys={["drop_rate"]}
+          exportable
+        >
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart
+              data={trendData}
+              margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis
+                dataKey="time"
+                type="category"
+                stroke="hsl(var(--muted-foreground))"
+                style={{ fontSize: "12px" }}
               />
+              <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "8px",
+                }}
+              />
+              <Legend />
               <Line
                 type="monotone"
-                dataKey="vqi"
-                stroke="#f59e0b"
+                dataKey="drop_rate"
+                stroke="#ef4444"
                 strokeWidth={2}
-                name="VQI"
+                name="Drop Rate"
               />
             </LineChart>
           </ResponsiveContainer>
-        </div>
+        </TrendChartContainer>
 
         {/* Call Retainability Rate (CRR) */}
         <TrendChartContainer
@@ -486,11 +519,11 @@ export default function VoiceAnalytics() {
           </ResponsiveContainer>
         </TrendChartContainer>
 
-        {/* Call Continuity & VPI & VSQI */}
+        {/* Call Continuity Trend */}
         <TrendChartContainer
-          title="Voice Quality Indices (VPI, VSQI, Call Continuity)"
+          title="Call Continuity Trend"
           data={trendData}
-          dataKeys={["call_continuity", "vpi", "vsqi"]}
+          dataKeys={["call_continuity"]}
           exportable
         >
           <ResponsiveContainer width="100%" height={300}>
@@ -518,6 +551,71 @@ export default function VoiceAnalytics() {
                 strokeWidth={2}
                 name="Call Continuity"
               />
+            </LineChart>
+          </ResponsiveContainer>
+        </TrendChartContainer>
+
+        {/* Voice Quality Index (VQI) Trend */}
+        <TrendChartContainer
+          title="Voice Quality Index (VQI) Trend"
+          data={trendData}
+          dataKeys={["vqi"]}
+          exportable
+        >
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={trendData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis
+                dataKey="time"
+                type="category"
+                stroke="hsl(var(--muted-foreground))"
+                style={{ fontSize: "12px" }}
+              />
+              <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "8px",
+                }}
+              />
+              <Legend />
+              <Line
+                type="monotone"
+                dataKey="vqi"
+                stroke="#f59e0b"
+                strokeWidth={2}
+                name="VQI"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </TrendChartContainer>
+
+        {/* Voice Performance Index (VPI) Trend */}
+        <TrendChartContainer
+          title="Voice Performance Index (VPI) Trend"
+          data={trendData}
+          dataKeys={["vpi"]}
+          exportable
+        >
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={trendData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis
+                dataKey="time"
+                type="category"
+                stroke="hsl(var(--muted-foreground))"
+                style={{ fontSize: "12px" }}
+              />
+              <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "8px",
+                }}
+              />
+              <Legend />
               <Line
                 type="monotone"
                 dataKey="vpi"
@@ -525,6 +623,35 @@ export default function VoiceAnalytics() {
                 strokeWidth={2}
                 name="VPI"
               />
+            </LineChart>
+          </ResponsiveContainer>
+        </TrendChartContainer>
+
+        {/* Voice Service Quality Index (VSQI) Trend */}
+        <TrendChartContainer
+          title="Voice Service Quality Index (VSQI) Trend"
+          data={trendData}
+          dataKeys={["vsqi"]}
+          exportable
+        >
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={trendData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis
+                dataKey="time"
+                type="category"
+                stroke="hsl(var(--muted-foreground))"
+                style={{ fontSize: "12px" }}
+              />
+              <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "8px",
+                }}
+              />
+              <Legend />
               <Line
                 type="monotone"
                 dataKey="vsqi"
