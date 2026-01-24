@@ -172,14 +172,19 @@ const calculatePriorityFromPerformance = (successRate: number, dropRate: number)
 
 export const generateVoiceBreakdownByVendor = (filters: GlobalFilterState): VoiceBreakdown[] => {
   const vendors = ["Ericsson", "Huawei", "Nokia", "Samsung"];
-  return vendors.map((vendor) => ({
-    name: vendor,
-    call_success_rate: 96 + Math.random() * 3,
-    drop_rate: 0.4 + Math.random() * 0.4,
-    call_stability: 97.5 + Math.random() * 2,
-    status: Math.random() > 0.3 ? "High quality" : "Acceptable",
-    count: Math.round(15000 + Math.random() * 5000),
-  }));
+  return vendors.map((vendor) => {
+    const successRate = 96 + Math.random() * 3;
+    const dropRate = 0.4 + Math.random() * 0.4;
+    return {
+      name: vendor,
+      call_success_rate: successRate,
+      drop_rate: dropRate,
+      call_stability: 97.5 + Math.random() * 2,
+      status: Math.random() > 0.3 ? "High quality" : "Acceptable",
+      count: Math.round(15000 + Math.random() * 5000),
+      priority: calculatePriorityFromPerformance(successRate, dropRate),
+    };
+  });
 };
 
 export const generateVoiceBreakdownByTechnology = (
