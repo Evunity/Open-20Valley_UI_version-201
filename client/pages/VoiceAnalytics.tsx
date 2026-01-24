@@ -543,9 +543,233 @@ export default function VoiceAnalytics() {
             </BarChart>
           </ResponsiveContainer>
         </div>
+
+        {/* By Region */}
+        <VoicePerformanceTable
+          data={regionBreakdown.map((r) => ({
+            name: r.name,
+            calls: r.count,
+            drop_rate: r.drop_rate,
+            success_rate: r.call_success_rate,
+            stability: r.call_stability,
+            status: r.status,
+          }))}
+          title="Regional Performance"
+          dimension="Region"
+        />
+
+        {/* By Cluster */}
+        <VoicePerformanceTable
+          data={clusterBreakdown.map((c) => ({
+            name: c.name,
+            calls: c.count,
+            drop_rate: c.drop_rate,
+            success_rate: c.call_success_rate,
+            stability: c.call_stability,
+            status: c.status,
+          }))}
+          title="Cluster Performance"
+          dimension="Cluster"
+        />
       </div>
 
-      {/* Segmentation - High Quality */}
+      {/* Segmentation Sections - Vendor */}
+      {Object.entries(vendorSegmented).map(([category, items]) =>
+        items && items.length > 0 ? (
+          <div key={`vendor-${category}`} className="card-elevated rounded-xl border border-border/50 p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <div
+                className="w-3 h-3 rounded-full"
+                style={{
+                  backgroundColor:
+                    category === "High quality"
+                      ? "rgb(34, 197, 94)"
+                      : category === "Acceptable"
+                        ? "rgb(245, 158, 11)"
+                        : category === "Degraded"
+                          ? "rgb(239, 68, 68)"
+                          : "rgb(59, 130, 246)",
+                }}
+              />
+              <h3 className="text-lg font-bold text-foreground">{category} Performers - Vendors</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {items.map((vendor, idx) => (
+                <div
+                  key={idx}
+                  className={`p-4 rounded-lg border ${
+                    category === "High quality"
+                      ? "border-status-healthy/20 bg-status-healthy/5"
+                      : category === "Critical"
+                        ? "border-status-critical/20 bg-status-critical/5"
+                        : "border-status-degraded/20 bg-status-degraded/5"
+                  }`}
+                >
+                  <p className="font-semibold text-foreground">{vendor.name}</p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Success Rate: {vendor.call_success_rate.toFixed(2)}%
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Stability: {vendor.call_stability.toFixed(2)}%
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Calls: {vendor.count.toLocaleString()}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null
+      )}
+
+      {/* Segmentation Sections - Technology */}
+      {Object.entries(techSegmented).map(([category, items]) =>
+        items && items.length > 0 ? (
+          <div key={`tech-${category}`} className="card-elevated rounded-xl border border-border/50 p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <div
+                className="w-3 h-3 rounded-full"
+                style={{
+                  backgroundColor:
+                    category === "High quality"
+                      ? "rgb(34, 197, 94)"
+                      : category === "Acceptable"
+                        ? "rgb(245, 158, 11)"
+                        : category === "Degraded"
+                          ? "rgb(239, 68, 68)"
+                          : "rgb(59, 130, 246)",
+                }}
+              />
+              <h3 className="text-lg font-bold text-foreground">{category} Performers - Technologies</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {items.map((tech, idx) => (
+                <div
+                  key={idx}
+                  className={`p-4 rounded-lg border ${
+                    category === "High quality"
+                      ? "border-status-healthy/20 bg-status-healthy/5"
+                      : category === "Critical"
+                        ? "border-status-critical/20 bg-status-critical/5"
+                        : "border-status-degraded/20 bg-status-degraded/5"
+                  }`}
+                >
+                  <p className="font-semibold text-foreground">{tech.name}</p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Success Rate: {tech.call_success_rate.toFixed(2)}%
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Stability: {tech.call_stability.toFixed(2)}%
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Calls: {tech.count.toLocaleString()}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null
+      )}
+
+      {/* Segmentation Sections - Region */}
+      {Object.entries(regionSegmented).map(([category, items]) =>
+        items && items.length > 0 ? (
+          <div key={`region-${category}`} className="card-elevated rounded-xl border border-border/50 p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <div
+                className="w-3 h-3 rounded-full"
+                style={{
+                  backgroundColor:
+                    category === "High quality"
+                      ? "rgb(34, 197, 94)"
+                      : category === "Acceptable"
+                        ? "rgb(245, 158, 11)"
+                        : category === "Degraded"
+                          ? "rgb(239, 68, 68)"
+                          : "rgb(59, 130, 246)",
+                }}
+              />
+              <h3 className="text-lg font-bold text-foreground">{category} Performers - Regions</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {items.map((region, idx) => (
+                <div
+                  key={idx}
+                  className={`p-4 rounded-lg border ${
+                    category === "High quality"
+                      ? "border-status-healthy/20 bg-status-healthy/5"
+                      : category === "Critical"
+                        ? "border-status-critical/20 bg-status-critical/5"
+                        : "border-status-degraded/20 bg-status-degraded/5"
+                  }`}
+                >
+                  <p className="font-semibold text-foreground">{region.name}</p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Success Rate: {region.call_success_rate.toFixed(2)}%
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Stability: {region.call_stability.toFixed(2)}%
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Calls: {region.count.toLocaleString()}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null
+      )}
+
+      {/* Segmentation Sections - Cluster */}
+      {Object.entries(clusterSegmented).map(([category, items]) =>
+        items && items.length > 0 ? (
+          <div key={`cluster-${category}`} className="card-elevated rounded-xl border border-border/50 p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <div
+                className="w-3 h-3 rounded-full"
+                style={{
+                  backgroundColor:
+                    category === "High quality"
+                      ? "rgb(34, 197, 94)"
+                      : category === "Acceptable"
+                        ? "rgb(245, 158, 11)"
+                        : category === "Degraded"
+                          ? "rgb(239, 68, 68)"
+                          : "rgb(59, 130, 246)",
+                }}
+              />
+              <h3 className="text-lg font-bold text-foreground">{category} Performers - Clusters</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {items.map((cluster, idx) => (
+                <div
+                  key={idx}
+                  className={`p-4 rounded-lg border ${
+                    category === "High quality"
+                      ? "border-status-healthy/20 bg-status-healthy/5"
+                      : category === "Critical"
+                        ? "border-status-critical/20 bg-status-critical/5"
+                        : "border-status-degraded/20 bg-status-degraded/5"
+                  }`}
+                >
+                  <p className="font-semibold text-foreground">{cluster.name}</p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Success Rate: {cluster.call_success_rate.toFixed(2)}%
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Stability: {cluster.call_stability.toFixed(2)}%
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Calls: {cluster.count.toLocaleString()}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null
+      )}
+
+      {/* Old Segmentation - High Quality */}
       {vendorSegmented["High quality"] && vendorSegmented["High quality"].length > 0 && (
         <div className="card-elevated rounded-xl border border-border/50 p-6">
           <div className="flex items-center gap-2 mb-4">
