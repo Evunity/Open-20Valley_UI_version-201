@@ -239,19 +239,24 @@ export const generateVoiceBreakdownByCluster = (
   filters: GlobalFilterState
 ): VoiceBreakdown[] => {
   const clusterNames = filters.clusters.length > 0 ? filters.clusters : ["Cluster A", "Cluster B", "Cluster C", "Cluster D"];
-  return clusterNames.map((cluster) => ({
-    name: cluster,
-    call_success_rate: 96 + Math.random() * 3.5,
-    drop_rate: 0.4 + Math.random() * 0.35,
-    call_stability: 97.5 + Math.random() * 2,
-    status:
-      Math.random() > 0.35
-        ? "High quality"
-        : Math.random() > 0.55
-          ? "Acceptable"
-          : "Degraded",
-    count: Math.round(10000 + Math.random() * 5000),
-  }));
+  return clusterNames.map((cluster) => {
+    const successRate = 96 + Math.random() * 3.5;
+    const dropRate = 0.4 + Math.random() * 0.35;
+    return {
+      name: cluster,
+      call_success_rate: successRate,
+      drop_rate: dropRate,
+      call_stability: 97.5 + Math.random() * 2,
+      status:
+        Math.random() > 0.35
+          ? "High quality"
+          : Math.random() > 0.55
+            ? "Acceptable"
+            : "Degraded",
+      count: Math.round(10000 + Math.random() * 5000),
+      priority: calculatePriorityFromPerformance(successRate, dropRate),
+    };
+  });
 };
 
 /**
