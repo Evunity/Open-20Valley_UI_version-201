@@ -16,6 +16,9 @@ import {
 import FilterPanel from "@/components/FilterPanel";
 import KPICard from "@/components/KPICard";
 import ExecutiveInsightSummary, { type InsightData } from "@/components/ExecutiveInsightSummary";
+import VoicePerformanceTable from "@/components/VoicePerformanceTable";
+import DegradationInsights from "@/components/DegradationInsights";
+import TrendChartContainer from "@/components/TrendChartContainer";
 import { useGlobalFilters } from "@/hooks/useGlobalFilters";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -23,7 +26,11 @@ import {
   generateVoiceTrendData,
   generateVoiceBreakdownByVendor,
   generateVoiceBreakdownByTechnology,
+  generateVoiceBreakdownByRegion,
+  generateVoiceBreakdownByCluster,
   segmentVoicePerformance,
+  generateVoiceInsights,
+  calculatePriorityLevel,
 } from "@/utils/analyticsData";
 import {
   Headphones,
@@ -44,10 +51,28 @@ export default function VoiceAnalytics() {
   const trendData = useMemo(() => generateVoiceTrendData(filters), [filters]);
   const vendorBreakdown = useMemo(() => generateVoiceBreakdownByVendor(filters), [filters]);
   const techBreakdown = useMemo(() => generateVoiceBreakdownByTechnology(filters), [filters]);
+  const regionBreakdown = useMemo(() => generateVoiceBreakdownByRegion(filters), [filters]);
+  const clusterBreakdown = useMemo(() => generateVoiceBreakdownByCluster(filters), [filters]);
 
   // Segment data
   const vendorSegmented = useMemo(() => segmentVoicePerformance(vendorBreakdown), [vendorBreakdown]);
   const techSegmented = useMemo(() => segmentVoicePerformance(techBreakdown), [techBreakdown]);
+  const regionSegmented = useMemo(() => segmentVoicePerformance(regionBreakdown), [regionBreakdown]);
+  const clusterSegmented = useMemo(() => segmentVoicePerformance(clusterBreakdown), [clusterBreakdown]);
+
+  // Generate degradation insights
+  const degradationInsights = useMemo(() => {
+    return generateVoiceInsights(
+      trendData,
+      {
+        vendor: vendorBreakdown,
+        technology: techBreakdown,
+        region: regionBreakdown,
+        cluster: clusterBreakdown,
+      },
+      filters
+    );
+  }, [trendData, vendorBreakdown, techBreakdown, regionBreakdown, clusterBreakdown, filters]);
 
   // Generate insights
   const insights: InsightData = useMemo(() => {
