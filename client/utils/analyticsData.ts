@@ -189,6 +189,44 @@ export const generateVoiceBreakdownByTechnology = (
   }));
 };
 
+export const generateVoiceBreakdownByRegion = (
+  filters: GlobalFilterState
+): VoiceBreakdown[] => {
+  const regions = ["North", "South", "East", "West", "Central"];
+  return regions.map((region) => ({
+    name: region,
+    call_success_rate: 96.5 + Math.random() * 3,
+    drop_rate: 0.35 + Math.random() * 0.4,
+    call_stability: 97.8 + Math.random() * 1.8,
+    status:
+      Math.random() > 0.3
+        ? "High quality"
+        : Math.random() > 0.6
+          ? "Acceptable"
+          : "Degraded",
+    count: Math.round(12000 + Math.random() * 6000),
+  }));
+};
+
+export const generateVoiceBreakdownByCluster = (
+  filters: GlobalFilterState
+): VoiceBreakdown[] => {
+  const clusterNames = filters.clusters.length > 0 ? filters.clusters : ["Cluster A", "Cluster B", "Cluster C", "Cluster D"];
+  return clusterNames.map((cluster) => ({
+    name: cluster,
+    call_success_rate: 96 + Math.random() * 3.5,
+    drop_rate: 0.4 + Math.random() * 0.35,
+    call_stability: 97.5 + Math.random() * 2,
+    status:
+      Math.random() > 0.35
+        ? "High quality"
+        : Math.random() > 0.55
+          ? "Acceptable"
+          : "Degraded",
+    count: Math.round(10000 + Math.random() * 5000),
+  }));
+};
+
 /**
  * DATA ANALYTICS DATA
  */
