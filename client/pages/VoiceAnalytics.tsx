@@ -538,7 +538,160 @@ export default function VoiceAnalytics() {
         />
       </div>
 
-      {/* Segmentation Sections - Vendor */}
+      {/* Segmentation & Grouping Section */}
+      <div className="space-y-6">
+        <h2 className="text-2xl font-bold text-foreground">Segmentation & Grouping</h2>
+        <p className="text-sm text-muted-foreground">
+          Entities automatically grouped into 4 categories: High Quality, Acceptable, Degraded, and Critical.
+          This helps quickly separate system-wide issues from local issues.
+        </p>
+
+        {/* Vendor Segmentation Overview */}
+        <div className="card-elevated rounded-xl border border-border/50 p-6">
+          <h3 className="text-lg font-bold text-foreground mb-4">Vendor Segmentation Distribution</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart
+              data={[
+                {
+                  category: "Vendor Distribution",
+                  "High quality": vendorSegmented["High quality"]?.length || 0,
+                  "Acceptable": vendorSegmented["Acceptable"]?.length || 0,
+                  "Degraded": vendorSegmented["Degraded"]?.length || 0,
+                  "Critical": vendorSegmented["Critical"]?.length || 0,
+                },
+              ]}
+              margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+              layout="vertical"
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis type="number" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+              <YAxis dataKey="category" type="category" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "8px",
+                }}
+              />
+              <Legend />
+              <Bar dataKey="High quality" stackId="a" fill="#22c55e" name="High Quality" />
+              <Bar dataKey="Acceptable" stackId="a" fill="#f59e0b" name="Acceptable" />
+              <Bar dataKey="Degraded" stackId="a" fill="#ef4444" name="Degraded" />
+              <Bar dataKey="Critical" stackId="a" fill="#7f1d1d" name="Critical" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Technology Segmentation Overview */}
+        <div className="card-elevated rounded-xl border border-border/50 p-6">
+          <h3 className="text-lg font-bold text-foreground mb-4">Technology Segmentation Distribution</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart
+              data={[
+                {
+                  category: "Technology Distribution",
+                  "High quality": techSegmented["High quality"]?.length || 0,
+                  "Acceptable": techSegmented["Acceptable"]?.length || 0,
+                  "Degraded": techSegmented["Degraded"]?.length || 0,
+                  "Critical": techSegmented["Critical"]?.length || 0,
+                },
+              ]}
+              margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+              layout="vertical"
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis type="number" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+              <YAxis dataKey="category" type="category" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "8px",
+                }}
+              />
+              <Legend />
+              <Bar dataKey="High quality" stackId="a" fill="#22c55e" name="High Quality" />
+              <Bar dataKey="Acceptable" stackId="a" fill="#f59e0b" name="Acceptable" />
+              <Bar dataKey="Degraded" stackId="a" fill="#ef4444" name="Degraded" />
+              <Bar dataKey="Critical" stackId="a" fill="#7f1d1d" name="Critical" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Region Segmentation Overview */}
+        <div className="card-elevated rounded-xl border border-border/50 p-6">
+          <h3 className="text-lg font-bold text-foreground mb-4">Region Segmentation Distribution</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart
+              data={[
+                {
+                  category: "Region Distribution",
+                  "High quality": regionSegmented["High quality"]?.length || 0,
+                  "Acceptable": regionSegmented["Acceptable"]?.length || 0,
+                  "Degraded": regionSegmented["Degraded"]?.length || 0,
+                  "Critical": regionSegmented["Critical"]?.length || 0,
+                },
+              ]}
+              margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+              layout="vertical"
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis type="number" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+              <YAxis dataKey="category" type="category" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "8px",
+                }}
+              />
+              <Legend />
+              <Bar dataKey="High quality" stackId="a" fill="#22c55e" name="High Quality" />
+              <Bar dataKey="Acceptable" stackId="a" fill="#f59e0b" name="Acceptable" />
+              <Bar dataKey="Degraded" stackId="a" fill="#ef4444" name="Degraded" />
+              <Bar dataKey="Critical" stackId="a" fill="#7f1d1d" name="Critical" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Cluster Segmentation Overview */}
+        <div className="card-elevated rounded-xl border border-border/50 p-6">
+          <h3 className="text-lg font-bold text-foreground mb-4">Cluster Segmentation Distribution</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart
+              data={[
+                {
+                  category: "Cluster Distribution",
+                  "High quality": clusterSegmented["High quality"]?.length || 0,
+                  "Acceptable": clusterSegmented["Acceptable"]?.length || 0,
+                  "Degraded": clusterSegmented["Degraded"]?.length || 0,
+                  "Critical": clusterSegmented["Critical"]?.length || 0,
+                },
+              ]}
+              margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+              layout="vertical"
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis type="number" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+              <YAxis dataKey="category" type="category" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "8px",
+                }}
+              />
+              <Legend />
+              <Bar dataKey="High quality" stackId="a" fill="#22c55e" name="High Quality" />
+              <Bar dataKey="Acceptable" stackId="a" fill="#f59e0b" name="Acceptable" />
+              <Bar dataKey="Degraded" stackId="a" fill="#ef4444" name="Degraded" />
+              <Bar dataKey="Critical" stackId="a" fill="#7f1d1d" name="Critical" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Segmentation Category Details - Vendor */}
       {Object.entries(vendorSegmented).map(([category, items]) =>
         items && items.length > 0 ? (
           <div key={`vendor-${category}`} className="card-elevated rounded-xl border border-border/50 p-6">
