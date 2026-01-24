@@ -114,15 +114,17 @@ export default function VoiceAnalytics() {
     ws1["!cols"] = [{ wch: 25 }, { wch: 15 }, { wch: 10 }, { wch: 10 }, { wch: 15 }];
     XLSX.utils.book_append_sheet(wb, ws1, "KPI Summary");
 
-    // Sheet 2: Trend Data
+    // Sheet 2: Trend Data (All 8 metrics)
     const trendSheetData = [
-      ["Time", "Call Volume", "Success Rate", "Drop Rate", "Stability", "VQI", "VPI", "VSQI"],
+      ["Time", "Call Volume", "Success Rate", "Drop Rate", "Stability", "CRR", "Call Continuity", "VQI", "VPI", "VSQI"],
       ...trendData.map((d) => [
         d.time,
         d.call_volume,
         d.call_success_rate.toFixed(2),
         d.drop_rate.toFixed(2),
         d.call_stability.toFixed(2),
+        d.crr.toFixed(2),
+        d.call_continuity.toFixed(2),
         d.vqi.toFixed(2),
         d.vpi.toFixed(2),
         d.vsqi.toFixed(2),
@@ -130,7 +132,7 @@ export default function VoiceAnalytics() {
     ];
 
     const ws2 = XLSX.utils.aoa_to_sheet(trendSheetData);
-    ws2["!cols"] = Array(8).fill({ wch: 15 });
+    ws2["!cols"] = Array(10).fill({ wch: 15 });
     XLSX.utils.book_append_sheet(wb, ws2, "Trend Data");
 
     // Sheet 3: Vendor Breakdown
@@ -166,6 +168,40 @@ export default function VoiceAnalytics() {
     const ws4 = XLSX.utils.aoa_to_sheet(techData);
     ws4["!cols"] = [{ wch: 15 }, { wch: 15 }, { wch: 12 }, { wch: 12 }, { wch: 15 }, { wch: 10 }];
     XLSX.utils.book_append_sheet(wb, ws4, "Technology Breakdown");
+
+    // Sheet 5: Region Breakdown
+    const regionData = [
+      ["Region", "Call Success Rate", "Drop Rate", "Stability", "Status", "Volume"],
+      ...regionBreakdown.map((r) => [
+        r.name,
+        r.call_success_rate.toFixed(2),
+        r.drop_rate.toFixed(2),
+        r.call_stability.toFixed(2),
+        r.status,
+        r.count,
+      ]),
+    ];
+
+    const ws5 = XLSX.utils.aoa_to_sheet(regionData);
+    ws5["!cols"] = [{ wch: 15 }, { wch: 15 }, { wch: 12 }, { wch: 12 }, { wch: 15 }, { wch: 10 }];
+    XLSX.utils.book_append_sheet(wb, ws5, "Region Breakdown");
+
+    // Sheet 6: Cluster Breakdown
+    const clusterData = [
+      ["Cluster", "Call Success Rate", "Drop Rate", "Stability", "Status", "Volume"],
+      ...clusterBreakdown.map((c) => [
+        c.name,
+        c.call_success_rate.toFixed(2),
+        c.drop_rate.toFixed(2),
+        c.call_stability.toFixed(2),
+        c.status,
+        c.count,
+      ]),
+    ];
+
+    const ws6 = XLSX.utils.aoa_to_sheet(clusterData);
+    ws6["!cols"] = [{ wch: 15 }, { wch: 15 }, { wch: 12 }, { wch: 12 }, { wch: 15 }, { wch: 10 }];
+    XLSX.utils.book_append_sheet(wb, ws6, "Cluster Breakdown");
 
     // Sheet 5: Applied Filters
     const filtersData = [
