@@ -215,19 +215,24 @@ export const generateVoiceBreakdownByRegion = (
   filters: GlobalFilterState
 ): VoiceBreakdown[] => {
   const regions = ["North", "South", "East", "West", "Central"];
-  return regions.map((region) => ({
-    name: region,
-    call_success_rate: 96.5 + Math.random() * 3,
-    drop_rate: 0.35 + Math.random() * 0.4,
-    call_stability: 97.8 + Math.random() * 1.8,
-    status:
-      Math.random() > 0.3
-        ? "High quality"
-        : Math.random() > 0.6
-          ? "Acceptable"
-          : "Degraded",
-    count: Math.round(12000 + Math.random() * 6000),
-  }));
+  return regions.map((region) => {
+    const successRate = 96.5 + Math.random() * 3;
+    const dropRate = 0.35 + Math.random() * 0.4;
+    return {
+      name: region,
+      call_success_rate: successRate,
+      drop_rate: dropRate,
+      call_stability: 97.8 + Math.random() * 1.8,
+      status:
+        Math.random() > 0.3
+          ? "High quality"
+          : Math.random() > 0.6
+            ? "Acceptable"
+            : "Degraded",
+      count: Math.round(12000 + Math.random() * 6000),
+      priority: calculatePriorityFromPerformance(successRate, dropRate),
+    };
+  });
 };
 
 export const generateVoiceBreakdownByCluster = (
