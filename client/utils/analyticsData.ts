@@ -399,3 +399,111 @@ export const segmentDataPerformance = (
     Congested: data.filter((d) => d.call_success_rate < 96.5),
   };
 };
+
+/**
+ * Insight detection and priority calculation
+ */
+
+export interface DetectionInsight {
+  id: string;
+  type: "sudden_degradation" | "ongoing_degradation" | "recovery" | "performance_gap";
+  title: string;
+  description: string;
+  timestamp: string;
+  severity: "Critical" | "High" | "Medium";
+  affectedFilters: string[];
+}
+
+export const generateVoiceInsights = (
+  trendData: VoiceTrendData[],
+  breakdowns: Record<string, VoiceBreakdown[]>,
+  filters: GlobalFilterState
+): DetectionInsight[] => {
+  const insights: DetectionInsight[] = [];
+  const now = new Date();
+
+  // Detect sudden degradation (compare last 3 vs previous 3 data points)
+  if (trendData.length >= 6) {
+    const lastThree = trendData.slice(-3);
+    const prevThree = trendData.slice(-6, -3);
+
+    const lastAvg = lastThree.reduce((sum, d) => sum + d.call_success_rate, 0) / 3;
+    const prevAvg = prevThree.reduce((sum, d) => sum + d.call_success_rate, 0) / 3;
+
+    if (prevAvg - lastAvg > 3) {
+      insights.push({
+        id: `sudden-${Date.now()}`,
+        type: "sudden_degradation",
+        title: "Sudden Performance Degradation Detected",
+        description: `Call success rate dropped ${(prevAvg - lastAvg).toFixed(2)}% recently`,
+        timestamp: new Date(now.getTime() - 15 * 60000).toISOString(),
+        severity: "High",
+        affectedFilters: filters.vendors.length > 0 ? filters.vendors : ["All vendors"],
+      });
+    }
+
+    // Detect recovery
+    if (lastAvg - prevAvg > 2) {
+      insights.push({
+        id: `recovery-${Date.now()}`,
+        type: "recovery",
+        title: "Performance Recovery Observed",
+        description: `Call success rate improved ${(lastAvg - prevAvg).toFixed(2)}% in recent period`,
+        timestamp: new Date(now.getTime() - 5 * 60000).toISOString(),
+        severity: "Medium",
+        affectedFilters: filters.technologies.length > 0 ? filters.technologies : ["All technologies"],
+      });
+    }
+  }
+
+  // Detect performance gaps between breakdown dimensions
+  for (const [dimension, items] of Object.entries(breakdowns)) {
+    const rates = items.map((d) => d.call_success_rate);
+    if (rates.length >= 2) {
+      const max = Math.max(...rates);
+      const min = Math.min(...rates);
+
+      if (max - min > 2) {
+        insights.push({
+          id: `gap-${dimension}-${Date.now()}`,
+          type: "performance_gap",
+          title: `Performance Gap in ${dimension}`,
+          description: `Success rate varies by ${(max - min).toFixed(2)}% across ${dimension}s (${min.toFixed(1)}% to ${max.toFixed(1)}%)`,
+          timestamp: new Date(now.getTime() - 30 * 60000).toISOString(),
+          severity: max - min > 5 ? "Critical" : "High",
+          affectedFilters: [dimension],
+        });
+      }
+    }
+  }
+
+  return insights.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+};
+
+export const calculatePriorityLevel = (
+  kpiValue: number,
+  kpiType: "success_rate" | "drop_rate" | "stability"
+): "Critical" | "High" | "Medium" | "Low" => {
+  if (kpiType === "success_rate") {
+    if (kpiValue < 94) return "Critical";
+    if (kpiValue < 96) return "High";
+    if (kpiValue < 97) return "Medium";
+    return "Low";
+  }
+
+  if (kpiType === "drop_rate") {
+    if (kpiValue > 1) return "Critical";
+    if (kpiValue > 0.7) return "High";
+    if (kpiValue > 0.4) return "Medium";
+    return "Low";
+  }
+
+  if (kpiType === "stability") {
+    if (kpiValue < 96) return "Critical";
+    if (kpiValue < 97) return "High";
+    if (kpiValue < 98) return "Medium";
+    return "Low";
+  }
+
+  return "Low";
+};
