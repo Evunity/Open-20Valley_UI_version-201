@@ -156,7 +156,19 @@ interface VoiceBreakdown {
   call_stability: number;
   status: string;
   count: number;
+  priority?: "Critical" | "High" | "Medium" | "Low";
 }
+
+const calculatePriorityFromPerformance = (successRate: number, dropRate: number): "Critical" | "High" | "Medium" | "Low" => {
+  // Critical: success rate < 94% or drop rate > 1.5%
+  if (successRate < 94 || dropRate > 1.5) return "Critical";
+  // High: success rate 94-96% or drop rate 1-1.5%
+  if (successRate < 96 || dropRate > 1) return "High";
+  // Medium: success rate 96-98% or drop rate 0.5-1%
+  if (successRate < 98 || dropRate > 0.5) return "Medium";
+  // Low: success rate > 98% and drop rate < 0.5%
+  return "Low";
+};
 
 export const generateVoiceBreakdownByVendor = (filters: GlobalFilterState): VoiceBreakdown[] => {
   const vendors = ["Ericsson", "Huawei", "Nokia", "Samsung"];
