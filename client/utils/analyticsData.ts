@@ -105,12 +105,15 @@ export const generateVoiceTrendData = (filters: GlobalFilterState): VoiceTrendDa
   if (isHourly) {
     return Array.from({ length: 24 }, (_, i) => {
       const hour = String(i).padStart(2, "0");
+      const successRate = 97 + Math.random() * 2;
       return {
         time: `${hour}:00`,
         call_volume: Math.round((2100 + Math.random() * 800) * baseMultiplier),
-        call_success_rate: 97 + Math.random() * 2,
+        call_success_rate: successRate,
         drop_rate: 0.5 + Math.random() * 0.3,
         call_stability: 98 + Math.random() * 1.5,
+        crr: Math.max(85, successRate - Math.random() * 5),
+        call_continuity: 97 + Math.random() * 2,
         vqi: 8.5 + Math.random() * 1,
         vpi: 8.6 + Math.random() * 0.9,
         vsqi: 8.4 + Math.random() * 1.1,
@@ -129,12 +132,15 @@ export const generateVoiceTrendData = (filters: GlobalFilterState): VoiceTrendDa
         dateStr = date.toISOString().split("T")[0];
       }
 
+      const successRate = 97.2 + Math.random() * 2;
       return {
         time: dateStr,
         call_volume: Math.round((50000 + Math.random() * 10000) * baseMultiplier),
-        call_success_rate: 97.2 + Math.random() * 2,
+        call_success_rate: successRate,
         drop_rate: 0.5 + Math.random() * 0.35,
         call_stability: 98.1 + Math.random() * 1.5,
+        crr: Math.max(85, successRate - Math.random() * 5),
+        call_continuity: 97.5 + Math.random() * 2,
         vqi: 8.6 + Math.random() * 1,
         vpi: 8.7 + Math.random() * 0.9,
         vsqi: 8.5 + Math.random() * 1.1,
