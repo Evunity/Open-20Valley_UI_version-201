@@ -12,6 +12,8 @@ import ReportsPage from "@/pages/ReportsPage";
 import NetworkNew from "@/pages/NetworkNew";
 import IncidentsNew from "@/pages/IncidentsNew";
 import DetailPage from "@/pages/DetailPage";
+import VoiceAnalytics from "@/pages/VoiceAnalytics";
+import DataAnalytics from "@/pages/DataAnalytics";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +32,22 @@ export default function App() {
                 element={
                   <Layout>
                     <DashboardNew />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/voice-analytics"
+                element={
+                  <Layout>
+                    <VoiceAnalytics />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/data-analytics"
+                element={
+                  <Layout>
+                    <DataAnalytics />
                   </Layout>
                 }
               />
