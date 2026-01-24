@@ -126,7 +126,6 @@ export default function DualMonthCalendar({
   };
 
   const month1Days = renderMonthGrid(month1);
-  const month2Days = renderMonthGrid(month2);
 
   const monthName = (date: Date) =>
     date.toLocaleString("default", { month: "long", year: "numeric" });
