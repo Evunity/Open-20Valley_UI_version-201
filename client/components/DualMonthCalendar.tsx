@@ -143,14 +143,9 @@ export default function DualMonthCalendar({
           <ChevronLeft className="w-5 h-5" />
         </button>
 
-        <div className="flex gap-24 flex-1 justify-center">
-          <h3 className="font-bold text-base text-foreground min-w-40 text-center">
-            {monthName(month1)}
-          </h3>
-          <h3 className="font-bold text-base text-foreground min-w-40 text-center">
-            {monthName(month2)}
-          </h3>
-        </div>
+        <h3 className="font-bold text-base text-foreground flex-1 text-center">
+          {monthName(month1)}
+        </h3>
 
         <button
           onClick={handleNextMonth}
