@@ -11,6 +11,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import { ResponsiveContainer as ResponsiveContainerRecharts } from "recharts";
 import FilterPanel from "@/components/FilterPanel";
 import KPICard from "@/components/KPICard";
 import ExecutiveInsightSummary, { type InsightData } from "@/components/ExecutiveInsightSummary";
