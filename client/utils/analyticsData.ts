@@ -191,19 +191,24 @@ export const generateVoiceBreakdownByTechnology = (
   filters: GlobalFilterState
 ): VoiceBreakdown[] => {
   const techs = ["2G", "3G", "4G", "5G", "O-RAN"];
-  return techs.map((tech) => ({
-    name: tech,
-    call_success_rate: 95 + Math.random() * 4,
-    drop_rate: 0.3 + Math.random() * 0.5,
-    call_stability: 97 + Math.random() * 2.5,
-    status:
-      Math.random() > 0.4
-        ? "High quality"
-        : Math.random() > 0.5
-          ? "Acceptable"
-          : "Degraded",
-    count: Math.round(8000 + Math.random() * 4000),
-  }));
+  return techs.map((tech) => {
+    const successRate = 95 + Math.random() * 4;
+    const dropRate = 0.3 + Math.random() * 0.5;
+    return {
+      name: tech,
+      call_success_rate: successRate,
+      drop_rate: dropRate,
+      call_stability: 97 + Math.random() * 2.5,
+      status:
+        Math.random() > 0.4
+          ? "High quality"
+          : Math.random() > 0.5
+            ? "Acceptable"
+            : "Degraded",
+      count: Math.round(8000 + Math.random() * 4000),
+      priority: calculatePriorityFromPerformance(successRate, dropRate),
+    };
+  });
 };
 
 export const generateVoiceBreakdownByRegion = (
