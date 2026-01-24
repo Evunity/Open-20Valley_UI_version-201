@@ -302,6 +302,11 @@ export default function VoiceAnalytics() {
         insights={insights}
       />
 
+      {/* Degradation Insights */}
+      {degradationInsights.length > 0 && (
+        <DegradationInsights insights={degradationInsights} />
+      )}
+
       {/* Trend Charts */}
       <div className="space-y-6">
         <h2 className="text-2xl font-bold text-foreground">Performance Trends</h2>
