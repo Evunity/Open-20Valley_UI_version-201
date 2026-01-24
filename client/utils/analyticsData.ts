@@ -90,6 +90,8 @@ export interface VoiceTrendData {
   call_success_rate: number;
   drop_rate: number;
   call_stability: number;
+  crr: number; // Call Retainability Rate
+  call_continuity: number;
   vqi: number; // Voice Quality Index
   vpi: number; // Voice Performance Index
   vsqi: number; // Voice Stability Quality Index
