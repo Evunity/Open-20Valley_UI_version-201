@@ -1,6 +1,29 @@
 import type { GlobalFilterState } from "@/hooks/useGlobalFilters";
 import { getDaysDifference, isHourlyGranularity } from "./dashboardData";
 
+// Re-export InsightData type for use in components
+export type InsightData = {
+  overall: {
+    change: number;
+    status: "Improved" | "Degraded" | "No change";
+  };
+  byTechnology?: Array<{
+    name: string;
+    change: number;
+    status: "Improved" | "Degraded" | "No change";
+  }>;
+  byRegion?: Array<{
+    name: string;
+    change: number;
+    status: "Improved" | "Degraded" | "No change";
+  }>;
+  byVendor?: Array<{
+    name: string;
+    change: number;
+    status: "Improved" | "Degraded" | "No change";
+  }>;
+};
+
 /**
  * VOICE ANALYTICS DATA
  */
