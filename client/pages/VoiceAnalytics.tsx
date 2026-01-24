@@ -768,58 +768,6 @@ export default function VoiceAnalytics() {
           </div>
         ) : null
       )}
-
-      {/* Old Segmentation - High Quality */}
-      {vendorSegmented["High quality"] && vendorSegmented["High quality"].length > 0 && (
-        <div className="card-elevated rounded-xl border border-border/50 p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-3 h-3 rounded-full bg-status-healthy" />
-            <h3 className="text-lg font-bold text-foreground">High Quality Performers (Vendors)</h3>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {vendorSegmented["High quality"].map((vendor, idx) => (
-              <div
-                key={idx}
-                className="p-4 rounded-lg border border-status-healthy/20 bg-status-healthy/5"
-              >
-                <p className="font-semibold text-foreground">{vendor.name}</p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Success Rate: {vendor.call_success_rate.toFixed(2)}%
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Stability: {vendor.call_stability.toFixed(2)}%
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Segmentation - Degraded */}
-      {vendorSegmented["Degraded"] && vendorSegmented["Degraded"].length > 0 && (
-        <div className="card-elevated rounded-xl border border-border/50 p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-3 h-3 rounded-full bg-status-critical" />
-            <h3 className="text-lg font-bold text-foreground">Degraded Performers (Vendors)</h3>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {vendorSegmented["Degraded"].map((vendor, idx) => (
-              <div
-                key={idx}
-                className="p-4 rounded-lg border border-status-critical/20 bg-status-critical/5"
-              >
-                <p className="font-semibold text-foreground">{vendor.name}</p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Success Rate: {vendor.call_success_rate.toFixed(2)}%
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Stability: {vendor.call_stability.toFixed(2)}%
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
