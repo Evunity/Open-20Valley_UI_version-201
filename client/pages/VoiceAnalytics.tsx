@@ -1,6 +1,16 @@
 import { useMemo } from "react";
 import { Download } from "lucide-react";
 import * as XLSX from "xlsx";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 import FilterPanel from "@/components/FilterPanel";
 import KPICard from "@/components/KPICard";
 import ExecutiveInsightSummary, { type InsightData } from "@/components/ExecutiveInsightSummary";
