@@ -156,8 +156,8 @@ export default function DualMonthCalendar({
         </button>
       </div>
 
-      {/* Two Month Grid */}
-      <div className="grid grid-cols-2 gap-8 px-2">
+      {/* Month Grid */}
+      <div className="px-2">
         {/* Month 1 */}
         <div>
           <div className="grid grid-cols-7 gap-2 mb-3">
@@ -189,51 +189,6 @@ export default function DualMonthCalendar({
                         : isEndDate(new Date(month1.getFullYear(), month1.getMonth(), day))
                           ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2 hover:bg-primary/90"
                           : isInRange(new Date(month1.getFullYear(), month1.getMonth(), day))
-                            ? "bg-primary/25 text-foreground hover:bg-primary/35"
-                            : "text-foreground hover:bg-muted/50"
-                    )}
-                  >
-                    {day}
-                  </button>
-                ) : (
-                  <div />
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Month 2 */}
-        <div>
-          <div className="grid grid-cols-7 gap-2 mb-3">
-            {weekDays.map((day) => (
-              <div
-                key={`m2-${day}`}
-                className="w-10 h-10 flex items-center justify-center text-xs font-bold text-muted-foreground"
-              >
-                {day}
-              </div>
-            ))}
-          </div>
-          <div className="grid grid-cols-7 gap-2">
-            {month2Days.map((day, idx) => (
-              <div key={`m2-day-${idx}`} className="w-10 h-10">
-                {day ? (
-                  <button
-                    onClick={() =>
-                      handleDateClick(new Date(month2.getFullYear(), month2.getMonth(), day))
-                    }
-                    disabled={isDisabled(new Date(month2.getFullYear(), month2.getMonth(), day))}
-                    className={cn(
-                      "w-full h-full rounded-lg text-sm font-semibold transition-all duration-150",
-                      isDisabled(new Date(month2.getFullYear(), month2.getMonth(), day))
-                        ? "text-muted-foreground/40 cursor-not-allowed"
-                        : "cursor-pointer",
-                      isStartDate(new Date(month2.getFullYear(), month2.getMonth(), day))
-                        ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2 hover:bg-primary/90"
-                        : isEndDate(new Date(month2.getFullYear(), month2.getMonth(), day))
-                          ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2 hover:bg-primary/90"
-                          : isInRange(new Date(month2.getFullYear(), month2.getMonth(), day))
                             ? "bg-primary/25 text-foreground hover:bg-primary/35"
                             : "text-foreground hover:bg-muted/50"
                     )}
