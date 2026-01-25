@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { useGlobalFilters, type GlobalFilterState } from "@/hooks/useGlobalFilters";
 import { useToast } from "@/hooks/use-toast";
 import DualMonthCalendar from "@/components/DualMonthCalendar";
+import SearchableDropdown from "@/components/SearchableDropdown";
 import { getDaysDifference } from "@/utils/dashboardData";
 
 interface FilterPanelProps {
