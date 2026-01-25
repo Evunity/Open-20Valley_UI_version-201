@@ -70,6 +70,11 @@ export default function DataAnalytics() {
     return trendData.reduce((sum, d) => sum + d.avg_latency, 0) / trendData.length;
   }, [trendData]);
 
+  // Generate heatmap data
+  const timeRegionHeatmap = useMemo(() => generateTimeRegionHeatmap(), []);
+  const techCapacityHeatmap = useMemo(() => generateTechCapacityHeatmap(), []);
+  const hourlyUtilizationHeatmap = useMemo(() => generateHourlyUtilizationHeatmap(), []);
+
   // Generate insights
   const insights = useMemo(() => {
     const today = new Date();
