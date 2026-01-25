@@ -193,7 +193,24 @@ export default function DataAnalytics() {
     ws5["!cols"] = [{ wch: 15 }, { wch: 15 }, { wch: 12 }, { wch: 12 }, { wch: 15 }, { wch: 10 }];
     XLSX.utils.book_append_sheet(wb, ws5, "Region Breakdown");
 
-    // Sheet 6: Applied Filters
+    // Sheet 6: Cluster Breakdown
+    const clusterData = [
+      ["Cluster", "Success Rate", "Drop Rate", "Stability", "Status", "Volume"],
+      ...clusterBreakdown.map((c) => [
+        c.name,
+        c.call_success_rate.toFixed(2),
+        c.drop_rate.toFixed(2),
+        c.call_stability.toFixed(2),
+        c.status,
+        c.count,
+      ]),
+    ];
+
+    const ws6 = XLSX.utils.aoa_to_sheet(clusterData);
+    ws6["!cols"] = [{ wch: 15 }, { wch: 15 }, { wch: 12 }, { wch: 12 }, { wch: 15 }, { wch: 10 }];
+    XLSX.utils.book_append_sheet(wb, ws6, "Cluster Breakdown");
+
+    // Sheet 7: Applied Filters
     const filtersData = [
       ["Filter Type", "Values"],
       ["Vendors", filters.vendors.join(", ") || "All"],
