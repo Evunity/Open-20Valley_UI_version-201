@@ -114,10 +114,15 @@ export default function DegradationInsights({ insights }: DegradationInsightsPro
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between gap-4 mb-2">
                 <div className="flex-1">
-                  <h3 className={cn("text-sm font-semibold", getSeverityTextColor(insight.severity))}>
-                    {insight.title}
-                  </h3>
-                  <p className="text-sm text-muted-foreground mt-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className={cn("text-sm font-semibold", getSeverityTextColor(insight.severity))}>
+                      {insight.title}
+                    </h3>
+                    <span className="inline-flex px-2 py-0.5 rounded text-xs font-medium bg-muted text-muted-foreground">
+                      {getTypeLabel(insight.type)}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-2">
                     {insight.description}
                   </p>
                 </div>
