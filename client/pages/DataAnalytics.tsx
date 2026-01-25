@@ -225,9 +225,9 @@ export default function DataAnalytics() {
       ],
     ];
 
-    const ws6 = XLSX.utils.aoa_to_sheet(filtersData);
-    ws6["!cols"] = [{ wch: 20 }, { wch: 40 }];
-    XLSX.utils.book_append_sheet(wb, ws6, "Applied Filters");
+    const ws7 = XLSX.utils.aoa_to_sheet(filtersData);
+    ws7["!cols"] = [{ wch: 20 }, { wch: 40 }];
+    XLSX.utils.book_append_sheet(wb, ws7, "Applied Filters");
 
     const dateStr = new Date().toISOString().split("T")[0];
     XLSX.writeFile(wb, `Data_Analytics_${dateStr}.xlsx`);
