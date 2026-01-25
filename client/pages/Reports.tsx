@@ -30,6 +30,20 @@ export default function Reports() {
     reportType: [],
     timeRange: "30d",
   });
+
+  // Generate vendor metrics for comparison
+  const vendorMetrics = useMemo(() => {
+    const vendors = ["Ericsson", "Huawei", "Nokia", "Samsung", "Cisco"];
+    return vendors.map((vendor) => ({
+      name: vendor,
+      successRate: 98.2 + Math.random() * 1.5 - (vendors.indexOf(vendor) * 0.3),
+      dropRate: 1.8 - Math.random() * 0.5 + (vendors.indexOf(vendor) * 0.2),
+      stability: 97.5 + Math.random() * 1.8 - (vendors.indexOf(vendor) * 0.25),
+      volume: Math.floor(5000 + Math.random() * 5000),
+      status: (98.2 + Math.random() * 1.5) > 97 ? "healthy" : "degraded" as const,
+    }));
+  }, []);
+
   // Mock data
   const stabilityData = [
     { month: "Jan", uptime: 97.8, incidents: 24 },
