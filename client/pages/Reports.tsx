@@ -156,6 +156,7 @@ export default function Reports() {
                 <option value="incidents">Incidents</option>
                 <option value="automation">Automation</option>
                 <option value="costs">Cost Analysis</option>
+                <option value="vendors">Vendor Comparison</option>
               </select>
             </div>
             <div>
