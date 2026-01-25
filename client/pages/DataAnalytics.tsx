@@ -194,9 +194,9 @@ export default function DataAnalytics() {
       ],
     ];
 
-    const ws5 = XLSX.utils.aoa_to_sheet(filtersData);
-    ws5["!cols"] = [{ wch: 20 }, { wch: 40 }];
-    XLSX.utils.book_append_sheet(wb, ws5, "Applied Filters");
+    const ws6 = XLSX.utils.aoa_to_sheet(filtersData);
+    ws6["!cols"] = [{ wch: 20 }, { wch: 40 }];
+    XLSX.utils.book_append_sheet(wb, ws6, "Applied Filters");
 
     const dateStr = new Date().toISOString().split("T")[0];
     XLSX.writeFile(wb, `Data_Analytics_${dateStr}.xlsx`);
