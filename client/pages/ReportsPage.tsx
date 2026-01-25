@@ -194,6 +194,15 @@ export default function ReportsPage() {
 
   return (
     <div className="space-y-6 pb-4">
+      {/* Breadcrumb Navigation */}
+      <div className="flex items-center gap-2 text-sm">
+        <Link to="/" className="text-primary hover:text-primary/80 transition-colors font-medium">
+          Dashboard
+        </Link>
+        <span className="text-muted-foreground">/</span>
+        <span className="text-muted-foreground">Reports</span>
+      </div>
+
       {/* Header */}
       <div className="space-y-2">
         <h1 className="text-3xl font-bold text-foreground">Reports</h1>
