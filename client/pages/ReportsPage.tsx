@@ -71,6 +71,18 @@ export default function ReportsPage() {
         }),
       };
 
+      // Generate vendor comparison data if multiple vendors selected
+      const vendorComparisonData =
+        filters.vendors.length > 1
+          ? filters.vendors.map((vendor) => ({
+              vendor,
+              successRate: (98.2 + Math.random() * 1.5).toFixed(2),
+              dropRate: (1.8 - Math.random() * 0.5).toFixed(2),
+              stability: (97.5 + Math.random() * 1.8).toFixed(2),
+              volume: Math.floor(5000 + Math.random() * 5000),
+            }))
+          : [];
+
       // Create CSV content
       const csvContent = [
         ["Network Operations Report"],
@@ -86,12 +98,31 @@ export default function ReportsPage() {
         ["KEY PERFORMANCE INDICATORS"],
         ["KPI", "Value", "Trend", "Change"],
         ...reportData.kpis.map((kpi) => [kpi.name, kpi.value, kpi.trend, kpi.change]),
-      ]
+      ];
+
+      // Add vendor comparison section if applicable
+      if (vendorComparisonData.length > 0) {
+        csvContent.push([]);
+        csvContent.push(["MULTI-VENDOR COMPARISON"]);
+        csvContent.push([
+          "Vendor",
+          "Success Rate (%)",
+          "Drop Rate (%)",
+          "Stability (%)",
+          "Volume",
+        ]);
+        vendorComparisonData.forEach((v) => {
+          csvContent.push([v.vendor, v.successRate, v.dropRate, v.stability, v.volume]);
+        });
+      }
+
+      // Convert to CSV format
+      const csvString = csvContent
         .map((row) => row.map((cell) => `"${cell}"`).join(","))
         .join("\n");
 
       // Create blob and download
-      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
       const link = document.createElement("a");
       const url = URL.createObjectURL(blob);
 
@@ -105,7 +136,9 @@ export default function ReportsPage() {
 
       toast({
         title: "Report generated successfully",
-        description: `Downloaded CSV with ${selectedKPIs.length} KPI(s)`,
+        description: `Downloaded CSV with ${selectedKPIs.length} KPI(s)${
+          vendorComparisonData.length > 0 ? " + vendor comparison" : ""
+        }`,
       });
     } catch (error) {
       toast({
