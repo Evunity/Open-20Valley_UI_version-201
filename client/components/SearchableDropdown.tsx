@@ -59,11 +59,19 @@ export default function SearchableDropdown({
         {label}
       </label>
 
-      {/* Main button */}
-      <button
+      {/* Main dropdown trigger */}
+      <div
         onClick={() => setIsOpen(!isOpen)}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setIsOpen(!isOpen);
+          }
+        }}
         className={cn(
-          "w-full px-3 py-2 rounded-lg border transition-all flex items-center justify-between",
+          "w-full px-3 py-2 rounded-lg border transition-all flex items-center justify-between cursor-pointer",
           isOpen
             ? "border-primary bg-primary/5 ring-2 ring-primary/50"
             : "border-border bg-background hover:border-primary/50"
@@ -73,7 +81,7 @@ export default function SearchableDropdown({
           {selected.length > 0 ? (
             <div className="flex items-center gap-1 flex-wrap">
               {selected.map((item) => (
-                <span
+                <div
                   key={item}
                   className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary/10 text-primary text-xs font-medium"
                 >
@@ -83,11 +91,13 @@ export default function SearchableDropdown({
                       e.stopPropagation();
                       removeOption(item);
                     }}
-                    className="hover:opacity-70 transition-opacity"
+                    className="hover:opacity-70 transition-opacity flex-shrink-0 p-0 w-3 h-3"
+                    type="button"
+                    aria-label={`Remove ${item}`}
                   >
                     <X className="w-3 h-3" />
                   </button>
-                </span>
+                </div>
               ))}
             </div>
           ) : (
@@ -102,7 +112,7 @@ export default function SearchableDropdown({
             isOpen && "transform rotate-180"
           )}
         />
-      </button>
+      </div>
 
       {/* Dropdown menu */}
       {isOpen && (
