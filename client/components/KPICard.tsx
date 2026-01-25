@@ -96,15 +96,17 @@ export default function KPICard({
         {priority && (
           <span
             className={cn(
-              "text-xs font-semibold px-2 py-1 rounded whitespace-nowrap",
+              "text-xs font-bold px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-sm",
               priority === "Critical"
-                ? "bg-status-critical/20 text-status-critical"
+                ? "bg-status-critical text-white"
                 : priority === "High"
-                  ? "bg-status-degraded/20 text-status-degraded"
-                  : "bg-muted text-foreground"
+                  ? "bg-status-degraded text-white"
+                  : priority === "Medium"
+                    ? "bg-yellow-500 text-white"
+                    : "bg-status-healthy text-white"
             )}
           >
-            {priority}
+            {priority} Priority
           </span>
         )}
       </div>
