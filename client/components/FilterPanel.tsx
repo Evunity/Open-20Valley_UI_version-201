@@ -123,7 +123,8 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
           {filters.technologies.map((t) => (
             <div
               key={`tech-${t}`}
-              className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium"
+              className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm font-medium"
+              title={describeMixedTechnologies([t])}
             >
               {t}
               <button
