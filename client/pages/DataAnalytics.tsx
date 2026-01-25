@@ -539,7 +539,10 @@ export default function DataAnalytics() {
 
       {/* Capacity & Congestion Indicators */}
       <div className="space-y-6">
-        <h2 className="text-2xl font-bold text-foreground">Capacity & Congestion</h2>
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">Capacity & Congestion</h2>
+          <p className="text-sm text-muted-foreground mt-2">Stress levels, bottlenecks, and utilization hotspots</p>
+        </div>
 
         {/* Peak vs Off-Peak Comparison */}
         <div className="card-elevated rounded-xl border border-border/50 p-6">
