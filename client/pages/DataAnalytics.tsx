@@ -919,7 +919,14 @@ export default function DataAnalytics() {
 
         {/* By Region */}
         <div className="card-elevated rounded-xl border border-border/50 p-6">
-          <h3 className="text-lg font-bold text-foreground mb-4">By Region</h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-foreground">By Region</h3>
+            {filters.regions.length > 0 && (
+              <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 font-medium">
+                {filters.regions.length} region{filters.regions.length !== 1 ? 's' : ''} selected
+              </span>
+            )}
+          </div>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart
               data={regionBreakdown}
