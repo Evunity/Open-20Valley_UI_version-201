@@ -64,6 +64,20 @@ npm run preview
 └── package.json             # Dependencies and scripts
 ```
 
+## 📦 Package Manager
+
+**This project uses npm exclusively.** Do not use yarn or pnpm with this project. This ensures compatibility with DigitalOcean App Platform and prevents build conflicts.
+
+If you accidentally created `yarn.lock` or `pnpm-lock.yaml`:
+```bash
+# Remove conflicting lock files
+rm yarn.lock pnpm-lock.yaml
+
+# Reinstall with npm only
+rm -rf node_modules
+npm install
+```
+
 ## 🛠 Technology Stack
 
 - **React 18** - UI library
