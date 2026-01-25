@@ -115,7 +115,7 @@ export default function VendorComparison({
                     <span className="font-semibold">Mixed Environment:</span>{" "}
                     {selectedTechnologies.length > 0 && (
                       <>
-                        Technologies: {selectedTechnologies.join(", ")}
+                        Technologies: {describeMixedTechnologies(selectedTechnologies)}
                         {selectedRegions.length > 0 && " | "}
                       </>
                     )}
@@ -126,7 +126,7 @@ export default function VendorComparison({
                     {selectedTechnologies.length > 0 && (
                       <>
                         <span className="font-semibold">Technology:</span>{" "}
-                        {selectedTechnologies.join(", ")}
+                        {describeMixedTechnologies(selectedTechnologies)}
                         {selectedRegions.length > 0 && " | "}
                       </>
                     )}
