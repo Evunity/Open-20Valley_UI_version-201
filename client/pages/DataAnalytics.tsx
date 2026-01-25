@@ -48,6 +48,7 @@ export default function DataAnalytics() {
   const vendorBreakdown = useMemo(() => generateDataBreakdownByVendor(filters), [filters]);
   const techBreakdown = useMemo(() => generateDataBreakdownByTechnology(filters), [filters]);
   const regionBreakdown = useMemo(() => generateDataBreakdownByRegion(filters), [filters]);
+  const clusterBreakdown = useMemo(() => generateDataBreakdownByCluster(filters), [filters]);
 
   // Segment data
   const vendorSegmented = useMemo(() => segmentDataPerformance(vendorBreakdown), [vendorBreakdown]);
