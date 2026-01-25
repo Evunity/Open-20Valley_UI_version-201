@@ -216,6 +216,17 @@ export default function Reports() {
         </div>
       </div>
 
+      {/* Vendor Comparison Section - Only show when vendor filter is applied */}
+      {filters.reportType.includes("vendors") && (
+        <VendorComparison
+          vendors={vendorMetrics}
+          title="Vendor Performance Comparison Report"
+          showRanking={true}
+          selectedRegions={filters.regions}
+          isMixedEnvironment={false}
+        />
+      )}
+
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Stability Trend */}
