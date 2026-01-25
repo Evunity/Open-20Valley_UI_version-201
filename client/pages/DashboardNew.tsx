@@ -19,6 +19,7 @@ import {
 import FilterPanel from "@/components/FilterPanel";
 import SearchableKPISelect from "@/components/SearchableKPISelect";
 import AnalyticsSections from "@/components/AnalyticsSections";
+import VendorComparison from "@/components/VendorComparison";
 import { useGlobalFilters } from "@/hooks/useGlobalFilters";
 import { useToast } from "@/hooks/use-toast";
 import { AVAILABLE_KPIS, getKPIById } from "@/constants/kpis";
