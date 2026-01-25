@@ -922,6 +922,236 @@ export default function DataAnalytics() {
         </div>
       </div>
 
+      {/* Data Insights Section */}
+      {dataInsights.length > 0 && (
+        <div className="space-y-6">
+          <h2 className="text-2xl font-bold text-foreground">Data Insights</h2>
+          <div className="space-y-3">
+            {dataInsights.map((insight) => {
+              const severityColor =
+                insight.severity === "Critical" ? "bg-red-50 border-red-200" :
+                insight.severity === "High" ? "bg-orange-50 border-orange-200" :
+                "bg-yellow-50 border-yellow-200";
+
+              const severityBadgeColor =
+                insight.severity === "Critical" ? "bg-red-200 text-red-800" :
+                insight.severity === "High" ? "bg-orange-200 text-orange-800" :
+                "bg-yellow-200 text-yellow-800";
+
+              return (
+                <div key={insight.id} className={cn("p-4 rounded-lg border", severityColor)}>
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex-1">
+                      <p className="font-semibold text-foreground">{insight.title}</p>
+                      <p className="text-sm text-muted-foreground mt-1">{insight.description}</p>
+                    </div>
+                    <span className={cn("px-2 py-1 rounded text-xs font-semibold flex-shrink-0 ml-3", severityBadgeColor)}>
+                      {insight.severity}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(insight.timestamp).toLocaleTimeString()}
+                    </span>
+                    {insight.affectedFilters.length > 0 && (
+                      <div className="flex items-center gap-1 flex-wrap">
+                        <span className="text-xs text-muted-foreground">Affected:</span>
+                        {insight.affectedFilters.map((filter, idx) => (
+                          <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs">
+                            {filter}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Segmentation & Grouping Section */}
+      <div className="space-y-6">
+        <h2 className="text-2xl font-bold text-foreground">Segmentation & Grouping</h2>
+
+        {/* Vendor Segmentation */}
+        <div className="grid grid-cols-1 gap-6">
+          {Object.entries(vendorSegmented).map(([segment, vendors]) =>
+            vendors.length > 0 ? (
+              <div key={segment} className="card-elevated rounded-xl border border-border/50 p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className={cn(
+                    "w-3 h-3 rounded-full",
+                    segment === "High performance" ? "bg-green-500" :
+                    segment === "Balanced" ? "bg-blue-500" :
+                    segment === "Congested" ? "bg-orange-500" :
+                    "bg-red-500"
+                  )} />
+                  <h3 className="text-lg font-bold text-foreground">{segment} - Vendors</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {vendors.map((vendor, idx) => (
+                    <div key={idx} className={cn(
+                      "p-4 rounded-lg border",
+                      segment === "High performance" ? "bg-green-50 border-green-200" :
+                      segment === "Balanced" ? "bg-blue-50 border-blue-200" :
+                      segment === "Congested" ? "bg-orange-50 border-orange-200" :
+                      "bg-red-50 border-red-200"
+                    )}>
+                      <p className="font-semibold text-foreground">{vendor.name}</p>
+                      <div className="space-y-1 mt-2 text-xs">
+                        <p className="text-muted-foreground">
+                          Success Rate: <span className="font-semibold text-foreground">{vendor.call_success_rate.toFixed(2)}%</span>
+                        </p>
+                        <p className="text-muted-foreground">
+                          Stability: <span className="font-semibold text-foreground">{vendor.call_stability.toFixed(2)}%</span>
+                        </p>
+                        <p className="text-muted-foreground">
+                          Sessions: <span className="font-semibold text-foreground">{vendor.count.toLocaleString()}</span>
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null
+          )}
+        </div>
+
+        {/* Technology Segmentation */}
+        <div className="grid grid-cols-1 gap-6">
+          {Object.entries(techSegmented).map(([segment, techs]) =>
+            techs.length > 0 ? (
+              <div key={segment} className="card-elevated rounded-xl border border-border/50 p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className={cn(
+                    "w-3 h-3 rounded-full",
+                    segment === "High performance" ? "bg-green-500" :
+                    segment === "Balanced" ? "bg-blue-500" :
+                    segment === "Congested" ? "bg-orange-500" :
+                    "bg-red-500"
+                  )} />
+                  <h3 className="text-lg font-bold text-foreground">{segment} - Technologies</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {techs.map((tech, idx) => (
+                    <div key={idx} className={cn(
+                      "p-4 rounded-lg border",
+                      segment === "High performance" ? "bg-green-50 border-green-200" :
+                      segment === "Balanced" ? "bg-blue-50 border-blue-200" :
+                      segment === "Congested" ? "bg-orange-50 border-orange-200" :
+                      "bg-red-50 border-red-200"
+                    )}>
+                      <p className="font-semibold text-foreground">{tech.name}</p>
+                      <div className="space-y-1 mt-2 text-xs">
+                        <p className="text-muted-foreground">
+                          Success Rate: <span className="font-semibold text-foreground">{tech.call_success_rate.toFixed(2)}%</span>
+                        </p>
+                        <p className="text-muted-foreground">
+                          Stability: <span className="font-semibold text-foreground">{tech.call_stability.toFixed(2)}%</span>
+                        </p>
+                        <p className="text-muted-foreground">
+                          Sessions: <span className="font-semibold text-foreground">{tech.count.toLocaleString()}</span>
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null
+          )}
+        </div>
+
+        {/* Region Segmentation */}
+        <div className="grid grid-cols-1 gap-6">
+          {Object.entries(regionSegmented).map(([segment, regions]) =>
+            regions.length > 0 ? (
+              <div key={segment} className="card-elevated rounded-xl border border-border/50 p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className={cn(
+                    "w-3 h-3 rounded-full",
+                    segment === "High performance" ? "bg-green-500" :
+                    segment === "Balanced" ? "bg-blue-500" :
+                    segment === "Congested" ? "bg-orange-500" :
+                    "bg-red-500"
+                  )} />
+                  <h3 className="text-lg font-bold text-foreground">{segment} - Regions</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {regions.map((region, idx) => (
+                    <div key={idx} className={cn(
+                      "p-4 rounded-lg border",
+                      segment === "High performance" ? "bg-green-50 border-green-200" :
+                      segment === "Balanced" ? "bg-blue-50 border-blue-200" :
+                      segment === "Congested" ? "bg-orange-50 border-orange-200" :
+                      "bg-red-50 border-red-200"
+                    )}>
+                      <p className="font-semibold text-foreground">{region.name}</p>
+                      <div className="space-y-1 mt-2 text-xs">
+                        <p className="text-muted-foreground">
+                          Success Rate: <span className="font-semibold text-foreground">{region.call_success_rate.toFixed(2)}%</span>
+                        </p>
+                        <p className="text-muted-foreground">
+                          Stability: <span className="font-semibold text-foreground">{region.call_stability.toFixed(2)}%</span>
+                        </p>
+                        <p className="text-muted-foreground">
+                          Sessions: <span className="font-semibold text-foreground">{region.count.toLocaleString()}</span>
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null
+          )}
+        </div>
+
+        {/* Cluster Segmentation */}
+        <div className="grid grid-cols-1 gap-6">
+          {Object.entries(clusterSegmented).map(([segment, clusters]) =>
+            clusters.length > 0 ? (
+              <div key={segment} className="card-elevated rounded-xl border border-border/50 p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className={cn(
+                    "w-3 h-3 rounded-full",
+                    segment === "High performance" ? "bg-green-500" :
+                    segment === "Balanced" ? "bg-blue-500" :
+                    segment === "Congested" ? "bg-orange-500" :
+                    "bg-red-500"
+                  )} />
+                  <h3 className="text-lg font-bold text-foreground">{segment} - Clusters</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {clusters.map((cluster, idx) => (
+                    <div key={idx} className={cn(
+                      "p-4 rounded-lg border",
+                      segment === "High performance" ? "bg-green-50 border-green-200" :
+                      segment === "Balanced" ? "bg-blue-50 border-blue-200" :
+                      segment === "Congested" ? "bg-orange-50 border-orange-200" :
+                      "bg-red-50 border-red-200"
+                    )}>
+                      <p className="font-semibold text-foreground">{cluster.name}</p>
+                      <div className="space-y-1 mt-2 text-xs">
+                        <p className="text-muted-foreground">
+                          Success Rate: <span className="font-semibold text-foreground">{cluster.call_success_rate.toFixed(2)}%</span>
+                        </p>
+                        <p className="text-muted-foreground">
+                          Stability: <span className="font-semibold text-foreground">{cluster.call_stability.toFixed(2)}%</span>
+                        </p>
+                        <p className="text-muted-foreground">
+                          Sessions: <span className="font-semibold text-foreground">{cluster.count.toLocaleString()}</span>
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null
+          )}
+        </div>
+      </div>
+
       {/* Data Performance Breakdown Details - Tables */}
       <div className="space-y-6">
         <h2 className="text-2xl font-bold text-foreground">Data Performance Breakdown</h2>
