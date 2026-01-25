@@ -1091,20 +1091,32 @@ export default function DataAnalytics() {
       <div className="space-y-6">
         <h2 className="text-2xl font-bold text-foreground">Segmentation & Grouping</h2>
 
+        {/* Segmentation Info */}
+        <div className="p-4 rounded-lg bg-muted/30 border border-border/50">
+          <p className="text-sm text-foreground">
+            <span className="font-semibold">Performance Categories:</span> Entities are grouped into performance tiers to help identify high-performing, balanced, congested, and underperforming vendors/technologies/regions. Use these insights to compare performance across different dimensions and identify areas needing attention.
+          </p>
+        </div>
+
         {/* Vendor Segmentation */}
         <div className="grid grid-cols-1 gap-6">
           {Object.entries(vendorSegmented).map(([segment, vendors]) =>
             vendors.length > 0 ? (
               <div key={segment} className="card-elevated rounded-xl border border-border/50 p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className={cn(
-                    "w-3 h-3 rounded-full",
-                    segment === "High performance" ? "bg-green-500" :
-                    segment === "Balanced" ? "bg-blue-500" :
-                    segment === "Congested" ? "bg-orange-500" :
-                    "bg-red-500"
-                  )} />
-                  <h3 className="text-lg font-bold text-foreground">{segment} - Vendors</h3>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className={cn(
+                      "w-3 h-3 rounded-full",
+                      segment === "High performance" ? "bg-green-500" :
+                      segment === "Balanced" ? "bg-blue-500" :
+                      segment === "Congested" ? "bg-orange-500" :
+                      "bg-red-500"
+                    )} />
+                    <h3 className="text-lg font-bold text-foreground">{segment} - Vendors</h3>
+                  </div>
+                  <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium">
+                    {vendors.length} vendor{vendors.length !== 1 ? 's' : ''}
+                  </span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {vendors.map((vendor, idx) => (
