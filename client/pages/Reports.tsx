@@ -13,8 +13,9 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { Filter } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
+import VendorComparison from "@/components/VendorComparison";
 
 interface FilterState {
   regions: string[];
