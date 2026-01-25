@@ -54,6 +54,18 @@ export default function DataAnalytics() {
   const vendorSegmented = useMemo(() => segmentDataPerformance(vendorBreakdown), [vendorBreakdown]);
   const techSegmented = useMemo(() => segmentDataPerformance(techBreakdown), [techBreakdown]);
   const regionSegmented = useMemo(() => segmentDataPerformance(regionBreakdown), [regionBreakdown]);
+  const clusterSegmented = useMemo(() => segmentDataPerformance(clusterBreakdown), [clusterBreakdown]);
+
+  // Calculate average speed and latency for display in tables
+  const avgSpeed = useMemo(() => {
+    if (trendData.length === 0) return 87;
+    return trendData.reduce((sum, d) => sum + d.avg_speed, 0) / trendData.length;
+  }, [trendData]);
+
+  const avgLatency = useMemo(() => {
+    if (trendData.length === 0) return 38;
+    return trendData.reduce((sum, d) => sum + d.avg_latency, 0) / trendData.length;
+  }, [trendData]);
 
   // Generate insights
   const insights = useMemo(() => {
