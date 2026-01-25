@@ -1112,7 +1112,10 @@ export default function DataAnalytics() {
 
       {/* Segmentation & Grouping Section */}
       <div className="space-y-6">
-        <h2 className="text-2xl font-bold text-foreground">Segmentation & Grouping</h2>
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">Segmentation & Grouping</h2>
+          <p className="text-sm text-muted-foreground mt-2">Performance categories: high performers, balanced, congested, and at-risk</p>
+        </div>
 
         {/* Segmentation Info */}
         <div className="p-4 rounded-lg bg-muted/30 border border-border/50">
