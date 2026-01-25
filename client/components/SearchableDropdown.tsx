@@ -71,12 +71,18 @@ export default function SearchableDropdown({
           }
         }}
         className={cn(
-          "w-full px-3 py-2 rounded-lg border transition-all flex items-center justify-between cursor-pointer",
+          "w-full px-3 py-2 rounded-lg border transition-all flex items-center justify-between cursor-pointer relative",
           isOpen
             ? "border-primary bg-primary/5 ring-2 ring-primary/50"
             : "border-border bg-background hover:border-primary/50"
         )}
       >
+        {/* Selection count badge for multi-select */}
+        {selected.length > 1 && !isOpen && (
+          <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-md">
+            {selected.length}
+          </div>
+        )}
         <div className="flex items-center gap-2 flex-wrap">
           {selected.length > 0 ? (
             <div className="flex items-center gap-1 flex-wrap">
