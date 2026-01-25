@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import DualMonthCalendar from "@/components/DualMonthCalendar";
 import SearchableDropdown from "@/components/SearchableDropdown";
 import { getDaysDifference } from "@/utils/dashboardData";
+import { describeMixedTechnologies } from "@/utils/technologyLabels";
 
 interface FilterPanelProps {
   onFiltersChange?: (filters: GlobalFilterState) => void;
