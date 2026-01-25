@@ -17,6 +17,7 @@ import ExecutiveInsightSummary, { type InsightData } from "@/components/Executiv
 import VoicePerformanceTable from "@/components/VoicePerformanceTable";
 import DegradationInsights from "@/components/DegradationInsights";
 import TrendChartContainer from "@/components/TrendChartContainer";
+import SegmentationSummary from "@/components/SegmentationSummary";
 import { useGlobalFilters } from "@/hooks/useGlobalFilters";
 import { useToast } from "@/hooks/use-toast";
 import {
