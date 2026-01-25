@@ -160,15 +160,28 @@ export interface VoiceBreakdown {
 export const generateVoiceBreakdownByVendor = (
   filters: GlobalFilterState
 ): VoiceBreakdown[] => {
-  const vendors = ["Ericsson", "Huawei", "Nokia", "Samsung"];
+  const allVendors = ["Ericsson", "Huawei", "Nokia", "Samsung"];
+  // Filter vendors based on active filters
+  const vendors = filters.vendors.length > 0 ? filters.vendors : allVendors;
+
   return vendors.map((vendor) => {
-    const successRate = 96.5 + Math.random() * 3;
-    const dropRate = 0.35 + Math.random() * 0.4;
+    // Apply technology filter to affect metrics if mixed environment
+    let performanceAdjustment = 0;
+    if (filters.technologies.length > 0) {
+      // Older technologies have worse performance
+      if (filters.technologies.includes("2G")) performanceAdjustment -= 2;
+      if (filters.technologies.includes("3G")) performanceAdjustment -= 1;
+      if (filters.technologies.includes("5G")) performanceAdjustment += 1;
+    }
+
+    const successRate = Math.max(90, 96.5 + Math.random() * 3 + performanceAdjustment);
+    const dropRate = Math.max(0.1, 0.35 + Math.random() * 0.4 - performanceAdjustment * 0.1);
+
     return {
       name: vendor,
       call_success_rate: successRate,
       drop_rate: dropRate,
-      call_stability: 97.8 + Math.random() * 1.8,
+      call_stability: 97.8 + Math.random() * 1.8 + performanceAdjustment * 0.5,
       status:
         Math.random() > 0.3
           ? "High quality"
