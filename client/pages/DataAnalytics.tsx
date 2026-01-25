@@ -76,6 +76,9 @@ export default function DataAnalytics() {
   const techCapacityHeatmap = useMemo(() => generateTechCapacityHeatmap(), []);
   const hourlyUtilizationHeatmap = useMemo(() => generateHourlyUtilizationHeatmap(), []);
 
+  // Generate data insights
+  const dataInsights = useMemo(() => generateDataInsights(trendData, filters), [trendData, filters]);
+
   // Generate insights
   const insights = useMemo(() => {
     const today = new Date();
