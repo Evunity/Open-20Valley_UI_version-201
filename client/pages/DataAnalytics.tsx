@@ -1323,7 +1323,10 @@ export default function DataAnalytics() {
 
       {/* Data Performance Breakdown Details - Tables */}
       <div className="space-y-6">
-        <h2 className="text-2xl font-bold text-foreground">Data Performance Breakdown</h2>
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">Data Performance Breakdown</h2>
+          <p className="text-sm text-muted-foreground mt-2">Detailed metrics by dimension (vendor, technology, region, cluster)</p>
+        </div>
 
         {/* Vendor Breakdown Table */}
         <div className="card-elevated rounded-xl border border-border/50 p-6 overflow-x-auto">
