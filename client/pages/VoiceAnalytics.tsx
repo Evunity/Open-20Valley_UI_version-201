@@ -263,6 +263,15 @@ export default function VoiceAnalytics() {
 
   return (
     <div className="space-y-8 pb-6">
+      {/* Breadcrumb Navigation */}
+      <div className="flex items-center gap-2 text-sm">
+        <a href="/" className="text-primary hover:text-primary/80 transition-colors cursor-pointer font-medium">
+          Dashboard
+        </a>
+        <span className="text-muted-foreground">/</span>
+        <span className="text-muted-foreground">Voice Analytics</span>
+      </div>
+
       {/* Header */}
       <div className="space-y-6">
         <div className="flex items-center justify-between gap-4 flex-wrap">
