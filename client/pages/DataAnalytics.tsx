@@ -852,7 +852,10 @@ export default function DataAnalytics() {
 
       {/* Performance Breakdown */}
       <div className="space-y-6">
-        <h2 className="text-2xl font-bold text-foreground">Performance Breakdown</h2>
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">Performance Breakdown</h2>
+          <p className="text-sm text-muted-foreground mt-2">Compare performance across vendors, technologies, and regions</p>
+        </div>
 
         {/* Filter Context Info */}
         {(filters.technologies.length > 0 || filters.regions.length > 0) && (
