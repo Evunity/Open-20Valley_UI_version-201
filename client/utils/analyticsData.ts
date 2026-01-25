@@ -105,18 +105,17 @@ export const generateVoiceTrendData = (filters: GlobalFilterState): VoiceTrendDa
   if (isHourly) {
     return Array.from({ length: 24 }, (_, i) => {
       const hour = String(i).padStart(2, "0");
-      const successRate = 97 + Math.random() * 2;
       return {
         time: `${hour}:00`,
-        call_volume: Math.round((2100 + Math.random() * 800) * baseMultiplier),
-        call_success_rate: successRate,
-        drop_rate: 0.5 + Math.random() * 0.3,
-        call_stability: 98 + Math.random() * 1.5,
-        crr: Math.max(85, successRate - Math.random() * 5),
-        call_continuity: 97 + Math.random() * 2,
-        vqi: 8.5 + Math.random() * 1,
-        vpi: 8.6 + Math.random() * 0.9,
-        vsqi: 8.4 + Math.random() * 1.1,
+        call_volume: Math.round((2800 + Math.random() * 800) * baseMultiplier),
+        call_success_rate: 97.2 + Math.random() * 2.5,
+        drop_rate: 0.28 + Math.random() * 0.32,
+        call_stability: 97.8 + Math.random() * 1.8,
+        crr: 98.5 + Math.random() * 1.2,
+        call_continuity: 97.9 + Math.random() * 1.5,
+        vqi: 8.3 + Math.random() * 1.2,
+        vpi: 8.1 + Math.random() * 1.3,
+        vsqi: 8.0 + Math.random() * 1.4,
       };
     });
   } else {
@@ -132,24 +131,23 @@ export const generateVoiceTrendData = (filters: GlobalFilterState): VoiceTrendDa
         dateStr = date.toISOString().split("T")[0];
       }
 
-      const successRate = 97.2 + Math.random() * 2;
       return {
         time: dateStr,
-        call_volume: Math.round((50000 + Math.random() * 10000) * baseMultiplier),
-        call_success_rate: successRate,
-        drop_rate: 0.5 + Math.random() * 0.35,
-        call_stability: 98.1 + Math.random() * 1.5,
-        crr: Math.max(85, successRate - Math.random() * 5),
-        call_continuity: 97.5 + Math.random() * 2,
-        vqi: 8.6 + Math.random() * 1,
-        vpi: 8.7 + Math.random() * 0.9,
-        vsqi: 8.5 + Math.random() * 1.1,
+        call_volume: Math.round((42000 + Math.random() * 8000) * baseMultiplier),
+        call_success_rate: 97.3 + Math.random() * 2.3,
+        drop_rate: 0.3 + Math.random() * 0.35,
+        call_stability: 97.9 + Math.random() * 1.6,
+        crr: 98.6 + Math.random() * 1.1,
+        call_continuity: 98.0 + Math.random() * 1.4,
+        vqi: 8.4 + Math.random() * 1.1,
+        vpi: 8.2 + Math.random() * 1.2,
+        vsqi: 8.1 + Math.random() * 1.3,
       };
     });
   }
 };
 
-interface VoiceBreakdown {
+export interface VoiceBreakdown {
   name: string;
   call_success_rate: number;
   drop_rate: number;
@@ -159,29 +157,25 @@ interface VoiceBreakdown {
   priority?: "Critical" | "High" | "Medium" | "Low";
 }
 
-const calculatePriorityFromPerformance = (successRate: number, dropRate: number): "Critical" | "High" | "Medium" | "Low" => {
-  // Critical: success rate < 94% or drop rate > 1.5%
-  if (successRate < 94 || dropRate > 1.5) return "Critical";
-  // High: success rate 94-96% or drop rate 1-1.5%
-  if (successRate < 96 || dropRate > 1) return "High";
-  // Medium: success rate 96-98% or drop rate 0.5-1%
-  if (successRate < 98 || dropRate > 0.5) return "Medium";
-  // Low: success rate > 98% and drop rate < 0.5%
-  return "Low";
-};
-
-export const generateVoiceBreakdownByVendor = (filters: GlobalFilterState): VoiceBreakdown[] => {
+export const generateVoiceBreakdownByVendor = (
+  filters: GlobalFilterState
+): VoiceBreakdown[] => {
   const vendors = ["Ericsson", "Huawei", "Nokia", "Samsung"];
   return vendors.map((vendor) => {
-    const successRate = 96 + Math.random() * 3;
-    const dropRate = 0.4 + Math.random() * 0.4;
+    const successRate = 96.5 + Math.random() * 3;
+    const dropRate = 0.35 + Math.random() * 0.4;
     return {
       name: vendor,
       call_success_rate: successRate,
       drop_rate: dropRate,
-      call_stability: 97.5 + Math.random() * 2,
-      status: Math.random() > 0.3 ? "High quality" : "Acceptable",
-      count: Math.round(15000 + Math.random() * 5000),
+      call_stability: 97.8 + Math.random() * 1.8,
+      status:
+        Math.random() > 0.3
+          ? "High quality"
+          : Math.random() > 0.6
+            ? "Acceptable"
+            : "Degraded",
+      count: Math.round(9000 + Math.random() * 5000),
       priority: calculatePriorityFromPerformance(successRate, dropRate),
     };
   });
@@ -190,19 +184,19 @@ export const generateVoiceBreakdownByVendor = (filters: GlobalFilterState): Voic
 export const generateVoiceBreakdownByTechnology = (
   filters: GlobalFilterState
 ): VoiceBreakdown[] => {
-  const techs = ["2G", "3G", "4G", "5G", "O-RAN"];
-  return techs.map((tech) => {
-    const successRate = 95 + Math.random() * 4;
-    const dropRate = 0.3 + Math.random() * 0.5;
+  const technologies = ["2G", "3G", "4G", "5G", "O-RAN"];
+  return technologies.map((tech) => {
+    const successRate = 96.5 + Math.random() * 3;
+    const dropRate = 0.35 + Math.random() * 0.4;
     return {
       name: tech,
       call_success_rate: successRate,
       drop_rate: dropRate,
-      call_stability: 97 + Math.random() * 2.5,
+      call_stability: 97.5 + Math.random() * 2,
       status:
         Math.random() > 0.4
           ? "High quality"
-          : Math.random() > 0.5
+          : Math.random() > 0.6
             ? "Acceptable"
             : "Degraded",
       count: Math.round(8000 + Math.random() * 4000),
@@ -569,33 +563,20 @@ export const generateVoiceInsights = (
     const dropRates = items.map((d) => d.drop_rate);
     const max = Math.max(...rates);
     const min = Math.min(...rates);
-    const maxDropRate = Math.max(...dropRates);
+    const gap = max - min;
 
-    // Performance gap detection
-    if (max - min > 2) {
-      const affectedLow = items.filter((d) => d.call_success_rate < min + 1);
+    if (gap > 3) {
+      const topItem = items.find((d) => d.call_success_rate === max);
+      const bottomItem = items.find((d) => d.call_success_rate === min);
+
       insights.push({
         id: `gap-${dimension}-${Date.now()}`,
         type: "performance_gap",
-        title: `Performance Gap in ${dimension}`,
-        description: `Success rate varies by ${(max - min).toFixed(2)}% across ${dimension}s (${min.toFixed(1)}% to ${max.toFixed(1)}%). ${affectedLow.length} ${dimension.toLowerCase()}(s) underperforming.`,
+        title: `Performance Variation in ${dimension}`,
+        description: `${topItem?.name} (${max.toFixed(2)}%) significantly outperforms ${bottomItem?.name} (${min.toFixed(2)}%), indicating a ${gap.toFixed(2)}% gap. Consider investigating the variance.`,
         timestamp: new Date(now.getTime() - 30 * 60000).toISOString(),
-        severity: max - min > 5 ? "Critical" : "High",
-        affectedFilters: affectedLow.map((d) => d.name),
-      });
-    }
-
-    // High drop rate detection
-    if (maxDropRate > 1) {
-      const highDropItems = items.filter((d) => d.drop_rate > 1);
-      insights.push({
-        id: `drop-${dimension}-${Date.now()}`,
-        type: "performance_gap",
-        title: `Elevated Drop Rate in ${dimension}`,
-        description: `Drop rate exceeds acceptable threshold (${maxDropRate.toFixed(2)}%) in ${highDropItems.length} ${dimension.toLowerCase()}(s).`,
-        timestamp: new Date(now.getTime() - 20 * 60000).toISOString(),
-        severity: maxDropRate > 2 ? "Critical" : "High",
-        affectedFilters: highDropItems.map((d) => d.name),
+        severity: "Medium",
+        affectedFilters: [topItem?.name || "Top performer", bottomItem?.name || "Bottom performer"],
       });
     }
   }
@@ -650,7 +631,7 @@ export interface HeatmapRow {
 export const generateTimeRegionHeatmap = (): HeatmapRow[] => {
   const regions = ["North", "South", "East", "West", "Central"];
   const hours = ["00:00", "04:00", "08:00", "12:00", "16:00", "20:00"];
-
+  
   return hours.map((hour) => ({
     name: hour,
     cells: regions.map((region) => {
@@ -658,11 +639,11 @@ export const generateTimeRegionHeatmap = (): HeatmapRow[] => {
       const hourNum = parseInt(hour.split(":")[0]);
       const isPeakHour = hourNum >= 8 && hourNum <= 20;
       const baseStress = isPeakHour ? 60 + Math.random() * 30 : 20 + Math.random() * 30;
-
+      
       // South region typically more congested
       const regionMultiplier = region === "South" ? 1.2 : region === "East" ? 1.1 : 1.0;
       const utilization = Math.min(baseStress * regionMultiplier, 100);
-
+      
       return {
         label: `${utilization.toFixed(0)}%`,
         value: utilization,
@@ -676,7 +657,7 @@ export const generateTimeRegionHeatmap = (): HeatmapRow[] => {
 export const generateTechCapacityHeatmap = (): HeatmapRow[] => {
   const technologies = ["2G", "3G", "4G", "5G", "O-RAN"];
   const regions = ["North", "South", "East", "West"];
-
+  
   return technologies.map((tech) => ({
     name: tech,
     cells: regions.map((region) => {
@@ -684,7 +665,7 @@ export const generateTechCapacityHeatmap = (): HeatmapRow[] => {
       const techBase = tech === "2G" ? 75 : tech === "3G" ? 70 : tech === "4G" ? 55 : tech === "5G" ? 35 : 30;
       const regionVariance = Math.random() * 15;
       const stress = Math.min(techBase + regionVariance, 100);
-
+      
       return {
         label: `${stress.toFixed(0)}%`,
         value: stress,
@@ -698,7 +679,7 @@ export const generateTechCapacityHeatmap = (): HeatmapRow[] => {
 export const generateHourlyUtilizationHeatmap = (): HeatmapRow[] => {
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const hours = Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, "0")}:00`);
-
+  
   return days.map((day) => ({
     name: day,
     cells: hours.map((hour) => {
@@ -706,12 +687,12 @@ export const generateHourlyUtilizationHeatmap = (): HeatmapRow[] => {
       // Peak hours: 8-12, 15-20
       const isPeakHour = (hourNum >= 8 && hourNum <= 12) || (hourNum >= 15 && hourNum <= 20);
       const isWeekend = day === "Sat" || day === "Sun";
-
+      
       let baseUtilization = isPeakHour ? 70 + Math.random() * 25 : 30 + Math.random() * 25;
       if (isWeekend) baseUtilization *= 0.7; // Lower weekend usage
-
+      
       const utilization = Math.min(baseUtilization, 100);
-
+      
       return {
         label: `${utilization.toFixed(0)}%`,
         value: utilization,
@@ -720,3 +701,127 @@ export const generateHourlyUtilizationHeatmap = (): HeatmapRow[] => {
     }),
   }));
 };
+
+/**
+ * Data Analytics insights detection
+ */
+
+export const generateDataInsights = (
+  trendData: DataTrendData[],
+  filters: GlobalFilterState
+): DetectionInsight[] => {
+  const insights: DetectionInsight[] = [];
+  const now = new Date();
+
+  if (trendData.length < 2) return insights;
+
+  // Detect sustained latency increase
+  if (trendData.length >= 6) {
+    const lastThree = trendData.slice(-3);
+    const prevThree = trendData.slice(-6, -3);
+
+    const lastLatencyAvg = lastThree.reduce((sum, d) => sum + d.avg_latency, 0) / 3;
+    const prevLatencyAvg = prevThree.reduce((sum, d) => sum + d.avg_latency, 0) / 3;
+
+    if (lastLatencyAvg > prevLatencyAvg && lastLatencyAvg - prevLatencyAvg > 5) {
+      insights.push({
+        id: `latency-increase-${Date.now()}`,
+        type: "sudden_degradation",
+        title: "Sustained Latency Increase Detected",
+        description: `Average latency increased by ${(lastLatencyAvg - prevLatencyAvg).toFixed(2)}ms. This may impact user experience, especially for real-time applications.`,
+        timestamp: new Date(now.getTime() - 20 * 60000).toISOString(),
+        severity: "High",
+        affectedFilters: filters.regions.length > 0 ? filters.regions : ["All regions"],
+      });
+    }
+
+    // Detect latency improvement
+    if (prevLatencyAvg > lastLatencyAvg && prevLatencyAvg - lastLatencyAvg > 3) {
+      insights.push({
+        id: `latency-improve-${Date.now()}`,
+        type: "recovery",
+        title: "Latency Improvement Observed",
+        description: `Average latency reduced by ${(prevLatencyAvg - lastLatencyAvg).toFixed(2)}ms. Network responsiveness has improved.`,
+        timestamp: new Date(now.getTime() - 10 * 60000).toISOString(),
+        severity: "Medium",
+        affectedFilters: filters.technologies.length > 0 ? filters.technologies : ["All technologies"],
+      });
+    }
+  }
+
+  // Detect speed degradation
+  if (trendData.length >= 8) {
+    const lastFour = trendData.slice(-4);
+    const prevFour = trendData.slice(-8, -4);
+
+    const lastSpeedAvg = lastFour.reduce((sum, d) => sum + d.avg_speed, 0) / 4;
+    const prevSpeedAvg = prevFour.reduce((sum, d) => sum + d.avg_speed, 0) / 4;
+
+    // Check for consistent decline
+    let isConsistentDecline = true;
+    for (let i = 1; i < lastFour.length; i++) {
+      if (lastFour[i].avg_speed > lastFour[i - 1].avg_speed) {
+        isConsistentDecline = false;
+        break;
+      }
+    }
+
+    if (isConsistentDecline && prevSpeedAvg - lastSpeedAvg > 5 && lastSpeedAvg < 85) {
+      insights.push({
+        id: `speed-decline-${Date.now()}`,
+        type: "ongoing_degradation",
+        title: "Sustained Speed Degradation",
+        description: `Network speed has gradually declined from ${prevSpeedAvg.toFixed(2)} to ${lastSpeedAvg.toFixed(2)} Mbps over recent periods. This indicates a systemic issue.`,
+        timestamp: new Date(now.getTime() - 45 * 60000).toISOString(),
+        severity: "High",
+        affectedFilters: filters.vendors.length > 0 ? filters.vendors : ["All vendors"],
+      });
+    }
+
+    // Detect speed improvement
+    if (lastSpeedAvg > prevSpeedAvg && lastSpeedAvg - prevSpeedAvg > 5) {
+      insights.push({
+        id: `speed-improve-${Date.now()}`,
+        type: "recovery",
+        title: "Network Speed Improvement",
+        description: `Average speed improved by ${(lastSpeedAvg - prevSpeedAvg).toFixed(2)} Mbps. User experience enhancements detected.`,
+        timestamp: new Date(now.getTime() - 8 * 60000).toISOString(),
+        severity: "Medium",
+        affectedFilters: filters.regions.length > 0 ? filters.regions : ["All regions"],
+      });
+    }
+  }
+
+  // Detect stability improvement
+  if (trendData.length >= 5) {
+    const recentPacketLoss = trendData.slice(-5);
+    const avgRecentLoss = recentPacketLoss.reduce((sum, d) => sum + d.packet_loss, 0) / 5;
+    const avgPreviousLoss = trendData.slice(-10, -5).length > 0
+      ? trendData.slice(-10, -5).reduce((sum, d) => sum + d.packet_loss, 0) / 5
+      : avgRecentLoss;
+
+    if (avgPreviousLoss > avgRecentLoss && avgPreviousLoss - avgRecentLoss > 0.01) {
+      insights.push({
+        id: `stability-improve-${Date.now()}`,
+        type: "recovery",
+        title: "Stability Improvement Observed",
+        description: `Packet loss rate decreased from ${(avgPreviousLoss * 100).toFixed(3)}% to ${(avgRecentLoss * 100).toFixed(3)}%. Network stability has improved over recent days.`,
+        timestamp: new Date(now.getTime() - 12 * 60000).toISOString(),
+        severity: "Medium",
+        affectedFilters: filters.clusters.length > 0 ? filters.clusters : ["All clusters"],
+      });
+    }
+  }
+
+  return insights.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+};
+
+function calculatePriorityFromPerformance(
+  successRate: number,
+  dropRate: number
+): "Critical" | "High" | "Medium" | "Low" {
+  if (successRate < 94 || dropRate > 1) return "Critical";
+  if (successRate < 96 || dropRate > 0.7) return "High";
+  if (successRate < 97 || dropRate > 0.4) return "Medium";
+  return "Low";
+}
