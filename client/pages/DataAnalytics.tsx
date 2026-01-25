@@ -46,31 +46,50 @@ export default function DataAnalytics() {
   const trendData = useMemo(() => generateDataTrendData(filters), [filters]);
   const vendorBreakdown = useMemo(() => generateDataBreakdownByVendor(filters), [filters]);
   const techBreakdown = useMemo(() => generateDataBreakdownByTechnology(filters), [filters]);
+  const regionBreakdown = useMemo(() => generateDataBreakdownByRegion(filters), [filters]);
 
   // Segment data
   const vendorSegmented = useMemo(() => segmentDataPerformance(vendorBreakdown), [vendorBreakdown]);
   const techSegmented = useMemo(() => segmentDataPerformance(techBreakdown), [techBreakdown]);
+  const regionSegmented = useMemo(() => segmentDataPerformance(regionBreakdown), [regionBreakdown]);
 
   // Generate insights
   const insights = useMemo(() => {
-    const today = new Date().toISOString().split("T")[0];
+    const today = new Date();
+    const dateStr = today.toLocaleDateString("en-US", { year: "numeric", month: "2-digit", day: "2-digit" }).replace(/\//g, "-");
+
+    // Calculate average DEI from trend data
+    const avgDEI = trendData.length > 0
+      ? trendData.reduce((sum, d) => sum + d.dei, 0) / trendData.length
+      : 8.4;
+
+    // Calculate change (comparing last 3 with previous 3 periods)
+    let deiChange = -0.83;
+    if (trendData.length >= 6) {
+      const lastThree = trendData.slice(-3);
+      const prevThree = trendData.slice(-6, -3);
+      const lastAvg = lastThree.reduce((sum, d) => sum + d.dei, 0) / 3;
+      const prevAvg = prevThree.reduce((sum, d) => sum + d.dei, 0) / 3;
+      deiChange = lastAvg - prevAvg;
+    }
+
     return {
       overall: {
-        change: 2.15,
-        status: "Improved" as const,
+        change: deiChange,
+        status: deiChange < 0 ? ("Degraded" as const) : "Improved" as const,
       },
       byTechnology: [
         { name: "5G", change: 3.2, status: "Improved" as const },
-        { name: "4G", change: 1.5, status: "Improved" as const },
-        { name: "3G", change: -1.2, status: "Degraded" as const },
+        { name: "4G", change: 0.8, status: "Improved" as const },
+        { name: "3G", change: -1.5, status: "Degraded" as const },
       ],
       byRegion: [
-        { name: "North", change: 2.8, status: "Improved" as const },
-        { name: "South", change: 0.5, status: "No change" as const },
-        { name: "East", change: 1.2, status: "Improved" as const },
+        { name: "North", change: 2.5, status: "Improved" as const },
+        { name: "South", change: -0.8, status: "Degraded" as const },
+        { name: "East", change: 1.8, status: "Improved" as const },
       ],
     };
-  }, []);
+  }, [trendData]);
 
   const handleExport = () => {
     const wb = XLSX.utils.book_new();
