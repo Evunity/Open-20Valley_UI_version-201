@@ -1,5 +1,6 @@
 import { ChevronRight, ChevronDown } from "lucide-react";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import FilterPanel from "@/components/FilterPanel";
 import { useGlobalFilters } from "@/hooks/useGlobalFilters";
 import { cn } from "@/lib/utils";
