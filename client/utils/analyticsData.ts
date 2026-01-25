@@ -466,7 +466,8 @@ export const segmentDataPerformance = (
   return {
     "High performance": data.filter((d) => d.call_success_rate > 98),
     Balanced: data.filter((d) => d.call_success_rate >= 96.5 && d.call_success_rate <= 98),
-    Congested: data.filter((d) => d.call_success_rate < 96.5),
+    Congested: data.filter((d) => d.call_success_rate >= 94 && d.call_success_rate < 96.5),
+    Underperforming: data.filter((d) => d.call_success_rate < 94),
   };
 };
 
