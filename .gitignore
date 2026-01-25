@@ -1,7 +1,9 @@
 # Dependencies
 node_modules/
+
+# Alternative package manager lock files (do not commit)
+# This project uses only npm - exclude lock files from other package managers
 pnpm-lock.yaml
-npm-lock.json
 yarn.lock
 
 # Build output
