@@ -560,6 +560,35 @@ export default function DataAnalytics() {
             </BarChart>
           </ResponsiveContainer>
         </div>
+
+        {/* By Region */}
+        <div className="card-elevated rounded-xl border border-border/50 p-6">
+          <h3 className="text-lg font-bold text-foreground mb-4">By Region</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart
+              data={regionBreakdown}
+              margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis
+                dataKey="name"
+                stroke="hsl(var(--muted-foreground))"
+                style={{ fontSize: "12px" }}
+              />
+              <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "8px",
+                }}
+              />
+              <Legend />
+              <Bar dataKey="call_success_rate" fill="#22c55e" name="Success Rate" />
+              <Bar dataKey="call_stability" fill="#3b82f6" name="Stability" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </div>
 
       {/* Segmentation - High Performance */}
