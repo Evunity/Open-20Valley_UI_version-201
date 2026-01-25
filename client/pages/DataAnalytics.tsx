@@ -384,7 +384,10 @@ export default function DataAnalytics() {
 
       {/* Trend Charts */}
       <div className="space-y-6">
-        <h2 className="text-2xl font-bold text-foreground">Performance Trends</h2>
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">Performance Trends</h2>
+          <p className="text-sm text-muted-foreground mt-2">How metrics are trending over time</p>
+        </div>
 
         {/* Data Volume Trend */}
         <div className="card-elevated rounded-xl border border-border/50 p-6">
