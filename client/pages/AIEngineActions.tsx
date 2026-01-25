@@ -162,6 +162,15 @@ export default function AIEngineActions() {
 
   return (
     <div className="space-y-8 pb-6">
+      {/* Breadcrumb Navigation */}
+      <div className="flex items-center gap-2 text-sm">
+        <Link to="/" className="text-primary hover:text-primary/80 transition-colors font-medium">
+          Dashboard
+        </Link>
+        <span className="text-muted-foreground">/</span>
+        <span className="text-muted-foreground">AI Engine Actions</span>
+      </div>
+
       {/* ===== HEADER SECTION ===== */}
       <div className="space-y-6">
         <div className="flex items-center justify-between gap-4 flex-wrap">
