@@ -629,3 +629,93 @@ export const calculatePriorityLevel = (
 
   return "Low";
 };
+
+/**
+ * Heatmap data generation for Capacity & Congestion visualization
+ */
+
+export interface HeatmapCell {
+  label: string;
+  value: number;
+  intensity: "low" | "medium" | "high" | "critical";
+}
+
+export interface HeatmapRow {
+  name: string;
+  cells: HeatmapCell[];
+}
+
+// Time vs Region heatmap - shows capacity stress by time and region
+export const generateTimeRegionHeatmap = (): HeatmapRow[] => {
+  const regions = ["North", "South", "East", "West", "Central"];
+  const hours = ["00:00", "04:00", "08:00", "12:00", "16:00", "20:00"];
+
+  return hours.map((hour) => ({
+    name: hour,
+    cells: regions.map((region) => {
+      // Higher stress during peak hours (8-20)
+      const hourNum = parseInt(hour.split(":")[0]);
+      const isPeakHour = hourNum >= 8 && hourNum <= 20;
+      const baseStress = isPeakHour ? 60 + Math.random() * 30 : 20 + Math.random() * 30;
+
+      // South region typically more congested
+      const regionMultiplier = region === "South" ? 1.2 : region === "East" ? 1.1 : 1.0;
+      const utilization = Math.min(baseStress * regionMultiplier, 100);
+
+      return {
+        label: `${utilization.toFixed(0)}%`,
+        value: utilization,
+        intensity: utilization > 80 ? "critical" : utilization > 60 ? "high" : utilization > 40 ? "medium" : "low",
+      };
+    }),
+  }));
+};
+
+// Technology vs Capacity Stress heatmap
+export const generateTechCapacityHeatmap = (): HeatmapRow[] => {
+  const technologies = ["2G", "3G", "4G", "5G", "O-RAN"];
+  const regions = ["North", "South", "East", "West"];
+
+  return technologies.map((tech) => ({
+    name: tech,
+    cells: regions.map((region) => {
+      // Older tech (2G/3G) has higher stress
+      const techBase = tech === "2G" ? 75 : tech === "3G" ? 70 : tech === "4G" ? 55 : tech === "5G" ? 35 : 30;
+      const regionVariance = Math.random() * 15;
+      const stress = Math.min(techBase + regionVariance, 100);
+
+      return {
+        label: `${stress.toFixed(0)}%`,
+        value: stress,
+        intensity: stress > 75 ? "critical" : stress > 60 ? "high" : stress > 45 ? "medium" : "low",
+      };
+    }),
+  }));
+};
+
+// Hourly utilization pattern - shows usage pattern across 24 hours
+export const generateHourlyUtilizationHeatmap = (): HeatmapRow[] => {
+  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const hours = Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, "0")}:00`);
+
+  return days.map((day) => ({
+    name: day,
+    cells: hours.map((hour) => {
+      const hourNum = parseInt(hour.split(":")[0]);
+      // Peak hours: 8-12, 15-20
+      const isPeakHour = (hourNum >= 8 && hourNum <= 12) || (hourNum >= 15 && hourNum <= 20);
+      const isWeekend = day === "Sat" || day === "Sun";
+
+      let baseUtilization = isPeakHour ? 70 + Math.random() * 25 : 30 + Math.random() * 25;
+      if (isWeekend) baseUtilization *= 0.7; // Lower weekend usage
+
+      const utilization = Math.min(baseUtilization, 100);
+
+      return {
+        label: `${utilization.toFixed(0)}%`,
+        value: utilization,
+        intensity: utilization > 80 ? "critical" : utilization > 60 ? "high" : utilization > 40 ? "medium" : "low",
+      };
+    }),
+  }));
+};
