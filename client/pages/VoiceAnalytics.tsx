@@ -465,7 +465,10 @@ export default function VoiceAnalytics() {
 
       {/* Performance Breakdown */}
       <div className="space-y-6">
-        <h2 className="text-2xl font-bold text-foreground">Performance Breakdown</h2>
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">Performance Breakdown</h2>
+          <p className="text-sm text-muted-foreground mt-2">Compare performance across vendors, technologies, and regions</p>
+        </div>
 
         {/* By Vendor - Comparison */}
         <div className="card-elevated rounded-xl border border-border/50 p-6">
