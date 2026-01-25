@@ -647,6 +647,30 @@ export default function VoiceAnalytics() {
           This helps quickly separate system-wide issues from local issues.
         </p>
 
+        {/* Vendor Segmentation Summary */}
+        <div>
+          <h3 className="text-lg font-bold text-foreground mb-4">Vendor Performance Categories</h3>
+          <SegmentationSummary data={vendorSegmented} dimension="Vendor" />
+        </div>
+
+        {/* Technology Segmentation Summary */}
+        <div>
+          <h3 className="text-lg font-bold text-foreground mb-4">Technology Performance Categories</h3>
+          <SegmentationSummary data={techSegmented} dimension="Technology" />
+        </div>
+
+        {/* Region Segmentation Summary */}
+        <div>
+          <h3 className="text-lg font-bold text-foreground mb-4">Region Performance Categories</h3>
+          <SegmentationSummary data={regionSegmented} dimension="Region" />
+        </div>
+
+        {/* Cluster Segmentation Summary */}
+        <div>
+          <h3 className="text-lg font-bold text-foreground mb-4">Cluster Performance Categories</h3>
+          <SegmentationSummary data={clusterSegmented} dimension="Cluster" />
+        </div>
+
         {/* Vendor Segmentation Overview */}
         <div className="card-elevated rounded-xl border border-border/50 p-6">
           <h3 className="text-lg font-bold text-foreground mb-4">Vendor Segmentation Distribution</h3>
