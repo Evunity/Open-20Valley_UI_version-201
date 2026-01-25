@@ -54,10 +54,27 @@ export default function DegradationInsights({ insights }: DegradationInsightsPro
     switch (type) {
       case "sudden_degradation":
         return <TrendingDown className="w-5 h-5" />;
+      case "ongoing_degradation":
+        return <AlertTriangle className="w-5 h-5" />;
       case "recovery":
         return <TrendingUp className="w-5 h-5" />;
       default:
         return <AlertCircle className="w-5 h-5" />;
+    }
+  };
+
+  const getTypeLabel = (type: string) => {
+    switch (type) {
+      case "sudden_degradation":
+        return "Sudden Degradation";
+      case "ongoing_degradation":
+        return "Ongoing Degradation";
+      case "recovery":
+        return "Recovery";
+      case "performance_gap":
+        return "Performance Gap";
+      default:
+        return "Alert";
     }
   };
 
