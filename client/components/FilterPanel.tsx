@@ -222,129 +222,49 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
       {/* Always-Visible Filter Dropdowns */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-3 p-4 rounded-lg border border-border bg-card">
         {/* Country Dropdown */}
-        <div>
-          <label className="block text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
-            Country
-          </label>
-          <select
-            multiple
-            className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-            value={filters.countries}
-            onChange={(e) => {
-              const selected = Array.from(e.target.selectedOptions, (option) => option.value);
-              handleFilterChange({ ...filters, countries: selected });
-            }}
-            title="Hold Ctrl/Cmd to select multiple countries"
-          >
-            <option value="United States">United States</option>
-            <option value="Canada">Canada</option>
-            <option value="United Kingdom">United Kingdom</option>
-            <option value="Germany">Germany</option>
-            <option value="France">France</option>
-            <option value="Japan">Japan</option>
-            <option value="India">India</option>
-            <option value="Australia">Australia</option>
-            <option value="Egypt">Egypt</option>
-            <option value="Saudi Arabia">Saudi Arabia</option>
-            <option value="United Arab Emirates">United Arab Emirates</option>
-            <option value="Kuwait">Kuwait</option>
-            <option value="Qatar">Qatar</option>
-            <option value="Bahrain">Bahrain</option>
-            <option value="Morocco">Morocco</option>
-          </select>
-        </div>
+        <SearchableDropdown
+          label="Country"
+          options={["United States", "Canada", "United Kingdom", "Germany", "France", "Japan", "India", "Australia", "Egypt", "Saudi Arabia", "United Arab Emirates", "Kuwait", "Qatar", "Bahrain", "Morocco"]}
+          selected={filters.countries}
+          onChange={(selected) => handleFilterChange({ ...filters, countries: selected })}
+          placeholder="Search countries..."
+        />
 
         {/* Region Dropdown */}
-        <div>
-          <label className="block text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
-            Region
-          </label>
-          <select
-            multiple
-            className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-            value={filters.regions}
-            onChange={(e) => {
-              const selected = Array.from(e.target.selectedOptions, (option) => option.value);
-              handleFilterChange({ ...filters, regions: selected });
-            }}
-            title="Hold Ctrl/Cmd to select multiple regions"
-          >
-            <option value="North">North</option>
-            <option value="South">South</option>
-            <option value="East">East</option>
-            <option value="West">West</option>
-            <option value="Central">Central</option>
-          </select>
-        </div>
+        <SearchableDropdown
+          label="Region"
+          options={["North", "South", "East", "West", "Central"]}
+          selected={filters.regions}
+          onChange={(selected) => handleFilterChange({ ...filters, regions: selected })}
+          placeholder="Search regions..."
+        />
 
         {/* Cluster Dropdown */}
-        <div>
-          <label className="block text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
-            Cluster
-          </label>
-          <select
-            multiple
-            className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-            value={filters.clusters}
-            onChange={(e) => {
-              const selected = Array.from(e.target.selectedOptions, (option) => option.value);
-              handleFilterChange({ ...filters, clusters: selected });
-            }}
-            title="Hold Ctrl/Cmd to select multiple clusters"
-          >
-            {availableClusters.map((cluster) => (
-              <option key={cluster.id} value={cluster.name}>
-                {cluster.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        <SearchableDropdown
+          label="Cluster"
+          options={availableClusters.map((cluster) => cluster.name)}
+          selected={filters.clusters}
+          onChange={(selected) => handleFilterChange({ ...filters, clusters: selected })}
+          placeholder="Search clusters..."
+        />
 
         {/* Vendor Dropdown */}
-        <div>
-          <label className="block text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
-            Vendor
-          </label>
-          <select
-            multiple
-            className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-            value={filters.vendors}
-            onChange={(e) => {
-              const selected = Array.from(e.target.selectedOptions, (option) => option.value);
-              handleFilterChange({ ...filters, vendors: selected });
-            }}
-            title="Hold Ctrl/Cmd to select multiple vendors"
-          >
-            <option value="Ericsson">Ericsson</option>
-            <option value="Huawei">Huawei</option>
-            <option value="Nokia">Nokia</option>
-            <option value="Samsung">Samsung</option>
-            <option value="Cisco">Cisco</option>
-          </select>
-        </div>
+        <SearchableDropdown
+          label="Vendor"
+          options={["Ericsson", "Huawei", "Nokia", "Samsung", "Cisco"]}
+          selected={filters.vendors}
+          onChange={(selected) => handleFilterChange({ ...filters, vendors: selected })}
+          placeholder="Search vendors..."
+        />
 
         {/* Technology Dropdown */}
-        <div>
-          <label className="block text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
-            Technology
-          </label>
-          <select
-            multiple
-            className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-            value={filters.technologies}
-            onChange={(e) => {
-              const selected = Array.from(e.target.selectedOptions, (option) => option.value);
-              handleFilterChange({ ...filters, technologies: selected });
-            }}
-            title="Hold Ctrl/Cmd to select multiple technologies"
-          >
-            <option value="2G">2G</option>
-            <option value="3G">3G</option>
-            <option value="4G">4G</option>
-            <option value="5G">5G</option>
-            <option value="ORAN">O-RAN</option>
-          </select>
-        </div>
+        <SearchableDropdown
+          label="Technology"
+          options={["2G", "3G", "4G", "5G", "O-RAN"]}
+          selected={filters.technologies}
+          onChange={(selected) => handleFilterChange({ ...filters, technologies: selected })}
+          placeholder="Search technologies..."
+        />
 
         {/* Time Granularity Control */}
         <div>
