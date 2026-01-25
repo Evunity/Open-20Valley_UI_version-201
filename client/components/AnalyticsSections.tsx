@@ -78,11 +78,14 @@ export default function AnalyticsSections() {
       {/* Content */}
       {isOpen && (
         <div className="border-t border-border/50 grid grid-cols-1 md:grid-cols-2 gap-0">
-          {sections.map((section) => (
+          {sections.map((section, index) => (
             <button
               key={section.path}
               onClick={() => navigate(section.path)}
-              className="flex items-start gap-3 p-4 hover:bg-primary/5 transition-all duration-200 text-left group border-b border-border/30 md:border-b"
+              className={cn(
+                "flex items-start gap-3 p-4 hover:bg-primary/5 transition-all duration-200 text-left group border-b border-border/30",
+                index % 2 === 1 && "md:border-l md:border-border/30"
+              )}
             >
               <div className="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
                 {section.icon}
