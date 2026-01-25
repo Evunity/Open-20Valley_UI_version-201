@@ -971,6 +971,90 @@ export default function DataAnalytics() {
         </div>
       )}
 
+      {/* Vendor Comparison Section - Only show when multiple vendors selected */}
+      {filters.vendors.length > 1 && (
+        <div className="space-y-6">
+          <div className="card-elevated rounded-xl border border-border/50 p-6">
+            <h2 className="text-2xl font-bold text-foreground mb-4">Vendor Comparison</h2>
+            <p className="text-sm text-muted-foreground mb-6">
+              Comparing {filters.vendors.length} vendors across selected regions and technologies
+            </p>
+
+            {/* Vendor Performance Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="border-b border-border">
+                  <tr className="text-muted-foreground font-semibold">
+                    <th className="text-left py-2 px-4">Vendor</th>
+                    <th className="text-right py-2 px-4">Success Rate</th>
+                    <th className="text-right py-2 px-4">Stability</th>
+                    <th className="text-right py-2 px-4">Sessions</th>
+                    <th className="text-right py-2 px-4">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {vendorBreakdown
+                    .filter((v) => filters.vendors.includes(v.name))
+                    .sort((a, b) => b.call_success_rate - a.call_success_rate)
+                    .map((vendor, idx) => {
+                      const statusColor = vendor.call_success_rate > 98 ? "bg-green-100" : vendor.call_success_rate > 96 ? "bg-yellow-100" : "bg-red-100";
+                      const performanceRank = idx + 1;
+                      return (
+                        <tr key={idx} className="border-b border-border/50 hover:bg-muted/50">
+                          <td className="py-2 px-4 font-medium flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
+                              #{performanceRank}
+                            </div>
+                            {vendor.name}
+                          </td>
+                          <td className="py-2 px-4 text-right font-semibold">{vendor.call_success_rate.toFixed(2)}%</td>
+                          <td className="py-2 px-4 text-right font-semibold">{vendor.call_stability.toFixed(2)}%</td>
+                          <td className="py-2 px-4 text-right">{vendor.count.toLocaleString()}</td>
+                          <td className="py-2 px-4 text-center">
+                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor}`}>
+                              {vendor.call_success_rate.toFixed(1)}%
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Vendor Comparison Metrics */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6 pt-6 border-t border-border/50">
+              {(() => {
+                const selectedVendors = vendorBreakdown.filter((v) => filters.vendors.includes(v.name));
+                const topPerformer = selectedVendors.reduce((prev, current) => prev.call_success_rate > current.call_success_rate ? prev : current, selectedVendors[0]);
+                const avgSuccessRate = selectedVendors.reduce((sum, v) => sum + v.call_success_rate, 0) / selectedVendors.length;
+                const performanceGap = Math.max(...selectedVendors.map(v => v.call_success_rate)) - Math.min(...selectedVendors.map(v => v.call_success_rate));
+
+                return (
+                  <>
+                    <div className="p-4 rounded-lg bg-green-50 border border-green-200">
+                      <p className="text-sm text-muted-foreground mb-2">Top Performer</p>
+                      <p className="text-2xl font-bold text-green-700">{topPerformer.name}</p>
+                      <p className="text-xs text-muted-foreground mt-2">{topPerformer.call_success_rate.toFixed(2)}% success rate</p>
+                    </div>
+                    <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
+                      <p className="text-sm text-muted-foreground mb-2">Average Success Rate</p>
+                      <p className="text-2xl font-bold text-blue-700">{avgSuccessRate.toFixed(2)}%</p>
+                      <p className="text-xs text-muted-foreground mt-2">Across all selected vendors</p>
+                    </div>
+                    <div className={`p-4 rounded-lg ${performanceGap > 3 ? "bg-orange-50 border border-orange-200" : "bg-green-50 border border-green-200"}`}>
+                      <p className="text-sm text-muted-foreground mb-2">Performance Gap</p>
+                      <p className={`text-2xl font-bold ${performanceGap > 3 ? "text-orange-700" : "text-green-700"}`}>{performanceGap.toFixed(2)}%</p>
+                      <p className="text-xs text-muted-foreground mt-2">{performanceGap > 3 ? "Significant variation detected" : "Good consistency"}</p>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Segmentation & Grouping Section */}
       <div className="space-y-6">
         <h2 className="text-2xl font-bold text-foreground">Segmentation & Grouping</h2>
