@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { ChevronUp, ChevronDown, TrendingUp, TrendingDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { describeMixedTechnologies, getTechnologyLabel } from "@/utils/technologyLabels";
 
 interface VendorMetrics {
   name: string;
