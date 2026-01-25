@@ -467,7 +467,7 @@ export const generateVoiceInsights = (
         id: `sudden-${Date.now()}`,
         type: "sudden_degradation",
         title: "Sudden Performance Degradation Detected",
-        description: `Call success rate dropped ${(prevAvg - lastAvg).toFixed(2)}% recently`,
+        description: `Call success rate dropped ${(prevAvg - lastAvg).toFixed(2)}% recently. Immediate investigation recommended.`,
         timestamp: new Date(now.getTime() - 15 * 60000).toISOString(),
         severity: "High",
         affectedFilters: filters.vendors.length > 0 ? filters.vendors : ["All vendors"],
@@ -480,32 +480,84 @@ export const generateVoiceInsights = (
         id: `recovery-${Date.now()}`,
         type: "recovery",
         title: "Performance Recovery Observed",
-        description: `Call success rate improved ${(lastAvg - prevAvg).toFixed(2)}% in recent period`,
+        description: `Call success rate improved ${(lastAvg - prevAvg).toFixed(2)}% in recent period. System is stabilizing.`,
         timestamp: new Date(now.getTime() - 5 * 60000).toISOString(),
         severity: "Medium",
         affectedFilters: filters.technologies.length > 0 ? filters.technologies : ["All technologies"],
       });
     }
+
+    // Detect ongoing degradation (gradual decline across multiple periods)
+    if (trendData.length >= 8) {
+      const lastFour = trendData.slice(-4);
+      const prevFour = trendData.slice(-8, -4);
+
+      const lastFourAvg = lastFour.reduce((sum, d) => sum + d.call_success_rate, 0) / 4;
+      const prevFourAvg = prevFour.reduce((sum, d) => sum + d.call_success_rate, 0) / 4;
+
+      // Check for consistent decline
+      let isConsistentDecline = true;
+      for (let i = 1; i < lastFour.length; i++) {
+        if (lastFour[i].call_success_rate > lastFour[i - 1].call_success_rate) {
+          isConsistentDecline = false;
+          break;
+        }
+      }
+
+      if (
+        isConsistentDecline &&
+        prevFourAvg - lastFourAvg > 1 &&
+        lastFourAvg < 97
+      ) {
+        insights.push({
+          id: `ongoing-${Date.now()}`,
+          type: "ongoing_degradation",
+          title: "Ongoing Performance Degradation",
+          description: `Call success rate has been gradually declining over the past period (avg: ${lastFourAvg.toFixed(1)}%). This suggests a systemic issue that may require intervention.`,
+          timestamp: new Date(now.getTime() - 45 * 60000).toISOString(),
+          severity: "High",
+          affectedFilters: filters.regions.length > 0 ? filters.regions : ["All regions"],
+        });
+      }
+    }
   }
 
   // Detect performance gaps between breakdown dimensions
   for (const [dimension, items] of Object.entries(breakdowns)) {
-    const rates = items.map((d) => d.call_success_rate);
-    if (rates.length >= 2) {
-      const max = Math.max(...rates);
-      const min = Math.min(...rates);
+    if (!items || items.length < 2) continue;
 
-      if (max - min > 2) {
-        insights.push({
-          id: `gap-${dimension}-${Date.now()}`,
-          type: "performance_gap",
-          title: `Performance Gap in ${dimension}`,
-          description: `Success rate varies by ${(max - min).toFixed(2)}% across ${dimension}s (${min.toFixed(1)}% to ${max.toFixed(1)}%)`,
-          timestamp: new Date(now.getTime() - 30 * 60000).toISOString(),
-          severity: max - min > 5 ? "Critical" : "High",
-          affectedFilters: [dimension],
-        });
-      }
+    const rates = items.map((d) => d.call_success_rate);
+    const dropRates = items.map((d) => d.drop_rate);
+    const max = Math.max(...rates);
+    const min = Math.min(...rates);
+    const maxDropRate = Math.max(...dropRates);
+
+    // Performance gap detection
+    if (max - min > 2) {
+      const affectedLow = items.filter((d) => d.call_success_rate < min + 1);
+      insights.push({
+        id: `gap-${dimension}-${Date.now()}`,
+        type: "performance_gap",
+        title: `Performance Gap in ${dimension}`,
+        description: `Success rate varies by ${(max - min).toFixed(2)}% across ${dimension}s (${min.toFixed(1)}% to ${max.toFixed(1)}%). ${affectedLow.length} ${dimension.toLowerCase()}(s) underperforming.`,
+        timestamp: new Date(now.getTime() - 30 * 60000).toISOString(),
+        severity: max - min > 5 ? "Critical" : "High",
+        affectedFilters: affectedLow.map((d) => d.name),
+      });
+    }
+
+    // High drop rate detection
+    if (maxDropRate > 1) {
+      const highDropItems = items.filter((d) => d.drop_rate > 1);
+      insights.push({
+        id: `drop-${dimension}-${Date.now()}`,
+        type: "performance_gap",
+        title: `Elevated Drop Rate in ${dimension}`,
+        description: `Drop rate exceeds acceptable threshold (${maxDropRate.toFixed(2)}%) in ${highDropItems.length} ${dimension.toLowerCase()}(s).`,
+        timestamp: new Date(now.getTime() - 20 * 60000).toISOString(),
+        severity: maxDropRate > 2 ? "Critical" : "High",
+        affectedFilters: highDropItems.map((d) => d.name),
+      });
     }
   }
 
