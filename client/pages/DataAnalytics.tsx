@@ -622,6 +622,159 @@ export default function DataAnalytics() {
         </div>
       </div>
 
+      {/* Data Performance Breakdown Details - Tables */}
+      <div className="space-y-6">
+        <h2 className="text-2xl font-bold text-foreground">Data Performance Breakdown</h2>
+
+        {/* Vendor Breakdown Table */}
+        <div className="card-elevated rounded-xl border border-border/50 p-6 overflow-x-auto">
+          <h3 className="text-lg font-bold text-foreground mb-4">By Vendor</h3>
+          <table className="w-full text-sm">
+            <thead className="border-b border-border">
+              <tr className="text-muted-foreground font-semibold">
+                <th className="text-left py-2 px-4">Vendor</th>
+                <th className="text-right py-2 px-4">Sessions</th>
+                <th className="text-right py-2 px-4">Failures</th>
+                <th className="text-right py-2 px-4">Avg Speed</th>
+                <th className="text-right py-2 px-4">Avg Latency</th>
+                <th className="text-center py-2 px-4">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {vendorBreakdown.map((vendor, idx) => {
+                const failureCount = Math.round((vendor.count * vendor.drop_rate) / 100);
+                const statusColor = vendor.call_success_rate > 98 ? "bg-green-100" : vendor.call_success_rate > 96 ? "bg-yellow-100" : "bg-red-100";
+                return (
+                  <tr key={idx} className="border-b border-border/50 hover:bg-muted/50">
+                    <td className="py-2 px-4 font-medium">{vendor.name}</td>
+                    <td className="py-2 px-4 text-right">{vendor.count.toLocaleString()}</td>
+                    <td className="py-2 px-4 text-right">{failureCount.toLocaleString()}</td>
+                    <td className="py-2 px-4 text-right">{avgSpeed.toFixed(2)} Mbps</td>
+                    <td className="py-2 px-4 text-right">{avgLatency.toFixed(2)} ms</td>
+                    <td className="py-2 px-4 text-center">
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor}`}>
+                        {vendor.call_success_rate.toFixed(2)}%
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Technology Breakdown Table */}
+        <div className="card-elevated rounded-xl border border-border/50 p-6 overflow-x-auto">
+          <h3 className="text-lg font-bold text-foreground mb-4">By Technology</h3>
+          <table className="w-full text-sm">
+            <thead className="border-b border-border">
+              <tr className="text-muted-foreground font-semibold">
+                <th className="text-left py-2 px-4">Technology</th>
+                <th className="text-right py-2 px-4">Sessions</th>
+                <th className="text-right py-2 px-4">Failures</th>
+                <th className="text-right py-2 px-4">Avg Speed</th>
+                <th className="text-right py-2 px-4">Avg Latency</th>
+                <th className="text-center py-2 px-4">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {techBreakdown.map((tech, idx) => {
+                const failureCount = Math.round((tech.count * tech.drop_rate) / 100);
+                const statusColor = tech.call_success_rate > 98 ? "bg-green-100" : tech.call_success_rate > 96 ? "bg-yellow-100" : "bg-red-100";
+                return (
+                  <tr key={idx} className="border-b border-border/50 hover:bg-muted/50">
+                    <td className="py-2 px-4 font-medium">{tech.name}</td>
+                    <td className="py-2 px-4 text-right">{tech.count.toLocaleString()}</td>
+                    <td className="py-2 px-4 text-right">{failureCount.toLocaleString()}</td>
+                    <td className="py-2 px-4 text-right">{avgSpeed.toFixed(2)} Mbps</td>
+                    <td className="py-2 px-4 text-right">{avgLatency.toFixed(2)} ms</td>
+                    <td className="py-2 px-4 text-center">
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor}`}>
+                        {tech.call_success_rate.toFixed(2)}%
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Region Breakdown Table */}
+        <div className="card-elevated rounded-xl border border-border/50 p-6 overflow-x-auto">
+          <h3 className="text-lg font-bold text-foreground mb-4">By Region</h3>
+          <table className="w-full text-sm">
+            <thead className="border-b border-border">
+              <tr className="text-muted-foreground font-semibold">
+                <th className="text-left py-2 px-4">Region</th>
+                <th className="text-right py-2 px-4">Sessions</th>
+                <th className="text-right py-2 px-4">Failures</th>
+                <th className="text-right py-2 px-4">Avg Speed</th>
+                <th className="text-right py-2 px-4">Avg Latency</th>
+                <th className="text-center py-2 px-4">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {regionBreakdown.map((region, idx) => {
+                const failureCount = Math.round((region.count * region.drop_rate) / 100);
+                const statusColor = region.call_success_rate > 98 ? "bg-green-100" : region.call_success_rate > 96 ? "bg-yellow-100" : "bg-red-100";
+                return (
+                  <tr key={idx} className="border-b border-border/50 hover:bg-muted/50">
+                    <td className="py-2 px-4 font-medium">{region.name}</td>
+                    <td className="py-2 px-4 text-right">{region.count.toLocaleString()}</td>
+                    <td className="py-2 px-4 text-right">{failureCount.toLocaleString()}</td>
+                    <td className="py-2 px-4 text-right">{avgSpeed.toFixed(2)} Mbps</td>
+                    <td className="py-2 px-4 text-right">{avgLatency.toFixed(2)} ms</td>
+                    <td className="py-2 px-4 text-center">
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor}`}>
+                        {region.call_success_rate.toFixed(2)}%
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Cluster Breakdown Table */}
+        <div className="card-elevated rounded-xl border border-border/50 p-6 overflow-x-auto">
+          <h3 className="text-lg font-bold text-foreground mb-4">By Cluster</h3>
+          <table className="w-full text-sm">
+            <thead className="border-b border-border">
+              <tr className="text-muted-foreground font-semibold">
+                <th className="text-left py-2 px-4">Cluster</th>
+                <th className="text-right py-2 px-4">Sessions</th>
+                <th className="text-right py-2 px-4">Failures</th>
+                <th className="text-right py-2 px-4">Avg Speed</th>
+                <th className="text-right py-2 px-4">Avg Latency</th>
+                <th className="text-center py-2 px-4">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {clusterBreakdown.map((cluster, idx) => {
+                const failureCount = Math.round((cluster.count * cluster.drop_rate) / 100);
+                const statusColor = cluster.call_success_rate > 98 ? "bg-green-100" : cluster.call_success_rate > 96 ? "bg-yellow-100" : "bg-red-100";
+                return (
+                  <tr key={idx} className="border-b border-border/50 hover:bg-muted/50">
+                    <td className="py-2 px-4 font-medium">{cluster.name}</td>
+                    <td className="py-2 px-4 text-right">{cluster.count.toLocaleString()}</td>
+                    <td className="py-2 px-4 text-right">{failureCount.toLocaleString()}</td>
+                    <td className="py-2 px-4 text-right">{avgSpeed.toFixed(2)} Mbps</td>
+                    <td className="py-2 px-4 text-right">{avgLatency.toFixed(2)} ms</td>
+                    <td className="py-2 px-4 text-center">
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor}`}>
+                        {cluster.call_success_rate.toFixed(2)}%
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       {/* Segmentation - High Performance */}
       {vendorSegmented["High performance"] && vendorSegmented["High performance"].length > 0 && (
         <div className="card-elevated rounded-xl border border-border/50 p-6">
