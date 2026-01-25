@@ -515,17 +515,118 @@ export default function DataAnalytics() {
         {/* Peak vs Off-Peak Comparison */}
         <div className="card-elevated rounded-xl border border-border/50 p-6">
           <h3 className="text-lg font-bold text-foreground mb-4">Peak vs Off-Peak Analysis</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-4 rounded-lg bg-status-degraded/5 border border-status-degraded/20">
-              <p className="text-sm font-semibold text-foreground mb-2">Peak Hours</p>
+              <p className="text-sm font-semibold text-foreground mb-2">Peak Hours (9 AM - 5 PM)</p>
               <p className="text-2xl font-bold text-status-degraded mb-2">92.3 Mbps</p>
-              <p className="text-xs text-muted-foreground">+2.5% from previous peak</p>
+              <p className="text-xs text-muted-foreground">Avg Speed: +2.5% trend</p>
+              <p className="text-xs text-muted-foreground">Latency: 52.3ms</p>
             </div>
             <div className="p-4 rounded-lg bg-status-healthy/5 border border-status-healthy/20">
-              <p className="text-sm font-semibold text-foreground mb-2">Off-Peak Hours</p>
+              <p className="text-sm font-semibold text-foreground mb-2">Off-Peak Hours (6 PM - 8 AM)</p>
               <p className="text-2xl font-bold text-status-healthy mb-2">156.8 Mbps</p>
-              <p className="text-xs text-muted-foreground">+4.2% from previous off-peak</p>
+              <p className="text-xs text-muted-foreground">Avg Speed: +4.2% trend</p>
+              <p className="text-xs text-muted-foreground">Latency: 28.1ms</p>
             </div>
+            <div className="p-4 rounded-lg bg-yellow-100 border border-yellow-200">
+              <p className="text-sm font-semibold text-foreground mb-2">Capacity Stress</p>
+              <p className="text-2xl font-bold text-yellow-700 mb-2">64%</p>
+              <p className="text-xs text-muted-foreground">Utilization during peak</p>
+              <p className="text-xs text-muted-foreground">Headroom: 36%</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Congestion Hotspots - Ranked List */}
+        <div className="card-elevated rounded-xl border border-border/50 p-6">
+          <h3 className="text-lg font-bold text-foreground mb-4">Areas Under Capacity Stress</h3>
+          <div className="space-y-3">
+            {[
+              { area: "Region: South - Cluster C", utilization: 85, speed: 62, latency: 67, status: "critical" },
+              { area: "Region: East - Cluster B", utilization: 78, speed: 71, latency: 54, status: "high" },
+              { area: "Technology: 3G - North", utilization: 72, speed: 58, latency: 78, status: "high" },
+              { area: "Vendor: Huawei - Central", utilization: 68, speed: 73, latency: 45, status: "medium" },
+            ].map((item, idx) => (
+              <div key={idx} className="p-4 rounded-lg border border-border/50 hover:bg-muted/50">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="font-semibold text-foreground">{item.area}</p>
+                  <span className={cn(
+                    "px-2 py-1 rounded text-xs font-semibold",
+                    item.status === "critical" ? "bg-red-100 text-red-700" :
+                    item.status === "high" ? "bg-orange-100 text-orange-700" :
+                    "bg-yellow-100 text-yellow-700"
+                  )}>
+                    {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 gap-4 text-sm">
+                  <div>
+                    <p className="text-muted-foreground text-xs mb-1">Utilization</p>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className={cn(
+                          "h-2 rounded-full",
+                          item.utilization > 80 ? "bg-red-500" : item.utilization > 70 ? "bg-orange-500" : "bg-yellow-500"
+                        )}
+                        style={{ width: `${item.utilization}%` }}
+                      />
+                    </div>
+                    <p className="text-xs font-semibold mt-1">{item.utilization}%</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-xs mb-1">Speed</p>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className={cn(
+                          "h-2 rounded-full",
+                          item.speed > 80 ? "bg-green-500" : item.speed > 60 ? "bg-yellow-500" : "bg-red-500"
+                        )}
+                        style={{ width: `${item.speed}%` }}
+                      />
+                    </div>
+                    <p className="text-xs font-semibold mt-1">{item.speed} Mbps</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-xs mb-1">Latency</p>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className={cn(
+                          "h-2 rounded-full",
+                          item.latency < 40 ? "bg-green-500" : item.latency < 60 ? "bg-yellow-500" : "bg-red-500"
+                        )}
+                        style={{ width: `${Math.min(item.latency, 100)}%` }}
+                      />
+                    </div>
+                    <p className="text-xs font-semibold mt-1">{item.latency}ms</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* High Usage with Low Speed Indicators */}
+        <div className="card-elevated rounded-xl border border-border/50 p-6">
+          <h3 className="text-lg font-bold text-foreground mb-4">High Usage with Low Speed (Performance Risk)</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[
+              { area: "South Region", volume: "High", speed: "Low", risk: "Critical", recommendation: "Scale capacity immediately" },
+              { area: "East Cluster", volume: "High", speed: "Medium", risk: "High", recommendation: "Monitor closely for escalation" },
+              { area: "3G Network", volume: "Medium", speed: "Low", risk: "Medium", recommendation: "Plan upgrade timeline" },
+            ].map((item, idx) => (
+              <div key={idx} className="p-4 rounded-lg border border-red-200 bg-red-50">
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <p className="font-semibold text-foreground">{item.area}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Data Volume: <span className="font-semibold">{item.volume}</span> | Speed: <span className="font-semibold">{item.speed}</span></p>
+                  </div>
+                  <span className="px-2 py-1 rounded text-xs font-semibold bg-red-200 text-red-700">
+                    {item.risk}
+                  </span>
+                </div>
+                <p className="text-sm text-foreground"><span className="font-semibold">Recommendation:</span> {item.recommendation}</p>
+              </div>
+            ))}
           </div>
         </div>
       </div>
