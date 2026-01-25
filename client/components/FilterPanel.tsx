@@ -22,34 +22,6 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
     onFiltersChange?.(newFilters);
   };
 
-  const handleCreateCluster = () => {
-    if (!newClusterName.trim()) {
-      toast({
-        title: "Invalid location name",
-        description: "Please enter a location name",
-      });
-      return;
-    }
-
-    const success = addCluster(newClusterName);
-
-    if (!success) {
-      toast({
-        title: "Cluster already exists",
-        description: `A cluster with the name "${newClusterName}" already exists`,
-      });
-      return;
-    }
-
-    toast({
-      title: "Cluster created",
-      description: `"${newClusterName}" has been added to the cluster list`,
-    });
-
-    setNewClusterName("");
-    setShowCreateClusterDialog(false);
-  };
-
   // Determine if hourly is allowed based on date range
   const daysDiff = getDaysDifference(filters.dateRange);
   const allowHourly = daysDiff <= 3;
