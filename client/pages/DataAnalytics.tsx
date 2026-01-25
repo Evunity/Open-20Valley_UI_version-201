@@ -214,7 +214,7 @@ export default function DataAnalytics() {
         <FilterPanel />
       </div>
 
-      {/* KPI Cards */}
+      {/* KPI Cards - Top Row */}
       <div>
         <h2 className="text-2xl font-bold text-foreground mb-4">Key Performance Indicators</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -260,8 +260,8 @@ export default function DataAnalytics() {
         </div>
       </div>
 
-      {/* Secondary KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* KPI Cards - Secondary Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <KPICard
           label="Session Drop Rate"
           value={kpis.session_drop_rate.value.toFixed(2)}
@@ -269,6 +269,7 @@ export default function DataAnalytics() {
           change={kpis.session_drop_rate.change}
           status={kpis.session_drop_rate.status}
           icon={AlertCircle}
+          priority="High"
           comparison="vs previous period"
         />
         <KPICard
@@ -278,6 +279,15 @@ export default function DataAnalytics() {
           change={kpis.peak_speed.change}
           status={kpis.peak_speed.status}
           icon={TrendingUp}
+          comparison="vs previous period"
+        />
+        <KPICard
+          label="Packet Loss"
+          value={kpis.packet_loss.value.toFixed(4)}
+          unit={kpis.packet_loss.unit}
+          change={kpis.packet_loss.change}
+          status={kpis.packet_loss.status}
+          icon={AlertCircle}
           comparison="vs previous period"
         />
         <KPICard
