@@ -883,7 +883,14 @@ export default function DataAnalytics() {
 
         {/* By Technology */}
         <div className="card-elevated rounded-xl border border-border/50 p-6">
-          <h3 className="text-lg font-bold text-foreground mb-4">By Technology</h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-foreground">By Technology</h3>
+            {filters.technologies.length > 0 && (
+              <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700 font-medium">
+                {filters.technologies.length} technology{filters.technologies.length !== 1 ? 's' : ''} selected
+              </span>
+            )}
+          </div>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart
               data={techBreakdown}
