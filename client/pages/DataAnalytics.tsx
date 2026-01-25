@@ -834,9 +834,27 @@ export default function DataAnalytics() {
       <div className="space-y-6">
         <h2 className="text-2xl font-bold text-foreground">Performance Breakdown</h2>
 
+        {/* Filter Context Info */}
+        {(filters.technologies.length > 0 || filters.regions.length > 0) && (
+          <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
+            <p className="text-sm text-blue-900">
+              <span className="font-semibold">Viewing results:</span>
+              {filters.technologies.length > 0 && ` Technologies: ${filters.technologies.join(", ")}`}
+              {filters.regions.length > 0 && ` | Regions: ${filters.regions.join(", ")}`}
+            </p>
+          </div>
+        )}
+
         {/* By Vendor */}
         <div className="card-elevated rounded-xl border border-border/50 p-6">
-          <h3 className="text-lg font-bold text-foreground mb-4">By Vendor</h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-foreground">By Vendor</h3>
+            {filters.vendors.length > 0 && (
+              <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium">
+                {filters.vendors.length} vendor{filters.vendors.length !== 1 ? 's' : ''} selected
+              </span>
+            )}
+          </div>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart
               data={vendorBreakdown}
