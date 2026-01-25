@@ -327,16 +327,8 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
           </button>
         </div>
 
-        {/* Add Cluster Location Button */}
-        <div className="flex items-end">
-          <button
-            onClick={() => setShowCreateClusterDialog(true)}
-            className="w-full px-3 py-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-all duration-200 text-xs font-medium active:scale-95 flex items-center justify-center gap-1"
-          >
-            <Plus className="w-3 h-3" />
-            Add Location
-          </button>
-        </div>
+        {/* Add Cluster Location Button - Hidden in analytics view, only for admin */}
+        {/* This configuration action has been moved to Settings page */}
 
         {/* Reset Button */}
         <div className="flex items-end">
