@@ -261,7 +261,8 @@ export default function Layout({ children }: LayoutProps) {
             )}
             <Link
               to="/"
-              className="flex items-center gap-2 group hover:opacity-80 transition-opacity flex-1 min-w-0"
+              className="flex items-center gap-2 group hover:opacity-80 transition-opacity flex-1 min-w-0 cursor-pointer"
+              title="Back to Dashboard"
             >
               <img
                 src="https://cdn.builder.io/api/v1/image/assets%2Fc13b4e0240ec42a0981c688ed8e4138d%2F764a7575ec7b41acab908367454597f1?format=webp&width=800"
