@@ -29,6 +29,7 @@ import {
   generateTimeRegionHeatmap,
   generateTechCapacityHeatmap,
   generateHourlyUtilizationHeatmap,
+  generateDataInsights,
 } from "@/utils/analyticsData";
 import {
   Zap,
