@@ -24,6 +24,7 @@ import {
   generateDataBreakdownByVendor,
   generateDataBreakdownByTechnology,
   generateDataBreakdownByRegion,
+  generateDataBreakdownByCluster,
   segmentDataPerformance,
 } from "@/utils/analyticsData";
 import {
