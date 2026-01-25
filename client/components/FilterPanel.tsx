@@ -96,7 +96,7 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
 
   return (
     <div className="space-y-4">
-      {/* Active Filters Pills */}
+      {/* Active Filters Pills with Multi-Vendor Highlighting */}
       {activeFilterCount > 0 && (
         <div className="flex flex-wrap gap-2">
           {filters.vendors.map((v) => (
