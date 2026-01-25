@@ -23,10 +23,34 @@ export default function AnalyticsSections() {
       description: "Call quality and performance metrics",
     },
     {
-      title: "Data Analytics",
+      title: "Data Services",
       icon: <BarChart3 className="w-5 h-5" />,
       path: "/data-analytics",
       description: "Session analytics and bandwidth metrics",
+    },
+    {
+      title: "Network Alarms",
+      icon: <AlertTriangle className="w-5 h-5" />,
+      path: "/detail/alarms",
+      description: "Active incidents and resolution tracking",
+    },
+    {
+      title: "Network Status",
+      icon: <Globe className="w-5 h-5" />,
+      path: "/network",
+      description: "Network topology and cluster health",
+    },
+    {
+      title: "Reports",
+      icon: <FileText className="w-5 h-5" />,
+      path: "/reports",
+      description: "Generate and download reports",
+    },
+    {
+      title: "AI Engine Actions",
+      icon: <Zap className="w-5 h-5" />,
+      path: "/ai-actions",
+      description: "View AI automation activities",
     },
   ];
 
