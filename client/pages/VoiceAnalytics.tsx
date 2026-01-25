@@ -449,9 +449,12 @@ export default function VoiceAnalytics() {
       <div className="space-y-6">
         <h2 className="text-2xl font-bold text-foreground">Performance Breakdown</h2>
 
-        {/* By Vendor */}
+        {/* By Vendor - Comparison */}
         <div className="card-elevated rounded-xl border border-border/50 p-6">
-          <h3 className="text-lg font-bold text-foreground mb-4">By Vendor</h3>
+          <div className="mb-4">
+            <h3 className="text-lg font-bold text-foreground">By Vendor - Performance Comparison</h3>
+            <p className="text-sm text-muted-foreground mt-1">Grouped bar chart comparing key metrics across vendors</p>
+          </div>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart
               data={vendorBreakdown}
@@ -472,15 +475,65 @@ export default function VoiceAnalytics() {
                 }}
               />
               <Legend />
-              <Bar dataKey="call_success_rate" fill="#22c55e" name="Success Rate" />
-              <Bar dataKey="call_stability" fill="#3b82f6" name="Stability" />
+              <Bar dataKey="call_success_rate" fill="#22c55e" name="Success Rate %" />
+              <Bar dataKey="call_stability" fill="#3b82f6" name="Stability %" />
             </BarChart>
           </ResponsiveContainer>
         </div>
 
-        {/* By Technology */}
+        {/* By Vendor - Contribution */}
         <div className="card-elevated rounded-xl border border-border/50 p-6">
-          <h3 className="text-lg font-bold text-foreground mb-4">By Technology</h3>
+          <div className="mb-4">
+            <h3 className="text-lg font-bold text-foreground">By Vendor - Call Volume Contribution</h3>
+            <p className="text-sm text-muted-foreground mt-1">Stacked bar chart showing each vendor's contribution to total call volume</p>
+          </div>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart
+              data={[
+                {
+                  name: "Call Volume Distribution",
+                  ...vendorBreakdown.reduce(
+                    (acc, vendor) => ({
+                      ...acc,
+                      [vendor.name]: vendor.count,
+                    }),
+                    {}
+                  ),
+                },
+              ]}
+              margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+              layout="vertical"
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis type="number" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+              <YAxis dataKey="name" type="category" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "8px",
+                }}
+              />
+              <Legend />
+              {vendorBreakdown.map((vendor, idx) => (
+                <Bar
+                  key={vendor.name}
+                  dataKey={vendor.name}
+                  stackId="a"
+                  fill={["#22c55e", "#3b82f6", "#f59e0b", "#ef4444"][idx % 4]}
+                  name={vendor.name}
+                />
+              ))}
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* By Technology - Comparison */}
+        <div className="card-elevated rounded-xl border border-border/50 p-6">
+          <div className="mb-4">
+            <h3 className="text-lg font-bold text-foreground">By Technology - Performance Comparison</h3>
+            <p className="text-sm text-muted-foreground mt-1">Grouped bar chart comparing key metrics across technologies</p>
+          </div>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart
               data={techBreakdown}
@@ -501,8 +554,55 @@ export default function VoiceAnalytics() {
                 }}
               />
               <Legend />
-              <Bar dataKey="call_success_rate" fill="#22c55e" name="Success Rate" />
-              <Bar dataKey="call_stability" fill="#3b82f6" name="Stability" />
+              <Bar dataKey="call_success_rate" fill="#22c55e" name="Success Rate %" />
+              <Bar dataKey="call_stability" fill="#3b82f6" name="Stability %" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* By Technology - Contribution */}
+        <div className="card-elevated rounded-xl border border-border/50 p-6">
+          <div className="mb-4">
+            <h3 className="text-lg font-bold text-foreground">By Technology - Call Volume Contribution</h3>
+            <p className="text-sm text-muted-foreground mt-1">Stacked bar chart showing each technology's contribution to total call volume</p>
+          </div>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart
+              data={[
+                {
+                  name: "Call Volume Distribution",
+                  ...techBreakdown.reduce(
+                    (acc, tech) => ({
+                      ...acc,
+                      [tech.name]: tech.count,
+                    }),
+                    {}
+                  ),
+                },
+              ]}
+              margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+              layout="vertical"
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis type="number" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+              <YAxis dataKey="name" type="category" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "8px",
+                }}
+              />
+              <Legend />
+              {techBreakdown.map((tech, idx) => (
+                <Bar
+                  key={tech.name}
+                  dataKey={tech.name}
+                  stackId="a"
+                  fill={["#22c55e", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6"][idx % 5]}
+                  name={tech.name}
+                />
+              ))}
             </BarChart>
           </ResponsiveContainer>
         </div>
