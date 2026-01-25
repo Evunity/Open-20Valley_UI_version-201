@@ -62,13 +62,29 @@ export default function KPICard({
     }
   };
 
+  const getPriorityBorderColor = (p?: string) => {
+    switch (p) {
+      case "Critical":
+        return "border-l-4 border-l-status-critical";
+      case "High":
+        return "border-l-4 border-l-status-degraded";
+      case "Medium":
+        return "border-l-4 border-l-yellow-500";
+      case "Low":
+        return "border-l-4 border-l-status-healthy";
+      default:
+        return "";
+    }
+  };
+
   const isPositiveChange = change && change >= 0;
 
   return (
     <div
       className={cn(
         "p-6 rounded-xl border transition-all duration-300 hover:shadow-lg hover:border-primary/50",
-        getStatusColor(status)
+        getStatusColor(status),
+        getPriorityBorderColor(priority)
       )}
     >
       {/* Header with Icon and Priority */}
