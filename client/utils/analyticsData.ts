@@ -197,15 +197,29 @@ export const generateVoiceBreakdownByVendor = (
 export const generateVoiceBreakdownByTechnology = (
   filters: GlobalFilterState
 ): VoiceBreakdown[] => {
-  const technologies = ["2G", "3G", "4G", "5G", "O-RAN"];
+  const allTechnologies = ["2G", "3G", "4G", "5G", "O-RAN"];
+  // Filter technologies based on active filters
+  const technologies = filters.technologies.length > 0 ? filters.technologies : allTechnologies;
+
   return technologies.map((tech) => {
-    const successRate = 96.5 + Math.random() * 3;
-    const dropRate = 0.35 + Math.random() * 0.4;
+    // Older technologies have naturally worse performance
+    let performanceBoost = 0;
+    switch (tech) {
+      case "2G": performanceBoost = -2; break;
+      case "3G": performanceBoost = -1; break;
+      case "4G": performanceBoost = 0.5; break;
+      case "5G": performanceBoost = 1.5; break;
+      case "O-RAN": performanceBoost = 1; break;
+    }
+
+    const successRate = Math.max(90, 96.5 + Math.random() * 3 + performanceBoost);
+    const dropRate = Math.max(0.1, 0.35 + Math.random() * 0.4 - performanceBoost * 0.1);
+
     return {
       name: tech,
       call_success_rate: successRate,
       drop_rate: dropRate,
-      call_stability: 97.5 + Math.random() * 2,
+      call_stability: 97.5 + Math.random() * 2 + performanceBoost * 0.3,
       status:
         Math.random() > 0.4
           ? "High quality"
