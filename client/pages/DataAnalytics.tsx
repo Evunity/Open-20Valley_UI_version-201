@@ -440,6 +440,41 @@ export default function DataAnalytics() {
             </LineChart>
           </ResponsiveContainer>
         </div>
+
+        {/* Packet Loss Trend */}
+        <div className="card-elevated rounded-xl border border-border/50 p-6">
+          <h3 className="text-lg font-bold text-foreground mb-4">Packet Loss Trend</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart
+              data={trendData}
+              margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis
+                dataKey="time"
+                type="category"
+                stroke="hsl(var(--muted-foreground))"
+                style={{ fontSize: "12px" }}
+              />
+              <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "8px",
+                }}
+              />
+              <Legend />
+              <Line
+                type="monotone"
+                dataKey="packet_loss"
+                stroke="#ef4444"
+                strokeWidth={2}
+                name="Packet Loss (%)"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
       </div>
 
       {/* Capacity & Congestion Indicators */}
