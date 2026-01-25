@@ -1004,6 +1004,20 @@ export default function DashboardNew() {
           </div>
         </div>
       </div>
+
+      {/* ===== VENDOR COMPARISON ===== */}
+      {filters.vendors.length > 1 && vendorMetrics.length > 0 && (
+        <VendorComparison
+          vendors={vendorMetrics}
+          title="Multi-Vendor Performance Comparison"
+          showRanking={true}
+          selectedTechnologies={filters.technologies}
+          selectedRegions={filters.regions}
+          isMixedEnvironment={
+            filters.technologies.length > 0 && filters.vendors.length > 1
+          }
+        />
+      )}
     </div>
   );
 }
