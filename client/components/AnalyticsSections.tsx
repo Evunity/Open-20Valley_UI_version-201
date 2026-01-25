@@ -54,26 +54,11 @@ export default function AnalyticsSections() {
       {/* Content */}
       {isOpen && (
         <div className="border-t border-border/50 grid grid-cols-1 md:grid-cols-2 gap-0">
-          {sections.map((section, index) => (
+          {sections.map((section) => (
             <button
               key={section.path}
-              onClick={() => {
-                if (section.isExternal && section.path?.startsWith("#")) {
-                  // Scroll to element by ID
-                  if (typeof document !== "undefined") {
-                    const element = document.querySelector(section.path);
-                    if (element) {
-                      element.scrollIntoView({ behavior: "smooth" });
-                    }
-                  }
-                } else if (section.path) {
-                  navigate(section.path);
-                }
-              }}
-              className={cn(
-                "flex items-start gap-3 p-4 hover:bg-primary/5 transition-all duration-200 text-left group border-b border-border/30",
-                index % 2 === 1 && "md:border-l md:border-b md:border-border/30"
-              )}
+              onClick={() => navigate(section.path)}
+              className="flex items-start gap-3 p-4 hover:bg-primary/5 transition-all duration-200 text-left group border-b border-border/30 md:border-b"
             >
               <div className="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
                 {section.icon}
