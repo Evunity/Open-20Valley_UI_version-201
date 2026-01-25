@@ -426,6 +426,25 @@ export const generateDataBreakdownByRegion = (
   }));
 };
 
+export const generateDataBreakdownByCluster = (
+  filters: GlobalFilterState
+): VoiceBreakdown[] => {
+  const clusterNames = filters.clusters.length > 0 ? filters.clusters : ["Cluster A", "Cluster B", "Cluster C", "Cluster D"];
+  return clusterNames.map((cluster) => ({
+    name: cluster,
+    call_success_rate: 97 + Math.random() * 2.5,
+    drop_rate: 0.3 + Math.random() * 0.3,
+    call_stability: 97.5 + Math.random() * 2,
+    status:
+      Math.random() > 0.4
+        ? "High performance"
+        : Math.random() > 0.6
+          ? "Balanced"
+          : "Congested",
+    count: Math.round(8000 + Math.random() * 4000),
+  }));
+};
+
 /**
  * Segmentation helpers - group data into performance categories
  */
