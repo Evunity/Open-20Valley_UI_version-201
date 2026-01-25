@@ -31,15 +31,7 @@ import {
   generateHourlyUtilizationHeatmap,
   generateDataInsights,
 } from "@/utils/analyticsData";
-import {
-  Zap,
-  TrendingUp,
-  Activity,
-  Gauge,
-  Wifi,
-  Clock,
-  AlertCircle,
-} from "lucide-react";
+import { Zap, TrendingUp, Activity, Gauge, Wifi, Clock, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function DataAnalytics() {
@@ -58,7 +50,10 @@ export default function DataAnalytics() {
   const vendorSegmented = useMemo(() => segmentDataPerformance(vendorBreakdown), [vendorBreakdown]);
   const techSegmented = useMemo(() => segmentDataPerformance(techBreakdown), [techBreakdown]);
   const regionSegmented = useMemo(() => segmentDataPerformance(regionBreakdown), [regionBreakdown]);
-  const clusterSegmented = useMemo(() => segmentDataPerformance(clusterBreakdown), [clusterBreakdown]);
+  const clusterSegmented = useMemo(
+    () => segmentDataPerformance(clusterBreakdown),
+    [clusterBreakdown]
+  );
 
   // Calculate average speed and latency for display in tables
   const avgSpeed = useMemo(() => {
@@ -77,17 +72,21 @@ export default function DataAnalytics() {
   const hourlyUtilizationHeatmap = useMemo(() => generateHourlyUtilizationHeatmap(), []);
 
   // Generate data insights
-  const dataInsights = useMemo(() => generateDataInsights(trendData, filters), [trendData, filters]);
+  const dataInsights = useMemo(
+    () => generateDataInsights(trendData, filters),
+    [trendData, filters]
+  );
 
   // Generate insights
   const insights = useMemo(() => {
     const today = new Date();
-    const dateStr = today.toLocaleDateString("en-US", { year: "numeric", month: "2-digit", day: "2-digit" }).replace(/\//g, "-");
+    const dateStr = today
+      .toLocaleDateString("en-US", { year: "numeric", month: "2-digit", day: "2-digit" })
+      .replace(/\//g, "-");
 
     // Calculate average DEI from trend data
-    const avgDEI = trendData.length > 0
-      ? trendData.reduce((sum, d) => sum + d.dei, 0) / trendData.length
-      : 8.4;
+    const avgDEI =
+      trendData.length > 0 ? trendData.reduce((sum, d) => sum + d.dei, 0) / trendData.length : 8.4;
 
     // Calculate change (comparing last 3 with previous 3 periods)
     let deiChange = -0.83;
@@ -102,7 +101,7 @@ export default function DataAnalytics() {
     return {
       overall: {
         change: deiChange,
-        status: deiChange < 0 ? ("Degraded" as const) : "Improved" as const,
+        status: deiChange < 0 ? ("Degraded" as const) : ("Improved" as const),
       },
       byTechnology: [
         { name: "5G", change: 3.2, status: "Improved" as const },
@@ -393,10 +392,7 @@ export default function DataAnalytics() {
         <div className="card-elevated rounded-xl border border-border/50 p-6">
           <h3 className="text-lg font-bold text-foreground mb-4">Data Volume Trend</h3>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart
-              data={trendData}
-              margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
-            >
+            <LineChart data={trendData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis
                 dataKey="time"
@@ -428,10 +424,7 @@ export default function DataAnalytics() {
         <div className="card-elevated rounded-xl border border-border/50 p-6">
           <h3 className="text-lg font-bold text-foreground mb-4">Speed & Latency Metrics</h3>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart
-              data={trendData}
-              margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
-            >
+            <LineChart data={trendData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis
                 dataKey="time"
@@ -470,10 +463,7 @@ export default function DataAnalytics() {
         <div className="card-elevated rounded-xl border border-border/50 p-6">
           <h3 className="text-lg font-bold text-foreground mb-4">Data Experience Index Trend</h3>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart
-              data={trendData}
-              margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
-            >
+            <LineChart data={trendData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis
                 dataKey="time"
@@ -490,13 +480,7 @@ export default function DataAnalytics() {
                 }}
               />
               <Legend />
-              <Line
-                type="monotone"
-                dataKey="dei"
-                stroke="#3b82f6"
-                strokeWidth={2}
-                name="DEI"
-              />
+              <Line type="monotone" dataKey="dei" stroke="#3b82f6" strokeWidth={2} name="DEI" />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -505,10 +489,7 @@ export default function DataAnalytics() {
         <div className="card-elevated rounded-xl border border-border/50 p-6">
           <h3 className="text-lg font-bold text-foreground mb-4">Packet Loss Trend</h3>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart
-              data={trendData}
-              margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
-            >
+            <LineChart data={trendData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis
                 dataKey="time"
@@ -541,7 +522,9 @@ export default function DataAnalytics() {
       <div className="space-y-6">
         <div>
           <h2 className="text-2xl font-bold text-foreground">Capacity & Congestion</h2>
-          <p className="text-sm text-muted-foreground mt-2">Stress levels, bottlenecks, and utilization hotspots</p>
+          <p className="text-sm text-muted-foreground mt-2">
+            Stress levels, bottlenecks, and utilization hotspots
+          </p>
         </div>
 
         {/* Peak vs Off-Peak Comparison */}
@@ -555,7 +538,9 @@ export default function DataAnalytics() {
               <p className="text-xs text-muted-foreground">Latency: 52.3ms</p>
             </div>
             <div className="p-4 rounded-lg bg-status-healthy/5 border border-status-healthy/20">
-              <p className="text-sm font-semibold text-foreground mb-2">Off-Peak Hours (6 PM - 8 AM)</p>
+              <p className="text-sm font-semibold text-foreground mb-2">
+                Off-Peak Hours (6 PM - 8 AM)
+              </p>
               <p className="text-2xl font-bold text-status-healthy mb-2">156.8 Mbps</p>
               <p className="text-xs text-muted-foreground">Avg Speed: +4.2% trend</p>
               <p className="text-xs text-muted-foreground">Latency: 28.1ms</p>
@@ -574,20 +559,48 @@ export default function DataAnalytics() {
           <h3 className="text-lg font-bold text-foreground mb-4">Areas Under Capacity Stress</h3>
           <div className="space-y-3">
             {[
-              { area: "Region: South - Cluster C", utilization: 85, speed: 62, latency: 67, status: "critical" },
-              { area: "Region: East - Cluster B", utilization: 78, speed: 71, latency: 54, status: "high" },
-              { area: "Technology: 3G - North", utilization: 72, speed: 58, latency: 78, status: "high" },
-              { area: "Vendor: Huawei - Central", utilization: 68, speed: 73, latency: 45, status: "medium" },
+              {
+                area: "Region: South - Cluster C",
+                utilization: 85,
+                speed: 62,
+                latency: 67,
+                status: "critical",
+              },
+              {
+                area: "Region: East - Cluster B",
+                utilization: 78,
+                speed: 71,
+                latency: 54,
+                status: "high",
+              },
+              {
+                area: "Technology: 3G - North",
+                utilization: 72,
+                speed: 58,
+                latency: 78,
+                status: "high",
+              },
+              {
+                area: "Vendor: Huawei - Central",
+                utilization: 68,
+                speed: 73,
+                latency: 45,
+                status: "medium",
+              },
             ].map((item, idx) => (
               <div key={idx} className="p-4 rounded-lg border border-border/50 hover:bg-muted/50">
                 <div className="flex items-center justify-between mb-2">
                   <p className="font-semibold text-foreground">{item.area}</p>
-                  <span className={cn(
-                    "px-2 py-1 rounded text-xs font-semibold",
-                    item.status === "critical" ? "bg-red-100 text-red-700" :
-                    item.status === "high" ? "bg-orange-100 text-orange-700" :
-                    "bg-yellow-100 text-yellow-700"
-                  )}>
+                  <span
+                    className={cn(
+                      "px-2 py-1 rounded text-xs font-semibold",
+                      item.status === "critical"
+                        ? "bg-red-100 text-red-700"
+                        : item.status === "high"
+                          ? "bg-orange-100 text-orange-700"
+                          : "bg-yellow-100 text-yellow-700"
+                    )}
+                  >
                     {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
                   </span>
                 </div>
@@ -598,7 +611,11 @@ export default function DataAnalytics() {
                       <div
                         className={cn(
                           "h-2 rounded-full",
-                          item.utilization > 80 ? "bg-red-500" : item.utilization > 70 ? "bg-orange-500" : "bg-yellow-500"
+                          item.utilization > 80
+                            ? "bg-red-500"
+                            : item.utilization > 70
+                              ? "bg-orange-500"
+                              : "bg-yellow-500"
                         )}
                         style={{ width: `${item.utilization}%` }}
                       />
@@ -611,7 +628,11 @@ export default function DataAnalytics() {
                       <div
                         className={cn(
                           "h-2 rounded-full",
-                          item.speed > 80 ? "bg-green-500" : item.speed > 60 ? "bg-yellow-500" : "bg-red-500"
+                          item.speed > 80
+                            ? "bg-green-500"
+                            : item.speed > 60
+                              ? "bg-yellow-500"
+                              : "bg-red-500"
                         )}
                         style={{ width: `${item.speed}%` }}
                       />
@@ -624,7 +645,11 @@ export default function DataAnalytics() {
                       <div
                         className={cn(
                           "h-2 rounded-full",
-                          item.latency < 40 ? "bg-green-500" : item.latency < 60 ? "bg-yellow-500" : "bg-red-500"
+                          item.latency < 40
+                            ? "bg-green-500"
+                            : item.latency < 60
+                              ? "bg-yellow-500"
+                              : "bg-red-500"
                         )}
                         style={{ width: `${Math.min(item.latency, 100)}%` }}
                       />
@@ -639,24 +664,49 @@ export default function DataAnalytics() {
 
         {/* High Usage with Low Speed Indicators */}
         <div className="card-elevated rounded-xl border border-border/50 p-6">
-          <h3 className="text-lg font-bold text-foreground mb-4">High Usage with Low Speed (Performance Risk)</h3>
+          <h3 className="text-lg font-bold text-foreground mb-4">
+            High Usage with Low Speed (Performance Risk)
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[
-              { area: "South Region", volume: "High", speed: "Low", risk: "Critical", recommendation: "Scale capacity immediately" },
-              { area: "East Cluster", volume: "High", speed: "Medium", risk: "High", recommendation: "Monitor closely for escalation" },
-              { area: "3G Network", volume: "Medium", speed: "Low", risk: "Medium", recommendation: "Plan upgrade timeline" },
+              {
+                area: "South Region",
+                volume: "High",
+                speed: "Low",
+                risk: "Critical",
+                recommendation: "Scale capacity immediately",
+              },
+              {
+                area: "East Cluster",
+                volume: "High",
+                speed: "Medium",
+                risk: "High",
+                recommendation: "Monitor closely for escalation",
+              },
+              {
+                area: "3G Network",
+                volume: "Medium",
+                speed: "Low",
+                risk: "Medium",
+                recommendation: "Plan upgrade timeline",
+              },
             ].map((item, idx) => (
               <div key={idx} className="p-4 rounded-lg border border-red-200 bg-red-50">
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <p className="font-semibold text-foreground">{item.area}</p>
-                    <p className="text-xs text-muted-foreground mt-1">Data Volume: <span className="font-semibold">{item.volume}</span> | Speed: <span className="font-semibold">{item.speed}</span></p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Data Volume: <span className="font-semibold">{item.volume}</span> | Speed:{" "}
+                      <span className="font-semibold">{item.speed}</span>
+                    </p>
                   </div>
                   <span className="px-2 py-1 rounded text-xs font-semibold bg-red-200 text-red-700">
                     {item.risk}
                   </span>
                 </div>
-                <p className="text-sm text-foreground"><span className="font-semibold">Recommendation:</span> {item.recommendation}</p>
+                <p className="text-sm text-foreground">
+                  <span className="font-semibold">Recommendation:</span> {item.recommendation}
+                </p>
               </div>
             ))}
           </div>
@@ -664,14 +714,19 @@ export default function DataAnalytics() {
 
         {/* Heatmap: Time vs Region Capacity Stress */}
         <div className="card-elevated rounded-xl border border-border/50 p-6">
-          <h3 className="text-lg font-bold text-foreground mb-4">Capacity Stress by Time & Region (Heatmap)</h3>
+          <h3 className="text-lg font-bold text-foreground mb-4">
+            Capacity Stress by Time & Region (Heatmap)
+          </h3>
           <div className="overflow-x-auto">
             <div className="min-w-max">
               {/* Column headers (Regions) */}
               <div className="flex gap-1 mb-2">
                 <div className="w-20"></div>
                 {["North", "South", "East", "West", "Central"].map((region) => (
-                  <div key={region} className="w-24 text-center text-xs font-semibold text-muted-foreground">
+                  <div
+                    key={region}
+                    className="w-24 text-center text-xs font-semibold text-muted-foreground"
+                  >
                     {region}
                   </div>
                 ))}
@@ -694,7 +749,10 @@ export default function DataAnalytics() {
                     return (
                       <div
                         key={idx}
-                        className={cn("w-24 h-10 rounded flex items-center justify-center text-xs font-bold text-gray-900", bgColor)}
+                        className={cn(
+                          "w-24 h-10 rounded flex items-center justify-center text-xs font-bold text-gray-900",
+                          bgColor
+                        )}
                         title={`${row.name} - ${cell.value.toFixed(1)}%`}
                       >
                         {cell.label}
@@ -727,14 +785,19 @@ export default function DataAnalytics() {
 
         {/* Heatmap: Technology vs Capacity Stress */}
         <div className="card-elevated rounded-xl border border-border/50 p-6">
-          <h3 className="text-lg font-bold text-foreground mb-4">Technology Performance by Region (Heatmap)</h3>
+          <h3 className="text-lg font-bold text-foreground mb-4">
+            Technology Performance by Region (Heatmap)
+          </h3>
           <div className="overflow-x-auto">
             <div className="min-w-max">
               {/* Column headers (Regions) */}
               <div className="flex gap-1 mb-2">
                 <div className="w-20"></div>
                 {["North", "South", "East", "West"].map((region) => (
-                  <div key={region} className="w-24 text-center text-xs font-semibold text-muted-foreground">
+                  <div
+                    key={region}
+                    className="w-24 text-center text-xs font-semibold text-muted-foreground"
+                  >
                     {region}
                   </div>
                 ))}
@@ -757,7 +820,10 @@ export default function DataAnalytics() {
                     return (
                       <div
                         key={idx}
-                        className={cn("w-24 h-10 rounded flex items-center justify-center text-xs font-bold text-gray-900", bgColor)}
+                        className={cn(
+                          "w-24 h-10 rounded flex items-center justify-center text-xs font-bold text-gray-900",
+                          bgColor
+                        )}
                         title={`${row.name} - ${cell.value.toFixed(1)}%`}
                       >
                         {cell.label}
@@ -790,23 +856,32 @@ export default function DataAnalytics() {
 
         {/* Heatmap: Hourly Utilization Pattern */}
         <div className="card-elevated rounded-xl border border-border/50 p-6">
-          <h3 className="text-lg font-bold text-foreground mb-4">24-Hour Utilization Pattern by Day (Heatmap)</h3>
+          <h3 className="text-lg font-bold text-foreground mb-4">
+            24-Hour Utilization Pattern by Day (Heatmap)
+          </h3>
           <div className="overflow-x-auto">
             <div className="min-w-max">
               {/* Column headers (Hours) */}
               <div className="flex gap-0.5 mb-2">
                 <div className="w-16"></div>
-                {Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, "0")}:00`).map((hour) => (
-                  <div key={hour} className="w-8 text-center text-xs font-semibold text-muted-foreground">
-                    {hour.split(":")[0]}
-                  </div>
-                ))}
+                {Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, "0")}:00`).map(
+                  (hour) => (
+                    <div
+                      key={hour}
+                      className="w-8 text-center text-xs font-semibold text-muted-foreground"
+                    >
+                      {hour.split(":")[0]}
+                    </div>
+                  )
+                )}
               </div>
 
               {/* Heatmap rows */}
               {hourlyUtilizationHeatmap.map((row) => (
                 <div key={row.name} className="flex gap-0.5 mb-2">
-                  <div className="w-16 text-xs font-semibold text-muted-foreground flex items-center">{row.name}</div>
+                  <div className="w-16 text-xs font-semibold text-muted-foreground flex items-center">
+                    {row.name}
+                  </div>
                   {row.cells.map((cell, idx) => {
                     const bgColor =
                       cell.intensity === "critical"
@@ -854,7 +929,9 @@ export default function DataAnalytics() {
       <div className="space-y-6">
         <div>
           <h2 className="text-2xl font-bold text-foreground">Performance Breakdown</h2>
-          <p className="text-sm text-muted-foreground mt-2">Compare performance across vendors, technologies, and regions</p>
+          <p className="text-sm text-muted-foreground mt-2">
+            Compare performance across vendors, technologies, and regions
+          </p>
         </div>
 
         {/* Filter Context Info */}
@@ -862,7 +939,8 @@ export default function DataAnalytics() {
           <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
             <p className="text-sm text-blue-900">
               <span className="font-semibold">Viewing results:</span>
-              {filters.technologies.length > 0 && ` Technologies: ${filters.technologies.join(", ")}`}
+              {filters.technologies.length > 0 &&
+                ` Technologies: ${filters.technologies.join(", ")}`}
               {filters.regions.length > 0 && ` | Regions: ${filters.regions.join(", ")}`}
             </p>
           </div>
@@ -874,15 +952,12 @@ export default function DataAnalytics() {
             <h3 className="text-lg font-bold text-foreground">By Vendor</h3>
             {filters.vendors.length > 0 && (
               <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium">
-                {filters.vendors.length} vendor{filters.vendors.length !== 1 ? 's' : ''} selected
+                {filters.vendors.length} vendor{filters.vendors.length !== 1 ? "s" : ""} selected
               </span>
             )}
           </div>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart
-              data={vendorBreakdown}
-              margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
-            >
+            <BarChart data={vendorBreakdown} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis
                 dataKey="name"
@@ -910,15 +985,13 @@ export default function DataAnalytics() {
             <h3 className="text-lg font-bold text-foreground">By Technology</h3>
             {filters.technologies.length > 0 && (
               <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700 font-medium">
-                {filters.technologies.length} technology{filters.technologies.length !== 1 ? 's' : ''} selected
+                {filters.technologies.length} technology
+                {filters.technologies.length !== 1 ? "s" : ""} selected
               </span>
             )}
           </div>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart
-              data={techBreakdown}
-              margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
-            >
+            <BarChart data={techBreakdown} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis
                 dataKey="name"
@@ -946,15 +1019,12 @@ export default function DataAnalytics() {
             <h3 className="text-lg font-bold text-foreground">By Region</h3>
             {filters.regions.length > 0 && (
               <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 font-medium">
-                {filters.regions.length} region{filters.regions.length !== 1 ? 's' : ''} selected
+                {filters.regions.length} region{filters.regions.length !== 1 ? "s" : ""} selected
               </span>
             )}
           </div>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart
-              data={regionBreakdown}
-              margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
-            >
+            <BarChart data={regionBreakdown} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis
                 dataKey="name"
@@ -984,14 +1054,18 @@ export default function DataAnalytics() {
           <div className="space-y-3">
             {dataInsights.map((insight) => {
               const severityColor =
-                insight.severity === "Critical" ? "bg-red-50 border-red-200" :
-                insight.severity === "High" ? "bg-orange-50 border-orange-200" :
-                "bg-yellow-50 border-yellow-200";
+                insight.severity === "Critical"
+                  ? "bg-red-50 border-red-200"
+                  : insight.severity === "High"
+                    ? "bg-orange-50 border-orange-200"
+                    : "bg-yellow-50 border-yellow-200";
 
               const severityBadgeColor =
-                insight.severity === "Critical" ? "bg-red-200 text-red-800" :
-                insight.severity === "High" ? "bg-orange-200 text-orange-800" :
-                "bg-yellow-200 text-yellow-800";
+                insight.severity === "Critical"
+                  ? "bg-red-200 text-red-800"
+                  : insight.severity === "High"
+                    ? "bg-orange-200 text-orange-800"
+                    : "bg-yellow-200 text-yellow-800";
 
               return (
                 <div key={insight.id} className={cn("p-4 rounded-lg border", severityColor)}>
@@ -1000,7 +1074,12 @@ export default function DataAnalytics() {
                       <p className="font-semibold text-foreground">{insight.title}</p>
                       <p className="text-sm text-muted-foreground mt-1">{insight.description}</p>
                     </div>
-                    <span className={cn("px-2 py-1 rounded text-xs font-semibold flex-shrink-0 ml-3", severityBadgeColor)}>
+                    <span
+                      className={cn(
+                        "px-2 py-1 rounded text-xs font-semibold flex-shrink-0 ml-3",
+                        severityBadgeColor
+                      )}
+                    >
                       {insight.severity}
                     </span>
                   </div>
@@ -1012,7 +1091,10 @@ export default function DataAnalytics() {
                       <div className="flex items-center gap-1 flex-wrap">
                         <span className="text-xs text-muted-foreground">Affected:</span>
                         {insight.affectedFilters.map((filter, idx) => (
-                          <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs">
+                          <span
+                            key={idx}
+                            className="inline-flex items-center px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs"
+                          >
                             {filter}
                           </span>
                         ))}
@@ -1052,7 +1134,12 @@ export default function DataAnalytics() {
                     .filter((v) => filters.vendors.includes(v.name))
                     .sort((a, b) => b.call_success_rate - a.call_success_rate)
                     .map((vendor, idx) => {
-                      const statusColor = vendor.call_success_rate > 98 ? "bg-green-100" : vendor.call_success_rate > 96 ? "bg-yellow-100" : "bg-red-100";
+                      const statusColor =
+                        vendor.call_success_rate > 98
+                          ? "bg-green-100"
+                          : vendor.call_success_rate > 96
+                            ? "bg-yellow-100"
+                            : "bg-red-100";
                       const performanceRank = idx + 1;
                       return (
                         <tr key={idx} className="border-b border-border/50 hover:bg-muted/50">
@@ -1062,11 +1149,17 @@ export default function DataAnalytics() {
                             </div>
                             {vendor.name}
                           </td>
-                          <td className="py-2 px-4 text-right font-semibold">{vendor.call_success_rate.toFixed(2)}%</td>
-                          <td className="py-2 px-4 text-right font-semibold">{vendor.call_stability.toFixed(2)}%</td>
+                          <td className="py-2 px-4 text-right font-semibold">
+                            {vendor.call_success_rate.toFixed(2)}%
+                          </td>
+                          <td className="py-2 px-4 text-right font-semibold">
+                            {vendor.call_stability.toFixed(2)}%
+                          </td>
                           <td className="py-2 px-4 text-right">{vendor.count.toLocaleString()}</td>
                           <td className="py-2 px-4 text-center">
-                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor}`}>
+                            <span
+                              className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor}`}
+                            >
                               {vendor.call_success_rate.toFixed(1)}%
                             </span>
                           </td>
@@ -1080,27 +1173,51 @@ export default function DataAnalytics() {
             {/* Vendor Comparison Metrics */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6 pt-6 border-t border-border/50">
               {(() => {
-                const selectedVendors = vendorBreakdown.filter((v) => filters.vendors.includes(v.name));
-                const topPerformer = selectedVendors.reduce((prev, current) => prev.call_success_rate > current.call_success_rate ? prev : current, selectedVendors[0]);
-                const avgSuccessRate = selectedVendors.reduce((sum, v) => sum + v.call_success_rate, 0) / selectedVendors.length;
-                const performanceGap = Math.max(...selectedVendors.map(v => v.call_success_rate)) - Math.min(...selectedVendors.map(v => v.call_success_rate));
+                const selectedVendors = vendorBreakdown.filter((v) =>
+                  filters.vendors.includes(v.name)
+                );
+                const topPerformer = selectedVendors.reduce(
+                  (prev, current) =>
+                    prev.call_success_rate > current.call_success_rate ? prev : current,
+                  selectedVendors[0]
+                );
+                const avgSuccessRate =
+                  selectedVendors.reduce((sum, v) => sum + v.call_success_rate, 0) /
+                  selectedVendors.length;
+                const performanceGap =
+                  Math.max(...selectedVendors.map((v) => v.call_success_rate)) -
+                  Math.min(...selectedVendors.map((v) => v.call_success_rate));
 
                 return (
                   <>
                     <div className="p-4 rounded-lg bg-green-50 border border-green-200">
                       <p className="text-sm text-muted-foreground mb-2">Top Performer</p>
                       <p className="text-2xl font-bold text-green-700">{topPerformer.name}</p>
-                      <p className="text-xs text-muted-foreground mt-2">{topPerformer.call_success_rate.toFixed(2)}% success rate</p>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        {topPerformer.call_success_rate.toFixed(2)}% success rate
+                      </p>
                     </div>
                     <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
                       <p className="text-sm text-muted-foreground mb-2">Average Success Rate</p>
-                      <p className="text-2xl font-bold text-blue-700">{avgSuccessRate.toFixed(2)}%</p>
-                      <p className="text-xs text-muted-foreground mt-2">Across all selected vendors</p>
+                      <p className="text-2xl font-bold text-blue-700">
+                        {avgSuccessRate.toFixed(2)}%
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Across all selected vendors
+                      </p>
                     </div>
-                    <div className={`p-4 rounded-lg ${performanceGap > 3 ? "bg-orange-50 border border-orange-200" : "bg-green-50 border border-green-200"}`}>
+                    <div
+                      className={`p-4 rounded-lg ${performanceGap > 3 ? "bg-orange-50 border border-orange-200" : "bg-green-50 border border-green-200"}`}
+                    >
                       <p className="text-sm text-muted-foreground mb-2">Performance Gap</p>
-                      <p className={`text-2xl font-bold ${performanceGap > 3 ? "text-orange-700" : "text-green-700"}`}>{performanceGap.toFixed(2)}%</p>
-                      <p className="text-xs text-muted-foreground mt-2">{performanceGap > 3 ? "Significant variation detected" : "Good consistency"}</p>
+                      <p
+                        className={`text-2xl font-bold ${performanceGap > 3 ? "text-orange-700" : "text-green-700"}`}
+                      >
+                        {performanceGap.toFixed(2)}%
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        {performanceGap > 3 ? "Significant variation detected" : "Good consistency"}
+                      </p>
                     </div>
                   </>
                 );
@@ -1114,13 +1231,18 @@ export default function DataAnalytics() {
       <div className="space-y-6">
         <div>
           <h2 className="text-2xl font-bold text-foreground">Segmentation & Grouping</h2>
-          <p className="text-sm text-muted-foreground mt-2">Performance categories: high performers, balanced, congested, and at-risk</p>
+          <p className="text-sm text-muted-foreground mt-2">
+            Performance categories: high performers, balanced, congested, and at-risk
+          </p>
         </div>
 
         {/* Segmentation Info */}
         <div className="p-4 rounded-lg bg-muted/30 border border-border/50">
           <p className="text-sm text-foreground">
-            <span className="font-semibold">Performance Categories:</span> Entities are grouped into performance tiers to help identify high-performing, balanced, congested, and underperforming vendors/technologies/regions. Use these insights to compare performance across different dimensions and identify areas needing attention.
+            <span className="font-semibold">Performance Categories:</span> Entities are grouped into
+            performance tiers to help identify high-performing, balanced, congested, and
+            underperforming vendors/technologies/regions. Use these insights to compare performance
+            across different dimensions and identify areas needing attention.
           </p>
         </div>
 
@@ -1131,38 +1253,58 @@ export default function DataAnalytics() {
               <div key={segment} className="card-elevated rounded-xl border border-border/50 p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <div className={cn(
-                      "w-3 h-3 rounded-full",
-                      segment === "High performance" ? "bg-green-500" :
-                      segment === "Balanced" ? "bg-blue-500" :
-                      segment === "Congested" ? "bg-orange-500" :
-                      "bg-red-500"
-                    )} />
+                    <div
+                      className={cn(
+                        "w-3 h-3 rounded-full",
+                        segment === "High performance"
+                          ? "bg-green-500"
+                          : segment === "Balanced"
+                            ? "bg-blue-500"
+                            : segment === "Congested"
+                              ? "bg-orange-500"
+                              : "bg-red-500"
+                      )}
+                    />
                     <h3 className="text-lg font-bold text-foreground">{segment} - Vendors</h3>
                   </div>
                   <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium">
-                    {vendors.length} vendor{vendors.length !== 1 ? 's' : ''}
+                    {vendors.length} vendor{vendors.length !== 1 ? "s" : ""}
                   </span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {vendors.map((vendor, idx) => (
-                    <div key={idx} className={cn(
-                      "p-4 rounded-lg border",
-                      segment === "High performance" ? "bg-green-50 border-green-200" :
-                      segment === "Balanced" ? "bg-blue-50 border-blue-200" :
-                      segment === "Congested" ? "bg-orange-50 border-orange-200" :
-                      "bg-red-50 border-red-200"
-                    )}>
+                    <div
+                      key={idx}
+                      className={cn(
+                        "p-4 rounded-lg border",
+                        segment === "High performance"
+                          ? "bg-green-50 border-green-200"
+                          : segment === "Balanced"
+                            ? "bg-blue-50 border-blue-200"
+                            : segment === "Congested"
+                              ? "bg-orange-50 border-orange-200"
+                              : "bg-red-50 border-red-200"
+                      )}
+                    >
                       <p className="font-semibold text-foreground">{vendor.name}</p>
                       <div className="space-y-1 mt-2 text-xs">
                         <p className="text-muted-foreground">
-                          Success Rate: <span className="font-semibold text-foreground">{vendor.call_success_rate.toFixed(2)}%</span>
+                          Success Rate:{" "}
+                          <span className="font-semibold text-foreground">
+                            {vendor.call_success_rate.toFixed(2)}%
+                          </span>
                         </p>
                         <p className="text-muted-foreground">
-                          Stability: <span className="font-semibold text-foreground">{vendor.call_stability.toFixed(2)}%</span>
+                          Stability:{" "}
+                          <span className="font-semibold text-foreground">
+                            {vendor.call_stability.toFixed(2)}%
+                          </span>
                         </p>
                         <p className="text-muted-foreground">
-                          Sessions: <span className="font-semibold text-foreground">{vendor.count.toLocaleString()}</span>
+                          Sessions:{" "}
+                          <span className="font-semibold text-foreground">
+                            {vendor.count.toLocaleString()}
+                          </span>
                         </p>
                       </div>
                     </div>
@@ -1180,38 +1322,58 @@ export default function DataAnalytics() {
               <div key={segment} className="card-elevated rounded-xl border border-border/50 p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <div className={cn(
-                      "w-3 h-3 rounded-full",
-                      segment === "High performance" ? "bg-green-500" :
-                      segment === "Balanced" ? "bg-blue-500" :
-                      segment === "Congested" ? "bg-orange-500" :
-                      "bg-red-500"
-                    )} />
+                    <div
+                      className={cn(
+                        "w-3 h-3 rounded-full",
+                        segment === "High performance"
+                          ? "bg-green-500"
+                          : segment === "Balanced"
+                            ? "bg-blue-500"
+                            : segment === "Congested"
+                              ? "bg-orange-500"
+                              : "bg-red-500"
+                      )}
+                    />
                     <h3 className="text-lg font-bold text-foreground">{segment} - Technologies</h3>
                   </div>
                   <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium">
-                    {techs.length} technology{techs.length !== 1 ? 's' : ''}
+                    {techs.length} technology{techs.length !== 1 ? "s" : ""}
                   </span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {techs.map((tech, idx) => (
-                    <div key={idx} className={cn(
-                      "p-4 rounded-lg border",
-                      segment === "High performance" ? "bg-green-50 border-green-200" :
-                      segment === "Balanced" ? "bg-blue-50 border-blue-200" :
-                      segment === "Congested" ? "bg-orange-50 border-orange-200" :
-                      "bg-red-50 border-red-200"
-                    )}>
+                    <div
+                      key={idx}
+                      className={cn(
+                        "p-4 rounded-lg border",
+                        segment === "High performance"
+                          ? "bg-green-50 border-green-200"
+                          : segment === "Balanced"
+                            ? "bg-blue-50 border-blue-200"
+                            : segment === "Congested"
+                              ? "bg-orange-50 border-orange-200"
+                              : "bg-red-50 border-red-200"
+                      )}
+                    >
                       <p className="font-semibold text-foreground">{tech.name}</p>
                       <div className="space-y-1 mt-2 text-xs">
                         <p className="text-muted-foreground">
-                          Success Rate: <span className="font-semibold text-foreground">{tech.call_success_rate.toFixed(2)}%</span>
+                          Success Rate:{" "}
+                          <span className="font-semibold text-foreground">
+                            {tech.call_success_rate.toFixed(2)}%
+                          </span>
                         </p>
                         <p className="text-muted-foreground">
-                          Stability: <span className="font-semibold text-foreground">{tech.call_stability.toFixed(2)}%</span>
+                          Stability:{" "}
+                          <span className="font-semibold text-foreground">
+                            {tech.call_stability.toFixed(2)}%
+                          </span>
                         </p>
                         <p className="text-muted-foreground">
-                          Sessions: <span className="font-semibold text-foreground">{tech.count.toLocaleString()}</span>
+                          Sessions:{" "}
+                          <span className="font-semibold text-foreground">
+                            {tech.count.toLocaleString()}
+                          </span>
                         </p>
                       </div>
                     </div>
@@ -1229,38 +1391,58 @@ export default function DataAnalytics() {
               <div key={segment} className="card-elevated rounded-xl border border-border/50 p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <div className={cn(
-                      "w-3 h-3 rounded-full",
-                      segment === "High performance" ? "bg-green-500" :
-                      segment === "Balanced" ? "bg-blue-500" :
-                      segment === "Congested" ? "bg-orange-500" :
-                      "bg-red-500"
-                    )} />
+                    <div
+                      className={cn(
+                        "w-3 h-3 rounded-full",
+                        segment === "High performance"
+                          ? "bg-green-500"
+                          : segment === "Balanced"
+                            ? "bg-blue-500"
+                            : segment === "Congested"
+                              ? "bg-orange-500"
+                              : "bg-red-500"
+                      )}
+                    />
                     <h3 className="text-lg font-bold text-foreground">{segment} - Regions</h3>
                   </div>
                   <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium">
-                    {regions.length} region{regions.length !== 1 ? 's' : ''}
+                    {regions.length} region{regions.length !== 1 ? "s" : ""}
                   </span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {regions.map((region, idx) => (
-                    <div key={idx} className={cn(
-                      "p-4 rounded-lg border",
-                      segment === "High performance" ? "bg-green-50 border-green-200" :
-                      segment === "Balanced" ? "bg-blue-50 border-blue-200" :
-                      segment === "Congested" ? "bg-orange-50 border-orange-200" :
-                      "bg-red-50 border-red-200"
-                    )}>
+                    <div
+                      key={idx}
+                      className={cn(
+                        "p-4 rounded-lg border",
+                        segment === "High performance"
+                          ? "bg-green-50 border-green-200"
+                          : segment === "Balanced"
+                            ? "bg-blue-50 border-blue-200"
+                            : segment === "Congested"
+                              ? "bg-orange-50 border-orange-200"
+                              : "bg-red-50 border-red-200"
+                      )}
+                    >
                       <p className="font-semibold text-foreground">{region.name}</p>
                       <div className="space-y-1 mt-2 text-xs">
                         <p className="text-muted-foreground">
-                          Success Rate: <span className="font-semibold text-foreground">{region.call_success_rate.toFixed(2)}%</span>
+                          Success Rate:{" "}
+                          <span className="font-semibold text-foreground">
+                            {region.call_success_rate.toFixed(2)}%
+                          </span>
                         </p>
                         <p className="text-muted-foreground">
-                          Stability: <span className="font-semibold text-foreground">{region.call_stability.toFixed(2)}%</span>
+                          Stability:{" "}
+                          <span className="font-semibold text-foreground">
+                            {region.call_stability.toFixed(2)}%
+                          </span>
                         </p>
                         <p className="text-muted-foreground">
-                          Sessions: <span className="font-semibold text-foreground">{region.count.toLocaleString()}</span>
+                          Sessions:{" "}
+                          <span className="font-semibold text-foreground">
+                            {region.count.toLocaleString()}
+                          </span>
                         </p>
                       </div>
                     </div>
@@ -1278,38 +1460,58 @@ export default function DataAnalytics() {
               <div key={segment} className="card-elevated rounded-xl border border-border/50 p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <div className={cn(
-                      "w-3 h-3 rounded-full",
-                      segment === "High performance" ? "bg-green-500" :
-                      segment === "Balanced" ? "bg-blue-500" :
-                      segment === "Congested" ? "bg-orange-500" :
-                      "bg-red-500"
-                    )} />
+                    <div
+                      className={cn(
+                        "w-3 h-3 rounded-full",
+                        segment === "High performance"
+                          ? "bg-green-500"
+                          : segment === "Balanced"
+                            ? "bg-blue-500"
+                            : segment === "Congested"
+                              ? "bg-orange-500"
+                              : "bg-red-500"
+                      )}
+                    />
                     <h3 className="text-lg font-bold text-foreground">{segment} - Clusters</h3>
                   </div>
                   <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium">
-                    {clusters.length} cluster{clusters.length !== 1 ? 's' : ''}
+                    {clusters.length} cluster{clusters.length !== 1 ? "s" : ""}
                   </span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {clusters.map((cluster, idx) => (
-                    <div key={idx} className={cn(
-                      "p-4 rounded-lg border",
-                      segment === "High performance" ? "bg-green-50 border-green-200" :
-                      segment === "Balanced" ? "bg-blue-50 border-blue-200" :
-                      segment === "Congested" ? "bg-orange-50 border-orange-200" :
-                      "bg-red-50 border-red-200"
-                    )}>
+                    <div
+                      key={idx}
+                      className={cn(
+                        "p-4 rounded-lg border",
+                        segment === "High performance"
+                          ? "bg-green-50 border-green-200"
+                          : segment === "Balanced"
+                            ? "bg-blue-50 border-blue-200"
+                            : segment === "Congested"
+                              ? "bg-orange-50 border-orange-200"
+                              : "bg-red-50 border-red-200"
+                      )}
+                    >
                       <p className="font-semibold text-foreground">{cluster.name}</p>
                       <div className="space-y-1 mt-2 text-xs">
                         <p className="text-muted-foreground">
-                          Success Rate: <span className="font-semibold text-foreground">{cluster.call_success_rate.toFixed(2)}%</span>
+                          Success Rate:{" "}
+                          <span className="font-semibold text-foreground">
+                            {cluster.call_success_rate.toFixed(2)}%
+                          </span>
                         </p>
                         <p className="text-muted-foreground">
-                          Stability: <span className="font-semibold text-foreground">{cluster.call_stability.toFixed(2)}%</span>
+                          Stability:{" "}
+                          <span className="font-semibold text-foreground">
+                            {cluster.call_stability.toFixed(2)}%
+                          </span>
                         </p>
                         <p className="text-muted-foreground">
-                          Sessions: <span className="font-semibold text-foreground">{cluster.count.toLocaleString()}</span>
+                          Sessions:{" "}
+                          <span className="font-semibold text-foreground">
+                            {cluster.count.toLocaleString()}
+                          </span>
                         </p>
                       </div>
                     </div>
@@ -1325,7 +1527,9 @@ export default function DataAnalytics() {
       <div className="space-y-6">
         <div>
           <h2 className="text-2xl font-bold text-foreground">Data Performance Breakdown</h2>
-          <p className="text-sm text-muted-foreground mt-2">Detailed metrics by dimension (vendor, technology, region, cluster)</p>
+          <p className="text-sm text-muted-foreground mt-2">
+            Detailed metrics by dimension (vendor, technology, region, cluster)
+          </p>
         </div>
 
         {/* Vendor Breakdown Table */}
@@ -1345,7 +1549,12 @@ export default function DataAnalytics() {
             <tbody>
               {vendorBreakdown.map((vendor, idx) => {
                 const failureCount = Math.round((vendor.count * vendor.drop_rate) / 100);
-                const statusColor = vendor.call_success_rate > 98 ? "bg-green-100" : vendor.call_success_rate > 96 ? "bg-yellow-100" : "bg-red-100";
+                const statusColor =
+                  vendor.call_success_rate > 98
+                    ? "bg-green-100"
+                    : vendor.call_success_rate > 96
+                      ? "bg-yellow-100"
+                      : "bg-red-100";
                 return (
                   <tr key={idx} className="border-b border-border/50 hover:bg-muted/50">
                     <td className="py-2 px-4 font-medium">{vendor.name}</td>
@@ -1354,7 +1563,9 @@ export default function DataAnalytics() {
                     <td className="py-2 px-4 text-right">{avgSpeed.toFixed(2)} Mbps</td>
                     <td className="py-2 px-4 text-right">{avgLatency.toFixed(2)} ms</td>
                     <td className="py-2 px-4 text-center">
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor}`}>
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor}`}
+                      >
                         {vendor.call_success_rate.toFixed(2)}%
                       </span>
                     </td>
@@ -1382,7 +1593,12 @@ export default function DataAnalytics() {
             <tbody>
               {techBreakdown.map((tech, idx) => {
                 const failureCount = Math.round((tech.count * tech.drop_rate) / 100);
-                const statusColor = tech.call_success_rate > 98 ? "bg-green-100" : tech.call_success_rate > 96 ? "bg-yellow-100" : "bg-red-100";
+                const statusColor =
+                  tech.call_success_rate > 98
+                    ? "bg-green-100"
+                    : tech.call_success_rate > 96
+                      ? "bg-yellow-100"
+                      : "bg-red-100";
                 return (
                   <tr key={idx} className="border-b border-border/50 hover:bg-muted/50">
                     <td className="py-2 px-4 font-medium">{tech.name}</td>
@@ -1391,7 +1607,9 @@ export default function DataAnalytics() {
                     <td className="py-2 px-4 text-right">{avgSpeed.toFixed(2)} Mbps</td>
                     <td className="py-2 px-4 text-right">{avgLatency.toFixed(2)} ms</td>
                     <td className="py-2 px-4 text-center">
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor}`}>
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor}`}
+                      >
                         {tech.call_success_rate.toFixed(2)}%
                       </span>
                     </td>
@@ -1419,7 +1637,12 @@ export default function DataAnalytics() {
             <tbody>
               {regionBreakdown.map((region, idx) => {
                 const failureCount = Math.round((region.count * region.drop_rate) / 100);
-                const statusColor = region.call_success_rate > 98 ? "bg-green-100" : region.call_success_rate > 96 ? "bg-yellow-100" : "bg-red-100";
+                const statusColor =
+                  region.call_success_rate > 98
+                    ? "bg-green-100"
+                    : region.call_success_rate > 96
+                      ? "bg-yellow-100"
+                      : "bg-red-100";
                 return (
                   <tr key={idx} className="border-b border-border/50 hover:bg-muted/50">
                     <td className="py-2 px-4 font-medium">{region.name}</td>
@@ -1428,7 +1651,9 @@ export default function DataAnalytics() {
                     <td className="py-2 px-4 text-right">{avgSpeed.toFixed(2)} Mbps</td>
                     <td className="py-2 px-4 text-right">{avgLatency.toFixed(2)} ms</td>
                     <td className="py-2 px-4 text-center">
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor}`}>
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor}`}
+                      >
                         {region.call_success_rate.toFixed(2)}%
                       </span>
                     </td>
@@ -1456,7 +1681,12 @@ export default function DataAnalytics() {
             <tbody>
               {clusterBreakdown.map((cluster, idx) => {
                 const failureCount = Math.round((cluster.count * cluster.drop_rate) / 100);
-                const statusColor = cluster.call_success_rate > 98 ? "bg-green-100" : cluster.call_success_rate > 96 ? "bg-yellow-100" : "bg-red-100";
+                const statusColor =
+                  cluster.call_success_rate > 98
+                    ? "bg-green-100"
+                    : cluster.call_success_rate > 96
+                      ? "bg-yellow-100"
+                      : "bg-red-100";
                 return (
                   <tr key={idx} className="border-b border-border/50 hover:bg-muted/50">
                     <td className="py-2 px-4 font-medium">{cluster.name}</td>
@@ -1465,7 +1695,9 @@ export default function DataAnalytics() {
                     <td className="py-2 px-4 text-right">{avgSpeed.toFixed(2)} Mbps</td>
                     <td className="py-2 px-4 text-right">{avgLatency.toFixed(2)} ms</td>
                     <td className="py-2 px-4 text-center">
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor}`}>
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor}`}
+                      >
                         {cluster.call_success_rate.toFixed(2)}%
                       </span>
                     </td>

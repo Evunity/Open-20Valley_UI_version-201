@@ -6,7 +6,10 @@
 export type Technology = "2G" | "3G" | "4G" | "5G" | "O-RAN";
 
 // Technology label descriptions for clarity
-export const TECHNOLOGY_LABELS: Record<Technology, { label: string; description: string; color: string }> = {
+export const TECHNOLOGY_LABELS: Record<
+  Technology,
+  { label: string; description: string; color: string }
+> = {
   "2G": {
     label: "2G",
     description: "2nd Generation (GSM)",
@@ -39,13 +42,19 @@ export const TECHNOLOGY_LABELS: Record<Technology, { label: string; description:
  * @param tech - Technology identifier (2G, 3G, 4G, 5G, O-RAN)
  * @returns Object with label, description, and color
  */
-export function getTechnologyLabel(tech: string): { label: string; description: string; color: string } {
+export function getTechnologyLabel(tech: string): {
+  label: string;
+  description: string;
+  color: string;
+} {
   const key = tech.toUpperCase() as Technology;
-  return TECHNOLOGY_LABELS[key] || {
-    label: tech,
-    description: "Unknown technology",
-    color: "#6b7280",
-  };
+  return (
+    TECHNOLOGY_LABELS[key] || {
+      label: tech,
+      description: "Unknown technology",
+      color: "#6b7280",
+    }
+  );
 }
 
 /**

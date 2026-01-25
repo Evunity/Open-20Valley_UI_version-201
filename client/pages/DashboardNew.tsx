@@ -242,11 +242,11 @@ export default function DashboardNew() {
 
     return filters.vendors.map((vendor) => ({
       name: vendor,
-      successRate: 98.2 + Math.random() * 1.5 - (filters.vendors.indexOf(vendor) * 0.3),
-      dropRate: 1.8 - Math.random() * 0.5 + (filters.vendors.indexOf(vendor) * 0.2),
-      stability: 97.5 + Math.random() * 1.8 - (filters.vendors.indexOf(vendor) * 0.25),
+      successRate: 98.2 + Math.random() * 1.5 - filters.vendors.indexOf(vendor) * 0.3,
+      dropRate: 1.8 - Math.random() * 0.5 + filters.vendors.indexOf(vendor) * 0.2,
+      stability: 97.5 + Math.random() * 1.8 - filters.vendors.indexOf(vendor) * 0.25,
       volume: Math.floor(5000 + Math.random() * 5000),
-      status: (98.2 + Math.random() * 1.5) > 97 ? "healthy" : "degraded" as const,
+      status: 98.2 + Math.random() * 1.5 > 97 ? "healthy" : ("degraded" as const),
     }));
   }, [filters.vendors]);
 
@@ -1013,9 +1013,7 @@ export default function DashboardNew() {
           showRanking={true}
           selectedTechnologies={filters.technologies}
           selectedRegions={filters.regions}
-          isMixedEnvironment={
-            filters.technologies.length > 0 && filters.vendors.length > 1
-          }
+          isMixedEnvironment={filters.technologies.length > 0 && filters.vendors.length > 1}
         />
       )}
     </div>

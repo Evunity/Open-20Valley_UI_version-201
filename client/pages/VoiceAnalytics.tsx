@@ -31,15 +31,7 @@ import {
   generateVoiceInsights,
   calculatePriorityLevel,
 } from "@/utils/analyticsData";
-import {
-  Headphones,
-  TrendingUp,
-  Clock,
-  Shield,
-  Phone,
-  Activity,
-  Gauge,
-} from "lucide-react";
+import { Headphones, TrendingUp, Clock, Shield, Phone, Activity, Gauge } from "lucide-react";
 
 export default function VoiceAnalytics() {
   const { toast } = useToast();
@@ -54,10 +46,19 @@ export default function VoiceAnalytics() {
   const clusterBreakdown = useMemo(() => generateVoiceBreakdownByCluster(filters), [filters]);
 
   // Segment data
-  const vendorSegmented = useMemo(() => segmentVoicePerformance(vendorBreakdown), [vendorBreakdown]);
+  const vendorSegmented = useMemo(
+    () => segmentVoicePerformance(vendorBreakdown),
+    [vendorBreakdown]
+  );
   const techSegmented = useMemo(() => segmentVoicePerformance(techBreakdown), [techBreakdown]);
-  const regionSegmented = useMemo(() => segmentVoicePerformance(regionBreakdown), [regionBreakdown]);
-  const clusterSegmented = useMemo(() => segmentVoicePerformance(clusterBreakdown), [clusterBreakdown]);
+  const regionSegmented = useMemo(
+    () => segmentVoicePerformance(regionBreakdown),
+    [regionBreakdown]
+  );
+  const clusterSegmented = useMemo(
+    () => segmentVoicePerformance(clusterBreakdown),
+    [clusterBreakdown]
+  );
 
   // Generate degradation insights
   const degradationInsights = useMemo(() => {
@@ -115,7 +116,18 @@ export default function VoiceAnalytics() {
 
     // Sheet 2: Trend Data (All 8 metrics)
     const trendSheetData = [
-      ["Time", "Call Volume", "Success Rate", "Drop Rate", "Stability", "CRR", "Call Continuity", "VQI", "VPI", "VSQI"],
+      [
+        "Time",
+        "Call Volume",
+        "Success Rate",
+        "Drop Rate",
+        "Stability",
+        "CRR",
+        "Call Continuity",
+        "VQI",
+        "VPI",
+        "VSQI",
+      ],
       ...trendData.map((d) => [
         d.time,
         d.call_volume,
@@ -371,9 +383,7 @@ export default function VoiceAnalytics() {
       />
 
       {/* Degradation Insights */}
-      {degradationInsights.length > 0 && (
-        <DegradationInsights insights={degradationInsights} />
-      )}
+      {degradationInsights.length > 0 && <DegradationInsights insights={degradationInsights} />}
 
       {/* Trend Charts */}
       <div className="space-y-6">
@@ -467,20 +477,23 @@ export default function VoiceAnalytics() {
       <div className="space-y-6">
         <div>
           <h2 className="text-2xl font-bold text-foreground">Performance Breakdown</h2>
-          <p className="text-sm text-muted-foreground mt-2">Compare performance across vendors, technologies, and regions</p>
+          <p className="text-sm text-muted-foreground mt-2">
+            Compare performance across vendors, technologies, and regions
+          </p>
         </div>
 
         {/* By Vendor - Comparison */}
         <div className="card-elevated rounded-xl border border-border/50 p-6">
           <div className="mb-4">
-            <h3 className="text-lg font-bold text-foreground">By Vendor - Performance Comparison</h3>
-            <p className="text-sm text-muted-foreground mt-1">Grouped bar chart comparing key metrics across vendors</p>
+            <h3 className="text-lg font-bold text-foreground">
+              By Vendor - Performance Comparison
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              Grouped bar chart comparing key metrics across vendors
+            </p>
           </div>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart
-              data={vendorBreakdown}
-              margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
-            >
+            <BarChart data={vendorBreakdown} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis
                 dataKey="name"
@@ -505,8 +518,12 @@ export default function VoiceAnalytics() {
         {/* By Vendor - Contribution */}
         <div className="card-elevated rounded-xl border border-border/50 p-6">
           <div className="mb-4">
-            <h3 className="text-lg font-bold text-foreground">By Vendor - Call Volume Contribution</h3>
-            <p className="text-sm text-muted-foreground mt-1">Stacked bar chart showing each vendor's contribution to total call volume</p>
+            <h3 className="text-lg font-bold text-foreground">
+              By Vendor - Call Volume Contribution
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              Stacked bar chart showing each vendor's contribution to total call volume
+            </p>
           </div>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart
@@ -526,8 +543,17 @@ export default function VoiceAnalytics() {
               layout="vertical"
             >
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis type="number" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
-              <YAxis dataKey="name" type="category" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+              <XAxis
+                type="number"
+                stroke="hsl(var(--muted-foreground))"
+                style={{ fontSize: "12px" }}
+              />
+              <YAxis
+                dataKey="name"
+                type="category"
+                stroke="hsl(var(--muted-foreground))"
+                style={{ fontSize: "12px" }}
+              />
               <Tooltip
                 contentStyle={{
                   backgroundColor: "hsl(var(--card))",
@@ -552,14 +578,15 @@ export default function VoiceAnalytics() {
         {/* By Technology - Comparison */}
         <div className="card-elevated rounded-xl border border-border/50 p-6">
           <div className="mb-4">
-            <h3 className="text-lg font-bold text-foreground">By Technology - Performance Comparison</h3>
-            <p className="text-sm text-muted-foreground mt-1">Grouped bar chart comparing key metrics across technologies</p>
+            <h3 className="text-lg font-bold text-foreground">
+              By Technology - Performance Comparison
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              Grouped bar chart comparing key metrics across technologies
+            </p>
           </div>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart
-              data={techBreakdown}
-              margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
-            >
+            <BarChart data={techBreakdown} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis
                 dataKey="name"
@@ -584,8 +611,12 @@ export default function VoiceAnalytics() {
         {/* By Technology - Contribution */}
         <div className="card-elevated rounded-xl border border-border/50 p-6">
           <div className="mb-4">
-            <h3 className="text-lg font-bold text-foreground">By Technology - Call Volume Contribution</h3>
-            <p className="text-sm text-muted-foreground mt-1">Stacked bar chart showing each technology's contribution to total call volume</p>
+            <h3 className="text-lg font-bold text-foreground">
+              By Technology - Call Volume Contribution
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              Stacked bar chart showing each technology's contribution to total call volume
+            </p>
           </div>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart
@@ -605,8 +636,17 @@ export default function VoiceAnalytics() {
               layout="vertical"
             >
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis type="number" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
-              <YAxis dataKey="name" type="category" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+              <XAxis
+                type="number"
+                stroke="hsl(var(--muted-foreground))"
+                style={{ fontSize: "12px" }}
+              />
+              <YAxis
+                dataKey="name"
+                type="category"
+                stroke="hsl(var(--muted-foreground))"
+                style={{ fontSize: "12px" }}
+              />
               <Tooltip
                 contentStyle={{
                   backgroundColor: "hsl(var(--card))",
@@ -663,8 +703,8 @@ export default function VoiceAnalytics() {
       <div className="space-y-6">
         <h2 className="text-2xl font-bold text-foreground">Segmentation & Grouping</h2>
         <p className="text-sm text-muted-foreground">
-          Entities automatically grouped into 4 categories: High Quality, Acceptable, Degraded, and Critical.
-          This helps quickly separate system-wide issues from local issues.
+          Entities automatically grouped into 4 categories: High Quality, Acceptable, Degraded, and
+          Critical. This helps quickly separate system-wide issues from local issues.
         </p>
 
         {/* Vendor Segmentation Summary */}
@@ -675,7 +715,9 @@ export default function VoiceAnalytics() {
 
         {/* Technology Segmentation Summary */}
         <div>
-          <h3 className="text-lg font-bold text-foreground mb-4">Technology Performance Categories</h3>
+          <h3 className="text-lg font-bold text-foreground mb-4">
+            Technology Performance Categories
+          </h3>
           <SegmentationSummary data={techSegmented} dimension="Technology" />
         </div>
 
@@ -693,24 +735,35 @@ export default function VoiceAnalytics() {
 
         {/* Vendor Segmentation Overview */}
         <div className="card-elevated rounded-xl border border-border/50 p-6">
-          <h3 className="text-lg font-bold text-foreground mb-4">Vendor Segmentation Distribution</h3>
+          <h3 className="text-lg font-bold text-foreground mb-4">
+            Vendor Segmentation Distribution
+          </h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart
               data={[
                 {
                   category: "Vendor Distribution",
                   "High quality": vendorSegmented["High quality"]?.length || 0,
-                  "Acceptable": vendorSegmented["Acceptable"]?.length || 0,
-                  "Degraded": vendorSegmented["Degraded"]?.length || 0,
-                  "Critical": vendorSegmented["Critical"]?.length || 0,
+                  Acceptable: vendorSegmented["Acceptable"]?.length || 0,
+                  Degraded: vendorSegmented["Degraded"]?.length || 0,
+                  Critical: vendorSegmented["Critical"]?.length || 0,
                 },
               ]}
               margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
               layout="vertical"
             >
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis type="number" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
-              <YAxis dataKey="category" type="category" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+              <XAxis
+                type="number"
+                stroke="hsl(var(--muted-foreground))"
+                style={{ fontSize: "12px" }}
+              />
+              <YAxis
+                dataKey="category"
+                type="category"
+                stroke="hsl(var(--muted-foreground))"
+                style={{ fontSize: "12px" }}
+              />
               <Tooltip
                 contentStyle={{
                   backgroundColor: "hsl(var(--card))",
@@ -729,24 +782,35 @@ export default function VoiceAnalytics() {
 
         {/* Technology Segmentation Overview */}
         <div className="card-elevated rounded-xl border border-border/50 p-6">
-          <h3 className="text-lg font-bold text-foreground mb-4">Technology Segmentation Distribution</h3>
+          <h3 className="text-lg font-bold text-foreground mb-4">
+            Technology Segmentation Distribution
+          </h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart
               data={[
                 {
                   category: "Technology Distribution",
                   "High quality": techSegmented["High quality"]?.length || 0,
-                  "Acceptable": techSegmented["Acceptable"]?.length || 0,
-                  "Degraded": techSegmented["Degraded"]?.length || 0,
-                  "Critical": techSegmented["Critical"]?.length || 0,
+                  Acceptable: techSegmented["Acceptable"]?.length || 0,
+                  Degraded: techSegmented["Degraded"]?.length || 0,
+                  Critical: techSegmented["Critical"]?.length || 0,
                 },
               ]}
               margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
               layout="vertical"
             >
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis type="number" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
-              <YAxis dataKey="category" type="category" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+              <XAxis
+                type="number"
+                stroke="hsl(var(--muted-foreground))"
+                style={{ fontSize: "12px" }}
+              />
+              <YAxis
+                dataKey="category"
+                type="category"
+                stroke="hsl(var(--muted-foreground))"
+                style={{ fontSize: "12px" }}
+              />
               <Tooltip
                 contentStyle={{
                   backgroundColor: "hsl(var(--card))",
@@ -765,24 +829,35 @@ export default function VoiceAnalytics() {
 
         {/* Region Segmentation Overview */}
         <div className="card-elevated rounded-xl border border-border/50 p-6">
-          <h3 className="text-lg font-bold text-foreground mb-4">Region Segmentation Distribution</h3>
+          <h3 className="text-lg font-bold text-foreground mb-4">
+            Region Segmentation Distribution
+          </h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart
               data={[
                 {
                   category: "Region Distribution",
                   "High quality": regionSegmented["High quality"]?.length || 0,
-                  "Acceptable": regionSegmented["Acceptable"]?.length || 0,
-                  "Degraded": regionSegmented["Degraded"]?.length || 0,
-                  "Critical": regionSegmented["Critical"]?.length || 0,
+                  Acceptable: regionSegmented["Acceptable"]?.length || 0,
+                  Degraded: regionSegmented["Degraded"]?.length || 0,
+                  Critical: regionSegmented["Critical"]?.length || 0,
                 },
               ]}
               margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
               layout="vertical"
             >
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis type="number" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
-              <YAxis dataKey="category" type="category" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+              <XAxis
+                type="number"
+                stroke="hsl(var(--muted-foreground))"
+                style={{ fontSize: "12px" }}
+              />
+              <YAxis
+                dataKey="category"
+                type="category"
+                stroke="hsl(var(--muted-foreground))"
+                style={{ fontSize: "12px" }}
+              />
               <Tooltip
                 contentStyle={{
                   backgroundColor: "hsl(var(--card))",
@@ -801,24 +876,35 @@ export default function VoiceAnalytics() {
 
         {/* Cluster Segmentation Overview */}
         <div className="card-elevated rounded-xl border border-border/50 p-6">
-          <h3 className="text-lg font-bold text-foreground mb-4">Cluster Segmentation Distribution</h3>
+          <h3 className="text-lg font-bold text-foreground mb-4">
+            Cluster Segmentation Distribution
+          </h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart
               data={[
                 {
                   category: "Cluster Distribution",
                   "High quality": clusterSegmented["High quality"]?.length || 0,
-                  "Acceptable": clusterSegmented["Acceptable"]?.length || 0,
-                  "Degraded": clusterSegmented["Degraded"]?.length || 0,
-                  "Critical": clusterSegmented["Critical"]?.length || 0,
+                  Acceptable: clusterSegmented["Acceptable"]?.length || 0,
+                  Degraded: clusterSegmented["Degraded"]?.length || 0,
+                  Critical: clusterSegmented["Critical"]?.length || 0,
                 },
               ]}
               margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
               layout="vertical"
             >
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis type="number" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
-              <YAxis dataKey="category" type="category" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+              <XAxis
+                type="number"
+                stroke="hsl(var(--muted-foreground))"
+                style={{ fontSize: "12px" }}
+              />
+              <YAxis
+                dataKey="category"
+                type="category"
+                stroke="hsl(var(--muted-foreground))"
+                style={{ fontSize: "12px" }}
+              />
               <Tooltip
                 contentStyle={{
                   backgroundColor: "hsl(var(--card))",
@@ -839,7 +925,10 @@ export default function VoiceAnalytics() {
       {/* Segmentation Category Details - Vendor */}
       {Object.entries(vendorSegmented).map(([category, items]) =>
         items && items.length > 0 ? (
-          <div key={`vendor-${category}`} className="card-elevated rounded-xl border border-border/50 p-6">
+          <div
+            key={`vendor-${category}`}
+            className="card-elevated rounded-xl border border-border/50 p-6"
+          >
             <div className="flex items-center gap-2 mb-4">
               <div
                 className="w-3 h-3 rounded-full"
@@ -888,7 +977,10 @@ export default function VoiceAnalytics() {
       {/* Segmentation Sections - Technology */}
       {Object.entries(techSegmented).map(([category, items]) =>
         items && items.length > 0 ? (
-          <div key={`tech-${category}`} className="card-elevated rounded-xl border border-border/50 p-6">
+          <div
+            key={`tech-${category}`}
+            className="card-elevated rounded-xl border border-border/50 p-6"
+          >
             <div className="flex items-center gap-2 mb-4">
               <div
                 className="w-3 h-3 rounded-full"
@@ -903,7 +995,9 @@ export default function VoiceAnalytics() {
                           : "rgb(59, 130, 246)",
                 }}
               />
-              <h3 className="text-lg font-bold text-foreground">{category} Performers - Technologies</h3>
+              <h3 className="text-lg font-bold text-foreground">
+                {category} Performers - Technologies
+              </h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {items.map((tech, idx) => (
@@ -937,7 +1031,10 @@ export default function VoiceAnalytics() {
       {/* Segmentation Sections - Region */}
       {Object.entries(regionSegmented).map(([category, items]) =>
         items && items.length > 0 ? (
-          <div key={`region-${category}`} className="card-elevated rounded-xl border border-border/50 p-6">
+          <div
+            key={`region-${category}`}
+            className="card-elevated rounded-xl border border-border/50 p-6"
+          >
             <div className="flex items-center gap-2 mb-4">
               <div
                 className="w-3 h-3 rounded-full"
@@ -986,7 +1083,10 @@ export default function VoiceAnalytics() {
       {/* Segmentation Sections - Cluster */}
       {Object.entries(clusterSegmented).map(([category, items]) =>
         items && items.length > 0 ? (
-          <div key={`cluster-${category}`} className="card-elevated rounded-xl border border-border/50 p-6">
+          <div
+            key={`cluster-${category}`}
+            className="card-elevated rounded-xl border border-border/50 p-6"
+          >
             <div className="flex items-center gap-2 mb-4">
               <div
                 className="w-3 h-3 rounded-full"
@@ -1001,7 +1101,9 @@ export default function VoiceAnalytics() {
                           : "rgb(59, 130, 246)",
                 }}
               />
-              <h3 className="text-lg font-bold text-foreground">{category} Performers - Clusters</h3>
+              <h3 className="text-lg font-bold text-foreground">
+                {category} Performers - Clusters
+              </h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {items.map((cluster, idx) => (

@@ -7,10 +7,7 @@ interface SegmentationSummaryProps {
   dimension: "Vendor" | "Technology" | "Region" | "Cluster";
 }
 
-export default function SegmentationSummary({
-  data,
-  dimension,
-}: SegmentationSummaryProps) {
+export default function SegmentationSummary({ data, dimension }: SegmentationSummaryProps) {
   // Calculate metrics for each category
   const categoryMetrics = Object.entries(data).map(([category, items]) => {
     if (!items || items.length === 0) {
@@ -26,10 +23,8 @@ export default function SegmentationSummary({
 
     const avgSuccessRate =
       items.reduce((sum, item) => sum + item.call_success_rate, 0) / items.length;
-    const avgDropRate =
-      items.reduce((sum, item) => sum + item.drop_rate, 0) / items.length;
-    const avgStability =
-      items.reduce((sum, item) => sum + item.call_stability, 0) / items.length;
+    const avgDropRate = items.reduce((sum, item) => sum + item.drop_rate, 0) / items.length;
+    const avgStability = items.reduce((sum, item) => sum + item.call_stability, 0) / items.length;
     const totalCalls = items.reduce((sum, item) => sum + item.count, 0);
 
     return {
@@ -104,9 +99,7 @@ export default function SegmentationSummary({
                     <Icon className={cn("w-5 h-5", colors.text)} />
                   </div>
                   <div className="flex-1">
-                    <h3 className={cn("font-semibold text-sm", colors.text)}>
-                      {category}
-                    </h3>
+                    <h3 className={cn("font-semibold text-sm", colors.text)}>{category}</h3>
                     <p className="text-xs text-muted-foreground mt-1">
                       {count} {dimension.toLowerCase()}
                       {count !== 1 ? "s" : ""}
@@ -180,12 +173,8 @@ export default function SegmentationSummary({
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border/50">
-                <th className="px-4 py-3 text-left font-semibold text-foreground">
-                  Category
-                </th>
-                <th className="px-4 py-3 text-right font-semibold text-foreground">
-                  Count
-                </th>
+                <th className="px-4 py-3 text-left font-semibold text-foreground">Category</th>
+                <th className="px-4 py-3 text-right font-semibold text-foreground">Count</th>
                 <th className="px-4 py-3 text-right font-semibold text-foreground">
                   Avg Success Rate
                 </th>
@@ -195,9 +184,7 @@ export default function SegmentationSummary({
                 <th className="px-4 py-3 text-right font-semibold text-foreground">
                   Avg Stability
                 </th>
-                <th className="px-4 py-3 text-right font-semibold text-foreground">
-                  Total Calls
-                </th>
+                <th className="px-4 py-3 text-right font-semibold text-foreground">Total Calls</th>
               </tr>
             </thead>
             <tbody>
@@ -212,12 +199,8 @@ export default function SegmentationSummary({
                         colors.bg
                       )}
                     >
-                      <td className={cn("px-4 py-3 font-semibold", colors.text)}>
-                        {category}
-                      </td>
-                      <td className="px-4 py-3 text-right text-muted-foreground">
-                        {count}
-                      </td>
+                      <td className={cn("px-4 py-3 font-semibold", colors.text)}>{category}</td>
+                      <td className="px-4 py-3 text-right text-muted-foreground">{count}</td>
                       <td className="px-4 py-3 text-right font-medium text-foreground">
                         {avgSuccessRate.toFixed(1)}%
                       </td>

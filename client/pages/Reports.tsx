@@ -36,11 +36,11 @@ export default function Reports() {
     const vendors = ["Ericsson", "Huawei", "Nokia", "Samsung", "Cisco"];
     return vendors.map((vendor) => ({
       name: vendor,
-      successRate: 98.2 + Math.random() * 1.5 - (vendors.indexOf(vendor) * 0.3),
-      dropRate: 1.8 - Math.random() * 0.5 + (vendors.indexOf(vendor) * 0.2),
-      stability: 97.5 + Math.random() * 1.8 - (vendors.indexOf(vendor) * 0.25),
+      successRate: 98.2 + Math.random() * 1.5 - vendors.indexOf(vendor) * 0.3,
+      dropRate: 1.8 - Math.random() * 0.5 + vendors.indexOf(vendor) * 0.2,
+      stability: 97.5 + Math.random() * 1.8 - vendors.indexOf(vendor) * 0.25,
       volume: Math.floor(5000 + Math.random() * 5000),
-      status: (98.2 + Math.random() * 1.5) > 97 ? "healthy" : "degraded" as const,
+      status: 98.2 + Math.random() * 1.5 > 97 ? "healthy" : ("degraded" as const),
     }));
   }, []);
 
@@ -113,7 +113,9 @@ export default function Reports() {
           >
             <Filter className="w-4 h-4" />
             <span>
-              {filters.regions.length > 0 || filters.reportType.length > 0 ? `(${filters.regions.length + filters.reportType.length})` : "Filters"}
+              {filters.regions.length > 0 || filters.reportType.length > 0
+                ? `(${filters.regions.length + filters.reportType.length})`
+                : "Filters"}
             </span>
           </button>
         </div>
@@ -369,7 +371,8 @@ export default function Reports() {
           </BarChart>
         </ResponsiveContainer>
         <p className="text-sm text-muted-foreground mt-4">
-          <strong>94%</strong> of incidents are now resolved automatically by AI agents, reducing manual intervention by 88%.
+          <strong>94%</strong> of incidents are now resolved automatically by AI agents, reducing
+          manual intervention by 88%.
         </p>
       </div>
 

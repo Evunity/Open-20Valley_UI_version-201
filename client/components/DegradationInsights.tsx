@@ -91,7 +91,9 @@ export default function DegradationInsights({ insights }: DegradationInsightsPro
     <div className="space-y-3">
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-foreground mb-2">Performance Insights</h2>
-        <p className="text-sm text-muted-foreground">{insights.length} detection{insights.length !== 1 ? "s" : ""} in current view</p>
+        <p className="text-sm text-muted-foreground">
+          {insights.length} detection{insights.length !== 1 ? "s" : ""} in current view
+        </p>
       </div>
 
       {insights.map((insight) => (
@@ -104,7 +106,12 @@ export default function DegradationInsights({ insights }: DegradationInsightsPro
         >
           <div className="flex items-start gap-4">
             {/* Icon */}
-            <div className={cn("flex-shrink-0 p-2 rounded-lg", `bg-${insight.severity === 'Critical' ? 'status-critical' : insight.severity === 'High' ? 'status-degraded' : 'yellow'}/10`)}>
+            <div
+              className={cn(
+                "flex-shrink-0 p-2 rounded-lg",
+                `bg-${insight.severity === "Critical" ? "status-critical" : insight.severity === "High" ? "status-degraded" : "yellow"}/10`
+              )}
+            >
               <div className={getSeverityTextColor(insight.severity)}>
                 {getTypeIcon(insight.type)}
               </div>
@@ -115,18 +122,26 @@ export default function DegradationInsights({ insights }: DegradationInsightsPro
               <div className="flex items-start justify-between gap-4 mb-2">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className={cn("text-sm font-semibold", getSeverityTextColor(insight.severity))}>
+                    <h3
+                      className={cn(
+                        "text-sm font-semibold",
+                        getSeverityTextColor(insight.severity)
+                      )}
+                    >
                       {insight.title}
                     </h3>
                     <span className="inline-flex px-2 py-0.5 rounded text-xs font-medium bg-muted text-muted-foreground">
                       {getTypeLabel(insight.type)}
                     </span>
                   </div>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    {insight.description}
-                  </p>
+                  <p className="text-sm text-muted-foreground mt-2">{insight.description}</p>
                 </div>
-                <span className={cn("px-2 py-1 rounded text-xs font-semibold whitespace-nowrap flex-shrink-0", getSeverityBadgeColor(insight.severity))}>
+                <span
+                  className={cn(
+                    "px-2 py-1 rounded text-xs font-semibold whitespace-nowrap flex-shrink-0",
+                    getSeverityBadgeColor(insight.severity)
+                  )}
+                >
                   {insight.severity}
                 </span>
               </div>

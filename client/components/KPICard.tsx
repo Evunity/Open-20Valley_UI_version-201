@@ -140,11 +140,10 @@ export default function KPICard({
             ) : (
               <TrendingDown className="w-3 h-3" />
             )}
-            {isPositiveChange ? "+" : ""}{change.toFixed(2)}%
+            {isPositiveChange ? "+" : ""}
+            {change.toFixed(2)}%
           </div>
-          {comparison && (
-            <span className="text-xs text-muted-foreground">{comparison}</span>
-          )}
+          {comparison && <span className="text-xs text-muted-foreground">{comparison}</span>}
         </div>
       )}
     </div>

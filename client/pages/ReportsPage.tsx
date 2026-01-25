@@ -13,27 +13,64 @@ interface KPISelectOption {
 }
 
 const KPI_OPTIONS: KPISelectOption[] = [
-  { id: "availability", label: "Availability", category: "Network", description: "System uptime percentage" },
-  { id: "latency", label: "Latency (Avg)", category: "Network", description: "Average response time" },
-  { id: "packet_loss", label: "Packet Loss", category: "Network", description: "Data packet loss rate" },
-  { id: "active_sites", label: "Active Sites", category: "Infrastructure", description: "Number of operational sites" },
-  { id: "incident_count", label: "Incident Count", category: "Operations", description: "Total incidents detected" },
+  {
+    id: "availability",
+    label: "Availability",
+    category: "Network",
+    description: "System uptime percentage",
+  },
+  {
+    id: "latency",
+    label: "Latency (Avg)",
+    category: "Network",
+    description: "Average response time",
+  },
+  {
+    id: "packet_loss",
+    label: "Packet Loss",
+    category: "Network",
+    description: "Data packet loss rate",
+  },
+  {
+    id: "active_sites",
+    label: "Active Sites",
+    category: "Infrastructure",
+    description: "Number of operational sites",
+  },
+  {
+    id: "incident_count",
+    label: "Incident Count",
+    category: "Operations",
+    description: "Total incidents detected",
+  },
   { id: "mttr", label: "MTTR", category: "Operations", description: "Mean time to recovery" },
-  { id: "automation_rate", label: "Automation Rate", category: "AI Impact", description: "% of automated resolutions" },
-  { id: "cost_savings", label: "Cost Savings", category: "Financial", description: "Operational cost reduction" },
+  {
+    id: "automation_rate",
+    label: "Automation Rate",
+    category: "AI Impact",
+    description: "% of automated resolutions",
+  },
+  {
+    id: "cost_savings",
+    label: "Cost Savings",
+    category: "Financial",
+    description: "Operational cost reduction",
+  },
 ];
 
 export default function ReportsPage() {
   const { filters } = useGlobalFilters();
   const { toast } = useToast();
-  const [selectedKPIs, setSelectedKPIs] = useState<string[]>(["availability", "latency", "active_sites"]);
+  const [selectedKPIs, setSelectedKPIs] = useState<string[]>([
+    "availability",
+    "latency",
+    "active_sites",
+  ]);
   const [isGenerating, setIsGenerating] = useState(false);
 
   const handleKPIToggle = (kpiId: string) => {
     setSelectedKPIs((prev) =>
-      prev.includes(kpiId)
-        ? prev.filter((id) => id !== kpiId)
-        : [...prev, kpiId]
+      prev.includes(kpiId) ? prev.filter((id) => id !== kpiId) : [...prev, kpiId]
     );
   };
 
@@ -104,13 +141,7 @@ export default function ReportsPage() {
       if (vendorComparisonData.length > 0) {
         csvContent.push([]);
         csvContent.push(["MULTI-VENDOR COMPARISON"]);
-        csvContent.push([
-          "Vendor",
-          "Success Rate (%)",
-          "Drop Rate (%)",
-          "Stability (%)",
-          "Volume",
-        ]);
+        csvContent.push(["Vendor", "Success Rate (%)", "Drop Rate (%)", "Stability (%)", "Volume"]);
         vendorComparisonData.forEach((v) => {
           csvContent.push([v.vendor, v.successRate, v.dropRate, v.stability, v.volume]);
         });
@@ -151,18 +182,23 @@ export default function ReportsPage() {
     }
   };
 
-  const groupedKPIs = KPI_OPTIONS.reduce((acc, kpi) => {
-    if (!acc[kpi.category]) acc[kpi.category] = [];
-    acc[kpi.category].push(kpi);
-    return acc;
-  }, {} as Record<string, KPISelectOption[]>);
+  const groupedKPIs = KPI_OPTIONS.reduce(
+    (acc, kpi) => {
+      if (!acc[kpi.category]) acc[kpi.category] = [];
+      acc[kpi.category].push(kpi);
+      return acc;
+    },
+    {} as Record<string, KPISelectOption[]>
+  );
 
   return (
     <div className="space-y-6 pb-4">
       {/* Header */}
       <div className="space-y-2">
         <h1 className="text-3xl font-bold text-foreground">Reports</h1>
-        <p className="text-muted-foreground">Generate custom reports with selected KPIs and filters</p>
+        <p className="text-muted-foreground">
+          Generate custom reports with selected KPIs and filters
+        </p>
       </div>
 
       {/* Global Filters */}
@@ -217,7 +253,9 @@ export default function ReportsPage() {
 
               {/* Active Filters Summary */}
               <div className="space-y-2">
-                <p className="text-xs font-semibold text-muted-foreground uppercase">Active Filters</p>
+                <p className="text-xs font-semibold text-muted-foreground uppercase">
+                  Active Filters
+                </p>
                 <div className="space-y-1 text-xs">
                   {filters.vendors.length > 0 && (
                     <p className="text-foreground">Vendors: {filters.vendors.join(", ")}</p>
@@ -237,7 +275,9 @@ export default function ReportsPage() {
                   filters.technologies.length === 0 &&
                   filters.regions.length === 0 &&
                   filters.clusters.length === 0 && (
-                    <p className="text-xs text-muted-foreground italic">No filters applied (all data)</p>
+                    <p className="text-xs text-muted-foreground italic">
+                      No filters applied (all data)
+                    </p>
                   )}
               </div>
 
@@ -268,7 +308,8 @@ export default function ReportsPage() {
               {/* Instructions */}
               <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800">
                 <p className="text-xs text-blue-900 dark:text-blue-100">
-                  <strong>How to use:</strong> Select KPIs, apply filters, and click Download to generate a CSV report.
+                  <strong>How to use:</strong> Select KPIs, apply filters, and click Download to
+                  generate a CSV report.
                 </p>
               </div>
             </div>

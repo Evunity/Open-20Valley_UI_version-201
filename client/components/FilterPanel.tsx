@@ -196,7 +196,23 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
         {/* Country Dropdown */}
         <SearchableDropdown
           label="Country"
-          options={["United States", "Canada", "United Kingdom", "Germany", "France", "Japan", "India", "Australia", "Egypt", "Saudi Arabia", "United Arab Emirates", "Kuwait", "Qatar", "Bahrain", "Morocco"]}
+          options={[
+            "United States",
+            "Canada",
+            "United Kingdom",
+            "Germany",
+            "France",
+            "Japan",
+            "India",
+            "Australia",
+            "Egypt",
+            "Saudi Arabia",
+            "United Arab Emirates",
+            "Kuwait",
+            "Qatar",
+            "Bahrain",
+            "Morocco",
+          ]}
           selected={filters.countries}
           onChange={(selected) => handleFilterChange({ ...filters, countries: selected })}
           placeholder="Search countries..."

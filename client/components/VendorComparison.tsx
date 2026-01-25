@@ -53,10 +53,8 @@ export default function VendorComparison({
 
   const topPerformer = rankedVendors[0];
   const performanceGap =
-    Math.max(...vendors.map((v) => v.successRate)) -
-    Math.min(...vendors.map((v) => v.successRate));
-  const avgSuccessRate =
-    vendors.reduce((sum, v) => sum + v.successRate, 0) / vendors.length;
+    Math.max(...vendors.map((v) => v.successRate)) - Math.min(...vendors.map((v) => v.successRate));
+  const avgSuccessRate = vendors.reduce((sum, v) => sum + v.successRate, 0) / vendors.length;
 
   const handleSort = (key: string) => {
     if (sortKey === key) {
@@ -132,8 +130,7 @@ export default function VendorComparison({
                     )}
                     {selectedRegions.length > 0 && (
                       <>
-                        <span className="font-semibold">Regions:</span>{" "}
-                        {selectedRegions.join(", ")}
+                        <span className="font-semibold">Regions:</span> {selectedRegions.join(", ")}
                       </>
                     )}
                   </>
@@ -151,9 +148,7 @@ export default function VendorComparison({
           <table className="w-full text-sm">
             <thead className="border-b border-border">
               <tr className="text-muted-foreground font-semibold">
-                {showRanking && (
-                  <th className="text-left py-3 px-4 w-12">Rank</th>
-                )}
+                {showRanking && <th className="text-left py-3 px-4 w-12">Rank</th>}
                 <th className="text-left py-3 px-4">
                   <button
                     onClick={() => handleSort("name")}
@@ -218,9 +213,7 @@ export default function VendorComparison({
                       </div>
                     </td>
                   )}
-                  <td className="py-3 px-4 font-medium text-foreground">
-                    {vendor.name}
-                  </td>
+                  <td className="py-3 px-4 font-medium text-foreground">{vendor.name}</td>
                   <td className="py-3 px-4 text-right">
                     <span className="font-semibold text-foreground">
                       {vendor.successRate.toFixed(2)}%
@@ -265,15 +258,9 @@ export default function VendorComparison({
             </p>
           </div>
           <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
-            <p className="text-sm text-muted-foreground mb-2">
-              Average Success Rate
-            </p>
-            <p className="text-2xl font-bold text-blue-700">
-              {avgSuccessRate.toFixed(2)}%
-            </p>
-            <p className="text-xs text-muted-foreground mt-2">
-              Across all vendors
-            </p>
+            <p className="text-sm text-muted-foreground mb-2">Average Success Rate</p>
+            <p className="text-2xl font-bold text-blue-700">{avgSuccessRate.toFixed(2)}%</p>
+            <p className="text-xs text-muted-foreground mt-2">Across all vendors</p>
           </div>
           <div
             className={cn(
@@ -293,9 +280,7 @@ export default function VendorComparison({
               {performanceGap.toFixed(2)}%
             </p>
             <p className="text-xs text-muted-foreground mt-2">
-              {performanceGap > 3
-                ? "Significant variation detected"
-                : "Good consistency"}
+              {performanceGap > 3 ? "Significant variation detected" : "Good consistency"}
             </p>
           </div>
         </div>

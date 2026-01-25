@@ -157,9 +157,7 @@ export interface VoiceBreakdown {
   priority?: "Critical" | "High" | "Medium" | "Low";
 }
 
-export const generateVoiceBreakdownByVendor = (
-  filters: GlobalFilterState
-): VoiceBreakdown[] => {
+export const generateVoiceBreakdownByVendor = (filters: GlobalFilterState): VoiceBreakdown[] => {
   const allVendors = ["Ericsson", "Huawei", "Nokia", "Samsung"];
   // Filter vendors based on active filters
   const vendors = filters.vendors.length > 0 ? filters.vendors : allVendors;
@@ -183,11 +181,7 @@ export const generateVoiceBreakdownByVendor = (
       drop_rate: dropRate,
       call_stability: 97.8 + Math.random() * 1.8 + performanceAdjustment * 0.5,
       status:
-        Math.random() > 0.3
-          ? "High quality"
-          : Math.random() > 0.6
-            ? "Acceptable"
-            : "Degraded",
+        Math.random() > 0.3 ? "High quality" : Math.random() > 0.6 ? "Acceptable" : "Degraded",
       count: Math.round(9000 + Math.random() * 5000),
       priority: calculatePriorityFromPerformance(successRate, dropRate),
     };
@@ -205,11 +199,21 @@ export const generateVoiceBreakdownByTechnology = (
     // Older technologies have naturally worse performance
     let performanceBoost = 0;
     switch (tech) {
-      case "2G": performanceBoost = -2; break;
-      case "3G": performanceBoost = -1; break;
-      case "4G": performanceBoost = 0.5; break;
-      case "5G": performanceBoost = 1.5; break;
-      case "O-RAN": performanceBoost = 1; break;
+      case "2G":
+        performanceBoost = -2;
+        break;
+      case "3G":
+        performanceBoost = -1;
+        break;
+      case "4G":
+        performanceBoost = 0.5;
+        break;
+      case "5G":
+        performanceBoost = 1.5;
+        break;
+      case "O-RAN":
+        performanceBoost = 1;
+        break;
     }
 
     const successRate = Math.max(90, 96.5 + Math.random() * 3 + performanceBoost);
@@ -221,20 +225,14 @@ export const generateVoiceBreakdownByTechnology = (
       drop_rate: dropRate,
       call_stability: 97.5 + Math.random() * 2 + performanceBoost * 0.3,
       status:
-        Math.random() > 0.4
-          ? "High quality"
-          : Math.random() > 0.6
-            ? "Acceptable"
-            : "Degraded",
+        Math.random() > 0.4 ? "High quality" : Math.random() > 0.6 ? "Acceptable" : "Degraded",
       count: Math.round(8000 + Math.random() * 4000),
       priority: calculatePriorityFromPerformance(successRate, dropRate),
     };
   });
 };
 
-export const generateVoiceBreakdownByRegion = (
-  filters: GlobalFilterState
-): VoiceBreakdown[] => {
+export const generateVoiceBreakdownByRegion = (filters: GlobalFilterState): VoiceBreakdown[] => {
   const regions = ["North", "South", "East", "West", "Central"];
   return regions.map((region) => {
     const successRate = 96.5 + Math.random() * 3;
@@ -245,21 +243,18 @@ export const generateVoiceBreakdownByRegion = (
       drop_rate: dropRate,
       call_stability: 97.8 + Math.random() * 1.8,
       status:
-        Math.random() > 0.3
-          ? "High quality"
-          : Math.random() > 0.6
-            ? "Acceptable"
-            : "Degraded",
+        Math.random() > 0.3 ? "High quality" : Math.random() > 0.6 ? "Acceptable" : "Degraded",
       count: Math.round(12000 + Math.random() * 6000),
       priority: calculatePriorityFromPerformance(successRate, dropRate),
     };
   });
 };
 
-export const generateVoiceBreakdownByCluster = (
-  filters: GlobalFilterState
-): VoiceBreakdown[] => {
-  const clusterNames = filters.clusters.length > 0 ? filters.clusters : ["Cluster A", "Cluster B", "Cluster C", "Cluster D"];
+export const generateVoiceBreakdownByCluster = (filters: GlobalFilterState): VoiceBreakdown[] => {
+  const clusterNames =
+    filters.clusters.length > 0
+      ? filters.clusters
+      : ["Cluster A", "Cluster B", "Cluster C", "Cluster D"];
   return clusterNames.map((cluster) => {
     const successRate = 96 + Math.random() * 3.5;
     const dropRate = 0.4 + Math.random() * 0.35;
@@ -269,11 +264,7 @@ export const generateVoiceBreakdownByCluster = (
       drop_rate: dropRate,
       call_stability: 97.5 + Math.random() * 2,
       status:
-        Math.random() > 0.35
-          ? "High quality"
-          : Math.random() > 0.55
-            ? "Acceptable"
-            : "Degraded",
+        Math.random() > 0.35 ? "High quality" : Math.random() > 0.55 ? "Acceptable" : "Degraded",
       count: Math.round(10000 + Math.random() * 5000),
       priority: calculatePriorityFromPerformance(successRate, dropRate),
     };
@@ -409,9 +400,7 @@ export const generateDataBreakdownByVendor = (filters: GlobalFilterState): Voice
   }));
 };
 
-export const generateDataBreakdownByTechnology = (
-  filters: GlobalFilterState
-): VoiceBreakdown[] => {
+export const generateDataBreakdownByTechnology = (filters: GlobalFilterState): VoiceBreakdown[] => {
   const techs = ["2G", "3G", "4G", "5G", "O-RAN"];
   return techs.map((tech) => ({
     name: tech,
@@ -419,18 +408,12 @@ export const generateDataBreakdownByTechnology = (
     drop_rate: 0.25 + Math.random() * 0.35,
     call_stability: 97.5 + Math.random() * 2,
     status:
-      Math.random() > 0.3
-        ? "High performance"
-        : Math.random() > 0.5
-          ? "Balanced"
-          : "Congested",
+      Math.random() > 0.3 ? "High performance" : Math.random() > 0.5 ? "Balanced" : "Congested",
     count: Math.round(7000 + Math.random() * 5000),
   }));
 };
 
-export const generateDataBreakdownByRegion = (
-  filters: GlobalFilterState
-): VoiceBreakdown[] => {
+export const generateDataBreakdownByRegion = (filters: GlobalFilterState): VoiceBreakdown[] => {
   const regions = ["North", "South", "East", "West", "Central"];
   return regions.map((region) => ({
     name: region,
@@ -438,30 +421,23 @@ export const generateDataBreakdownByRegion = (
     drop_rate: 0.28 + Math.random() * 0.32,
     call_stability: 97.8 + Math.random() * 1.8,
     status:
-      Math.random() > 0.35
-        ? "High performance"
-        : Math.random() > 0.6
-          ? "Balanced"
-          : "Congested",
+      Math.random() > 0.35 ? "High performance" : Math.random() > 0.6 ? "Balanced" : "Congested",
     count: Math.round(9000 + Math.random() * 5000),
   }));
 };
 
-export const generateDataBreakdownByCluster = (
-  filters: GlobalFilterState
-): VoiceBreakdown[] => {
-  const clusterNames = filters.clusters.length > 0 ? filters.clusters : ["Cluster A", "Cluster B", "Cluster C", "Cluster D"];
+export const generateDataBreakdownByCluster = (filters: GlobalFilterState): VoiceBreakdown[] => {
+  const clusterNames =
+    filters.clusters.length > 0
+      ? filters.clusters
+      : ["Cluster A", "Cluster B", "Cluster C", "Cluster D"];
   return clusterNames.map((cluster) => ({
     name: cluster,
     call_success_rate: 97 + Math.random() * 2.5,
     drop_rate: 0.3 + Math.random() * 0.3,
     call_stability: 97.5 + Math.random() * 2,
     status:
-      Math.random() > 0.4
-        ? "High performance"
-        : Math.random() > 0.6
-          ? "Balanced"
-          : "Congested",
+      Math.random() > 0.4 ? "High performance" : Math.random() > 0.6 ? "Balanced" : "Congested",
     count: Math.round(8000 + Math.random() * 4000),
   }));
 };
@@ -543,7 +519,8 @@ export const generateVoiceInsights = (
         description: `Call success rate improved ${(lastAvg - prevAvg).toFixed(2)}% in recent period. System is stabilizing.`,
         timestamp: new Date(now.getTime() - 5 * 60000).toISOString(),
         severity: "Medium",
-        affectedFilters: filters.technologies.length > 0 ? filters.technologies : ["All technologies"],
+        affectedFilters:
+          filters.technologies.length > 0 ? filters.technologies : ["All technologies"],
       });
     }
 
@@ -564,11 +541,7 @@ export const generateVoiceInsights = (
         }
       }
 
-      if (
-        isConsistentDecline &&
-        prevFourAvg - lastFourAvg > 1 &&
-        lastFourAvg < 97
-      ) {
+      if (isConsistentDecline && prevFourAvg - lastFourAvg > 1 && lastFourAvg < 97) {
         insights.push({
           id: `ongoing-${Date.now()}`,
           type: "ongoing_degradation",
@@ -658,7 +631,7 @@ export interface HeatmapRow {
 export const generateTimeRegionHeatmap = (): HeatmapRow[] => {
   const regions = ["North", "South", "East", "West", "Central"];
   const hours = ["00:00", "04:00", "08:00", "12:00", "16:00", "20:00"];
-  
+
   return hours.map((hour) => ({
     name: hour,
     cells: regions.map((region) => {
@@ -666,15 +639,22 @@ export const generateTimeRegionHeatmap = (): HeatmapRow[] => {
       const hourNum = parseInt(hour.split(":")[0]);
       const isPeakHour = hourNum >= 8 && hourNum <= 20;
       const baseStress = isPeakHour ? 60 + Math.random() * 30 : 20 + Math.random() * 30;
-      
+
       // South region typically more congested
       const regionMultiplier = region === "South" ? 1.2 : region === "East" ? 1.1 : 1.0;
       const utilization = Math.min(baseStress * regionMultiplier, 100);
-      
+
       return {
         label: `${utilization.toFixed(0)}%`,
         value: utilization,
-        intensity: utilization > 80 ? "critical" : utilization > 60 ? "high" : utilization > 40 ? "medium" : "low",
+        intensity:
+          utilization > 80
+            ? "critical"
+            : utilization > 60
+              ? "high"
+              : utilization > 40
+                ? "medium"
+                : "low",
       };
     }),
   }));
@@ -684,15 +664,16 @@ export const generateTimeRegionHeatmap = (): HeatmapRow[] => {
 export const generateTechCapacityHeatmap = (): HeatmapRow[] => {
   const technologies = ["2G", "3G", "4G", "5G", "O-RAN"];
   const regions = ["North", "South", "East", "West"];
-  
+
   return technologies.map((tech) => ({
     name: tech,
     cells: regions.map((region) => {
       // Older tech (2G/3G) has higher stress
-      const techBase = tech === "2G" ? 75 : tech === "3G" ? 70 : tech === "4G" ? 55 : tech === "5G" ? 35 : 30;
+      const techBase =
+        tech === "2G" ? 75 : tech === "3G" ? 70 : tech === "4G" ? 55 : tech === "5G" ? 35 : 30;
       const regionVariance = Math.random() * 15;
       const stress = Math.min(techBase + regionVariance, 100);
-      
+
       return {
         label: `${stress.toFixed(0)}%`,
         value: stress,
@@ -706,7 +687,7 @@ export const generateTechCapacityHeatmap = (): HeatmapRow[] => {
 export const generateHourlyUtilizationHeatmap = (): HeatmapRow[] => {
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const hours = Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, "0")}:00`);
-  
+
   return days.map((day) => ({
     name: day,
     cells: hours.map((hour) => {
@@ -714,16 +695,23 @@ export const generateHourlyUtilizationHeatmap = (): HeatmapRow[] => {
       // Peak hours: 8-12, 15-20
       const isPeakHour = (hourNum >= 8 && hourNum <= 12) || (hourNum >= 15 && hourNum <= 20);
       const isWeekend = day === "Sat" || day === "Sun";
-      
+
       let baseUtilization = isPeakHour ? 70 + Math.random() * 25 : 30 + Math.random() * 25;
       if (isWeekend) baseUtilization *= 0.7; // Lower weekend usage
-      
+
       const utilization = Math.min(baseUtilization, 100);
-      
+
       return {
         label: `${utilization.toFixed(0)}%`,
         value: utilization,
-        intensity: utilization > 80 ? "critical" : utilization > 60 ? "high" : utilization > 40 ? "medium" : "low",
+        intensity:
+          utilization > 80
+            ? "critical"
+            : utilization > 60
+              ? "high"
+              : utilization > 40
+                ? "medium"
+                : "low",
       };
     }),
   }));
@@ -771,7 +759,8 @@ export const generateDataInsights = (
         description: `Average latency reduced by ${(prevLatencyAvg - lastLatencyAvg).toFixed(2)}ms. Network responsiveness has improved.`,
         timestamp: new Date(now.getTime() - 10 * 60000).toISOString(),
         severity: "Medium",
-        affectedFilters: filters.technologies.length > 0 ? filters.technologies : ["All technologies"],
+        affectedFilters:
+          filters.technologies.length > 0 ? filters.technologies : ["All technologies"],
       });
     }
   }
@@ -823,9 +812,10 @@ export const generateDataInsights = (
   if (trendData.length >= 5) {
     const recentPacketLoss = trendData.slice(-5);
     const avgRecentLoss = recentPacketLoss.reduce((sum, d) => sum + d.packet_loss, 0) / 5;
-    const avgPreviousLoss = trendData.slice(-10, -5).length > 0
-      ? trendData.slice(-10, -5).reduce((sum, d) => sum + d.packet_loss, 0) / 5
-      : avgRecentLoss;
+    const avgPreviousLoss =
+      trendData.slice(-10, -5).length > 0
+        ? trendData.slice(-10, -5).reduce((sum, d) => sum + d.packet_loss, 0) / 5
+        : avgRecentLoss;
 
     if (avgPreviousLoss > avgRecentLoss && avgPreviousLoss - avgRecentLoss > 0.01) {
       insights.push({
@@ -871,9 +861,7 @@ export const generateVendorComparisons = (
   vendors: VendorBreakdown[],
   selectedVendorNames: string[]
 ): VendorComparison[] => {
-  const selectedVendors = vendors.filter((v) =>
-    selectedVendorNames.includes(v.name)
-  );
+  const selectedVendors = vendors.filter((v) => selectedVendorNames.includes(v.name));
 
   if (selectedVendors.length < 2) return [];
 

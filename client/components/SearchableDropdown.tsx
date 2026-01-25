@@ -29,10 +29,7 @@ export default function SearchableDropdown({
   // Handle clicking outside dropdown
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     }
@@ -107,9 +104,7 @@ export default function SearchableDropdown({
               ))}
             </div>
           ) : (
-            <span className="text-muted-foreground text-sm">
-              Select {label.toLowerCase()}...
-            </span>
+            <span className="text-muted-foreground text-sm">Select {label.toLowerCase()}...</span>
           )}
         </div>
         <ChevronDown
