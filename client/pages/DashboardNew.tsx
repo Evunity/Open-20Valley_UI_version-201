@@ -236,6 +236,20 @@ export default function DashboardNew() {
   const aiSummary = useMemo(() => generateAIActionsSummary(filters), [filters]);
   const aiActionsDetailList = useMemo(() => generateAIActionsDetailList(filters), [filters]);
 
+  // Generate vendor metrics for comparison when multiple vendors are selected
+  const vendorMetrics = useMemo(() => {
+    if (filters.vendors.length === 0) return [];
+
+    return filters.vendors.map((vendor) => ({
+      name: vendor,
+      successRate: 98.2 + Math.random() * 1.5 - (filters.vendors.indexOf(vendor) * 0.3),
+      dropRate: 1.8 - Math.random() * 0.5 + (filters.vendors.indexOf(vendor) * 0.2),
+      stability: 97.5 + Math.random() * 1.8 - (filters.vendors.indexOf(vendor) * 0.25),
+      volume: Math.floor(5000 + Math.random() * 5000),
+      status: (98.2 + Math.random() * 1.5) > 97 ? "healthy" : "degraded" as const,
+    }));
+  }, [filters.vendors]);
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "healthy":
