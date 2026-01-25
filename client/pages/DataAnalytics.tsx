@@ -23,6 +23,7 @@ import {
   generateDataTrendData,
   generateDataBreakdownByVendor,
   generateDataBreakdownByTechnology,
+  generateDataBreakdownByRegion,
   segmentDataPerformance,
 } from "@/utils/analyticsData";
 import {
