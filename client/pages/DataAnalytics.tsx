@@ -1152,15 +1152,20 @@ export default function DataAnalytics() {
           {Object.entries(techSegmented).map(([segment, techs]) =>
             techs.length > 0 ? (
               <div key={segment} className="card-elevated rounded-xl border border-border/50 p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className={cn(
-                    "w-3 h-3 rounded-full",
-                    segment === "High performance" ? "bg-green-500" :
-                    segment === "Balanced" ? "bg-blue-500" :
-                    segment === "Congested" ? "bg-orange-500" :
-                    "bg-red-500"
-                  )} />
-                  <h3 className="text-lg font-bold text-foreground">{segment} - Technologies</h3>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className={cn(
+                      "w-3 h-3 rounded-full",
+                      segment === "High performance" ? "bg-green-500" :
+                      segment === "Balanced" ? "bg-blue-500" :
+                      segment === "Congested" ? "bg-orange-500" :
+                      "bg-red-500"
+                    )} />
+                    <h3 className="text-lg font-bold text-foreground">{segment} - Technologies</h3>
+                  </div>
+                  <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium">
+                    {techs.length} technology{techs.length !== 1 ? 's' : ''}
+                  </span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {techs.map((tech, idx) => (
