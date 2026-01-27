@@ -84,7 +84,7 @@ export default function NetworkAlarms() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-40">
+      <div className="border-b border-border bg-card/50 backdrop-blur-sm">
         <div className="px-8 py-6">
           <div className="flex items-center justify-between mb-4">
             <div>
