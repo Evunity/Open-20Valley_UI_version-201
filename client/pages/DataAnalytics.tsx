@@ -283,20 +283,6 @@ export default function DataAnalytics() {
         <FilterPanel />
       </div>
 
-      {/* Drill-Down Flow Guide - Scannable Structure */}
-      <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 flex flex-wrap items-center justify-between gap-3 text-sm">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="font-semibold text-blue-900 dark:text-blue-100">Flow: </span>
-          <span className="text-blue-800 dark:text-blue-200">Summary (KPIs)</span>
-          <span className="text-blue-400">→</span>
-          <span className="text-blue-800 dark:text-blue-200">Insights</span>
-          <span className="text-blue-400">→</span>
-          <span className="text-blue-800 dark:text-blue-200">Breakdown</span>
-          <span className="text-blue-400">→</span>
-          <span className="text-blue-800 dark:text-blue-200">Trends</span>
-        </div>
-      </div>
-
       {/* KPI Cards - Top Row */}
       <div>
         <h2 className="text-2xl font-bold text-foreground mb-4">Key Performance Indicators</h2>
