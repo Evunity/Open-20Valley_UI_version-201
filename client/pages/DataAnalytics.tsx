@@ -1516,6 +1516,129 @@ export default function DataAnalytics() {
         </div>
       </div>
 
+      {/* Segmentation Distribution Charts */}
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">Segmentation Distribution</h2>
+        </div>
+
+        {/* Vendor Segmentation Distribution */}
+        <div className="card-elevated rounded-xl border border-border/50 p-6">
+          <div className="mb-4">
+            <h3 className="text-lg font-bold text-foreground">
+              Vendor Segmentation Distribution
+            </h3>
+          </div>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={vendorSegmented} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis
+                dataKey="category"
+                stroke="hsl(var(--muted-foreground))"
+                style={{ fontSize: "12px" }}
+              />
+              <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "8px",
+                }}
+              />
+              <Legend />
+              <Bar dataKey="count" fill="#8b5cf6" name="VendorDistribution" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Technology Segmentation Distribution */}
+        <div className="card-elevated rounded-xl border border-border/50 p-6">
+          <div className="mb-4">
+            <h3 className="text-lg font-bold text-foreground">
+              Technology Segmentation Distribution
+            </h3>
+          </div>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={techSegmented} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis
+                dataKey="category"
+                stroke="hsl(var(--muted-foreground))"
+                style={{ fontSize: "12px" }}
+              />
+              <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "8px",
+                }}
+              />
+              <Legend />
+              <Bar dataKey="count" fill="#8b5cf6" name="TechnologyDistribution" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Region Segmentation Distribution */}
+        <div className="card-elevated rounded-xl border border-border/50 p-6">
+          <div className="mb-4">
+            <h3 className="text-lg font-bold text-foreground">
+              Region Segmentation Distribution
+            </h3>
+          </div>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={regionSegmented} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis
+                dataKey="category"
+                stroke="hsl(var(--muted-foreground))"
+                style={{ fontSize: "12px" }}
+              />
+              <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "8px",
+                }}
+              />
+              <Legend />
+              <Bar dataKey="count" fill="#8b5cf6" name="RegionDistribution" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Cluster Segmentation Distribution */}
+        <div className="card-elevated rounded-xl border border-border/50 p-6">
+          <div className="mb-4">
+            <h3 className="text-lg font-bold text-foreground">
+              Cluster Segmentation Distribution
+            </h3>
+          </div>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={clusterSegmented} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis
+                dataKey="category"
+                stroke="hsl(var(--muted-foreground))"
+                style={{ fontSize: "12px" }}
+              />
+              <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "8px",
+                }}
+              />
+              <Legend />
+              <Bar dataKey="count" fill="#8b5cf6" name="ClusterDistribution" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
       {/* Data Performance Breakdown Details - Tables */}
       <div className="space-y-6">
         <div>
