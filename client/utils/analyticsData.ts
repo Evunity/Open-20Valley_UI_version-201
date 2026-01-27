@@ -685,36 +685,47 @@ export const generateTechCapacityHeatmap = (): HeatmapRow[] => {
 
 // Hourly utilization pattern - shows usage pattern across 24 hours
 export const generateHourlyUtilizationHeatmap = (): HeatmapRow[] => {
-  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const days = Array.from({ length: 7 }, (_, i) => {
+    const date = new Date();
+    date.setDate(date.getDate() - (6 - i));
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return { dateStr: `${day}/${month}/${year}`, dayOfWeek: date.getDay() };
+  });
+
   const hours = Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, "0")}:00`);
 
-  return days.map((day) => ({
-    name: day,
-    cells: hours.map((hour) => {
-      const hourNum = parseInt(hour.split(":")[0]);
-      // Peak hours: 8-12, 15-20
-      const isPeakHour = (hourNum >= 8 && hourNum <= 12) || (hourNum >= 15 && hourNum <= 20);
-      const isWeekend = day === "Sat" || day === "Sun";
+  return days.map(({ dateStr, dayOfWeek }) => {
+    const isWeekend = dayOfWeek === 5 || dayOfWeek === 6;
 
-      let baseUtilization = isPeakHour ? 70 + Math.random() * 25 : 30 + Math.random() * 25;
-      if (isWeekend) baseUtilization *= 0.7; // Lower weekend usage
+    return {
+      name: dateStr,
+      cells: hours.map((hour) => {
+        const hourNum = parseInt(hour.split(":")[0]);
+        // Peak hours: 8-12, 15-20
+        const isPeakHour = (hourNum >= 8 && hourNum <= 12) || (hourNum >= 15 && hourNum <= 20);
 
-      const utilization = Math.min(baseUtilization, 100);
+        let baseUtilization = isPeakHour ? 70 + Math.random() * 25 : 30 + Math.random() * 25;
+        if (isWeekend) baseUtilization *= 0.7; // Lower weekend usage
 
-      return {
-        label: `${utilization.toFixed(0)}%`,
-        value: utilization,
-        intensity:
-          utilization > 80
-            ? "critical"
-            : utilization > 60
-              ? "high"
-              : utilization > 40
-                ? "medium"
-                : "low",
-      };
-    }),
-  }));
+        const utilization = Math.min(baseUtilization, 100);
+
+        return {
+          label: `${utilization.toFixed(0)}%`,
+          value: utilization,
+          intensity:
+            utilization > 80
+              ? "critical"
+              : utilization > 60
+                ? "high"
+                : utilization > 40
+                  ? "medium"
+                  : "low",
+        };
+      }),
+    };
+  });
 };
 
 /**
