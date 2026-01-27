@@ -810,57 +810,49 @@ export default function VoiceAnalytics() {
         {/* Vendor Performers */}
         <div>
           <h3 className="text-xl font-bold text-foreground mb-4">Acceptable Performers - Vendors</h3>
-          <SegmentationSummary data={vendorSegmented.reduce((acc, item) => ({
-            ...acc,
-            [item.category]: vendorBreakdown.filter(v =>
-              vendorSegmented.find(seg =>
-                seg.category === item.category &&
-                seg.items.some(i => i.name === v.name)
-              )
-            ),
-          }), {})} dimension="Vendor" />
+          <SegmentationSummary
+            data={vendorSegmented.reduce((acc, item) => ({
+              ...acc,
+              [item.category]: item.items,
+            }), {})}
+            dimension="Vendor"
+          />
         </div>
 
         {/* Technology Performers */}
         <div>
           <h3 className="text-xl font-bold text-foreground mb-4">High quality Performers - Technologies</h3>
-          <SegmentationSummary data={techSegmented.reduce((acc, item) => ({
-            ...acc,
-            [item.category]: techBreakdown.filter(t =>
-              techSegmented.find(seg =>
-                seg.category === item.category &&
-                seg.items.some(i => i.name === t.name)
-              )
-            ),
-          }), {})} dimension="Technology" />
+          <SegmentationSummary
+            data={techSegmented.reduce((acc, item) => ({
+              ...acc,
+              [item.category]: item.items,
+            }), {})}
+            dimension="Technology"
+          />
         </div>
 
         {/* Region Performers */}
         <div>
           <h3 className="text-xl font-bold text-foreground mb-4">High quality Performers - Regions</h3>
-          <SegmentationSummary data={regionSegmented.reduce((acc, item) => ({
-            ...acc,
-            [item.category]: regionBreakdown.filter(r =>
-              regionSegmented.find(seg =>
-                seg.category === item.category &&
-                seg.items.some(i => i.name === r.name)
-              )
-            ),
-          }), {})} dimension="Region" />
+          <SegmentationSummary
+            data={regionSegmented.reduce((acc, item) => ({
+              ...acc,
+              [item.category]: item.items,
+            }), {})}
+            dimension="Region"
+          />
         </div>
 
         {/* Cluster Performers */}
         <div>
           <h3 className="text-xl font-bold text-foreground mb-4">High quality Performers - Clusters</h3>
-          <SegmentationSummary data={clusterSegmented.reduce((acc, item) => ({
-            ...acc,
-            [item.category]: clusterBreakdown.filter(c =>
-              clusterSegmented.find(seg =>
-                seg.category === item.category &&
-                seg.items.some(i => i.name === c.name)
-              )
-            ),
-          }), {})} dimension="Cluster" />
+          <SegmentationSummary
+            data={clusterSegmented.reduce((acc, item) => ({
+              ...acc,
+              [item.category]: item.items,
+            }), {})}
+            dimension="Cluster"
+          />
         </div>
       </div>
     </div>
