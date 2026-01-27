@@ -65,6 +65,14 @@ export default function App() {
                 }
               />
               <Route
+                path="/network-status"
+                element={
+                  <Layout>
+                    <NetworkStatus />
+                  </Layout>
+                }
+              />
+              <Route
                 path="/settings"
                 element={
                   <Layout>
