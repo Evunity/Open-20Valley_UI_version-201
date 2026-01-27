@@ -695,7 +695,7 @@ export default function VoiceAnalytics() {
         </div>
 
         {/* Helper function to transform segmented data for charts */}
-        {useMemo(() => {
+        {(() => {
           const transformSegmentedData = (data: Record<string, any[]>) => {
             return Object.entries(data).map(([category, items]) => ({
               category,
@@ -877,7 +877,7 @@ export default function VoiceAnalytics() {
               </div>
             </>
           );
-        }, [vendorSegmented, techSegmented, regionSegmented, clusterSegmented])}
+        })()}
       </div>
     </div>
   );
