@@ -962,71 +962,74 @@ export default function DataAnalytics() {
           </div>
         )}
 
-        {/* By Vendor */}
-        <div className="card-elevated rounded-xl border border-border/50 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-foreground">By Vendor</h3>
-            {filters.vendors.length > 0 && (
-              <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium">
-                {filters.vendors.length} vendor{filters.vendors.length !== 1 ? "s" : ""} selected
-              </span>
-            )}
+        {/* By Vendor & By Technology - Side by Side */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* By Vendor */}
+          <div className="card-elevated rounded-xl border border-border/50 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-foreground">By Vendor</h3>
+              {filters.vendors.length > 0 && (
+                <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium">
+                  {filters.vendors.length} vendor{filters.vendors.length !== 1 ? "s" : ""} selected
+                </span>
+              )}
+            </div>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={vendorBreakdown} margin={{ top: 5, right: 20, left: 0, bottom: 5 }} maxBarSize={40}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis
+                  dataKey="name"
+                  stroke="hsl(var(--muted-foreground))"
+                  style={{ fontSize: "12px" }}
+                />
+                <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--card))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "8px",
+                  }}
+                />
+                <Legend />
+                <Bar dataKey="call_success_rate" fill="#22c55e" name="Success Rate" />
+                <Bar dataKey="call_stability" fill="#3b82f6" name="Stability" />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={vendorBreakdown} margin={{ top: 5, right: 20, left: 0, bottom: 5 }} maxBarSize={40}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis
-                dataKey="name"
-                stroke="hsl(var(--muted-foreground))"
-                style={{ fontSize: "12px" }}
-              />
-              <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "8px",
-                }}
-              />
-              <Legend />
-              <Bar dataKey="call_success_rate" fill="#22c55e" name="Success Rate" />
-              <Bar dataKey="call_stability" fill="#3b82f6" name="Stability" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
 
-        {/* By Technology */}
-        <div className="card-elevated rounded-xl border border-border/50 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-foreground">By Technology</h3>
-            {filters.technologies.length > 0 && (
-              <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700 font-medium">
-                {filters.technologies.length} technology
-                {filters.technologies.length !== 1 ? "s" : ""} selected
-              </span>
-            )}
+          {/* By Technology */}
+          <div className="card-elevated rounded-xl border border-border/50 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-foreground">By Technology</h3>
+              {filters.technologies.length > 0 && (
+                <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700 font-medium">
+                  {filters.technologies.length} technology
+                  {filters.technologies.length !== 1 ? "s" : ""} selected
+                </span>
+              )}
+            </div>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={techBreakdown} margin={{ top: 5, right: 20, left: 0, bottom: 5 }} maxBarSize={40}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis
+                  dataKey="name"
+                  stroke="hsl(var(--muted-foreground))"
+                  style={{ fontSize: "12px" }}
+                />
+                <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--card))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "8px",
+                  }}
+                />
+                <Legend />
+                <Bar dataKey="call_success_rate" fill="#22c55e" name="Success Rate" />
+                <Bar dataKey="call_stability" fill="#3b82f6" name="Stability" />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={techBreakdown} margin={{ top: 5, right: 20, left: 0, bottom: 5 }} maxBarSize={40}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis
-                dataKey="name"
-                stroke="hsl(var(--muted-foreground))"
-                style={{ fontSize: "12px" }}
-              />
-              <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "8px",
-                }}
-              />
-              <Legend />
-              <Bar dataKey="call_success_rate" fill="#22c55e" name="Success Rate" />
-              <Bar dataKey="call_stability" fill="#3b82f6" name="Stability" />
-            </BarChart>
-          </ResponsiveContainer>
         </div>
 
         {/* By Region */}
