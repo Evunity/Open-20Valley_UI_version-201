@@ -56,6 +56,14 @@ export default function App() {
                 }
               />
               <Route
+                path="/network-alarms"
+                element={
+                  <Layout>
+                    <NetworkAlarms />
+                  </Layout>
+                }
+              />
+              <Route
                 path="/settings"
                 element={
                   <Layout>
