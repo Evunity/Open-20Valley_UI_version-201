@@ -741,7 +741,9 @@ export default function DataAnalytics() {
                 {/* Heatmap rows */}
                 {timeRegionHeatmap.map((row) => (
                   <div key={row.name} className="flex gap-1 mb-2">
-                    <div className="w-20 text-xs font-semibold text-muted-foreground">{row.name}</div>
+                    <div className="w-20 text-xs font-semibold text-muted-foreground">
+                      {row.name}
+                    </div>
                     {row.cells.map((cell, idx) => {
                       const bgColor =
                         cell.intensity === "critical"
@@ -812,7 +814,9 @@ export default function DataAnalytics() {
                 {/* Heatmap rows */}
                 {techCapacityHeatmap.map((row) => (
                   <div key={row.name} className="flex gap-1 mb-2">
-                    <div className="w-20 text-xs font-semibold text-muted-foreground">{row.name}</div>
+                    <div className="w-20 text-xs font-semibold text-muted-foreground">
+                      {row.name}
+                    </div>
                     {row.cells.map((cell, idx) => {
                       const bgColor =
                         cell.intensity === "critical"
@@ -867,43 +871,44 @@ export default function DataAnalytics() {
             // Determine if showing hourly or daily based on date range
             const daysDiff = getDaysDifference(filters.dateRange);
             const isMultiDay = daysDiff > 1;
-            const displayLabel = isMultiDay ? 'Daily Utilization Pattern (Heatmap)' : '24-Hour Utilization Pattern (Heatmap)';
+            const displayLabel = isMultiDay
+              ? "Daily Utilization Pattern (Heatmap)"
+              : "24-Hour Utilization Pattern (Heatmap)";
 
             // Generate column headers based on date range
             let columnHeaders: string[] = [];
-            let tooltipPrefix = '';
+            let tooltipPrefix = "";
 
             if (isMultiDay && filters.dateRange.from && filters.dateRange.to) {
               // Multi-day view - show days of month
               const fromDate = new Date(filters.dateRange.from);
               const toDate = new Date(filters.dateRange.to);
-              const daysCount = Math.ceil((toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+              const daysCount =
+                Math.ceil((toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
 
               for (let i = 0; i < daysCount && i < 31; i++) {
                 const day = new Date(fromDate);
                 day.setDate(day.getDate() + i);
-                columnHeaders.push(String(day.getDate()).padStart(2, '0'));
+                columnHeaders.push(String(day.getDate()).padStart(2, "0"));
               }
-              tooltipPrefix = 'Day';
+              tooltipPrefix = "Day";
             } else {
               // Single day or default - show hours
-              columnHeaders = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
-              tooltipPrefix = 'Hour';
+              columnHeaders = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
+              tooltipPrefix = "Hour";
             }
 
             return (
               <>
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-bold text-foreground">
-                    {displayLabel}
-                  </h3>
+                  <h3 className="text-lg font-bold text-foreground">{displayLabel}</h3>
                   {!isMultiDay && (
                     <div className="flex items-center gap-2">
                       <label className="text-xs font-semibold text-muted-foreground">Date:</label>
                       <input
                         type="date"
                         className="px-3 py-1.5 rounded border border-border text-xs bg-background text-foreground focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                        defaultValue={new Date().toISOString().split('T')[0]}
+                        defaultValue={new Date().toISOString().split("T")[0]}
                         title="Select date for heatmap"
                       />
                     </div>
@@ -1007,7 +1012,11 @@ export default function DataAnalytics() {
               )}
             </div>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={vendorBreakdown} margin={{ top: 5, right: 20, left: 0, bottom: 5 }} maxBarSize={40}>
+              <BarChart
+                data={vendorBreakdown}
+                margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+                maxBarSize={40}
+              >
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis
                   dataKey="name"
@@ -1041,7 +1050,11 @@ export default function DataAnalytics() {
               )}
             </div>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={techBreakdown} margin={{ top: 5, right: 20, left: 0, bottom: 5 }} maxBarSize={40}>
+              <BarChart
+                data={techBreakdown}
+                margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+                maxBarSize={40}
+              >
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis
                   dataKey="name"
@@ -1075,7 +1088,11 @@ export default function DataAnalytics() {
             )}
           </div>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={regionBreakdown} margin={{ top: 5, right: 20, left: 0, bottom: 5 }} maxBarSize={40}>
+            <BarChart
+              data={regionBreakdown}
+              margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+              maxBarSize={40}
+            >
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis
                 dataKey="name"
@@ -1311,7 +1328,10 @@ export default function DataAnalytics() {
                 </div>
                 <div className="space-y-2">
                   {vendors.map((vendor, idx) => (
-                    <div key={idx} className="p-3 rounded border border-border/50 hover:bg-muted/30 transition-colors">
+                    <div
+                      key={idx}
+                      className="p-3 rounded border border-border/50 hover:bg-muted/30 transition-colors"
+                    >
                       <p className="font-medium text-sm text-foreground">{vendor.name}</p>
                       <div className="grid grid-cols-3 gap-2 mt-2 text-xs">
                         <div>
@@ -1362,7 +1382,10 @@ export default function DataAnalytics() {
                 </div>
                 <div className="space-y-2">
                   {techs.map((tech, idx) => (
-                    <div key={idx} className="p-3 rounded border border-border/50 hover:bg-muted/30 transition-colors">
+                    <div
+                      key={idx}
+                      className="p-3 rounded border border-border/50 hover:bg-muted/30 transition-colors"
+                    >
                       <p className="font-medium text-sm text-foreground">{tech.name}</p>
                       <div className="grid grid-cols-3 gap-2 mt-2 text-xs">
                         <div>
@@ -1413,7 +1436,10 @@ export default function DataAnalytics() {
                 </div>
                 <div className="space-y-2">
                   {regions.map((region, idx) => (
-                    <div key={idx} className="p-3 rounded border border-border/50 hover:bg-muted/30 transition-colors">
+                    <div
+                      key={idx}
+                      className="p-3 rounded border border-border/50 hover:bg-muted/30 transition-colors"
+                    >
                       <p className="font-medium text-sm text-foreground">{region.name}</p>
                       <div className="grid grid-cols-3 gap-2 mt-2 text-xs">
                         <div>
@@ -1464,7 +1490,10 @@ export default function DataAnalytics() {
                 </div>
                 <div className="space-y-2">
                   {clusters.map((cluster, idx) => (
-                    <div key={idx} className="p-3 rounded border border-border/50 hover:bg-muted/30 transition-colors">
+                    <div
+                      key={idx}
+                      className="p-3 rounded border border-border/50 hover:bg-muted/30 transition-colors"
+                    >
                       <p className="font-medium text-sm text-foreground">{cluster.name}</p>
                       <div className="grid grid-cols-3 gap-2 mt-2 text-xs">
                         <div>
@@ -1645,88 +1674,88 @@ export default function DataAnalytics() {
           {/* Vendor Breakdown Table */}
           <div className="card-elevated rounded-xl border border-border/50 p-6 overflow-x-auto">
             <h3 className="text-lg font-bold text-foreground mb-4">By Vendor</h3>
-          <table className="w-full text-sm">
-            <thead className="border-b border-border">
-              <tr className="text-muted-foreground font-semibold">
-                <th className="text-left py-2 px-4">Vendor</th>
-                <th className="text-right py-2 px-4">Sessions</th>
-                <th className="text-right py-2 px-4">Failures</th>
-                <th className="text-right py-2 px-4">Avg Speed</th>
-                <th className="text-right py-2 px-4">Avg Latency</th>
-                <th className="text-center py-2 px-4">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {vendorBreakdown.map((vendor, idx) => {
-                const failureCount = Math.round((vendor.count * vendor.drop_rate) / 100);
-                const statusColor =
-                  vendor.call_success_rate > 98
-                    ? "bg-green-100"
-                    : vendor.call_success_rate > 96
-                      ? "bg-yellow-100"
-                      : "bg-red-100";
-                return (
-                  <tr key={idx} className="border-b border-border/50 hover:bg-muted/50">
-                    <td className="py-2 px-4 font-medium">{vendor.name}</td>
-                    <td className="py-2 px-4 text-right">{vendor.count.toLocaleString()}</td>
-                    <td className="py-2 px-4 text-right">{failureCount.toLocaleString()}</td>
-                    <td className="py-2 px-4 text-right">{avgSpeed.toFixed(2)} Mbps</td>
-                    <td className="py-2 px-4 text-right">{avgLatency.toFixed(2)} ms</td>
-                    <td className="py-2 px-4 text-center">
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor}`}
-                      >
-                        {vendor.call_success_rate.toFixed(2)}%
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
+            <table className="w-full text-sm">
+              <thead className="border-b border-border">
+                <tr className="text-muted-foreground font-semibold">
+                  <th className="text-left py-2 px-4">Vendor</th>
+                  <th className="text-right py-2 px-4">Sessions</th>
+                  <th className="text-right py-2 px-4">Failures</th>
+                  <th className="text-right py-2 px-4">Avg Speed</th>
+                  <th className="text-right py-2 px-4">Avg Latency</th>
+                  <th className="text-center py-2 px-4">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {vendorBreakdown.map((vendor, idx) => {
+                  const failureCount = Math.round((vendor.count * vendor.drop_rate) / 100);
+                  const statusColor =
+                    vendor.call_success_rate > 98
+                      ? "bg-green-100"
+                      : vendor.call_success_rate > 96
+                        ? "bg-yellow-100"
+                        : "bg-red-100";
+                  return (
+                    <tr key={idx} className="border-b border-border/50 hover:bg-muted/50">
+                      <td className="py-2 px-4 font-medium">{vendor.name}</td>
+                      <td className="py-2 px-4 text-right">{vendor.count.toLocaleString()}</td>
+                      <td className="py-2 px-4 text-right">{failureCount.toLocaleString()}</td>
+                      <td className="py-2 px-4 text-right">{avgSpeed.toFixed(2)} Mbps</td>
+                      <td className="py-2 px-4 text-right">{avgLatency.toFixed(2)} ms</td>
+                      <td className="py-2 px-4 text-center">
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor}`}
+                        >
+                          {vendor.call_success_rate.toFixed(2)}%
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
             </table>
           </div>
 
           {/* Technology Breakdown Table */}
           <div className="card-elevated rounded-xl border border-border/50 p-6 overflow-x-auto">
             <h3 className="text-lg font-bold text-foreground mb-4">By Technology</h3>
-          <table className="w-full text-sm">
-            <thead className="border-b border-border">
-              <tr className="text-muted-foreground font-semibold">
-                <th className="text-left py-2 px-4">Technology</th>
-                <th className="text-right py-2 px-4">Sessions</th>
-                <th className="text-right py-2 px-4">Failures</th>
-                <th className="text-right py-2 px-4">Avg Speed</th>
-                <th className="text-right py-2 px-4">Avg Latency</th>
-                <th className="text-center py-2 px-4">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {techBreakdown.map((tech, idx) => {
-                const failureCount = Math.round((tech.count * tech.drop_rate) / 100);
-                const statusColor =
-                  tech.call_success_rate > 98
-                    ? "bg-green-100"
-                    : tech.call_success_rate > 96
-                      ? "bg-yellow-100"
-                      : "bg-red-100";
-                return (
-                  <tr key={idx} className="border-b border-border/50 hover:bg-muted/50">
-                    <td className="py-2 px-4 font-medium">{tech.name}</td>
-                    <td className="py-2 px-4 text-right">{tech.count.toLocaleString()}</td>
-                    <td className="py-2 px-4 text-right">{failureCount.toLocaleString()}</td>
-                    <td className="py-2 px-4 text-right">{avgSpeed.toFixed(2)} Mbps</td>
-                    <td className="py-2 px-4 text-right">{avgLatency.toFixed(2)} ms</td>
-                    <td className="py-2 px-4 text-center">
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor}`}
-                      >
-                        {tech.call_success_rate.toFixed(2)}%
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
+            <table className="w-full text-sm">
+              <thead className="border-b border-border">
+                <tr className="text-muted-foreground font-semibold">
+                  <th className="text-left py-2 px-4">Technology</th>
+                  <th className="text-right py-2 px-4">Sessions</th>
+                  <th className="text-right py-2 px-4">Failures</th>
+                  <th className="text-right py-2 px-4">Avg Speed</th>
+                  <th className="text-right py-2 px-4">Avg Latency</th>
+                  <th className="text-center py-2 px-4">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {techBreakdown.map((tech, idx) => {
+                  const failureCount = Math.round((tech.count * tech.drop_rate) / 100);
+                  const statusColor =
+                    tech.call_success_rate > 98
+                      ? "bg-green-100"
+                      : tech.call_success_rate > 96
+                        ? "bg-yellow-100"
+                        : "bg-red-100";
+                  return (
+                    <tr key={idx} className="border-b border-border/50 hover:bg-muted/50">
+                      <td className="py-2 px-4 font-medium">{tech.name}</td>
+                      <td className="py-2 px-4 text-right">{tech.count.toLocaleString()}</td>
+                      <td className="py-2 px-4 text-right">{failureCount.toLocaleString()}</td>
+                      <td className="py-2 px-4 text-right">{avgSpeed.toFixed(2)} Mbps</td>
+                      <td className="py-2 px-4 text-right">{avgLatency.toFixed(2)} ms</td>
+                      <td className="py-2 px-4 text-center">
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor}`}
+                        >
+                          {tech.call_success_rate.toFixed(2)}%
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
             </table>
           </div>
         </div>
@@ -1736,93 +1765,92 @@ export default function DataAnalytics() {
           {/* Region Breakdown Table */}
           <div className="card-elevated rounded-xl border border-border/50 p-6 overflow-x-auto">
             <h3 className="text-lg font-bold text-foreground mb-4">By Region</h3>
-          <table className="w-full text-sm">
-            <thead className="border-b border-border">
-              <tr className="text-muted-foreground font-semibold">
-                <th className="text-left py-2 px-4">Region</th>
-                <th className="text-right py-2 px-4">Sessions</th>
-                <th className="text-right py-2 px-4">Failures</th>
-                <th className="text-right py-2 px-4">Avg Speed</th>
-                <th className="text-right py-2 px-4">Avg Latency</th>
-                <th className="text-center py-2 px-4">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {regionBreakdown.map((region, idx) => {
-                const failureCount = Math.round((region.count * region.drop_rate) / 100);
-                const statusColor =
-                  region.call_success_rate > 98
-                    ? "bg-green-100"
-                    : region.call_success_rate > 96
-                      ? "bg-yellow-100"
-                      : "bg-red-100";
-                return (
-                  <tr key={idx} className="border-b border-border/50 hover:bg-muted/50">
-                    <td className="py-2 px-4 font-medium">{region.name}</td>
-                    <td className="py-2 px-4 text-right">{region.count.toLocaleString()}</td>
-                    <td className="py-2 px-4 text-right">{failureCount.toLocaleString()}</td>
-                    <td className="py-2 px-4 text-right">{avgSpeed.toFixed(2)} Mbps</td>
-                    <td className="py-2 px-4 text-right">{avgLatency.toFixed(2)} ms</td>
-                    <td className="py-2 px-4 text-center">
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor}`}
-                      >
-                        {region.call_success_rate.toFixed(2)}%
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+            <table className="w-full text-sm">
+              <thead className="border-b border-border">
+                <tr className="text-muted-foreground font-semibold">
+                  <th className="text-left py-2 px-4">Region</th>
+                  <th className="text-right py-2 px-4">Sessions</th>
+                  <th className="text-right py-2 px-4">Failures</th>
+                  <th className="text-right py-2 px-4">Avg Speed</th>
+                  <th className="text-right py-2 px-4">Avg Latency</th>
+                  <th className="text-center py-2 px-4">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {regionBreakdown.map((region, idx) => {
+                  const failureCount = Math.round((region.count * region.drop_rate) / 100);
+                  const statusColor =
+                    region.call_success_rate > 98
+                      ? "bg-green-100"
+                      : region.call_success_rate > 96
+                        ? "bg-yellow-100"
+                        : "bg-red-100";
+                  return (
+                    <tr key={idx} className="border-b border-border/50 hover:bg-muted/50">
+                      <td className="py-2 px-4 font-medium">{region.name}</td>
+                      <td className="py-2 px-4 text-right">{region.count.toLocaleString()}</td>
+                      <td className="py-2 px-4 text-right">{failureCount.toLocaleString()}</td>
+                      <td className="py-2 px-4 text-right">{avgSpeed.toFixed(2)} Mbps</td>
+                      <td className="py-2 px-4 text-right">{avgLatency.toFixed(2)} ms</td>
+                      <td className="py-2 px-4 text-center">
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor}`}
+                        >
+                          {region.call_success_rate.toFixed(2)}%
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
 
           {/* Cluster Breakdown Table */}
           <div className="card-elevated rounded-xl border border-border/50 p-6 overflow-x-auto">
             <h3 className="text-lg font-bold text-foreground mb-4">By Cluster</h3>
-          <table className="w-full text-sm">
-            <thead className="border-b border-border">
-              <tr className="text-muted-foreground font-semibold">
-                <th className="text-left py-2 px-4">Cluster</th>
-                <th className="text-right py-2 px-4">Sessions</th>
-                <th className="text-right py-2 px-4">Failures</th>
-                <th className="text-right py-2 px-4">Avg Speed</th>
-                <th className="text-right py-2 px-4">Avg Latency</th>
-                <th className="text-center py-2 px-4">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {clusterBreakdown.map((cluster, idx) => {
-                const failureCount = Math.round((cluster.count * cluster.drop_rate) / 100);
-                const statusColor =
-                  cluster.call_success_rate > 98
-                    ? "bg-green-100"
-                    : cluster.call_success_rate > 96
-                      ? "bg-yellow-100"
-                      : "bg-red-100";
-                return (
-                  <tr key={idx} className="border-b border-border/50 hover:bg-muted/50">
-                    <td className="py-2 px-4 font-medium">{cluster.name}</td>
-                    <td className="py-2 px-4 text-right">{cluster.count.toLocaleString()}</td>
-                    <td className="py-2 px-4 text-right">{failureCount.toLocaleString()}</td>
-                    <td className="py-2 px-4 text-right">{avgSpeed.toFixed(2)} Mbps</td>
-                    <td className="py-2 px-4 text-right">{avgLatency.toFixed(2)} ms</td>
-                    <td className="py-2 px-4 text-center">
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor}`}
-                      >
-                        {cluster.call_success_rate.toFixed(2)}%
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+            <table className="w-full text-sm">
+              <thead className="border-b border-border">
+                <tr className="text-muted-foreground font-semibold">
+                  <th className="text-left py-2 px-4">Cluster</th>
+                  <th className="text-right py-2 px-4">Sessions</th>
+                  <th className="text-right py-2 px-4">Failures</th>
+                  <th className="text-right py-2 px-4">Avg Speed</th>
+                  <th className="text-right py-2 px-4">Avg Latency</th>
+                  <th className="text-center py-2 px-4">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {clusterBreakdown.map((cluster, idx) => {
+                  const failureCount = Math.round((cluster.count * cluster.drop_rate) / 100);
+                  const statusColor =
+                    cluster.call_success_rate > 98
+                      ? "bg-green-100"
+                      : cluster.call_success_rate > 96
+                        ? "bg-yellow-100"
+                        : "bg-red-100";
+                  return (
+                    <tr key={idx} className="border-b border-border/50 hover:bg-muted/50">
+                      <td className="py-2 px-4 font-medium">{cluster.name}</td>
+                      <td className="py-2 px-4 text-right">{cluster.count.toLocaleString()}</td>
+                      <td className="py-2 px-4 text-right">{failureCount.toLocaleString()}</td>
+                      <td className="py-2 px-4 text-right">{avgSpeed.toFixed(2)} Mbps</td>
+                      <td className="py-2 px-4 text-right">{avgLatency.toFixed(2)} ms</td>
+                      <td className="py-2 px-4 text-center">
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor}`}
+                        >
+                          {cluster.call_success_rate.toFixed(2)}%
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
-
 
       {/* Segmentation - Congested */}
       {vendorSegmented["Congested"] && vendorSegmented["Congested"].length > 0 && (

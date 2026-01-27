@@ -544,7 +544,11 @@ export default function VoiceAnalytics() {
               </h3>
             </div>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={techBreakdown} margin={{ top: 5, right: 20, left: 0, bottom: 5 }} maxBarSize={40}>
+              <BarChart
+                data={techBreakdown}
+                margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+                maxBarSize={40}
+              >
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis
                   dataKey="name"
@@ -577,7 +581,11 @@ export default function VoiceAnalytics() {
               </h3>
             </div>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={vendorBreakdown} margin={{ top: 5, right: 20, left: 0, bottom: 5 }} maxBarSize={40}>
+              <BarChart
+                data={vendorBreakdown}
+                margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+                maxBarSize={40}
+              >
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis
                   dataKey="name"
@@ -724,7 +732,10 @@ export default function VoiceAnalytics() {
                   </div>
                   {vendorSegmentedForChart.some((d) => d.count > 0) ? (
                     <ResponsiveContainer width="100%" height={300}>
-                      <BarChart data={vendorSegmentedForChart} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                      <BarChart
+                        data={vendorSegmentedForChart}
+                        margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+                      >
                         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                         <XAxis
                           dataKey="category"
@@ -758,7 +769,10 @@ export default function VoiceAnalytics() {
                   </div>
                   {techSegmentedForChart.some((d) => d.count > 0) ? (
                     <ResponsiveContainer width="100%" height={300}>
-                      <BarChart data={techSegmentedForChart} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                      <BarChart
+                        data={techSegmentedForChart}
+                        margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+                      >
                         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                         <XAxis
                           dataKey="category"
@@ -795,7 +809,10 @@ export default function VoiceAnalytics() {
                   </div>
                   {regionSegmentedForChart.some((d) => d.count > 0) ? (
                     <ResponsiveContainer width="100%" height={300}>
-                      <BarChart data={regionSegmentedForChart} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                      <BarChart
+                        data={regionSegmentedForChart}
+                        margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+                      >
                         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                         <XAxis
                           dataKey="category"
@@ -829,7 +846,10 @@ export default function VoiceAnalytics() {
                   </div>
                   {clusterSegmentedForChart.some((d) => d.count > 0) ? (
                     <ResponsiveContainer width="100%" height={300}>
-                      <BarChart data={clusterSegmentedForChart} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                      <BarChart
+                        data={clusterSegmentedForChart}
+                        margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+                      >
                         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                         <XAxis
                           dataKey="category"
@@ -863,7 +883,9 @@ export default function VoiceAnalytics() {
 
               {/* Technology Performance Categories Summary */}
               <div className="space-y-2">
-                <h3 className="text-lg font-bold text-foreground">Technology Performance Categories</h3>
+                <h3 className="text-lg font-bold text-foreground">
+                  Technology Performance Categories
+                </h3>
                 <SegmentationSummary data={techSegmented} dimension="Technology" />
               </div>
 
@@ -875,7 +897,9 @@ export default function VoiceAnalytics() {
 
               {/* Cluster Performance Categories Summary */}
               <div className="space-y-2">
-                <h3 className="text-lg font-bold text-foreground">Cluster Performance Categories</h3>
+                <h3 className="text-lg font-bold text-foreground">
+                  Cluster Performance Categories
+                </h3>
                 <SegmentationSummary data={clusterSegmented} dimension="Cluster" />
               </div>
             </>
