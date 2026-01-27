@@ -37,8 +37,8 @@ export default function AnalyticsSections() {
     {
       title: "Network Status",
       icon: <Globe className="w-5 h-5" />,
-      path: "/network",
-      description: "Network topology and cluster health",
+      path: "/network-status",
+      description: "Structural and availability-focused network overview",
     },
     {
       title: "Reports",
