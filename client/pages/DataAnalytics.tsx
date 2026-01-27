@@ -1856,32 +1856,6 @@ export default function DataAnalytics() {
         </div>
       )}
 
-      {/* Segmentation - High Performance (Regions) */}
-      {regionSegmented["High performance"] && regionSegmented["High performance"].length > 0 && (
-        <div className="card-elevated rounded-xl border border-border/50 p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-3 h-3 rounded-full bg-status-healthy" />
-            <h3 className="text-lg font-bold text-foreground">High Performance (Regions)</h3>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {regionSegmented["High performance"].map((region, idx) => (
-              <div
-                key={idx}
-                className="p-4 rounded-lg border border-status-healthy/20 bg-status-healthy/5"
-              >
-                <p className="font-semibold text-foreground">{region.name}</p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Success Rate: {region.call_success_rate.toFixed(2)}%
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Stability: {region.call_stability.toFixed(2)}%
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Segmentation - Congested (Regions) */}
       {regionSegmented["Congested"] && regionSegmented["Congested"].length > 0 && (
         <div className="card-elevated rounded-xl border border-border/50 p-6">
