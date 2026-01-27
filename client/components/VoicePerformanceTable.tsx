@@ -195,29 +195,29 @@ export default function VoicePerformanceTable({
                 key={idx}
                 className="border-b border-border/30 hover:bg-muted/30 transition-colors"
               >
-                <td className="px-2 md:px-4 py-2 font-medium text-foreground whitespace-nowrap">{row.name}</td>
+                <td className="px-2 md:px-4 py-3 font-medium text-foreground text-left">{row.name}</td>
                 {data.some((d) => d.calls) && (
-                  <td className="px-2 md:px-4 py-2 text-right text-muted-foreground whitespace-nowrap">
+                  <td className="px-2 md:px-4 py-3 text-right text-foreground font-medium tabular-nums">
                     {row.calls.toLocaleString()}
                   </td>
                 )}
                 {data.some((d) => d.drops !== undefined) && (
-                  <td className="px-2 md:px-4 py-2 text-right text-muted-foreground whitespace-nowrap">
+                  <td className="px-2 md:px-4 py-3 text-right text-foreground font-medium tabular-nums">
                     {row.drops ? row.drops.toLocaleString() : "-"}
                   </td>
                 )}
-                <td className="px-2 md:px-4 py-2 text-right text-muted-foreground whitespace-nowrap">
+                <td className="px-2 md:px-4 py-3 text-right text-foreground font-medium tabular-nums">
                   {row.drop_rate.toFixed(2)}%
                 </td>
-                <td className="px-2 md:px-4 py-2 text-right font-medium text-foreground whitespace-nowrap">
+                <td className="px-2 md:px-4 py-3 text-right text-foreground font-semibold tabular-nums">
                   {row.success_rate.toFixed(2)}%
                 </td>
                 {data.some((d) => d.stability !== undefined) && (
-                  <td className="px-2 md:px-4 py-2 text-right text-muted-foreground whitespace-nowrap">
+                  <td className="px-2 md:px-4 py-3 text-right text-foreground font-medium tabular-nums">
                     {row.stability ? row.stability.toFixed(2) + "%" : "-"}
                   </td>
                 )}
-                <td className="px-2 md:px-4 py-2 text-center">
+                <td className="px-2 md:px-4 py-3 text-center">
                   <span
                     className={cn(
                       "inline-block px-2 py-1 rounded text-xs font-semibold",
@@ -229,7 +229,7 @@ export default function VoicePerformanceTable({
                   </span>
                 </td>
                 {data.some((d) => d.priority) && (
-                  <td className="px-2 md:px-4 py-2 text-center">
+                  <td className="px-2 md:px-4 py-3 text-center">
                     {row.priority && (
                       <span className={cn("inline-block px-2 py-1 rounded text-xs font-semibold", getPriorityColor(row.priority))}>
                         {row.priority}
