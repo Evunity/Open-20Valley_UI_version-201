@@ -1542,13 +1542,13 @@ export default function DataAnalytics() {
                               : "bg-red-500"
                       )}
                     />
-                    <h3 className="text-lg font-bold text-foreground">{segment} - Regions</h3>
+                    <h3 className="text-base font-bold text-foreground">{segment}</h3>
                   </div>
                   <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium">
-                    {regions.length} region{regions.length !== 1 ? "s" : ""}
+                    {regions.length}
                   </span>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="space-y-2">
                   {regions.map((region, idx) => (
                     <div
                       key={idx}
