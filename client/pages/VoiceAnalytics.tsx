@@ -387,85 +387,85 @@ export default function VoiceAnalytics() {
           <h2 className="text-2xl font-bold text-foreground">Performance Trends</h2>
         </div>
 
-        {/* Call Volume Trend */}
-        <TrendChartContainer
-          title="Call Volume Trend"
-          data={trendData}
-          dataKeys={["call_volume"]}
-          exportable
-          zoomable
-          defaultChartType="line"
-        />
+        {/* Call Volume & Call Success Rate Trends */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <TrendChartContainer
+            title="Call Volume Trend"
+            data={trendData}
+            dataKeys={["call_volume"]}
+            exportable
+            zoomable
+            defaultChartType="line"
+          />
+          <TrendChartContainer
+            title="Call Success Rate Trend"
+            data={trendData}
+            dataKeys={["call_success_rate"]}
+            exportable
+            zoomable
+            defaultChartType="line"
+          />
+        </div>
 
-        {/* Call Success Rate Trend */}
-        <TrendChartContainer
-          title="Call Success Rate Trend"
-          data={trendData}
-          dataKeys={["call_success_rate"]}
-          exportable
-          zoomable
-          defaultChartType="line"
-        />
+        {/* Drop Rate & Call Retainability Rate (CRR) Trends */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <TrendChartContainer
+            title="Drop Rate Trend"
+            data={trendData}
+            dataKeys={["drop_rate"]}
+            exportable
+            zoomable
+            defaultChartType="line"
+          />
+          <TrendChartContainer
+            title="Call Retainability Rate (CRR)"
+            data={trendData}
+            dataKeys={["crr"]}
+            exportable
+            zoomable
+            defaultChartType="line"
+          />
+        </div>
 
-        {/* Drop Rate Trend */}
-        <TrendChartContainer
-          title="Drop Rate Trend"
-          data={trendData}
-          dataKeys={["drop_rate"]}
-          exportable
-          zoomable
-          defaultChartType="line"
-        />
+        {/* Call Continuity & Voice Quality Index (VQI) Trends */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <TrendChartContainer
+            title="Call Continuity Trend"
+            data={trendData}
+            dataKeys={["call_continuity"]}
+            exportable
+            zoomable
+            defaultChartType="line"
+          />
+          <TrendChartContainer
+            title="Voice Quality Index (VQI) Trend"
+            data={trendData}
+            dataKeys={["vqi"]}
+            exportable
+            zoomable
+            defaultChartType="line"
+          />
+        </div>
 
-        {/* Call Retainability Rate (CRR) */}
-        <TrendChartContainer
-          title="Call Retainability Rate (CRR)"
-          data={trendData}
-          dataKeys={["crr"]}
-          exportable
-          zoomable
-          defaultChartType="line"
-        />
-
-        {/* Call Continuity Trend */}
-        <TrendChartContainer
-          title="Call Continuity Trend"
-          data={trendData}
-          dataKeys={["call_continuity"]}
-          exportable
-          zoomable
-          defaultChartType="line"
-        />
-
-        {/* Voice Quality Index (VQI) Trend */}
-        <TrendChartContainer
-          title="Voice Quality Index (VQI) Trend"
-          data={trendData}
-          dataKeys={["vqi"]}
-          exportable
-          zoomable
-          defaultChartType="line"
-        />
-
-        {/* Voice Performance Index (VPI) Trend */}
-        <TrendChartContainer
-          title="Voice Performance Index (VPI) Trend"
-          data={trendData}
-          dataKeys={["vpi"]}
-          exportable
-          zoomable
-          defaultChartType="line"
-        />
-
-        {/* Voice Service Quality Index (VSQI) Trend */}
-        <TrendChartContainer
-          title="Voice Service Quality Index (VSQI) Trend"
-          data={trendData}
-          dataKeys={["vsqi"]}
-          exportable
-          zoomable
-          defaultChartType="line"
-        />
+        {/* Voice Performance Index (VPI) & Voice Service Quality Index (VSQI) Trends */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <TrendChartContainer
+            title="Voice Performance Index (VPI) Trend"
+            data={trendData}
+            dataKeys={["vpi"]}
+            exportable
+            zoomable
+            defaultChartType="line"
+          />
+          <TrendChartContainer
+            title="Voice Service Quality Index (VSQI) Trend"
+            data={trendData}
+            dataKeys={["vsqi"]}
+            exportable
+            zoomable
+            defaultChartType="line"
+          />
+        </div>
       </div>
 
       {/* Performance Breakdown */}
