@@ -101,71 +101,74 @@ export default function ExecutiveInsightSummary({
         </div>
       </div>
 
-      {/* By Technology */}
-      {insights.byTechnology && insights.byTechnology.length > 0 && (
-        <div className="space-y-2">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-            By Technology
-          </p>
+      {/* By Technology and By Region - Side by Side */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* By Technology */}
+        {insights.byTechnology && insights.byTechnology.length > 0 && (
           <div className="space-y-2">
-            {insights.byTechnology.map((tech, idx) => (
-              <div
-                key={idx}
-                className={cn(
-                  "p-3 rounded-lg border border-border/30",
-                  getStatusBgColor(tech.status)
-                )}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1">
-                      {getTrendIcon(tech.status)}
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+              By Technology
+            </p>
+            <div className="space-y-2">
+              {insights.byTechnology.map((tech, idx) => (
+                <div
+                  key={idx}
+                  className={cn(
+                    "p-3 rounded-lg border border-border/30",
+                    getStatusBgColor(tech.status)
+                  )}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1">
+                        {getTrendIcon(tech.status)}
+                      </div>
+                      <span className="text-sm font-medium text-foreground">{tech.name}</span>
                     </div>
-                    <span className="text-sm font-medium text-foreground">{tech.name}</span>
+                    <span className={cn("text-xs font-semibold", getStatusColor(tech.status))}>
+                      {tech.status === "Improved" ? "+" : tech.status === "Degraded" ? "−" : ""}{" "}
+                      {Math.abs(tech.change).toFixed(2)}%
+                    </span>
                   </div>
-                  <span className={cn("text-xs font-semibold", getStatusColor(tech.status))}>
-                    {tech.status === "Improved" ? "+" : tech.status === "Degraded" ? "−" : ""}{" "}
-                    {Math.abs(tech.change).toFixed(2)}%
-                  </span>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* By Region */}
-      {insights.byRegion && insights.byRegion.length > 0 && (
-        <div className="space-y-2">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-            By Region
-          </p>
+        {/* By Region */}
+        {insights.byRegion && insights.byRegion.length > 0 && (
           <div className="space-y-2">
-            {insights.byRegion.map((region, idx) => (
-              <div
-                key={idx}
-                className={cn(
-                  "p-3 rounded-lg border border-border/30",
-                  getStatusBgColor(region.status)
-                )}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1">
-                      {getTrendIcon(region.status)}
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+              By Region
+            </p>
+            <div className="space-y-2">
+              {insights.byRegion.map((region, idx) => (
+                <div
+                  key={idx}
+                  className={cn(
+                    "p-3 rounded-lg border border-border/30",
+                    getStatusBgColor(region.status)
+                  )}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1">
+                        {getTrendIcon(region.status)}
+                      </div>
+                      <span className="text-sm font-medium text-foreground">{region.name}</span>
                     </div>
-                    <span className="text-sm font-medium text-foreground">{region.name}</span>
+                    <span className={cn("text-xs font-semibold", getStatusColor(region.status))}>
+                      {region.status === "Improved" ? "+" : region.status === "Degraded" ? "−" : ""}{" "}
+                      {Math.abs(region.change).toFixed(2)}%
+                    </span>
                   </div>
-                  <span className={cn("text-xs font-semibold", getStatusColor(region.status))}>
-                    {region.status === "Improved" ? "+" : region.status === "Degraded" ? "−" : ""}{" "}
-                    {Math.abs(region.change).toFixed(2)}%
-                  </span>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* By Vendor */}
       {insights.byVendor && insights.byVendor.length > 0 && (
