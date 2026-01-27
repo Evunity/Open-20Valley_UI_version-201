@@ -952,7 +952,7 @@ export default function DataAnalytics() {
             )}
           </div>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={vendorBreakdown} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+            <BarChart data={vendorBreakdown} margin={{ top: 5, right: 20, left: 0, bottom: 5 }} maxBarSize={40}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis
                 dataKey="name"
@@ -986,7 +986,7 @@ export default function DataAnalytics() {
             )}
           </div>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={techBreakdown} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+            <BarChart data={techBreakdown} margin={{ top: 5, right: 20, left: 0, bottom: 5 }} maxBarSize={40}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis
                 dataKey="name"
@@ -1019,7 +1019,7 @@ export default function DataAnalytics() {
             )}
           </div>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={regionBreakdown} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+            <BarChart data={regionBreakdown} margin={{ top: 5, right: 20, left: 0, bottom: 5 }} maxBarSize={40}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis
                 dataKey="name"
