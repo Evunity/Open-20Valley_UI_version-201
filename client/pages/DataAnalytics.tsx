@@ -947,9 +947,16 @@ export default function DataAnalytics() {
 
         {/* Heatmap: Hourly Utilization Pattern */}
         <div className="card-elevated rounded-xl border border-border/50 p-6">
-          <h3 className="text-lg font-bold text-foreground mb-4">
-            24-Hour Utilization Pattern by Day (Heatmap)
-          </h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-foreground">
+              24-Hour Utilization Pattern (Heatmap)
+            </h3>
+            <input
+              type="date"
+              className="px-3 py-1 rounded border border-border text-xs bg-background text-foreground"
+              title="Filter by date"
+            />
+          </div>
           <div className="overflow-x-auto">
             <div className="min-w-max">
               {/* Column headers (Hours) */}
