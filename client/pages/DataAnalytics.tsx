@@ -1325,6 +1325,96 @@ export default function DataAnalytics() {
         </div>
       )}
 
+      {/* High Performance Summary Cards */}
+      <div className="space-y-6">
+        <h2 className="text-2xl font-bold text-foreground">High Performance Summary</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* High Performance Vendors */}
+          <div className="card-elevated rounded-xl border border-border/50 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-foreground">High Performance (Vendors)</h3>
+              <div className="w-3 h-3 rounded-full bg-green-500"></div>
+            </div>
+            <div className="space-y-3">
+              {vendorBreakdown
+                .filter((v) => v.call_success_rate > 98)
+                .sort((a, b) => b.call_success_rate - a.call_success_rate)
+                .map((vendor, idx) => (
+                  <div key={idx} className="p-4 rounded-lg bg-green-50 border border-green-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="font-semibold text-foreground">{vendor.name}</p>
+                      <span className="text-xs px-2 py-1 rounded-full bg-green-200 text-green-700 font-semibold">
+                        {vendor.call_success_rate.toFixed(2)}%
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 text-xs">
+                      <div>
+                        <p className="text-muted-foreground">Stability</p>
+                        <p className="font-semibold text-foreground">
+                          {vendor.call_stability.toFixed(2)}%
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Sessions</p>
+                        <p className="font-semibold text-foreground">
+                          {vendor.count.toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              {vendorBreakdown.filter((v) => v.call_success_rate > 98).length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No vendors meeting high performance criteria
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* High Performance Regions */}
+          <div className="card-elevated rounded-xl border border-border/50 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-foreground">High Performance (Regions)</h3>
+              <div className="w-3 h-3 rounded-full bg-green-500"></div>
+            </div>
+            <div className="space-y-3">
+              {regionBreakdown
+                .filter((r) => r.call_success_rate > 98)
+                .sort((a, b) => b.call_success_rate - a.call_success_rate)
+                .map((region, idx) => (
+                  <div key={idx} className="p-4 rounded-lg bg-green-50 border border-green-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="font-semibold text-foreground">{region.name}</p>
+                      <span className="text-xs px-2 py-1 rounded-full bg-green-200 text-green-700 font-semibold">
+                        {region.call_success_rate.toFixed(2)}%
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 text-xs">
+                      <div>
+                        <p className="text-muted-foreground">Stability</p>
+                        <p className="font-semibold text-foreground">
+                          {region.call_stability.toFixed(2)}%
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Sessions</p>
+                        <p className="font-semibold text-foreground">
+                          {region.count.toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              {regionBreakdown.filter((r) => r.call_success_rate > 98).length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No regions meeting high performance criteria
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Segmentation & Grouping Section */}
       <div className="space-y-6">
         <div>
