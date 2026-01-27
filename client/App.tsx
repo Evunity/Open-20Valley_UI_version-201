@@ -15,6 +15,7 @@ import IncidentsNew from "@/pages/IncidentsNew";
 import DetailPage from "@/pages/DetailPage";
 import VoiceAnalytics from "@/pages/VoiceAnalytics";
 import DataAnalytics from "@/pages/DataAnalytics";
+import ComingSoon from "@/pages/ComingSoon";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
