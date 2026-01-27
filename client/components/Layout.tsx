@@ -47,6 +47,12 @@ export default function Layout({ children }: LayoutProps) {
 
   const mainNavItems = [
     { path: "/", label: "Dashboard", icon: LayoutDashboard },
+    { path: "/analytics-management", label: "Analytics Management", icon: Gauge },
+    { path: "/alarm-management", label: "Alarm Management", icon: Bell },
+    { path: "/automation-management", label: "Automation & AI", icon: Zap },
+    { path: "/activity-log", label: "Activity & Audit", icon: History },
+    { path: "/reports", label: "Reports", icon: FileText },
+    { path: "/access-control", label: "Access Control", icon: Lock },
     { path: "/settings", label: "Settings", icon: Settings },
   ];
 
