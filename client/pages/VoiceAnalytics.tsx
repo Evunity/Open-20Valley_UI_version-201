@@ -571,9 +571,6 @@ export default function VoiceAnalytics() {
             <h3 className="text-lg font-bold text-foreground">
               By Technology - Performance Comparison
             </h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              Grouped bar chart comparing key metrics across technologies
-            </p>
           </div>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={techBreakdown} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
