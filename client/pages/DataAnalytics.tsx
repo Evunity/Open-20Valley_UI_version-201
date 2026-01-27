@@ -1285,7 +1285,7 @@ export default function DataAnalytics() {
         </div>
 
         {/* Vendor Segmentation */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {Object.entries(vendorSegmented).map(([segment, vendors]) =>
             vendors.length > 0 ? (
               <div key={segment} className="card-elevated rounded-xl border border-border/50 p-6">
@@ -1336,7 +1336,7 @@ export default function DataAnalytics() {
         </div>
 
         {/* Technology Segmentation */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {Object.entries(techSegmented).map(([segment, techs]) =>
             techs.length > 0 ? (
               <div key={segment} className="card-elevated rounded-xl border border-border/50 p-6">
@@ -1387,7 +1387,7 @@ export default function DataAnalytics() {
         </div>
 
         {/* Region Segmentation */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {Object.entries(regionSegmented).map(([segment, regions]) =>
             regions.length > 0 ? (
               <div key={segment} className="card-elevated rounded-xl border border-border/50 p-6">
@@ -1438,7 +1438,7 @@ export default function DataAnalytics() {
         </div>
 
         {/* Cluster Segmentation */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {Object.entries(clusterSegmented).map(([segment, clusters]) =>
             clusters.length > 0 ? (
               <div key={segment} className="card-elevated rounded-xl border border-border/50 p-6">
