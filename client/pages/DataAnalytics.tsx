@@ -31,8 +31,8 @@ import {
   generateTechCapacityHeatmap,
   generateHourlyUtilizationHeatmap,
   generateDataInsights,
-  getDaysDifference,
 } from "@/utils/analyticsData";
+import { getDaysDifference } from "@/utils/dashboardData";
 import { Zap, TrendingUp, Activity, Gauge, Wifi, Clock, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
