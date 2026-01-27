@@ -863,85 +863,118 @@ export default function DataAnalytics() {
           </div>
         </div>
 
-        {/* Heatmap: Hourly Utilization Pattern */}
+        {/* Heatmap: Hourly/Daily Utilization Pattern */}
         <div className="card-elevated rounded-xl border border-border/50 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-foreground">
-              24-Hour Utilization Pattern (Heatmap)
-            </h3>
-            <div className="flex items-center gap-2">
-              <label className="text-xs font-semibold text-muted-foreground">Date:</label>
-              <input
-                type="date"
-                className="px-3 py-1.5 rounded border border-border text-xs bg-background text-foreground focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                defaultValue={new Date().toISOString().split('T')[0]}
-                title="Select date for heatmap"
-              />
-            </div>
-          </div>
-          <div className="overflow-x-auto">
-            <div className="min-w-max">
-              {/* Column headers (Hours) */}
-              <div className="flex gap-0.5 mb-2">
-                <div className="w-16"></div>
-                {Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, "0")}:00`).map(
-                  (hour) => (
-                    <div
-                      key={hour}
-                      className="w-8 text-center text-xs font-semibold text-muted-foreground"
-                    >
-                      {hour.split(":")[0]}
+          {(() => {
+            // Determine if showing hourly or daily based on date range
+            const daysDiff = getDaysDifference(filters.dateRange);
+            const isMultiDay = daysDiff > 1;
+            const displayLabel = isMultiDay ? 'Daily Utilization Pattern (Heatmap)' : '24-Hour Utilization Pattern (Heatmap)';
+
+            // Generate column headers based on date range
+            let columnHeaders: string[] = [];
+            let tooltipPrefix = '';
+
+            if (isMultiDay && filters.dateRange.from && filters.dateRange.to) {
+              // Multi-day view - show days of month
+              const fromDate = new Date(filters.dateRange.from);
+              const toDate = new Date(filters.dateRange.to);
+              const daysCount = Math.ceil((toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+              for (let i = 0; i < daysCount && i < 31; i++) {
+                const day = new Date(fromDate);
+                day.setDate(day.getDate() + i);
+                columnHeaders.push(String(day.getDate()).padStart(2, '0'));
+              }
+              tooltipPrefix = 'Day';
+            } else {
+              // Single day or default - show hours
+              columnHeaders = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
+              tooltipPrefix = 'Hour';
+            }
+
+            return (
+              <>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-bold text-foreground">
+                    {displayLabel}
+                  </h3>
+                  {!isMultiDay && (
+                    <div className="flex items-center gap-2">
+                      <label className="text-xs font-semibold text-muted-foreground">Date:</label>
+                      <input
+                        type="date"
+                        className="px-3 py-1.5 rounded border border-border text-xs bg-background text-foreground focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                        defaultValue={new Date().toISOString().split('T')[0]}
+                        title="Select date for heatmap"
+                      />
                     </div>
-                  )
-                )}
-              </div>
-
-              {/* Heatmap rows */}
-              {hourlyUtilizationHeatmap.map((row) => (
-                <div key={row.name} className="flex gap-0.5 mb-2">
-                  <div className="w-16 text-xs font-semibold text-muted-foreground flex items-center">
-                    {row.name}
-                  </div>
-                  {row.cells.map((cell, idx) => {
-                    const bgColor =
-                      cell.intensity === "critical"
-                        ? "bg-red-500"
-                        : cell.intensity === "high"
-                          ? "bg-orange-400"
-                          : cell.intensity === "medium"
-                            ? "bg-yellow-300"
-                            : "bg-green-300";
-
-                    return (
-                      <div
-                        key={idx}
-                        className={cn("w-8 h-8 rounded", bgColor)}
-                        title={`${row.name} ${idx}:00 - ${cell.value.toFixed(1)}%`}
-                      ></div>
-                    );
-                  })}
+                  )}
                 </div>
-              ))}
-            </div>
-            <div className="flex gap-4 mt-6 text-xs">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-4 rounded bg-green-300"></div>
-                <span>0-40%</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-4 rounded bg-yellow-300"></div>
-                <span>40-60%</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-4 rounded bg-orange-400"></div>
-                <span>60-80%</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-4 rounded bg-red-500"></div>
-                <span>80-100%</span>
-              </div>
-            </div>
-          </div>
+                <div className="overflow-x-auto">
+                  <div className="min-w-max">
+                    {/* Column headers */}
+                    <div className="flex gap-0.5 mb-2">
+                      <div className="w-16"></div>
+                      {columnHeaders.map((header) => (
+                        <div
+                          key={header}
+                          className="w-8 text-center text-xs font-semibold text-muted-foreground"
+                        >
+                          {header}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Heatmap rows */}
+                    {hourlyUtilizationHeatmap.map((row) => (
+                      <div key={row.name} className="flex gap-0.5 mb-2">
+                        <div className="w-16 text-xs font-semibold text-muted-foreground flex items-center">
+                          {row.name}
+                        </div>
+                        {row.cells.slice(0, columnHeaders.length).map((cell, idx) => {
+                          const bgColor =
+                            cell.intensity === "critical"
+                              ? "bg-red-500"
+                              : cell.intensity === "high"
+                                ? "bg-orange-400"
+                                : cell.intensity === "medium"
+                                  ? "bg-yellow-300"
+                                  : "bg-green-300";
+
+                          return (
+                            <div
+                              key={idx}
+                              className={cn("w-8 h-8 rounded", bgColor)}
+                              title={`${row.name} ${tooltipPrefix} ${columnHeaders[idx]} - ${cell.value.toFixed(1)}%`}
+                            ></div>
+                          );
+                        })}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-4 mt-6 text-xs">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-4 rounded bg-green-300"></div>
+                      <span>0-40%</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-4 rounded bg-yellow-300"></div>
+                      <span>40-60%</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-4 rounded bg-orange-400"></div>
+                      <span>60-80%</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-4 rounded bg-red-500"></div>
+                      <span>80-100%</span>
+                    </div>
+                  </div>
+                </div>
+              </>
+            );
+          })()}
         </div>
       </div>
 
