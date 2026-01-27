@@ -120,20 +120,21 @@ export default function SearchableDropdown({
         <div className="absolute top-full left-0 right-0 mt-2 rounded-lg border border-border bg-card shadow-lg z-50">
           {/* Search bar */}
           <div className="p-2 border-b border-border/50">
-            <div className="flex items-center gap-2 px-3 py-2 rounded bg-muted/30">
+            <div className="flex items-center gap-2 px-3 py-2 rounded bg-muted/30 w-full min-w-0">
               <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
               <input
                 type="text"
                 placeholder={placeholder}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="flex-1 bg-transparent text-sm focus:outline-none placeholder:text-muted-foreground"
+                className="flex-1 bg-transparent text-sm focus:outline-none placeholder:text-muted-foreground min-w-0 truncate"
                 onClick={(e) => e.stopPropagation()}
               />
               {searchTerm && (
                 <button
                   onClick={() => setSearchTerm("")}
-                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
+                  title="Clear search"
                 >
                   <X className="w-4 h-4" />
                 </button>
