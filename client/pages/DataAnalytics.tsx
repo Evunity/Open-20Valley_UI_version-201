@@ -1638,9 +1638,6 @@ export default function DataAnalytics() {
       <div className="space-y-6">
         <div>
           <h2 className="text-2xl font-bold text-foreground">Data Performance Breakdown</h2>
-          <p className="text-sm text-muted-foreground mt-2">
-            Detailed metrics by dimension (vendor, technology, region, cluster)
-          </p>
         </div>
 
         {/* By Vendor & By Technology Tables - Side by Side */}
