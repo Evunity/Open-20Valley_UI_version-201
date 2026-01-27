@@ -601,9 +601,6 @@ export default function VoiceAnalytics() {
             <h3 className="text-lg font-bold text-foreground">
               By Technology - Call Volume Contribution
             </h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              Stacked bar chart showing each technology's contribution to total call volume
-            </p>
           </div>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart
