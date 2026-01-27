@@ -686,11 +686,6 @@ export default function VoiceAnalytics() {
       {/* Segmentation & Grouping Section */}
       <div className="space-y-6">
         <h2 className="text-2xl font-bold text-foreground">Segmentation & Grouping</h2>
-        <p className="text-sm text-muted-foreground">
-          Entities automatically grouped into 4 categories: High Quality, Acceptable, Degraded, and
-          Critical. This helps quickly separate system-wide issues from local issues.
-        </p>
-
         {/* Vendor Segmentation Summary */}
         <div>
           <h3 className="text-lg font-bold text-foreground mb-4">Vendor Performance Categories</h3>
