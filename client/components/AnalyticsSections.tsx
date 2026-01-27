@@ -31,8 +31,8 @@ export default function AnalyticsSections() {
     {
       title: "Network Alarms",
       icon: <AlertTriangle className="w-5 h-5" />,
-      path: "/detail/alarms",
-      description: "Active incidents and resolution tracking",
+      path: "/network-alarms",
+      description: "Network instability and operational risk awareness",
     },
     {
       title: "Network Status",
