@@ -707,143 +707,146 @@ export default function DataAnalytics() {
           </div>
         </div>
 
-        {/* Heatmap: Time vs Region Capacity Stress */}
-        <div className="card-elevated rounded-xl border border-border/50 p-6">
-          <h3 className="text-lg font-bold text-foreground mb-4">
-            Capacity Stress by Time & Region (Heatmap)
-          </h3>
-          <div className="overflow-x-auto">
-            <div className="min-w-max">
-              {/* Column headers (Regions) */}
-              <div className="flex gap-1 mb-2">
-                <div className="w-20"></div>
-                {["North", "South", "East", "West", "Central"].map((region) => (
-                  <div
-                    key={region}
-                    className="w-24 text-center text-xs font-semibold text-muted-foreground"
-                  >
-                    {region}
+        {/* Heatmaps: Time vs Region & Technology Capacity Stress - Side by Side */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Heatmap: Time vs Region Capacity Stress */}
+          <div className="card-elevated rounded-xl border border-border/50 p-6">
+            <h3 className="text-lg font-bold text-foreground mb-4">
+              Capacity Stress by Time & Region (Heatmap)
+            </h3>
+            <div className="overflow-x-auto">
+              <div className="min-w-max">
+                {/* Column headers (Regions) */}
+                <div className="flex gap-1 mb-2">
+                  <div className="w-20"></div>
+                  {["North", "South", "East", "West", "Central"].map((region) => (
+                    <div
+                      key={region}
+                      className="w-24 text-center text-xs font-semibold text-muted-foreground"
+                    >
+                      {region}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Heatmap rows */}
+                {timeRegionHeatmap.map((row) => (
+                  <div key={row.name} className="flex gap-1 mb-2">
+                    <div className="w-20 text-xs font-semibold text-muted-foreground">{row.name}</div>
+                    {row.cells.map((cell, idx) => {
+                      const bgColor =
+                        cell.intensity === "critical"
+                          ? "bg-red-500"
+                          : cell.intensity === "high"
+                            ? "bg-orange-400"
+                            : cell.intensity === "medium"
+                              ? "bg-yellow-300"
+                              : "bg-green-300";
+
+                      return (
+                        <div
+                          key={idx}
+                          className={cn(
+                            "w-24 h-10 rounded flex items-center justify-center text-xs font-bold text-gray-900",
+                            bgColor
+                          )}
+                          title={`${row.name} - ${cell.value.toFixed(1)}%`}
+                        >
+                          {cell.label}
+                        </div>
+                      );
+                    })}
                   </div>
                 ))}
               </div>
-
-              {/* Heatmap rows */}
-              {timeRegionHeatmap.map((row) => (
-                <div key={row.name} className="flex gap-1 mb-2">
-                  <div className="w-20 text-xs font-semibold text-muted-foreground">{row.name}</div>
-                  {row.cells.map((cell, idx) => {
-                    const bgColor =
-                      cell.intensity === "critical"
-                        ? "bg-red-500"
-                        : cell.intensity === "high"
-                          ? "bg-orange-400"
-                          : cell.intensity === "medium"
-                            ? "bg-yellow-300"
-                            : "bg-green-300";
-
-                    return (
-                      <div
-                        key={idx}
-                        className={cn(
-                          "w-24 h-10 rounded flex items-center justify-center text-xs font-bold text-gray-900",
-                          bgColor
-                        )}
-                        title={`${row.name} - ${cell.value.toFixed(1)}%`}
-                      >
-                        {cell.label}
-                      </div>
-                    );
-                  })}
+              <div className="flex gap-4 mt-6 text-xs">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-4 rounded bg-green-300"></div>
+                  <span>Low (&lt;40%)</span>
                 </div>
-              ))}
-            </div>
-            <div className="flex gap-4 mt-6 text-xs">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-4 rounded bg-green-300"></div>
-                <span>Low (&lt;40%)</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-4 rounded bg-yellow-300"></div>
-                <span>Medium (40-60%)</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-4 rounded bg-orange-400"></div>
-                <span>High (60-80%)</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-4 rounded bg-red-500"></div>
-                <span>Critical (&gt;80%)</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-4 rounded bg-yellow-300"></div>
+                  <span>Medium (40-60%)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-4 rounded bg-orange-400"></div>
+                  <span>High (60-80%)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-4 rounded bg-red-500"></div>
+                  <span>Critical (&gt;80%)</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Heatmap: Technology vs Capacity Stress */}
-        <div className="card-elevated rounded-xl border border-border/50 p-6">
-          <h3 className="text-lg font-bold text-foreground mb-4">
-            Technology Performance by Region (Heatmap)
-          </h3>
-          <div className="overflow-x-auto">
-            <div className="min-w-max">
-              {/* Column headers (Regions) */}
-              <div className="flex gap-1 mb-2">
-                <div className="w-20"></div>
-                {["North", "South", "East", "West"].map((region) => (
-                  <div
-                    key={region}
-                    className="w-24 text-center text-xs font-semibold text-muted-foreground"
-                  >
-                    {region}
+          {/* Heatmap: Technology vs Capacity Stress */}
+          <div className="card-elevated rounded-xl border border-border/50 p-6">
+            <h3 className="text-lg font-bold text-foreground mb-4">
+              Technology Performance by Region (Heatmap)
+            </h3>
+            <div className="overflow-x-auto">
+              <div className="min-w-max">
+                {/* Column headers (Regions) */}
+                <div className="flex gap-1 mb-2">
+                  <div className="w-20"></div>
+                  {["North", "South", "East", "West"].map((region) => (
+                    <div
+                      key={region}
+                      className="w-24 text-center text-xs font-semibold text-muted-foreground"
+                    >
+                      {region}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Heatmap rows */}
+                {techCapacityHeatmap.map((row) => (
+                  <div key={row.name} className="flex gap-1 mb-2">
+                    <div className="w-20 text-xs font-semibold text-muted-foreground">{row.name}</div>
+                    {row.cells.map((cell, idx) => {
+                      const bgColor =
+                        cell.intensity === "critical"
+                          ? "bg-red-500"
+                          : cell.intensity === "high"
+                            ? "bg-orange-400"
+                            : cell.intensity === "medium"
+                              ? "bg-yellow-300"
+                              : "bg-green-300";
+
+                      return (
+                        <div
+                          key={idx}
+                          className={cn(
+                            "w-24 h-10 rounded flex items-center justify-center text-xs font-bold text-gray-900",
+                            bgColor
+                          )}
+                          title={`${row.name} - ${cell.value.toFixed(1)}%`}
+                        >
+                          {cell.label}
+                        </div>
+                      );
+                    })}
                   </div>
                 ))}
               </div>
-
-              {/* Heatmap rows */}
-              {techCapacityHeatmap.map((row) => (
-                <div key={row.name} className="flex gap-1 mb-2">
-                  <div className="w-20 text-xs font-semibold text-muted-foreground">{row.name}</div>
-                  {row.cells.map((cell, idx) => {
-                    const bgColor =
-                      cell.intensity === "critical"
-                        ? "bg-red-500"
-                        : cell.intensity === "high"
-                          ? "bg-orange-400"
-                          : cell.intensity === "medium"
-                            ? "bg-yellow-300"
-                            : "bg-green-300";
-
-                    return (
-                      <div
-                        key={idx}
-                        className={cn(
-                          "w-24 h-10 rounded flex items-center justify-center text-xs font-bold text-gray-900",
-                          bgColor
-                        )}
-                        title={`${row.name} - ${cell.value.toFixed(1)}%`}
-                      >
-                        {cell.label}
-                      </div>
-                    );
-                  })}
+              <div className="flex gap-4 mt-6 text-xs">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-4 rounded bg-green-300"></div>
+                  <span>Low Stress</span>
                 </div>
-              ))}
-            </div>
-            <div className="flex gap-4 mt-6 text-xs">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-4 rounded bg-green-300"></div>
-                <span>Low Stress</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-4 rounded bg-yellow-300"></div>
-                <span>Medium Stress</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-4 rounded bg-orange-400"></div>
-                <span>High Stress</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-4 rounded bg-red-500"></div>
-                <span>Critical</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-4 rounded bg-yellow-300"></div>
+                  <span>Medium Stress</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-4 rounded bg-orange-400"></div>
+                  <span>High Stress</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-4 rounded bg-red-500"></div>
+                  <span>Critical</span>
+                </div>
               </div>
             </div>
           </div>
