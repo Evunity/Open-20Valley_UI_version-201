@@ -1,8 +1,10 @@
+import { useMemo } from "react";
+import { Link } from "react-router-dom";
+import { Download, FileText, Clock, CheckCircle, AlertCircle, TrendingUp } from "lucide-react";
+import * as XLSX from "xlsx";
 import {
   LineChart,
   Line,
-  AreaChart,
-  Area,
   BarChart,
   Bar,
   XAxis,
@@ -12,415 +14,356 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { Filter } from "lucide-react";
-import { useState, useMemo } from "react";
-import { cn } from "@/lib/utils";
-import VendorComparison from "@/components/VendorComparison";
 
-interface FilterState {
-  regions: string[];
-  reportType: string[];
-  timeRange: "24h" | "7d" | "30d";
-}
+import FilterPanel from "@/components/FilterPanel";
+import KPICard from "@/components/KPICard";
+import { useGlobalFilters } from "@/hooks/useGlobalFilters";
+import { useToast } from "@/hooks/use-toast";
+import {
+  generateReportKPIs,
+  generateStandardReports,
+  generateReportActivityTrend,
+  generateReportTrends,
+} from "@/utils/reportsData";
+import { cn } from "@/lib/utils";
 
 export default function Reports() {
-  const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState<FilterState>({
-    regions: [],
-    reportType: [],
-    timeRange: "30d",
-  });
+  const { toast } = useToast();
+  const { filters } = useGlobalFilters();
 
-  // Generate vendor metrics for comparison
-  const vendorMetrics = useMemo(() => {
-    const vendors = ["Ericsson", "Huawei", "Nokia", "Samsung", "Cisco"];
-    return vendors.map((vendor) => ({
-      name: vendor,
-      successRate: 98.2 + Math.random() * 1.5 - vendors.indexOf(vendor) * 0.3,
-      dropRate: 1.8 - Math.random() * 0.5 + vendors.indexOf(vendor) * 0.2,
-      stability: 97.5 + Math.random() * 1.8 - vendors.indexOf(vendor) * 0.25,
-      volume: Math.floor(5000 + Math.random() * 5000),
-      status: 98.2 + Math.random() * 1.5 > 97 ? "healthy" : ("degraded" as const),
+  // Generate data
+  const kpis = useMemo(() => generateReportKPIs(filters), [filters]);
+  const standardReports = useMemo(() => generateStandardReports(filters), [filters]);
+  const activityTrend = useMemo(() => generateReportActivityTrend(filters), [filters]);
+  const trends = useMemo(() => generateReportTrends(), []);
+
+  const handleExport = () => {
+    const wb = XLSX.utils.book_new();
+
+    // Add KPIs sheet
+    const kpiData = Object.entries(kpis).map(([key, value]) => ({
+      Metric: key,
+      Value: value.value,
+      Change: `${value.change}%`,
+      Status: value.status,
     }));
-  }, []);
+    const kpiSheet = XLSX.utils.json_to_sheet(kpiData);
+    XLSX.utils.book_append_sheet(wb, kpiSheet, "Report KPIs");
 
-  // Mock data
-  const stabilityData = [
-    { month: "Jan", uptime: 97.8, incidents: 24 },
-    { month: "Feb", uptime: 98.1, incidents: 19 },
-    { month: "Mar", uptime: 98.5, incidents: 14 },
-    { month: "Apr", uptime: 98.8, incidents: 11 },
-    { month: "May", uptime: 99.2, incidents: 8 },
-    { month: "Jun", uptime: 99.97, incidents: 5 },
-  ];
+    // Add Reports list
+    const reportsData = standardReports.map((r) => ({
+      Title: r.title,
+      Category: r.category,
+      Status: r.status,
+      LastGenerated: new Date(r.lastGenerated).toLocaleString(),
+      Frequency: r.frequency,
+    }));
+    const reportsSheet = XLSX.utils.json_to_sheet(reportsData);
+    XLSX.utils.book_append_sheet(wb, reportsSheet, "Reports");
 
-  const incidentReductionData = [
-    { month: "Jan", critical: 3, degraded: 12, minor: 9 },
-    { month: "Feb", critical: 2, degraded: 10, minor: 7 },
-    { month: "Mar", critical: 1, degraded: 8, minor: 5 },
-    { month: "Apr", critical: 1, degraded: 6, minor: 4 },
-    { month: "May", critical: 0, degraded: 5, minor: 3 },
-    { month: "Jun", critical: 0, degraded: 3, minor: 2 },
-  ];
+    XLSX.writeFile(wb, `Reports-${new Date().toISOString().split("T")[0]}.xlsx`);
+    toast({
+      title: "Export successful",
+      description: "Reports data has been exported to Excel",
+    });
+  };
 
-  const automationImpactData = [
-    { week: "Week 1", resolved: 15, manual: 8 },
-    { week: "Week 2", resolved: 18, manual: 6 },
-    { week: "Week 3", resolved: 22, manual: 5 },
-    { week: "Week 4", resolved: 28, manual: 3 },
-    { week: "Week 5", resolved: 32, manual: 2 },
-    { week: "Week 6", resolved: 35, manual: 2 },
-  ];
+  const getCategoryLabel = (
+    category: "daily_kpi" | "alarm_summary" | "sla" | "vendor_comparison"
+  ) => {
+    const labels = {
+      daily_kpi: "Daily KPI Reports",
+      alarm_summary: "Alarm Summary Reports",
+      sla: "SLA Reports",
+      vendor_comparison: "Vendor Comparison Reports",
+    };
+    return labels[category];
+  };
 
-  const costEfficiencyData = [
-    { month: "Jan", cost: 125000 },
-    { month: "Feb", cost: 122000 },
-    { month: "Mar", cost: 118000 },
-    { month: "Apr", cost: 115000 },
-    { month: "May", cost: 112000 },
-    { month: "Jun", cost: 110000 },
-  ];
+  const getCategoryColor = (
+    category: "daily_kpi" | "alarm_summary" | "sla" | "vendor_comparison"
+  ) => {
+    const colors = {
+      daily_kpi: "from-blue-500/10 to-blue-500/5",
+      alarm_summary: "from-orange-500/10 to-orange-500/5",
+      sla: "from-green-500/10 to-green-500/5",
+      vendor_comparison: "from-purple-500/10 to-purple-500/5",
+    };
+    return colors[category];
+  };
 
-  const mttrData = [
-    { month: "Jan", mttr: 45 },
-    { month: "Feb", mttr: 38 },
-    { month: "Mar", mttr: 32 },
-    { month: "Apr", mttr: 28 },
-    { month: "May", mttr: 22 },
-    { month: "Jun", mttr: 18 },
-  ];
+  const groupedReports = standardReports.reduce(
+    (acc, report) => {
+      if (!acc[report.category]) {
+        acc[report.category] = [];
+      }
+      acc[report.category].push(report);
+      return acc;
+    },
+    {} as Record<string, typeof standardReports>
+  );
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold mb-2">Reports & Insights</h1>
-        <p className="text-muted-foreground">
-          Key metrics and insights on operational stability and AI impact
-        </p>
-      </div>
-
-      {/* Filter Controls */}
-      <div className="card-elevated p-4 space-y-4 rounded-xl border border-border/50 shadow-sm">
-        <div className="flex items-center justify-between gap-4">
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className={cn(
-              "flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 text-sm font-medium",
-              showFilters
-                ? "bg-primary text-primary-foreground shadow-md"
-                : "bg-muted hover:bg-muted/70"
-            )}
-          >
-            <Filter className="w-4 h-4" />
-            <span>
-              {filters.regions.length > 0 || filters.reportType.length > 0
-                ? `(${filters.regions.length + filters.reportType.length})`
-                : "Filters"}
-            </span>
-          </button>
-        </div>
-
-        {/* Filters Panel */}
-        {showFilters && (
-          <div className="border-t border-border pt-4 grid grid-cols-1 md:grid-cols-3 gap-4 animate-in fade-in slide-in-from-top-2 duration-200">
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="border-b border-border bg-card/50 backdrop-blur-sm">
+        <div className="px-8 py-6">
+          <div className="flex items-center justify-between mb-4">
             <div>
-              <label className="text-xs font-semibold text-muted-foreground block mb-2 uppercase tracking-wide">
-                Region
-              </label>
-              <select
-                multiple
-                className="w-full px-2.5 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                value={filters.regions}
-                onChange={(e) => {
-                  const selected = Array.from(e.target.selectedOptions, (option) => option.value);
-                  setFilters((prev) => ({ ...prev, regions: selected }));
-                }}
-              >
-                <option value="NA">North America</option>
-                <option value="EU">Europe</option>
-                <option value="APAC">Asia Pacific</option>
-              </select>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                <Link to="/" className="hover:text-foreground">
+                  Dashboard
+                </Link>
+                <span>/</span>
+                <span>Reports</span>
+              </div>
+              <h1 className="text-3xl font-bold text-foreground">Reports</h1>
+              <p className="text-muted-foreground">
+                Report visibility, freshness tracking, and access to standard outputs
+              </p>
             </div>
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground block mb-2 uppercase tracking-wide">
-                Report Type
-              </label>
-              <select
-                multiple
-                className="w-full px-2.5 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                value={filters.reportType}
-                onChange={(e) => {
-                  const selected = Array.from(e.target.selectedOptions, (option) => option.value);
-                  setFilters((prev) => ({ ...prev, reportType: selected }));
-                }}
-              >
-                <option value="stability">Stability</option>
-                <option value="incidents">Incidents</option>
-                <option value="automation">Automation</option>
-                <option value="costs">Cost Analysis</option>
-                <option value="vendors">Vendor Comparison</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground block mb-2 uppercase tracking-wide">
-                Time Range
-              </label>
-              <select
-                className="w-full px-2.5 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                value={filters.timeRange}
-                onChange={(e) =>
-                  setFilters((prev) => ({ ...prev, timeRange: e.target.value as any }))
-                }
-              >
-                <option value="24h">Last 24h</option>
-                <option value="7d">Last 7 days</option>
-                <option value="30d">Last 30 days</option>
-              </select>
-            </div>
-            <div className="md:col-span-3 flex items-end gap-2">
-              <button
-                onClick={() =>
-                  setFilters({
-                    regions: [],
-                    reportType: [],
-                    timeRange: "30d",
-                  })
-                }
-                className="px-3 py-2 rounded-lg bg-muted hover:bg-muted/70 transition-all duration-200 text-xs font-medium"
-              >
-                Reset Filters
-              </button>
-            </div>
+            <button
+              onClick={handleExport}
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+            >
+              <Download className="w-4 h-4" />
+              Export to Excel
+            </button>
           </div>
-        )}
+        </div>
+
+        {/* Filter Panel */}
+        <FilterPanel />
       </div>
 
-      {/* Key Metrics Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="card-elevated p-6">
-          <p className="text-sm font-medium text-muted-foreground">Avg Uptime (6mo)</p>
-          <h3 className="text-3xl font-bold mt-2 status-healthy">98.9%</h3>
-          <p className="text-xs text-muted-foreground mt-2">↑ 2.1% vs last year</p>
-        </div>
-        <div className="card-elevated p-6">
-          <p className="text-sm font-medium text-muted-foreground">Incident Reduction</p>
-          <h3 className="text-3xl font-bold mt-2 status-healthy">79%</h3>
-          <p className="text-xs text-muted-foreground mt-2">vs 6 months ago</p>
-        </div>
-        <div className="card-elevated p-6">
-          <p className="text-sm font-medium text-muted-foreground">Avg MTTR</p>
-          <h3 className="text-3xl font-bold mt-2">18 min</h3>
-          <p className="text-xs text-muted-foreground mt-2">↓ 60% improvement</p>
-        </div>
-        <div className="card-elevated p-6">
-          <p className="text-sm font-medium text-muted-foreground">Cost Savings</p>
-          <h3 className="text-3xl font-bold mt-2 status-healthy">$15K</h3>
-          <p className="text-xs text-muted-foreground mt-2">This month</p>
-        </div>
-      </div>
+      {/* Main Content */}
+      <div className="px-8 py-8 space-y-8">
 
-      {/* Vendor Comparison Section - Only show when vendor filter is applied */}
-      {filters.reportType.includes("vendors") && (
-        <VendorComparison
-          vendors={vendorMetrics}
-          title="Vendor Performance Comparison Report"
-          showRanking={true}
-          selectedRegions={filters.regions}
-          isMixedEnvironment={false}
-        />
-      )}
-
-      {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Stability Trend */}
-        <div className="card-elevated p-6">
-          <h3 className="font-semibold text-lg mb-4">Stability Trend (6 months)</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={stabilityData}>
-              <defs>
-                <linearGradient id="colorStability" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(var(--status-healthy))" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="hsl(var(--status-healthy))" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
-              <YAxis stroke="hsl(var(--muted-foreground))" domain={[97, 100]} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "8px",
-                }}
-              />
-              <Area
-                type="monotone"
-                dataKey="uptime"
-                stroke="hsl(var(--status-healthy))"
-                fillOpacity={1}
-                fill="url(#colorStability)"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* MTTR Improvement */}
-        <div className="card-elevated p-6">
-          <h3 className="font-semibold text-lg mb-4">MTTR Improvement (minutes)</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={mttrData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
-              <YAxis stroke="hsl(var(--muted-foreground))" />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "8px",
-                }}
-              />
-              <Line
-                type="monotone"
-                dataKey="mttr"
-                stroke="hsl(var(--accent))"
-                strokeWidth={2}
-                dot={{ fill: "hsl(var(--accent))", r: 4 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Incident Severity Distribution */}
-        <div className="card-elevated p-6">
-          <h3 className="font-semibold text-lg mb-4">Incident Reduction by Severity</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={incidentReductionData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
-              <YAxis stroke="hsl(var(--muted-foreground))" />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "8px",
-                }}
-              />
-              <Legend />
-              <Bar dataKey="critical" stackId="a" fill="hsl(var(--status-critical))" />
-              <Bar dataKey="degraded" stackId="a" fill="hsl(var(--status-degraded))" />
-              <Bar dataKey="minor" stackId="a" fill="hsl(var(--accent))" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Cost Optimization */}
-        <div className="card-elevated p-6">
-          <h3 className="font-semibold text-lg mb-4">Monthly Operational Cost</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={costEfficiencyData}>
-              <defs>
-                <linearGradient id="colorCost" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(var(--accent))" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="hsl(var(--accent))" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
-              <YAxis
-                stroke="hsl(var(--muted-foreground))"
-                tickFormatter={(value) => `$${(value / 1000).toFixed(0)}K`}
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "8px",
-                }}
-                formatter={(value) => `$${value.toLocaleString()}`}
-              />
-              <Area
-                type="monotone"
-                dataKey="cost"
-                stroke="hsl(var(--accent))"
-                fillOpacity={1}
-                fill="url(#colorCost)"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* Automation Impact */}
-      <div className="card-elevated p-6">
-        <h3 className="font-semibold text-lg mb-4">AI Automation Impact</h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={automationImpactData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <XAxis dataKey="week" stroke="hsl(var(--muted-foreground))" />
-            <YAxis stroke="hsl(var(--muted-foreground))" />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: "hsl(var(--card))",
-                border: "1px solid hsl(var(--border))",
-                borderRadius: "8px",
-              }}
+        {/* Report Summary Cards */}
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold text-foreground">Report Summary</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <KPICard
+              icon={FileText}
+              label="Available Reports"
+              value={kpis.available_reports.value}
+              unit="reports"
+              change={kpis.available_reports.change}
+              status={kpis.available_reports.status}
+              direction={kpis.available_reports.change > 0 ? "up" : "down"}
             />
-            <Legend />
-            <Bar dataKey="resolved" fill="hsl(var(--status-healthy))" name="AI Auto-Resolved" />
-            <Bar dataKey="manual" fill="hsl(var(--status-degraded))" name="Manual Intervention" />
-          </BarChart>
-        </ResponsiveContainer>
-        <p className="text-sm text-muted-foreground mt-4">
-          <strong>94%</strong> of incidents are now resolved automatically by AI agents, reducing
-          manual intervention by 88%.
-        </p>
-      </div>
-
-      {/* Key Insights */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="card-elevated p-6">
-          <h3 className="font-semibold text-lg mb-3">Key Achievements</h3>
-          <ul className="space-y-2 text-sm">
-            <li className="flex gap-2">
-              <span className="text-accent font-bold">✓</span>
-              <span>Uptime improved from 95.7% to 99.97% YoY</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-accent font-bold">✓</span>
-              <span>Average resolution time reduced by 60%</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-accent font-bold">✓</span>
-              <span>Incident count down 79% with AI automation</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-accent font-bold">✓</span>
-              <span>Operational costs reduced by $15K/month</span>
-            </li>
-          </ul>
+            <KPICard
+              icon={TrendingUp}
+              label="Reports Generated"
+              value={kpis.reports_generated.value}
+              unit="this period"
+              change={kpis.reports_generated.change}
+              status={kpis.reports_generated.status}
+              direction={kpis.reports_generated.change > 0 ? "up" : "down"}
+            />
+            <KPICard
+              icon={Clock}
+              label="Scheduled Reports"
+              value={kpis.scheduled_reports.value}
+              unit="pending"
+              change={kpis.scheduled_reports.change}
+              status={kpis.scheduled_reports.status}
+              direction={kpis.scheduled_reports.change > 0 ? "up" : "down"}
+            />
+            <KPICard
+              icon={AlertCircle}
+              label="Failed Reports"
+              value={kpis.failed_reports.value}
+              unit="last period"
+              change={kpis.failed_reports.change}
+              status={kpis.failed_reports.status}
+              direction={kpis.failed_reports.change > 0 ? "up" : "down"}
+            />
+          </div>
         </div>
 
-        <div className="card-elevated p-6">
-          <h3 className="font-semibold text-lg mb-3">Recommendations</h3>
-          <ul className="space-y-2 text-sm">
-            <li className="flex gap-2">
-              <span className="text-accent font-bold">→</span>
-              <span>Expand AI automation to compliance monitoring</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-accent font-bold">→</span>
-              <span>Implement predictive capacity planning</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-accent font-bold">→</span>
-              <span>Deploy advanced anomaly detection models</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-accent font-bold">→</span>
-              <span>Enable cross-region failover automation</span>
-            </li>
-          </ul>
+        {/* Report Trends Summary */}
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold text-foreground">Report Performance Trends</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {trends.map((trend) => (
+              <div key={trend.name} className="card-elevated rounded-xl border border-border/50 p-4">
+                <p className="text-sm text-muted-foreground mb-2">{trend.name}</p>
+                <div className="flex items-end gap-3">
+                  <span className="text-2xl font-bold text-foreground">
+                    {typeof trend.value === "number" && trend.value > 50
+                      ? trend.value.toFixed(1)
+                      : trend.value}
+                    {trend.name.includes("Time") ? " min" : trend.name.includes("Rate") ? "%" : ""}
+                  </span>
+                  <span
+                    className={cn(
+                      "text-sm font-semibold px-2 py-1 rounded flex-shrink-0",
+                      trend.status === "up" ? "text-green-600" : trend.status === "down" ? "text-red-600" : "text-blue-600"
+                    )}
+                  >
+                    {trend.status === "up" ? "↑" : trend.status === "down" ? "↓" : "→"}
+                    {Math.abs(trend.change).toFixed(1)}%
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
+
+        {/* Standard Report Categories */}
+        <div className="space-y-6">
+          <h2 className="text-2xl font-bold text-foreground">Standard Report Categories</h2>
+
+          {Object.entries(groupedReports).map(([category, reports]) => (
+            <div key={category} className="space-y-4">
+              <h3 className="text-lg font-semibold text-foreground">
+                {getCategoryLabel(category as any)}
+              </h3>
+              <div
+                className={cn(
+                  "grid grid-cols-1 md:grid-cols-2 gap-4 bg-gradient-to-br",
+                  getCategoryColor(category as any)
+                )}
+              >
+                {reports.map((report) => (
+                  <div
+                    key={report.id}
+                    className="card-elevated rounded-xl border border-border/50 p-6 hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <h4 className="font-bold text-foreground text-base mb-1">
+                          {report.title}
+                        </h4>
+                        <p className="text-xs text-muted-foreground">{report.description}</p>
+                      </div>
+                      <span
+                        className={cn(
+                          "px-2.5 py-1 rounded text-xs font-semibold flex-shrink-0 ml-2",
+                          report.status === "success"
+                            ? "bg-green-500/10 text-green-700"
+                            : report.status === "pending"
+                              ? "bg-blue-500/10 text-blue-700"
+                              : "bg-red-500/10 text-red-700"
+                        )}
+                      >
+                        {report.status}
+                      </span>
+                    </div>
+
+                    <div className="space-y-2 pt-3 border-t border-border/50">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground">Last Generated:</span>
+                        <span className="font-medium text-foreground">
+                          {new Date(report.lastGenerated).toLocaleString([], {
+                            month: "short",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground">Next Scheduled:</span>
+                        <span className="font-medium text-foreground">
+                          {new Date(report.nextScheduled).toLocaleString([], {
+                            month: "short",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs pt-2">
+                        <span className="text-muted-foreground">Frequency:</span>
+                        <span className="px-2 py-1 rounded bg-muted text-foreground capitalize font-medium">
+                          {report.frequency}
+                        </span>
+                      </div>
+                    </div>
+
+                    <button className="w-full mt-4 px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary text-sm font-medium rounded transition-colors">
+                      Download Latest
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Report Activity Trends */}
+        <div className="space-y-6">
+          <h2 className="text-2xl font-bold text-foreground">Report Activity Trends</h2>
+
+          {/* Total Reports Generated */}
+          <div className="card-elevated rounded-xl border border-border/50 p-6">
+            <h3 className="text-lg font-bold text-foreground mb-4">Reports Generated Over Time</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={activityTrend} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis
+                  dataKey="timestamp"
+                  stroke="hsl(var(--muted-foreground))"
+                  style={{ fontSize: "12px" }}
+                />
+                <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--card))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "8px",
+                  }}
+                />
+                <Legend />
+                <Line
+                  type="monotone"
+                  dataKey="total_generated"
+                  stroke="#3b82f6"
+                  dot={false}
+                  strokeWidth={2}
+                  name="Total Generated"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="scheduled"
+                  stroke="#8b5cf6"
+                  dot={false}
+                  strokeWidth={2}
+                  name="Scheduled"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Success vs Failure Rate */}
+          <div className="card-elevated rounded-xl border border-border/50 p-6">
+            <h3 className="text-lg font-bold text-foreground mb-4">Success vs Failure Rate</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={activityTrend} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis
+                  dataKey="timestamp"
+                  stroke="hsl(var(--muted-foreground))"
+                  style={{ fontSize: "12px" }}
+                />
+                <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--card))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "8px",
+                  }}
+                />
+                <Legend />
+                <Bar dataKey="successful" fill="#22c55e" name="Successful" />
+                <Bar dataKey="failed" fill="#ef4444" name="Failed" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
       </div>
     </div>
   );
