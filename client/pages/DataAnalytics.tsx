@@ -951,11 +951,15 @@ export default function DataAnalytics() {
             <h3 className="text-lg font-bold text-foreground">
               24-Hour Utilization Pattern (Heatmap)
             </h3>
-            <input
-              type="date"
-              className="px-3 py-1 rounded border border-border text-xs bg-background text-foreground"
-              title="Filter by date"
-            />
+            <div className="flex items-center gap-2">
+              <label className="text-xs font-semibold text-muted-foreground">Date:</label>
+              <input
+                type="date"
+                className="px-3 py-1.5 rounded border border-border text-xs bg-background text-foreground focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                defaultValue={new Date().toISOString().split('T')[0]}
+                title="Select date for heatmap"
+              />
+            </div>
           </div>
           <div className="overflow-x-auto">
             <div className="min-w-max">
