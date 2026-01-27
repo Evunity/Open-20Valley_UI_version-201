@@ -551,7 +551,22 @@ export default function DataAnalytics() {
 
         {/* Congestion Hotspots - Ranked List */}
         <div className="card-elevated rounded-xl border border-border/50 p-6">
-          <h3 className="text-lg font-bold text-foreground mb-4">Areas Under Capacity Stress</h3>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-lg font-bold text-foreground">Areas Under Capacity Stress</h3>
+              {(filters.countries.length > 0 || filters.regions.length > 0 || filters.clusters.length > 0 || filters.vendors.length > 0 || filters.technologies.length > 0) && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Filtered by: {[
+                    filters.countries.length > 0 && `${filters.countries.length} country/countries`,
+                    filters.regions.length > 0 && `${filters.regions.length} region(s)`,
+                    filters.clusters.length > 0 && `${filters.clusters.length} cluster(s)`,
+                    filters.vendors.length > 0 && `${filters.vendors.length} vendor(s)`,
+                    filters.technologies.length > 0 && `${filters.technologies.length} technology(ies)`
+                  ].filter(Boolean).join(", ")}
+                </p>
+              )}
+            </div>
+          </div>
           <div className="space-y-3">
             {[
               {
