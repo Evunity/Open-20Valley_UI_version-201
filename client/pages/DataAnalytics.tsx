@@ -1250,19 +1250,6 @@ export default function DataAnalytics() {
       <div className="space-y-6">
         <div>
           <h2 className="text-2xl font-bold text-foreground">Segmentation & Grouping</h2>
-          <p className="text-sm text-muted-foreground mt-2">
-            Performance categories: high performers, balanced, congested, and at-risk
-          </p>
-        </div>
-
-        {/* Segmentation Info */}
-        <div className="p-4 rounded-lg bg-muted/30 border border-border/50">
-          <p className="text-sm text-foreground">
-            <span className="font-semibold">Performance Categories:</span> Entities are grouped into
-            performance tiers to help identify high-performing, balanced, congested, and
-            underperforming vendors/technologies/regions. Use these insights to compare performance
-            across different dimensions and identify areas needing attention.
-          </p>
         </div>
 
         {/* Vendor Segmentation */}
