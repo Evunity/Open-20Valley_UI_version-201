@@ -1438,7 +1438,7 @@ export default function DataAnalytics() {
         </div>
 
         {/* Cluster Segmentation */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {Object.entries(clusterSegmented).map(([segment, clusters]) =>
             clusters.length > 0 ? (
               <div key={segment} className="card-elevated rounded-xl border border-border/50 p-6">
