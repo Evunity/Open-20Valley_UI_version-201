@@ -23,7 +23,7 @@ export default function AnalyticsSections() {
       description: "Call quality and performance metrics",
     },
     {
-      title: "Data Services",
+      title: "Data Analytics",
       icon: <BarChart3 className="w-5 h-5" />,
       path: "/data-analytics",
       description: "Session analytics and bandwidth metrics",
