@@ -459,11 +459,6 @@ export default function TrendChartContainer({
         </p>
       )}
 
-      {/* Info text */}
-      <p className="text-xs text-muted-foreground">
-        💡 Hover over chart to see Time and Value. Use Chart Type dropdown to switch between
-        Line, Area, Bar, or Pie. Use Zoom controls to focus on specific time range.
-      </p>
     </div>
   );
 }
