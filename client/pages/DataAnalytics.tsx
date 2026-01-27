@@ -1285,7 +1285,7 @@ export default function DataAnalytics() {
         </div>
 
         {/* Vendor Segmentation */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {Object.entries(vendorSegmented).map(([segment, vendors]) =>
             vendors.length > 0 ? (
               <div key={segment} className="card-elevated rounded-xl border border-border/50 p-6">
