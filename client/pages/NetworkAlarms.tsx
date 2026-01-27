@@ -480,9 +480,9 @@ export default function NetworkAlarms() {
               {insights.map((insight) => (
                 <div
                   key={insight.id}
-                  className="card-elevated rounded-xl border border-border/50 p-5 hover:shadow-md transition-shadow"
+                  className="card-elevated rounded-xl border border-border/50 p-5 hover:shadow-md transition-shadow h-full flex flex-col"
                 >
-                  <div className="flex gap-4">
+                  <div className="flex gap-3 items-start">
                     <div
                       className={cn(
                         "w-1 rounded-full flex-shrink-0",
