@@ -1550,39 +1550,21 @@ export default function DataAnalytics() {
                 </div>
                 <div className="space-y-2">
                   {regions.map((region, idx) => (
-                    <div
-                      key={idx}
-                      className={cn(
-                        "p-4 rounded-lg border",
-                        segment === "High performance"
-                          ? "bg-green-50 border-green-200"
-                          : segment === "Balanced"
-                            ? "bg-blue-50 border-blue-200"
-                            : segment === "Congested"
-                              ? "bg-orange-50 border-orange-200"
-                              : "bg-red-50 border-red-200"
-                      )}
-                    >
-                      <p className="font-semibold text-foreground">{region.name}</p>
-                      <div className="space-y-1 mt-2 text-xs">
-                        <p className="text-muted-foreground">
-                          Success Rate:{" "}
-                          <span className="font-semibold text-foreground">
-                            {region.call_success_rate.toFixed(2)}%
-                          </span>
-                        </p>
-                        <p className="text-muted-foreground">
-                          Stability:{" "}
-                          <span className="font-semibold text-foreground">
-                            {region.call_stability.toFixed(2)}%
-                          </span>
-                        </p>
-                        <p className="text-muted-foreground">
-                          Sessions:{" "}
-                          <span className="font-semibold text-foreground">
-                            {region.count.toLocaleString()}
-                          </span>
-                        </p>
+                    <div key={idx} className="p-3 rounded border border-border/50 hover:bg-muted/30 transition-colors">
+                      <p className="font-medium text-sm text-foreground">{region.name}</p>
+                      <div className="grid grid-cols-3 gap-2 mt-2 text-xs">
+                        <div>
+                          <p className="text-muted-foreground">Success</p>
+                          <p className="font-semibold">{region.call_success_rate.toFixed(1)}%</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Stability</p>
+                          <p className="font-semibold">{region.call_stability.toFixed(1)}%</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Sessions</p>
+                          <p className="font-semibold">{(region.count / 1000).toFixed(1)}k</p>
+                        </div>
                       </div>
                     </div>
                   ))}
