@@ -652,35 +652,38 @@ export default function VoiceAnalytics() {
           </ResponsiveContainer>
         </div>
 
-        {/* By Region */}
-        <VoicePerformanceTable
-          data={regionBreakdown.map((r) => ({
-            name: r.name,
-            calls: r.count,
-            drop_rate: r.drop_rate,
-            success_rate: r.call_success_rate,
-            stability: r.call_stability,
-            status: r.status,
-            priority: r.priority,
-          }))}
-          title="Regional Performance"
-          dimension="Region"
-        />
+        {/* By Region and By Cluster - Side by Side */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* By Region */}
+          <VoicePerformanceTable
+            data={regionBreakdown.map((r) => ({
+              name: r.name,
+              calls: r.count,
+              drop_rate: r.drop_rate,
+              success_rate: r.call_success_rate,
+              stability: r.call_stability,
+              status: r.status,
+              priority: r.priority,
+            }))}
+            title="Regional Performance"
+            dimension="Region"
+          />
 
-        {/* By Cluster */}
-        <VoicePerformanceTable
-          data={clusterBreakdown.map((c) => ({
-            name: c.name,
-            calls: c.count,
-            drop_rate: c.drop_rate,
-            success_rate: c.call_success_rate,
-            stability: c.call_stability,
-            status: c.status,
-            priority: c.priority,
-          }))}
-          title="Cluster Performance"
-          dimension="Cluster"
-        />
+          {/* By Cluster */}
+          <VoicePerformanceTable
+            data={clusterBreakdown.map((c) => ({
+              name: c.name,
+              calls: c.count,
+              drop_rate: c.drop_rate,
+              success_rate: c.call_success_rate,
+              stability: c.call_stability,
+              status: c.status,
+              priority: c.priority,
+            }))}
+            title="Cluster Performance"
+            dimension="Cluster"
+          />
+        </div>
       </div>
 
       {/* Segmentation & Grouping Section */}
