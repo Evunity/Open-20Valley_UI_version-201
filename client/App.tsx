@@ -110,6 +110,46 @@ export default function App() {
                   </Layout>
                 }
               />
+              <Route
+                path="/analytics-management"
+                element={
+                  <Layout>
+                    <ComingSoon title="Analytics Management" description="Manage and configure advanced analytics features" />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/alarm-management"
+                element={
+                  <Layout>
+                    <ComingSoon title="Alarm Management" description="Configure and manage network alarms" />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/automation-management"
+                element={
+                  <Layout>
+                    <ComingSoon title="Automation & AI Management" description="Manage AI-powered automation rules and workflows" />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/activity-log"
+                element={
+                  <Layout>
+                    <ComingSoon title="Activity & Audit Trail" description="Track all system activities and audit logs" />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/access-control"
+                element={
+                  <Layout>
+                    <ComingSoon title="Access Control" description="Manage user roles and permissions" />
+                  </Layout>
+                }
+              />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
