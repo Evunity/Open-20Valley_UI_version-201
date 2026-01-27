@@ -117,7 +117,7 @@ export default function VoicePerformanceTable({
                 </button>
               </th>
               {data.some((d) => d.calls) && (
-                <th className="px-4 py-3 text-right font-semibold text-foreground">
+                <th className="px-2 md:px-4 py-2 text-right font-semibold text-foreground">
                   <button
                     onClick={() => handleSort("calls")}
                     className="flex items-center justify-end gap-2 w-full hover:text-primary transition-colors"
@@ -128,7 +128,7 @@ export default function VoicePerformanceTable({
                 </th>
               )}
               {data.some((d) => d.drops !== undefined) && (
-                <th className="px-4 py-3 text-right font-semibold text-foreground">
+                <th className="px-2 md:px-4 py-2 text-right font-semibold text-foreground">
                   <button
                     onClick={() => handleSort("drops")}
                     className="flex items-center justify-end gap-2 w-full hover:text-primary transition-colors"
@@ -138,7 +138,7 @@ export default function VoicePerformanceTable({
                   </button>
                 </th>
               )}
-              <th className="px-4 py-3 text-right font-semibold text-foreground">
+              <th className="px-2 md:px-4 py-2 text-right font-semibold text-foreground">
                 <button
                   onClick={() => handleSort("drop_rate")}
                   className="flex items-center justify-end gap-2 w-full hover:text-primary transition-colors"
@@ -147,7 +147,7 @@ export default function VoicePerformanceTable({
                   <SortIcon columnKey="drop_rate" />
                 </button>
               </th>
-              <th className="px-4 py-3 text-right font-semibold text-foreground">
+              <th className="px-2 md:px-4 py-2 text-right font-semibold text-foreground">
                 <button
                   onClick={() => handleSort("success_rate")}
                   className="flex items-center justify-end gap-2 w-full hover:text-primary transition-colors"
@@ -157,7 +157,7 @@ export default function VoicePerformanceTable({
                 </button>
               </th>
               {data.some((d) => d.stability !== undefined) && (
-                <th className="px-4 py-3 text-right font-semibold text-foreground">
+                <th className="px-2 md:px-4 py-2 text-right font-semibold text-foreground">
                   <button
                     onClick={() => handleSort("stability")}
                     className="flex items-center justify-end gap-2 w-full hover:text-primary transition-colors"
@@ -167,7 +167,7 @@ export default function VoicePerformanceTable({
                   </button>
                 </th>
               )}
-              <th className="px-4 py-3 text-center font-semibold text-foreground">
+              <th className="px-2 md:px-4 py-2 text-center font-semibold text-foreground">
                 <button
                   onClick={() => handleSort("status")}
                   className="flex items-center justify-center gap-2 w-full hover:text-primary transition-colors"
@@ -177,7 +177,7 @@ export default function VoicePerformanceTable({
                 </button>
               </th>
               {data.some((d) => d.priority) && (
-                <th className="px-4 py-3 text-center font-semibold text-foreground">
+                <th className="px-2 md:px-4 py-2 text-center font-semibold text-foreground">
                   <button
                     onClick={() => handleSort("priority")}
                     className="flex items-center justify-center gap-2 w-full hover:text-primary transition-colors"
@@ -195,29 +195,29 @@ export default function VoicePerformanceTable({
                 key={idx}
                 className="border-b border-border/30 hover:bg-muted/30 transition-colors"
               >
-                <td className="px-4 py-3 font-medium text-foreground">{row.name}</td>
+                <td className="px-2 md:px-4 py-2 font-medium text-foreground whitespace-nowrap">{row.name}</td>
                 {data.some((d) => d.calls) && (
-                  <td className="px-4 py-3 text-right text-muted-foreground">
+                  <td className="px-2 md:px-4 py-2 text-right text-muted-foreground whitespace-nowrap">
                     {row.calls.toLocaleString()}
                   </td>
                 )}
                 {data.some((d) => d.drops !== undefined) && (
-                  <td className="px-4 py-3 text-right text-muted-foreground">
+                  <td className="px-2 md:px-4 py-2 text-right text-muted-foreground whitespace-nowrap">
                     {row.drops ? row.drops.toLocaleString() : "-"}
                   </td>
                 )}
-                <td className="px-4 py-3 text-right text-muted-foreground">
+                <td className="px-2 md:px-4 py-2 text-right text-muted-foreground whitespace-nowrap">
                   {row.drop_rate.toFixed(2)}%
                 </td>
-                <td className="px-4 py-3 text-right font-medium text-foreground">
+                <td className="px-2 md:px-4 py-2 text-right font-medium text-foreground whitespace-nowrap">
                   {row.success_rate.toFixed(2)}%
                 </td>
                 {data.some((d) => d.stability !== undefined) && (
-                  <td className="px-4 py-3 text-right text-muted-foreground">
+                  <td className="px-2 md:px-4 py-2 text-right text-muted-foreground whitespace-nowrap">
                     {row.stability ? row.stability.toFixed(2) + "%" : "-"}
                   </td>
                 )}
-                <td className="px-4 py-3 text-center">
+                <td className="px-2 md:px-4 py-2 text-center">
                   <span
                     className={cn(
                       "inline-block px-2 py-1 rounded text-xs font-semibold",
@@ -229,7 +229,7 @@ export default function VoicePerformanceTable({
                   </span>
                 </td>
                 {data.some((d) => d.priority) && (
-                  <td className="px-4 py-3 text-center">
+                  <td className="px-2 md:px-4 py-2 text-center">
                     {row.priority && (
                       <span className={cn("inline-block px-2 py-1 rounded text-xs font-semibold", getPriorityColor(row.priority))}>
                         {row.priority}
