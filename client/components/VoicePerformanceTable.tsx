@@ -104,10 +104,10 @@ export default function VoicePerformanceTable({
     <div className="card-elevated rounded-xl border border-border/50 p-6">
       <h3 className="text-lg font-bold text-foreground mb-4">By {dimension}</h3>
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full text-xs md:text-sm">
           <thead>
             <tr className="border-b border-border/50">
-              <th className="px-4 py-3 text-left font-semibold text-foreground">
+              <th className="px-2 md:px-4 py-2 text-left font-semibold text-foreground">
                 <button
                   onClick={() => handleSort("name")}
                   className="flex items-center gap-2 hover:text-primary transition-colors"
