@@ -208,19 +208,43 @@ export default function NetworkAlarms() {
         <div className="space-y-6">
           <h2 className="text-2xl font-bold text-foreground">Trend Analysis</h2>
 
-          {/* Alarm Volume Trend */}
-          <TrendChartContainer
-            title="Alarm Volume Trend"
-            data={trendData}
-            dataKeys={["active_alarms"]}
-            exportable
-            zoomable
-            defaultChartType="line"
-          />
+          {/* Alarm Volume & Critical vs Non-Critical - Side by Side */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Alarm Volume Trend */}
+            <div className="card-elevated rounded-xl border border-border/50 p-6">
+              <h3 className="text-lg font-bold text-foreground mb-4">Alarm Volume Trend</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={trendData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis
+                    dataKey="timestamp"
+                    stroke="hsl(var(--muted-foreground))"
+                    style={{ fontSize: "12px" }}
+                  />
+                  <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: "8px",
+                    }}
+                  />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="active_alarms"
+                    stroke="#8b5cf6"
+                    dot={false}
+                    strokeWidth={2}
+                    name="Active Alarms"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
 
-          {/* Critical vs Non-Critical Distribution */}
-          <div className="card-elevated rounded-xl border border-border/50 p-6">
-            <h3 className="text-lg font-bold text-foreground mb-4">Critical vs Non-Critical Distribution</h3>
+            {/* Critical vs Non-Critical Distribution */}
+            <div className="card-elevated rounded-xl border border-border/50 p-6">
+              <h3 className="text-lg font-bold text-foreground mb-4">Critical vs Non-Critical Distribution</h3>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={trendData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -264,6 +288,7 @@ export default function NetworkAlarms() {
                 />
               </LineChart>
             </ResponsiveContainer>
+            </div>
           </div>
 
           {/* Alarm Clear Rate */}
@@ -451,7 +476,7 @@ export default function NetworkAlarms() {
         <div className="space-y-4">
           <h2 className="text-2xl font-bold text-foreground">Alarm Pattern Insights</h2>
           {insights.length > 0 ? (
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {insights.map((insight) => (
                 <div
                   key={insight.id}
