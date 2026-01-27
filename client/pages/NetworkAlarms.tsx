@@ -480,42 +480,40 @@ export default function NetworkAlarms() {
               {insights.map((insight) => (
                 <div
                   key={insight.id}
-                  className="card-elevated rounded-xl border border-border/50 p-5 hover:shadow-md transition-shadow h-full flex flex-col"
+                  className="card-elevated rounded-xl border border-border/50 overflow-hidden hover:shadow-md transition-shadow h-full flex flex-col"
                 >
-                  <div className="flex gap-3 items-start">
-                    <div
-                      className={cn(
-                        "w-1 rounded-full flex-shrink-0",
-                        insight.severity === "critical"
-                          ? "bg-red-500"
-                          : insight.severity === "major"
-                            ? "bg-yellow-500"
-                            : "bg-blue-500"
-                      )}
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-start justify-between mb-2">
-                        <h4 className="font-bold text-foreground text-base">{insight.title}</h4>
-                        <span
-                          className={cn(
-                            "px-2 py-1 rounded text-xs font-semibold flex-shrink-0 ml-2",
-                            insight.severity === "critical"
-                              ? "bg-red-500/10 text-red-700"
-                              : insight.severity === "major"
-                                ? "bg-yellow-500/10 text-yellow-700"
-                                : "bg-blue-500/10 text-blue-700"
-                          )}
-                        >
-                          {insight.severity}
-                        </span>
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-3">{insight.description}</p>
-                      <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <span>{insight.scope}</span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {new Date(insight.timestamp).toLocaleTimeString()}
-                        </span>
+                  <div
+                    className={cn(
+                      "h-1",
+                      insight.severity === "critical"
+                        ? "bg-red-500"
+                        : insight.severity === "major"
+                          ? "bg-yellow-500"
+                          : "bg-blue-500"
+                    )}
+                  />
+                  <div className="p-5 flex flex-col flex-1">
+                    <div className="flex items-start justify-between mb-2 gap-2">
+                      <h4 className="font-bold text-foreground text-sm leading-snug flex-1">{insight.title}</h4>
+                      <span
+                        className={cn(
+                          "px-2 py-1 rounded text-xs font-semibold flex-shrink-0 whitespace-nowrap",
+                          insight.severity === "critical"
+                            ? "bg-red-500/10 text-red-700"
+                            : insight.severity === "major"
+                              ? "bg-yellow-500/10 text-yellow-700"
+                              : "bg-blue-500/10 text-blue-700"
+                        )}
+                      >
+                        {insight.severity}
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-4 flex-1 leading-relaxed">{insight.description}</p>
+                    <div className="space-y-2 text-xs text-muted-foreground border-t border-border/50 pt-3 mt-auto">
+                      <div>{insight.scope}</div>
+                      <div className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {new Date(insight.timestamp).toLocaleTimeString()}
                       </div>
                     </div>
                   </div>
