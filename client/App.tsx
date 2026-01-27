@@ -15,6 +15,7 @@ import IncidentsNew from "@/pages/IncidentsNew";
 import DetailPage from "@/pages/DetailPage";
 import VoiceAnalytics from "@/pages/VoiceAnalytics";
 import DataAnalytics from "@/pages/DataAnalytics";
+import NetworkAlarms from "@/pages/NetworkAlarms";
 import ComingSoon from "@/pages/ComingSoon";
 import NotFound from "@/pages/NotFound";
 
