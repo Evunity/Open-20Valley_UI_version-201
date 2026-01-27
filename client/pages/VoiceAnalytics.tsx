@@ -808,52 +808,16 @@ export default function VoiceAnalytics() {
         </div>
 
         {/* Vendor Performers */}
-        <div>
-          <h3 className="text-xl font-bold text-foreground mb-4">Acceptable Performers - Vendors</h3>
-          <SegmentationSummary
-            data={vendorSegmented.reduce((acc, item) => ({
-              ...acc,
-              [item.category]: item.items,
-            }), {})}
-            dimension="Vendor"
-          />
-        </div>
+        <SegmentationSummary data={vendorSegmented} dimension="Vendor" />
 
         {/* Technology Performers */}
-        <div>
-          <h3 className="text-xl font-bold text-foreground mb-4">High quality Performers - Technologies</h3>
-          <SegmentationSummary
-            data={techSegmented.reduce((acc, item) => ({
-              ...acc,
-              [item.category]: item.items,
-            }), {})}
-            dimension="Technology"
-          />
-        </div>
+        <SegmentationSummary data={techSegmented} dimension="Technology" />
 
         {/* Region Performers */}
-        <div>
-          <h3 className="text-xl font-bold text-foreground mb-4">High quality Performers - Regions</h3>
-          <SegmentationSummary
-            data={regionSegmented.reduce((acc, item) => ({
-              ...acc,
-              [item.category]: item.items,
-            }), {})}
-            dimension="Region"
-          />
-        </div>
+        <SegmentationSummary data={regionSegmented} dimension="Region" />
 
         {/* Cluster Performers */}
-        <div>
-          <h3 className="text-xl font-bold text-foreground mb-4">High quality Performers - Clusters</h3>
-          <SegmentationSummary
-            data={clusterSegmented.reduce((acc, item) => ({
-              ...acc,
-              [item.category]: item.items,
-            }), {})}
-            dimension="Cluster"
-          />
-        </div>
+        <SegmentationSummary data={clusterSegmented} dimension="Cluster" />
       </div>
     </div>
   );
