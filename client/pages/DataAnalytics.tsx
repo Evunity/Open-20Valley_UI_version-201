@@ -1440,13 +1440,13 @@ export default function DataAnalytics() {
                               : "bg-red-500"
                       )}
                     />
-                    <h3 className="text-lg font-bold text-foreground">{segment} - Vendors</h3>
+                    <h3 className="text-base font-bold text-foreground">{segment}</h3>
                   </div>
                   <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium">
-                    {vendors.length} vendor{vendors.length !== 1 ? "s" : ""}
+                    {vendors.length}
                   </span>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="space-y-2">
                   {vendors.map((vendor, idx) => (
                     <div
                       key={idx}
