@@ -662,7 +662,7 @@ export default function DataAnalytics() {
           <h3 className="text-lg font-bold text-foreground mb-4">
             High Usage with Low Speed (Performance Risk)
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[
               {
                 area: "South Region",
