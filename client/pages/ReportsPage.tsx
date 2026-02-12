@@ -21,6 +21,8 @@ import {
 import FilterPanel from "@/components/FilterPanel";
 import KPICard from "@/components/KPICard";
 import SearchableDropdown from "@/components/SearchableDropdown";
+import ReportHistoryModal from "@/components/ReportHistoryModal";
+import SmartInsightsPanel from "@/components/SmartInsightsPanel";
 import { useGlobalFilters } from "@/hooks/useGlobalFilters";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -36,6 +38,9 @@ import {
   generateMostDownloadedReports,
   generateDownloadsByUserRole,
   generateAvgDownloadTimeTrend,
+  generateReportExecutionHistory,
+  generateSmartInsights,
+  type StandardReport,
 } from "@/utils/reportsData";
 import { cn } from "@/lib/utils";
 
@@ -57,6 +62,11 @@ export default function ReportsPage() {
     scheduleTypes: [] as string[],
   });
 
+  // Report history modal state
+  const [selectedReport, setSelectedReport] = useState<StandardReport | null>(null);
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [exportFormat, setExportFormat] = useState<"xlsx" | "csv">("xlsx");
+
   // Generate all data
   const kpis = useMemo(() => generateReportKPIs(filters), [filters]);
   const allReports = useMemo(() => generateStandardReports(filters), [filters]);
@@ -70,6 +80,7 @@ export default function ReportsPage() {
   const mostDownloaded = useMemo(() => generateMostDownloadedReports(), []);
   const downloadsByRole = useMemo(() => generateDownloadsByUserRole(), []);
   const downloadTrend = useMemo(() => generateAvgDownloadTimeTrend(), []);
+  const smartInsights = useMemo(() => generateSmartInsights(filters), [filters]);
 
   // Filter reports based on local filters
   const filteredReports = useMemo(() => {
@@ -85,19 +96,34 @@ export default function ReportsPage() {
   }, [allReports, reportFilters]);
 
   const handleExport = () => {
-    const wb = XLSX.utils.book_new();
+    const timestamp = new Date().toISOString().split("T")[0];
 
-    // Add KPIs sheet
+    // KPI data
     const kpiData = Object.entries(kpis).map(([key, value]) => ({
       Metric: key.replace(/_/g, " "),
       Value: value.value,
       Change: `${value.change}%`,
       Status: value.status,
     }));
-    const kpiSheet = XLSX.utils.json_to_sheet(kpiData);
-    XLSX.utils.book_append_sheet(wb, kpiSheet, "Report KPIs");
 
-    // Add Reports list
+    // Failure data
+    const failureData = topFailedReports.map((r) => ({
+      Report: r.report,
+      Vendor: r.vendor,
+      FailureCause: r.failureCause,
+      LastAttempt: r.lastAttempt,
+      FailureCount: r.failureCount,
+    }));
+
+    // Trend data
+    const trendData = activityTrend.map((point) => ({
+      Timestamp: point.timestamp,
+      Success: point.success,
+      Failed: point.failed,
+      Running: point.running,
+    }));
+
+    // Reports list
     const reportsData = filteredReports.map((r) => ({
       Title: r.title,
       Category: r.category,
@@ -106,13 +132,61 @@ export default function ReportsPage() {
       Frequency: r.frequency,
       FileSize: r.fileSize,
     }));
-    const reportsSheet = XLSX.utils.json_to_sheet(reportsData);
-    XLSX.utils.book_append_sheet(wb, reportsSheet, "Reports");
 
-    XLSX.writeFile(wb, `Reports-${new Date().toISOString().split("T")[0]}.xlsx`);
+    if (exportFormat === "csv") {
+      // Export as CSV
+      const csvContent = [
+        // KPI section
+        ["REPORT SUMMARY METRICS"],
+        ["Metric", "Value", "Change", "Status"],
+        ...kpiData.map((k) => [k.Metric, k.Value, k.Change, k.Status]),
+        [],
+        // Reports section
+        ["REPORT LIBRARY"],
+        ["Title", "Category", "Status", "Last Generated", "Frequency", "File Size"],
+        ...reportsData.map((r) => [r.Title, r.Category, r.Status, r.LastGenerated, r.Frequency, r.FileSize]),
+        [],
+        // Failures section
+        ["TOP FAILED REPORTS"],
+        ["Report", "Vendor", "Failure Cause", "Last Attempt", "Failure Count"],
+        ...failureData.map((f) => [f.Report, f.Vendor, f.FailureCause, f.LastAttempt, f.FailureCount]),
+        [],
+        // Trends section
+        ["GENERATION TRENDS"],
+        ["Timestamp", "Success", "Failed", "Running"],
+        ...trendData.map((t) => [t.Timestamp, t.Success, t.Failed, t.Running]),
+      ]
+        .map((row) => row.map((cell) => `"${cell}"`).join(","))
+        .join("\n");
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", `Reports-${timestamp}.csv`);
+      link.click();
+    } else {
+      // Export as Excel (XLSX)
+      const wb = XLSX.utils.book_new();
+
+      const kpiSheet = XLSX.utils.json_to_sheet(kpiData);
+      XLSX.utils.book_append_sheet(wb, kpiSheet, "Summary Metrics");
+
+      const reportsSheet = XLSX.utils.json_to_sheet(reportsData);
+      XLSX.utils.book_append_sheet(wb, reportsSheet, "Report Library");
+
+      const failureSheet = XLSX.utils.json_to_sheet(failureData);
+      XLSX.utils.book_append_sheet(wb, failureSheet, "Failures");
+
+      const trendSheet = XLSX.utils.json_to_sheet(trendData);
+      XLSX.utils.book_append_sheet(wb, trendSheet, "Trends");
+
+      XLSX.writeFile(wb, `Reports-${timestamp}.xlsx`);
+    }
+
     toast({
       title: "Export successful",
-      description: "Reports data has been exported to Excel",
+      description: `Reports data has been exported as ${exportFormat.toUpperCase()}`,
     });
   };
 
@@ -144,13 +218,23 @@ export default function ReportsPage() {
                 Report observability layer – visibility into generation, freshness, and delivery
               </p>
             </div>
-            <button
-              onClick={handleExport}
-              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
-            >
-              <Download className="w-4 h-4" />
-              Export to Excel
-            </button>
+            <div className="flex items-center gap-2">
+              <select
+                value={exportFormat}
+                onChange={(e) => setExportFormat(e.target.value as "xlsx" | "csv")}
+                className="px-3 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50"
+              >
+                <option value="xlsx">Excel (.xlsx)</option>
+                <option value="csv">CSV (.csv)</option>
+              </select>
+              <button
+                onClick={handleExport}
+                className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+              >
+                <Download className="w-4 h-4" />
+                Export
+              </button>
+            </div>
           </div>
         </div>
 
@@ -188,6 +272,21 @@ export default function ReportsPage() {
 
       {/* Main Content */}
       <div className="px-8 py-8 space-y-10">
+
+        {/* Section 3.10: Smart Insights Panel */}
+        <SmartInsightsPanel
+          insights={smartInsights}
+          onInsightClick={(insight) => {
+            if (insight.relatedCategory) {
+              setReportFilters(prev => ({
+                ...prev,
+                categories: prev.categories.includes(insight.relatedCategory!)
+                  ? prev.categories
+                  : [...prev.categories, insight.relatedCategory],
+              }));
+            }
+          }}
+        />
 
         {/* Section 3.3: Executive Summary Cards */}
         <div className="space-y-4">
@@ -565,7 +664,13 @@ export default function ReportsPage() {
                   <button className="w-full px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary text-sm font-medium rounded transition-colors">
                     Download Latest
                   </button>
-                  <button className="w-full px-3 py-2 bg-muted hover:bg-muted/70 text-foreground text-sm font-medium rounded transition-colors">
+                  <button
+                    onClick={() => {
+                      setSelectedReport(report);
+                      setIsHistoryModalOpen(true);
+                    }}
+                    className="w-full px-3 py-2 bg-muted hover:bg-muted/70 text-foreground text-sm font-medium rounded transition-colors"
+                  >
                     View History
                   </button>
                 </div>
@@ -575,6 +680,19 @@ export default function ReportsPage() {
         </div>
 
       </div>
+
+      {/* Report History Modal (3.9) */}
+      {selectedReport && (
+        <ReportHistoryModal
+          isOpen={isHistoryModalOpen}
+          onClose={() => {
+            setIsHistoryModalOpen(false);
+            setSelectedReport(null);
+          }}
+          reportTitle={selectedReport.title}
+          executions={generateReportExecutionHistory(selectedReport.id)}
+        />
+      )}
     </div>
   );
 }
