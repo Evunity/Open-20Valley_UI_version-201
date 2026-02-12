@@ -1,12 +1,15 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Download, FileText, Clock, CheckCircle, AlertCircle, TrendingUp } from "lucide-react";
+import { Download, FileText, Clock, AlertCircle, TrendingUp, X } from "lucide-react";
 import * as XLSX from "xlsx";
 import {
   LineChart,
   Line,
   BarChart,
   Bar,
+  PieChart,
+  Pie,
+  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -17,6 +20,7 @@ import {
 
 import FilterPanel from "@/components/FilterPanel";
 import KPICard from "@/components/KPICard";
+import SearchableDropdown from "@/components/SearchableDropdown";
 import { useGlobalFilters } from "@/hooks/useGlobalFilters";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -24,25 +28,68 @@ import {
   generateStandardReports,
   generateReportActivityTrend,
   generateReportTrends,
+  generateReportFreshnessHeatmap,
+  generateFailuresByVendor,
+  generateFailuresByTechnology,
+  generateFailuresByRegion,
+  generateTopFailedReports,
+  generateMostDownloadedReports,
+  generateDownloadsByUserRole,
+  generateAvgDownloadTimeTrend,
 } from "@/utils/reportsData";
 import { cn } from "@/lib/utils";
+
+const REPORT_CATEGORIES = ["KPI", "Alarm", "SLA", "Vendor", "Custom"];
+const REPORT_STATUSES = ["Success", "Failed", "Running", "Delayed"];
+const SCHEDULE_TYPES = ["On-demand", "Scheduled"];
+
+const CHART_COLORS = ["#3b82f6", "#8b5cf6", "#ec4899", "#f59e0b", "#10b981", "#14b8a6"];
+const PIE_COLORS = ["#3b82f6", "#8b5cf6", "#ec4899", "#f59e0b", "#10b981"];
 
 export default function Reports() {
   const { toast } = useToast();
   const { filters } = useGlobalFilters();
 
-  // Generate data
+  // Local report-specific filters
+  const [reportFilters, setReportFilters] = useState({
+    categories: [] as string[],
+    statuses: [] as string[],
+    scheduleTypes: [] as string[],
+  });
+
+  // Generate all data
   const kpis = useMemo(() => generateReportKPIs(filters), [filters]);
-  const standardReports = useMemo(() => generateStandardReports(filters), [filters]);
+  const allReports = useMemo(() => generateStandardReports(filters), [filters]);
   const activityTrend = useMemo(() => generateReportActivityTrend(filters), [filters]);
   const trends = useMemo(() => generateReportTrends(), []);
+  const freshnessHeatmap = useMemo(() => generateReportFreshnessHeatmap(), []);
+  const failuresByVendor = useMemo(() => generateFailuresByVendor(), []);
+  const failuresByTech = useMemo(() => generateFailuresByTechnology(), []);
+  const failuresByRegion = useMemo(() => generateFailuresByRegion(), []);
+  const topFailedReports = useMemo(() => generateTopFailedReports(), []);
+  const mostDownloaded = useMemo(() => generateMostDownloadedReports(), []);
+  const downloadsByRole = useMemo(() => generateDownloadsByUserRole(), []);
+  const downloadTrend = useMemo(() => generateAvgDownloadTimeTrend(), []);
+
+  // Filter reports based on local filters
+  const filteredReports = useMemo(() => {
+    return allReports.filter((report) => {
+      const categoryMatch = reportFilters.categories.length === 0 || reportFilters.categories.some(cat => report.category.toLowerCase().includes(cat.toLowerCase()));
+      const statusMatch = reportFilters.statuses.length === 0 || reportFilters.statuses.some(status => report.status === status.toLowerCase());
+      const scheduleMatch = reportFilters.scheduleTypes.length === 0 || 
+        (reportFilters.scheduleTypes.includes("Scheduled") && report.frequency !== "on-demand") ||
+        (reportFilters.scheduleTypes.includes("On-demand") && report.frequency === "on-demand");
+      
+      return categoryMatch && statusMatch && scheduleMatch;
+    });
+  }, [allReports, reportFilters]);
 
   const handleExport = () => {
     const wb = XLSX.utils.book_new();
 
     // Add KPIs sheet
     const kpiData = Object.entries(kpis).map(([key, value]) => ({
-      Metric: key,
+      Metric: key.replace(/_/g, " "),
       Value: value.value,
       Change: `${value.change}%`,
       Status: value.status,
@@ -51,12 +98,13 @@ export default function Reports() {
     XLSX.utils.book_append_sheet(wb, kpiSheet, "Report KPIs");
 
     // Add Reports list
-    const reportsData = standardReports.map((r) => ({
+    const reportsData = filteredReports.map((r) => ({
       Title: r.title,
       Category: r.category,
       Status: r.status,
       LastGenerated: new Date(r.lastGenerated).toLocaleString(),
       Frequency: r.frequency,
+      FileSize: r.fileSize,
     }));
     const reportsSheet = XLSX.utils.json_to_sheet(reportsData);
     XLSX.utils.book_append_sheet(wb, reportsSheet, "Reports");
@@ -68,40 +116,14 @@ export default function Reports() {
     });
   };
 
-  const getCategoryLabel = (
-    category: "daily_kpi" | "alarm_summary" | "sla" | "vendor_comparison"
-  ) => {
-    const labels = {
-      daily_kpi: "Daily KPI Reports",
-      alarm_summary: "Alarm Summary Reports",
-      sla: "SLA Reports",
-      vendor_comparison: "Vendor Comparison Reports",
-    };
-    return labels[category];
+  const getFailureRateColor = (failureRate: number) => {
+    if (failureRate < 2) return "text-green-600 bg-green-500/10";
+    if (failureRate < 5) return "text-orange-600 bg-orange-500/10";
+    return "text-red-600 bg-red-500/10";
   };
 
-  const getCategoryColor = (
-    category: "daily_kpi" | "alarm_summary" | "sla" | "vendor_comparison"
-  ) => {
-    const colors = {
-      daily_kpi: "from-blue-500/10 to-blue-500/5",
-      alarm_summary: "from-orange-500/10 to-orange-500/5",
-      sla: "from-green-500/10 to-green-500/5",
-      vendor_comparison: "from-purple-500/10 to-purple-500/5",
-    };
-    return colors[category];
-  };
-
-  const groupedReports = standardReports.reduce(
-    (acc, report) => {
-      if (!acc[report.category]) {
-        acc[report.category] = [];
-      }
-      acc[report.category].push(report);
-      return acc;
-    },
-    {} as Record<string, typeof standardReports>
-  );
+  const failureRate = kpis.failed_reports.value > 0 ? 
+    (kpis.failed_reports.value / (kpis.failed_reports.value + kpis.reports_generated.value)) * 100 : 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -119,7 +141,7 @@ export default function Reports() {
               </div>
               <h1 className="text-3xl font-bold text-foreground">Reports</h1>
               <p className="text-muted-foreground">
-                Report visibility, freshness tracking, and access to standard outputs
+                Report observability layer – visibility into generation, freshness, and delivery
               </p>
             </div>
             <button
@@ -132,22 +154,50 @@ export default function Reports() {
           </div>
         </div>
 
-        {/* Filter Panel */}
+        {/* Global Filters */}
         <FilterPanel />
+
+        {/* Report-Specific Filters */}
+        <div className="px-8 py-4 border-t border-border/50 space-y-3">
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Report Filters</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <SearchableDropdown
+              label="Report Category"
+              options={REPORT_CATEGORIES}
+              selected={reportFilters.categories}
+              onChange={(selected) => setReportFilters(prev => ({ ...prev, categories: selected }))}
+              placeholder="All categories"
+            />
+            <SearchableDropdown
+              label="Report Status"
+              options={REPORT_STATUSES}
+              selected={reportFilters.statuses}
+              onChange={(selected) => setReportFilters(prev => ({ ...prev, statuses: selected }))}
+              placeholder="All statuses"
+            />
+            <SearchableDropdown
+              label="Schedule Type"
+              options={SCHEDULE_TYPES}
+              selected={reportFilters.scheduleTypes}
+              onChange={(selected) => setReportFilters(prev => ({ ...prev, scheduleTypes: selected }))}
+              placeholder="All types"
+            />
+          </div>
+        </div>
       </div>
 
       {/* Main Content */}
-      <div className="px-8 py-8 space-y-8">
+      <div className="px-8 py-8 space-y-10">
 
-        {/* Report Summary Cards */}
+        {/* Section 3.3: Executive Summary Cards */}
         <div className="space-y-4">
-          <h2 className="text-2xl font-bold text-foreground">Report Summary</h2>
+          <h2 className="text-2xl font-bold text-foreground">Executive Summary</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <KPICard
               icon={FileText}
-              label="Available Reports"
+              label="Total Reports Available"
               value={kpis.available_reports.value}
-              unit="reports"
+              unit="templates"
               change={kpis.available_reports.change}
               status={kpis.available_reports.status}
               direction={kpis.available_reports.change > 0 ? "up" : "down"}
@@ -156,7 +206,7 @@ export default function Reports() {
               icon={TrendingUp}
               label="Reports Generated"
               value={kpis.reports_generated.value}
-              unit="this period"
+              unit="successfully"
               change={kpis.reports_generated.change}
               status={kpis.reports_generated.status}
               direction={kpis.reports_generated.change > 0 ? "up" : "down"}
@@ -170,138 +220,88 @@ export default function Reports() {
               status={kpis.scheduled_reports.status}
               direction={kpis.scheduled_reports.change > 0 ? "up" : "down"}
             />
-            <KPICard
-              icon={AlertCircle}
-              label="Failed Reports"
-              value={kpis.failed_reports.value}
-              unit="last period"
-              change={kpis.failed_reports.change}
-              status={kpis.failed_reports.status}
-              direction={kpis.failed_reports.change > 0 ? "up" : "down"}
-            />
-          </div>
-        </div>
-
-        {/* Report Trends Summary */}
-        <div className="space-y-4">
-          <h2 className="text-2xl font-bold text-foreground">Report Performance Trends</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {trends.map((trend) => (
-              <div key={trend.name} className="card-elevated rounded-xl border border-border/50 p-4">
-                <p className="text-sm text-muted-foreground mb-2">{trend.name}</p>
-                <div className="flex items-end gap-3">
-                  <span className="text-2xl font-bold text-foreground">
-                    {typeof trend.value === "number" && trend.value > 50
-                      ? trend.value.toFixed(1)
-                      : trend.value}
-                    {trend.name.includes("Time") ? " min" : trend.name.includes("Rate") ? "%" : ""}
-                  </span>
-                  <span
-                    className={cn(
-                      "text-sm font-semibold px-2 py-1 rounded flex-shrink-0",
-                      trend.status === "up" ? "text-green-600" : trend.status === "down" ? "text-red-600" : "text-blue-600"
-                    )}
-                  >
-                    {trend.status === "up" ? "↑" : trend.status === "down" ? "↓" : "→"}
-                    {Math.abs(trend.change).toFixed(1)}%
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Standard Report Categories */}
-        <div className="space-y-6">
-          <h2 className="text-2xl font-bold text-foreground">Standard Report Categories</h2>
-
-          {Object.entries(groupedReports).map(([category, reports]) => (
-            <div key={category} className="space-y-4">
-              <h3 className="text-lg font-semibold text-foreground">
-                {getCategoryLabel(category as any)}
-              </h3>
-              <div
-                className={cn(
-                  "grid grid-cols-1 md:grid-cols-2 gap-4 bg-gradient-to-br",
-                  getCategoryColor(category as any)
-                )}
-              >
-                {reports.map((report) => (
-                  <div
-                    key={report.id}
-                    className="card-elevated rounded-xl border border-border/50 p-6 hover:shadow-md transition-shadow"
-                  >
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <h4 className="font-bold text-foreground text-base mb-1">
-                          {report.title}
-                        </h4>
-                        <p className="text-xs text-muted-foreground">{report.description}</p>
-                      </div>
-                      <span
-                        className={cn(
-                          "px-2.5 py-1 rounded text-xs font-semibold flex-shrink-0 ml-2",
-                          report.status === "success"
-                            ? "bg-green-500/10 text-green-700"
-                            : report.status === "pending"
-                              ? "bg-blue-500/10 text-blue-700"
-                              : "bg-red-500/10 text-red-700"
-                        )}
-                      >
-                        {report.status}
-                      </span>
-                    </div>
-
-                    <div className="space-y-2 pt-3 border-t border-border/50">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-muted-foreground">Last Generated:</span>
-                        <span className="font-medium text-foreground">
-                          {new Date(report.lastGenerated).toLocaleString([], {
-                            month: "short",
-                            day: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-muted-foreground">Next Scheduled:</span>
-                        <span className="font-medium text-foreground">
-                          {new Date(report.nextScheduled).toLocaleString([], {
-                            month: "short",
-                            day: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between text-xs pt-2">
-                        <span className="text-muted-foreground">Frequency:</span>
-                        <span className="px-2 py-1 rounded bg-muted text-foreground capitalize font-medium">
-                          {report.frequency}
-                        </span>
-                      </div>
-                    </div>
-
-                    <button className="w-full mt-4 px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary text-sm font-medium rounded transition-colors">
-                      Download Latest
-                    </button>
+            <div className={cn(
+              "card-elevated rounded-xl border border-border/50 p-6 flex flex-col justify-between",
+              failureRate < 2 ? "bg-green-500/5" : failureRate < 5 ? "bg-orange-500/5" : "bg-red-500/5"
+            )}>
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2">Failed Reports</p>
+                  <div className="flex items-center gap-3">
+                    <span className="text-3xl font-bold text-foreground">{kpis.failed_reports.value}</span>
+                    <span className={cn("text-xs font-semibold px-2.5 py-1 rounded", getFailureRateColor(failureRate))}>
+                      {failureRate.toFixed(1)}%
+                    </span>
                   </div>
-                ))}
+                </div>
+                <AlertCircle className={cn(
+                  "w-8 h-8",
+                  failureRate < 2 ? "text-green-600" : failureRate < 5 ? "text-orange-600" : "text-red-600"
+                )} />
+              </div>
+              <div className="mt-3 pt-3 border-t border-border/50">
+                <p className={cn(
+                  "text-xs font-semibold",
+                  kpis.failed_reports.change > 0 ? "text-red-600" : "text-green-600"
+                )}>
+                  {kpis.failed_reports.change > 0 ? "↑" : "↓"} {Math.abs(kpis.failed_reports.change)}%
+                </p>
               </div>
             </div>
-          ))}
+          </div>
         </div>
 
-        {/* Report Activity Trends */}
-        <div className="space-y-6">
-          <h2 className="text-2xl font-bold text-foreground">Report Activity Trends</h2>
+        {/* Section 3.4: Report Freshness Heatmap */}
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold text-foreground">Report Freshness Heatmap</h2>
+          <div className="card-elevated rounded-xl border border-border/50 p-6 overflow-x-auto">
+            <div className="min-w-full">
+              {/* Header with dates */}
+              <div className="flex gap-4 mb-4">
+                <div className="w-48 flex-shrink-0 font-semibold text-sm text-foreground">Category</div>
+                <div className="flex gap-2">
+                  {freshnessHeatmap[0]?.dates.map((_, idx) => (
+                    <div key={idx} className="w-24 text-center text-xs text-muted-foreground">
+                      {freshnessHeatmap[0].dates[idx].date}
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-          {/* Total Reports Generated */}
+              {/* Heatmap rows */}
+              {freshnessHeatmap.map((row) => (
+                <div key={row.category} className="flex gap-4 mb-3">
+                  <div className="w-48 flex-shrink-0 text-sm text-foreground">{row.category}</div>
+                  <div className="flex gap-2">
+                    {row.dates.map((cell, idx) => (
+                      <div
+                        key={idx}
+                        className={cn(
+                          "w-24 h-10 rounded flex items-center justify-center text-xs font-semibold transition-colors",
+                          cell.status === "green"
+                            ? "bg-green-500/20 text-green-700 border border-green-500/30"
+                            : cell.status === "orange"
+                              ? "bg-orange-500/20 text-orange-700 border border-orange-500/30"
+                              : "bg-red-500/20 text-red-700 border border-red-500/30"
+                        )}
+                        title={`${cell.status === "green" ? "On time" : cell.status === "orange" ? "Delayed" : "Missing"}`}
+                      >
+                        {cell.status === "green" ? "✓" : cell.status === "orange" ? "⚠" : "✗"}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Section 3.5: Report Generation Trend */}
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold text-foreground">Report Generation Trend</h2>
           <div className="card-elevated rounded-xl border border-border/50 p-6">
-            <h3 className="text-lg font-bold text-foreground mb-4">Reports Generated Over Time</h3>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={activityTrend} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
+              <BarChart data={activityTrend} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis
                   dataKey="timestamp"
@@ -315,52 +315,262 @@ export default function Reports() {
                     border: "1px solid hsl(var(--border))",
                     borderRadius: "8px",
                   }}
+                  formatter={(value) => [value, ""]}
                 />
                 <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="total_generated"
-                  stroke="#3b82f6"
-                  dot={false}
-                  strokeWidth={2}
-                  name="Total Generated"
+                <Bar dataKey="success" stackId="a" fill="#22c55e" name="Success" />
+                <Bar dataKey="failed" stackId="a" fill="#ef4444" name="Failed" />
+                <Bar dataKey="running" stackId="a" fill="#3b82f6" name="Running" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Section 3.6: Failure Intelligence Panel */}
+        <div className="space-y-6">
+          <h2 className="text-2xl font-bold text-foreground">Failure Intelligence</h2>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Failures by Vendor */}
+            <div className="card-elevated rounded-xl border border-border/50 p-6">
+              <h3 className="text-lg font-bold text-foreground mb-4">Failures by Vendor</h3>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={failuresByVendor} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis type="number" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+                  <YAxis dataKey="vendor" type="category" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} width={80} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: "8px",
+                    }}
+                  />
+                  <Bar dataKey="count" fill="#ef4444" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Failures by Technology */}
+            <div className="card-elevated rounded-xl border border-border/50 p-6">
+              <h3 className="text-lg font-bold text-foreground mb-4">Failures by Technology</h3>
+              <ResponsiveContainer width="100%" height={250}>
+                <PieChart>
+                  <Pie
+                    data={failuresByTech}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ technology, percentage }) => `${technology} ${percentage}%`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="count"
+                  >
+                    {failuresByTech.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: "8px",
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Failures by Region */}
+            <div className="card-elevated rounded-xl border border-border/50 p-6">
+              <h3 className="text-lg font-bold text-foreground mb-4">Failures by Region</h3>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={failuresByRegion}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="region" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+                  <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: "8px",
+                    }}
+                  />
+                  <Bar dataKey="count" fill="#f59e0b" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Top Failed Reports Table */}
+          <div className="card-elevated rounded-xl border border-border/50 p-6">
+            <h3 className="text-lg font-bold text-foreground mb-4">Top Failed Reports</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border/50">
+                    <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Report</th>
+                    <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Vendor</th>
+                    <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Failure Cause</th>
+                    <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Last Attempt</th>
+                    <th className="text-right py-3 px-4 font-semibold text-muted-foreground">Count</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {topFailedReports.map((report, idx) => (
+                    <tr key={idx} className="border-b border-border/30 hover:bg-muted/30 transition-colors">
+                      <td className="py-3 px-4 text-foreground">{report.report}</td>
+                      <td className="py-3 px-4 text-muted-foreground">{report.vendor}</td>
+                      <td className="py-3 px-4 text-red-600">{report.failureCause}</td>
+                      <td className="py-3 px-4 text-muted-foreground">{report.lastAttempt}</td>
+                      <td className="py-3 px-4 text-right font-semibold text-foreground">{report.failureCount}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        {/* Section 3.7: Report Usage Analytics */}
+        <div className="space-y-6">
+          <h2 className="text-2xl font-bold text-foreground">Report Usage Analytics</h2>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Most Downloaded Reports */}
+            <div className="card-elevated rounded-xl border border-border/50 p-6">
+              <h3 className="text-lg font-bold text-foreground mb-4">Most Downloaded Reports</h3>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={mostDownloaded} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis type="number" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+                  <YAxis dataKey="report" type="category" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "11px" }} width={130} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: "8px",
+                    }}
+                  />
+                  <Bar dataKey="downloads" fill="#3b82f6" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Downloads by User Role */}
+            <div className="card-elevated rounded-xl border border-border/50 p-6">
+              <h3 className="text-lg font-bold text-foreground mb-4">Downloads by User Role</h3>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={downloadsByRole.slice(-14)}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="timestamp" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+                  <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: "8px",
+                    }}
+                  />
+                  <Legend />
+                  <Bar dataKey="noc" stackId="a" fill="#3b82f6" name="NOC" />
+                  <Bar dataKey="rf" stackId="a" fill="#8b5cf6" name="RF" />
+                  <Bar dataKey="management" stackId="a" fill="#ec4899" name="Management" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Average Download Time Trend */}
+          <div className="card-elevated rounded-xl border border-border/50 p-6">
+            <h3 className="text-lg font-bold text-foreground mb-4">Avg Download Time Trend</h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <LineChart data={downloadTrend.slice(-14)}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="timestamp" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+                <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} label={{ value: "ms", angle: -90, position: "insideLeft" }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--card))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "8px",
+                  }}
+                  formatter={(value) => [`${value}ms`, "Download Time"]}
                 />
                 <Line
                   type="monotone"
-                  dataKey="scheduled"
-                  stroke="#8b5cf6"
+                  dataKey="avgTime"
+                  stroke="#10b981"
                   dot={false}
                   strokeWidth={2}
-                  name="Scheduled"
                 />
               </LineChart>
             </ResponsiveContainer>
           </div>
+        </div>
 
-          {/* Success vs Failure Rate */}
-          <div className="card-elevated rounded-xl border border-border/50 p-6">
-            <h3 className="text-lg font-bold text-foreground mb-4">Success vs Failure Rate</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={activityTrend} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis
-                  dataKey="timestamp"
-                  stroke="hsl(var(--muted-foreground))"
-                  style={{ fontSize: "12px" }}
-                />
-                <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "8px",
-                  }}
-                />
-                <Legend />
-                <Bar dataKey="successful" fill="#22c55e" name="Successful" />
-                <Bar dataKey="failed" fill="#ef4444" name="Failed" />
-              </BarChart>
-            </ResponsiveContainer>
+        {/* Section 3.8: Report Library Tiles */}
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold text-foreground">Report Library</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredReports.map((report) => (
+              <div
+                key={report.id}
+                className="card-elevated rounded-xl border border-border/50 p-6 hover:shadow-md transition-shadow flex flex-col"
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1">
+                    <h4 className="font-bold text-foreground text-base mb-1">{report.title}</h4>
+                    <p className="text-xs text-muted-foreground line-clamp-2">{report.description}</p>
+                  </div>
+                  <span
+                    className={cn(
+                      "px-2.5 py-1 rounded text-xs font-semibold flex-shrink-0 ml-2",
+                      report.status === "success"
+                        ? "bg-green-500/10 text-green-700"
+                        : report.status === "pending"
+                          ? "bg-blue-500/10 text-blue-700"
+                          : "bg-red-500/10 text-red-700"
+                    )}
+                  >
+                    {report.status}
+                  </span>
+                </div>
+
+                <div className="space-y-2 py-3 border-t border-border/50 border-b border-border/50">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">Last Generated:</span>
+                    <span className="font-medium text-foreground">
+                      {new Date(report.lastGenerated).toLocaleString([], {
+                        month: "short",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">Size:</span>
+                    <span className="font-medium text-foreground">{report.fileSize}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">Schedule:</span>
+                    <span className="px-2 py-1 rounded bg-muted text-foreground capitalize font-medium text-xs">
+                      {report.schedule}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="mt-4 space-y-2">
+                  <button className="w-full px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary text-sm font-medium rounded transition-colors">
+                    Download Latest
+                  </button>
+                  <button className="w-full px-3 py-2 bg-muted hover:bg-muted/70 text-foreground text-sm font-medium rounded transition-colors">
+                    View History
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
