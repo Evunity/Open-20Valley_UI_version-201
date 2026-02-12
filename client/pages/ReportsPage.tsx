@@ -1,344 +1,580 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Download, AlertCircle, CheckCircle2, Loader } from "lucide-react";
-import { useGlobalFilters } from "@/hooks/useGlobalFilters";
+import { Download, FileText, Clock, AlertCircle, TrendingUp, X } from "lucide-react";
+import * as XLSX from "xlsx";
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+
 import FilterPanel from "@/components/FilterPanel";
+import KPICard from "@/components/KPICard";
+import SearchableDropdown from "@/components/SearchableDropdown";
+import { useGlobalFilters } from "@/hooks/useGlobalFilters";
 import { useToast } from "@/hooks/use-toast";
+import {
+  generateReportKPIs,
+  generateStandardReports,
+  generateReportActivityTrend,
+  generateReportTrends,
+  generateReportFreshnessHeatmap,
+  generateFailuresByVendor,
+  generateFailuresByTechnology,
+  generateFailuresByRegion,
+  generateTopFailedReports,
+  generateMostDownloadedReports,
+  generateDownloadsByUserRole,
+  generateAvgDownloadTimeTrend,
+} from "@/utils/reportsData";
 import { cn } from "@/lib/utils";
 
-interface KPISelectOption {
-  id: string;
-  label: string;
-  category: string;
-  description: string;
-}
+const REPORT_CATEGORIES = ["KPI", "Alarm", "SLA", "Vendor", "Custom"];
+const REPORT_STATUSES = ["Success", "Failed", "Running", "Delayed"];
+const SCHEDULE_TYPES = ["On-demand", "Scheduled"];
 
-const KPI_OPTIONS: KPISelectOption[] = [
-  {
-    id: "availability",
-    label: "Availability",
-    category: "Network",
-    description: "System uptime percentage",
-  },
-  {
-    id: "latency",
-    label: "Latency (Avg)",
-    category: "Network",
-    description: "Average response time",
-  },
-  {
-    id: "packet_loss",
-    label: "Packet Loss",
-    category: "Network",
-    description: "Data packet loss rate",
-  },
-  {
-    id: "active_sites",
-    label: "Active Sites",
-    category: "Infrastructure",
-    description: "Number of operational sites",
-  },
-  {
-    id: "incident_count",
-    label: "Incident Count",
-    category: "Operations",
-    description: "Total incidents detected",
-  },
-  { id: "mttr", label: "MTTR", category: "Operations", description: "Mean time to recovery" },
-  {
-    id: "automation_rate",
-    label: "Automation Rate",
-    category: "AI Impact",
-    description: "% of automated resolutions",
-  },
-  {
-    id: "cost_savings",
-    label: "Cost Savings",
-    category: "Financial",
-    description: "Operational cost reduction",
-  },
-];
+const CHART_COLORS = ["#3b82f6", "#8b5cf6", "#ec4899", "#f59e0b", "#10b981", "#14b8a6"];
+const PIE_COLORS = ["#3b82f6", "#8b5cf6", "#ec4899", "#f59e0b", "#10b981"];
 
 export default function ReportsPage() {
-  const { filters } = useGlobalFilters();
   const { toast } = useToast();
-  const [selectedKPIs, setSelectedKPIs] = useState<string[]>([
-    "availability",
-    "latency",
-    "active_sites",
-  ]);
-  const [isGenerating, setIsGenerating] = useState(false);
+  const { filters } = useGlobalFilters();
 
-  const handleKPIToggle = (kpiId: string) => {
-    setSelectedKPIs((prev) =>
-      prev.includes(kpiId) ? prev.filter((id) => id !== kpiId) : [...prev, kpiId]
-    );
+  // Local report-specific filters
+  const [reportFilters, setReportFilters] = useState({
+    categories: [] as string[],
+    statuses: [] as string[],
+    scheduleTypes: [] as string[],
+  });
+
+  // Generate all data
+  const kpis = useMemo(() => generateReportKPIs(filters), [filters]);
+  const allReports = useMemo(() => generateStandardReports(filters), [filters]);
+  const activityTrend = useMemo(() => generateReportActivityTrend(filters), [filters]);
+  const trends = useMemo(() => generateReportTrends(), []);
+  const freshnessHeatmap = useMemo(() => generateReportFreshnessHeatmap(), []);
+  const failuresByVendor = useMemo(() => generateFailuresByVendor(), []);
+  const failuresByTech = useMemo(() => generateFailuresByTechnology(), []);
+  const failuresByRegion = useMemo(() => generateFailuresByRegion(), []);
+  const topFailedReports = useMemo(() => generateTopFailedReports(), []);
+  const mostDownloaded = useMemo(() => generateMostDownloadedReports(), []);
+  const downloadsByRole = useMemo(() => generateDownloadsByUserRole(), []);
+  const downloadTrend = useMemo(() => generateAvgDownloadTimeTrend(), []);
+
+  // Filter reports based on local filters
+  const filteredReports = useMemo(() => {
+    return allReports.filter((report) => {
+      const categoryMatch = reportFilters.categories.length === 0 || reportFilters.categories.some(cat => report.category.toLowerCase().includes(cat.toLowerCase()));
+      const statusMatch = reportFilters.statuses.length === 0 || reportFilters.statuses.some(status => report.status === status.toLowerCase());
+      const scheduleMatch = reportFilters.scheduleTypes.length === 0 || 
+        (reportFilters.scheduleTypes.includes("Scheduled") && report.frequency !== "on-demand") ||
+        (reportFilters.scheduleTypes.includes("On-demand") && report.frequency === "on-demand");
+      
+      return categoryMatch && statusMatch && scheduleMatch;
+    });
+  }, [allReports, reportFilters]);
+
+  const handleExport = () => {
+    const wb = XLSX.utils.book_new();
+
+    // Add KPIs sheet
+    const kpiData = Object.entries(kpis).map(([key, value]) => ({
+      Metric: key.replace(/_/g, " "),
+      Value: value.value,
+      Change: `${value.change}%`,
+      Status: value.status,
+    }));
+    const kpiSheet = XLSX.utils.json_to_sheet(kpiData);
+    XLSX.utils.book_append_sheet(wb, kpiSheet, "Report KPIs");
+
+    // Add Reports list
+    const reportsData = filteredReports.map((r) => ({
+      Title: r.title,
+      Category: r.category,
+      Status: r.status,
+      LastGenerated: new Date(r.lastGenerated).toLocaleString(),
+      Frequency: r.frequency,
+      FileSize: r.fileSize,
+    }));
+    const reportsSheet = XLSX.utils.json_to_sheet(reportsData);
+    XLSX.utils.book_append_sheet(wb, reportsSheet, "Reports");
+
+    XLSX.writeFile(wb, `Reports-${new Date().toISOString().split("T")[0]}.xlsx`);
+    toast({
+      title: "Export successful",
+      description: "Reports data has been exported to Excel",
+    });
   };
 
-  const generateExcelReport = async () => {
-    if (selectedKPIs.length === 0) {
-      toast({
-        title: "No KPIs selected",
-        description: "Please select at least one KPI to include in the report",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      setIsGenerating(true);
-
-      // Simulated report data
-      const reportData = {
-        timestamp: new Date().toISOString(),
-        timeRange: filters.timeRange,
-        appliedFilters: {
-          vendors: filters.vendors.length > 0 ? filters.vendors : "All",
-          technologies: filters.technologies.length > 0 ? filters.technologies : "All",
-          regions: filters.regions.length > 0 ? filters.regions : "All",
-          clusters: filters.clusters.length > 0 ? filters.clusters : "All",
-        },
-        kpis: selectedKPIs.map((id) => {
-          const kpi = KPI_OPTIONS.find((k) => k.id === id);
-          return {
-            name: kpi?.label || id,
-            value: Math.floor(Math.random() * 100) + "%",
-            trend: Math.random() > 0.5 ? "↑" : "↓",
-            change: (Math.random() * 10 - 5).toFixed(2) + "%",
-          };
-        }),
-      };
-
-      // Generate vendor comparison data if multiple vendors selected
-      const vendorComparisonData =
-        filters.vendors.length > 1
-          ? filters.vendors.map((vendor) => ({
-              vendor,
-              successRate: (98.2 + Math.random() * 1.5).toFixed(2),
-              dropRate: (1.8 - Math.random() * 0.5).toFixed(2),
-              stability: (97.5 + Math.random() * 1.8).toFixed(2),
-              volume: Math.floor(5000 + Math.random() * 5000),
-            }))
-          : [];
-
-      // Create CSV content
-      const csvContent = [
-        ["Network Operations Report"],
-        ["Generated:", new Date().toLocaleString()],
-        ["Time Range:", filters.timeRange],
-        [""],
-        ["APPLIED FILTERS"],
-        ["Vendors:", reportData.appliedFilters.vendors.toString()],
-        ["Technologies:", reportData.appliedFilters.technologies.toString()],
-        ["Regions:", reportData.appliedFilters.regions.toString()],
-        ["Clusters:", reportData.appliedFilters.clusters.toString()],
-        [""],
-        ["KEY PERFORMANCE INDICATORS"],
-        ["KPI", "Value", "Trend", "Change"],
-        ...reportData.kpis.map((kpi) => [kpi.name, kpi.value, kpi.trend, kpi.change]),
-      ];
-
-      // Add vendor comparison section if applicable
-      if (vendorComparisonData.length > 0) {
-        csvContent.push([]);
-        csvContent.push(["MULTI-VENDOR COMPARISON"]);
-        csvContent.push(["Vendor", "Success Rate (%)", "Drop Rate (%)", "Stability (%)", "Volume"]);
-        vendorComparisonData.forEach((v) => {
-          csvContent.push([v.vendor, v.successRate, v.dropRate, v.stability, v.volume]);
-        });
-      }
-
-      // Convert to CSV format
-      const csvString = csvContent
-        .map((row) => row.map((cell) => `"${cell}"`).join(","))
-        .join("\n");
-
-      // Create blob and download
-      const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
-      const link = document.createElement("a");
-      const url = URL.createObjectURL(blob);
-
-      link.setAttribute("href", url);
-      link.setAttribute("download", `network-report-${new Date().getTime()}.csv`);
-      link.style.visibility = "hidden";
-
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      toast({
-        title: "Report generated successfully",
-        description: `Downloaded CSV with ${selectedKPIs.length} KPI(s)${
-          vendorComparisonData.length > 0 ? " + vendor comparison" : ""
-        }`,
-      });
-    } catch (error) {
-      toast({
-        title: "Error generating report",
-        description: error instanceof Error ? error.message : "Failed to generate report",
-        variant: "destructive",
-      });
-    } finally {
-      setIsGenerating(false);
-    }
+  const getFailureRateColor = (failureRate: number) => {
+    if (failureRate < 2) return "text-green-600 bg-green-500/10";
+    if (failureRate < 5) return "text-orange-600 bg-orange-500/10";
+    return "text-red-600 bg-red-500/10";
   };
 
-  const groupedKPIs = KPI_OPTIONS.reduce(
-    (acc, kpi) => {
-      if (!acc[kpi.category]) acc[kpi.category] = [];
-      acc[kpi.category].push(kpi);
-      return acc;
-    },
-    {} as Record<string, KPISelectOption[]>
-  );
+  const failureRate = kpis.failed_reports.value > 0 ? 
+    (kpis.failed_reports.value / (kpis.failed_reports.value + kpis.reports_generated.value)) * 100 : 0;
 
   return (
-    <div className="space-y-6 pb-4">
-      {/* Breadcrumb Navigation */}
-      <div className="flex items-center gap-2 text-sm">
-        <Link to="/" className="text-primary hover:text-primary/80 transition-colors font-medium">
-          Dashboard
-        </Link>
-        <span className="text-muted-foreground">/</span>
-        <span className="text-muted-foreground">Reports</span>
-      </div>
-
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold text-foreground">Reports</h1>
-        <p className="text-muted-foreground">
-          Generate custom reports with selected KPIs and filters
-        </p>
+      <div className="border-b border-border bg-card/50 backdrop-blur-sm">
+        <div className="px-8 py-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                <Link to="/" className="hover:text-foreground">
+                  Dashboard
+                </Link>
+                <span>/</span>
+                <span>Reports</span>
+              </div>
+              <h1 className="text-3xl font-bold text-foreground">Reports</h1>
+              <p className="text-muted-foreground">
+                Report observability layer – visibility into generation, freshness, and delivery
+              </p>
+            </div>
+            <button
+              onClick={handleExport}
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+            >
+              <Download className="w-4 h-4" />
+              Export to Excel
+            </button>
+          </div>
+        </div>
+
+        {/* Global Filters */}
+        <FilterPanel />
+
+        {/* Report-Specific Filters */}
+        <div className="px-8 py-4 border-t border-border/50 space-y-3">
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Report Filters</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <SearchableDropdown
+              label="Report Category"
+              options={REPORT_CATEGORIES}
+              selected={reportFilters.categories}
+              onChange={(selected) => setReportFilters(prev => ({ ...prev, categories: selected }))}
+              placeholder="All categories"
+            />
+            <SearchableDropdown
+              label="Report Status"
+              options={REPORT_STATUSES}
+              selected={reportFilters.statuses}
+              onChange={(selected) => setReportFilters(prev => ({ ...prev, statuses: selected }))}
+              placeholder="All statuses"
+            />
+            <SearchableDropdown
+              label="Schedule Type"
+              options={SCHEDULE_TYPES}
+              selected={reportFilters.scheduleTypes}
+              onChange={(selected) => setReportFilters(prev => ({ ...prev, scheduleTypes: selected }))}
+              placeholder="All types"
+            />
+          </div>
+        </div>
       </div>
 
-      {/* Global Filters */}
-      <FilterPanel showTimeRange={true} />
+      {/* Main Content */}
+      <div className="px-8 py-8 space-y-10">
 
-      {/* Main Report Builder */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* KPI Selection Panel */}
-        <div className="lg:col-span-2 space-y-4">
-          {Object.entries(groupedKPIs).map(([category, kpis]) => (
-            <div key={category} className="card-elevated p-6 rounded-xl border border-border/50">
-              <h3 className="font-semibold text-lg mb-4 text-foreground">{category}</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {kpis.map((kpi) => (
-                  <button
-                    key={kpi.id}
-                    onClick={() => handleKPIToggle(kpi.id)}
+        {/* Section 3.3: Executive Summary Cards */}
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold text-foreground">Executive Summary</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <KPICard
+              icon={FileText}
+              label="Total Reports Available"
+              value={kpis.available_reports.value}
+              unit="templates"
+              change={kpis.available_reports.change}
+              status={kpis.available_reports.status}
+              direction={kpis.available_reports.change > 0 ? "up" : "down"}
+            />
+            <KPICard
+              icon={TrendingUp}
+              label="Reports Generated"
+              value={kpis.reports_generated.value}
+              unit="successfully"
+              change={kpis.reports_generated.change}
+              status={kpis.reports_generated.status}
+              direction={kpis.reports_generated.change > 0 ? "up" : "down"}
+            />
+            <KPICard
+              icon={Clock}
+              label="Scheduled Reports"
+              value={kpis.scheduled_reports.value}
+              unit="pending"
+              change={kpis.scheduled_reports.change}
+              status={kpis.scheduled_reports.status}
+              direction={kpis.scheduled_reports.change > 0 ? "up" : "down"}
+            />
+            <div className={cn(
+              "card-elevated rounded-xl border border-border/50 p-6 flex flex-col justify-between",
+              failureRate < 2 ? "bg-green-500/5" : failureRate < 5 ? "bg-orange-500/5" : "bg-red-500/5"
+            )}>
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2">Failed Reports</p>
+                  <div className="flex items-center gap-3">
+                    <span className="text-3xl font-bold text-foreground">{kpis.failed_reports.value}</span>
+                    <span className={cn("text-xs font-semibold px-2.5 py-1 rounded", getFailureRateColor(failureRate))}>
+                      {failureRate.toFixed(1)}%
+                    </span>
+                  </div>
+                </div>
+                <AlertCircle className={cn(
+                  "w-8 h-8",
+                  failureRate < 2 ? "text-green-600" : failureRate < 5 ? "text-orange-600" : "text-red-600"
+                )} />
+              </div>
+              <div className="mt-3 pt-3 border-t border-border/50">
+                <p className={cn(
+                  "text-xs font-semibold",
+                  kpis.failed_reports.change > 0 ? "text-red-600" : "text-green-600"
+                )}>
+                  {kpis.failed_reports.change > 0 ? "↑" : "↓"} {Math.abs(kpis.failed_reports.change)}%
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Section 3.4: Report Freshness Heatmap */}
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold text-foreground">Report Freshness Heatmap</h2>
+          <div className="card-elevated rounded-xl border border-border/50 p-6 overflow-x-auto">
+            <div className="min-w-full">
+              {/* Header with dates */}
+              <div className="flex gap-4 mb-4">
+                <div className="w-48 flex-shrink-0 font-semibold text-sm text-foreground">Category</div>
+                <div className="flex gap-2">
+                  {freshnessHeatmap[0]?.dates.map((_, idx) => (
+                    <div key={idx} className="w-24 text-center text-xs text-muted-foreground">
+                      {freshnessHeatmap[0].dates[idx].date}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Heatmap rows */}
+              {freshnessHeatmap.map((row) => (
+                <div key={row.category} className="flex gap-4 mb-3">
+                  <div className="w-48 flex-shrink-0 text-sm text-foreground">{row.category}</div>
+                  <div className="flex gap-2">
+                    {row.dates.map((cell, idx) => (
+                      <div
+                        key={idx}
+                        className={cn(
+                          "w-24 h-10 rounded flex items-center justify-center text-xs font-semibold transition-colors",
+                          cell.status === "green"
+                            ? "bg-green-500/20 text-green-700 border border-green-500/30"
+                            : cell.status === "orange"
+                              ? "bg-orange-500/20 text-orange-700 border border-orange-500/30"
+                              : "bg-red-500/20 text-red-700 border border-red-500/30"
+                        )}
+                        title={`${cell.status === "green" ? "On time" : cell.status === "orange" ? "Delayed" : "Missing"}`}
+                      >
+                        {cell.status === "green" ? "✓" : cell.status === "orange" ? "⚠" : "✗"}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Section 3.5: Report Generation Trend */}
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold text-foreground">Report Generation Trend</h2>
+          <div className="card-elevated rounded-xl border border-border/50 p-6">
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={activityTrend} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis
+                  dataKey="timestamp"
+                  stroke="hsl(var(--muted-foreground))"
+                  style={{ fontSize: "12px" }}
+                />
+                <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--card))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "8px",
+                  }}
+                  formatter={(value) => [value, ""]}
+                />
+                <Legend />
+                <Bar dataKey="success" stackId="a" fill="#22c55e" name="Success" />
+                <Bar dataKey="failed" stackId="a" fill="#ef4444" name="Failed" />
+                <Bar dataKey="running" stackId="a" fill="#3b82f6" name="Running" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Section 3.6: Failure Intelligence Panel */}
+        <div className="space-y-6">
+          <h2 className="text-2xl font-bold text-foreground">Failure Intelligence</h2>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Failures by Vendor */}
+            <div className="card-elevated rounded-xl border border-border/50 p-6">
+              <h3 className="text-lg font-bold text-foreground mb-4">Failures by Vendor</h3>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={failuresByVendor} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis type="number" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+                  <YAxis dataKey="vendor" type="category" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} width={80} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: "8px",
+                    }}
+                  />
+                  <Bar dataKey="count" fill="#ef4444" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Failures by Technology */}
+            <div className="card-elevated rounded-xl border border-border/50 p-6">
+              <h3 className="text-lg font-bold text-foreground mb-4">Failures by Technology</h3>
+              <ResponsiveContainer width="100%" height={250}>
+                <PieChart>
+                  <Pie
+                    data={failuresByTech}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ technology, percentage }) => `${technology} ${percentage}%`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="count"
+                  >
+                    {failuresByTech.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: "8px",
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Failures by Region */}
+            <div className="card-elevated rounded-xl border border-border/50 p-6">
+              <h3 className="text-lg font-bold text-foreground mb-4">Failures by Region</h3>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={failuresByRegion}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="region" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+                  <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: "8px",
+                    }}
+                  />
+                  <Bar dataKey="count" fill="#f59e0b" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Top Failed Reports Table */}
+          <div className="card-elevated rounded-xl border border-border/50 p-6">
+            <h3 className="text-lg font-bold text-foreground mb-4">Top Failed Reports</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border/50">
+                    <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Report</th>
+                    <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Vendor</th>
+                    <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Failure Cause</th>
+                    <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Last Attempt</th>
+                    <th className="text-right py-3 px-4 font-semibold text-muted-foreground">Count</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {topFailedReports.map((report, idx) => (
+                    <tr key={idx} className="border-b border-border/30 hover:bg-muted/30 transition-colors">
+                      <td className="py-3 px-4 text-foreground">{report.report}</td>
+                      <td className="py-3 px-4 text-muted-foreground">{report.vendor}</td>
+                      <td className="py-3 px-4 text-red-600">{report.failureCause}</td>
+                      <td className="py-3 px-4 text-muted-foreground">{report.lastAttempt}</td>
+                      <td className="py-3 px-4 text-right font-semibold text-foreground">{report.failureCount}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        {/* Section 3.7: Report Usage Analytics */}
+        <div className="space-y-6">
+          <h2 className="text-2xl font-bold text-foreground">Report Usage Analytics</h2>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Most Downloaded Reports */}
+            <div className="card-elevated rounded-xl border border-border/50 p-6">
+              <h3 className="text-lg font-bold text-foreground mb-4">Most Downloaded Reports</h3>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={mostDownloaded} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis type="number" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+                  <YAxis dataKey="report" type="category" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "11px" }} width={130} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: "8px",
+                    }}
+                  />
+                  <Bar dataKey="downloads" fill="#3b82f6" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Downloads by User Role */}
+            <div className="card-elevated rounded-xl border border-border/50 p-6">
+              <h3 className="text-lg font-bold text-foreground mb-4">Downloads by User Role</h3>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={downloadsByRole.slice(-14)}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="timestamp" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+                  <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: "8px",
+                    }}
+                  />
+                  <Legend />
+                  <Bar dataKey="noc" stackId="a" fill="#3b82f6" name="NOC" />
+                  <Bar dataKey="rf" stackId="a" fill="#8b5cf6" name="RF" />
+                  <Bar dataKey="management" stackId="a" fill="#ec4899" name="Management" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Average Download Time Trend */}
+          <div className="card-elevated rounded-xl border border-border/50 p-6">
+            <h3 className="text-lg font-bold text-foreground mb-4">Avg Download Time Trend</h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <LineChart data={downloadTrend.slice(-14)}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="timestamp" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+                <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} label={{ value: "ms", angle: -90, position: "insideLeft" }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--card))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "8px",
+                  }}
+                  formatter={(value) => [`${value}ms`, "Download Time"]}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="avgTime"
+                  stroke="#10b981"
+                  dot={false}
+                  strokeWidth={2}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Section 3.8: Report Library Tiles */}
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold text-foreground">Report Library</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredReports.map((report) => (
+              <div
+                key={report.id}
+                className="card-elevated rounded-xl border border-border/50 p-6 hover:shadow-md transition-shadow flex flex-col"
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1">
+                    <h4 className="font-bold text-foreground text-base mb-1">{report.title}</h4>
+                    <p className="text-xs text-muted-foreground line-clamp-2">{report.description}</p>
+                  </div>
+                  <span
                     className={cn(
-                      "p-4 rounded-lg border-2 transition-all duration-200 text-left",
-                      selectedKPIs.includes(kpi.id)
-                        ? "border-primary bg-primary/5"
-                        : "border-border bg-card hover:border-primary/50"
+                      "px-2.5 py-1 rounded text-xs font-semibold flex-shrink-0 ml-2",
+                      report.status === "success"
+                        ? "bg-green-500/10 text-green-700"
+                        : report.status === "pending"
+                          ? "bg-blue-500/10 text-blue-700"
+                          : "bg-red-500/10 text-red-700"
                     )}
                   >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1">
-                        <p className="font-medium text-foreground">{kpi.label}</p>
-                        <p className="text-xs text-muted-foreground mt-1">{kpi.description}</p>
-                      </div>
-                      {selectedKPIs.includes(kpi.id) && (
-                        <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                      )}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Report Summary Sidebar */}
-        <div className="space-y-4">
-          {/* Report Details Card */}
-          <div className="card-elevated p-6 rounded-xl border border-border/50 sticky top-6">
-            <h3 className="font-semibold text-lg mb-4 text-foreground">Report Summary</h3>
-            <div className="space-y-4">
-              {/* Selected KPIs Count */}
-              <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
-                <p className="text-xs text-muted-foreground mb-1">Selected KPIs</p>
-                <p className="text-2xl font-bold text-primary">{selectedKPIs.length}</p>
-              </div>
-
-              {/* Active Filters Summary */}
-              <div className="space-y-2">
-                <p className="text-xs font-semibold text-muted-foreground uppercase">
-                  Active Filters
-                </p>
-                <div className="space-y-1 text-xs">
-                  {filters.vendors.length > 0 && (
-                    <p className="text-foreground">Vendors: {filters.vendors.join(", ")}</p>
-                  )}
-                  {filters.technologies.length > 0 && (
-                    <p className="text-foreground">Tech: {filters.technologies.join(", ")}</p>
-                  )}
-                  {filters.regions.length > 0 && (
-                    <p className="text-foreground">Regions: {filters.regions.join(", ")}</p>
-                  )}
-                  {filters.clusters.length > 0 && (
-                    <p className="text-foreground">Clusters: {filters.clusters.join(", ")}</p>
-                  )}
-                  <p className="text-foreground">Time Range: {filters.timeRange}</p>
+                    {report.status}
+                  </span>
                 </div>
-                {filters.vendors.length === 0 &&
-                  filters.technologies.length === 0 &&
-                  filters.regions.length === 0 &&
-                  filters.clusters.length === 0 && (
-                    <p className="text-xs text-muted-foreground italic">
-                      No filters applied (all data)
-                    </p>
-                  )}
-              </div>
 
-              {/* Generate Button */}
-              <button
-                onClick={generateExcelReport}
-                disabled={isGenerating || selectedKPIs.length === 0}
-                className={cn(
-                  "w-full py-3 px-4 rounded-lg font-medium text-sm transition-all duration-200 active:scale-95",
-                  isGenerating || selectedKPIs.length === 0
-                    ? "bg-muted text-muted-foreground cursor-not-allowed"
-                    : "bg-primary text-primary-foreground hover:bg-primary/90"
-                )}
-              >
-                {isGenerating ? (
-                  <div className="flex items-center justify-center gap-2">
-                    <Loader className="w-4 h-4 animate-spin" />
-                    <span>Generating...</span>
+                <div className="space-y-2 py-3 border-t border-border/50 border-b border-border/50">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">Last Generated:</span>
+                    <span className="font-medium text-foreground">
+                      {new Date(report.lastGenerated).toLocaleString([], {
+                        month: "short",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </span>
                   </div>
-                ) : (
-                  <div className="flex items-center justify-center gap-2">
-                    <Download className="w-4 h-4" />
-                    <span>Download Report</span>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">Size:</span>
+                    <span className="font-medium text-foreground">{report.fileSize}</span>
                   </div>
-                )}
-              </button>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">Schedule:</span>
+                    <span className="px-2 py-1 rounded bg-muted text-foreground capitalize font-medium text-xs">
+                      {report.schedule}
+                    </span>
+                  </div>
+                </div>
 
-              {/* Instructions */}
-              <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800">
-                <p className="text-xs text-blue-900 dark:text-blue-100">
-                  <strong>How to use:</strong> Select KPIs, apply filters, and click Download to
-                  generate a CSV report.
-                </p>
+                <div className="mt-4 space-y-2">
+                  <button className="w-full px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary text-sm font-medium rounded transition-colors">
+                    Download Latest
+                  </button>
+                  <button className="w-full px-3 py-2 bg-muted hover:bg-muted/70 text-foreground text-sm font-medium rounded transition-colors">
+                    View History
+                  </button>
+                </div>
               </div>
-            </div>
+            ))}
           </div>
         </div>
+
       </div>
-
-      {/* Info Box */}
-      {selectedKPIs.length === 0 && (
-        <div className="p-4 rounded-lg bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="font-medium text-amber-900 dark:text-amber-100">No KPIs selected</p>
-            <p className="text-sm text-amber-800 dark:text-amber-200 mt-1">
-              Select at least one KPI to generate a report.
-            </p>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
