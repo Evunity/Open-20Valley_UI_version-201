@@ -23,6 +23,7 @@ import SearchableDropdown from "@/components/SearchableDropdown";
 import ActionDrillInModal from "@/components/ActionDrillInModal";
 import { useGlobalFilters } from "@/hooks/useGlobalFilters";
 import { useToast } from "@/hooks/use-toast";
+import * as XLSX from "xlsx";
 import {
   generateAIHealthKPIs,
   generateAutomationActions,
@@ -31,6 +32,9 @@ import {
   generateReliabilityData,
   generateExecutionModeDistribution,
   generateAIInsights,
+  generateFailureIntelligence,
+  generateImpactVisualizationData,
+  generateKPIImpactSummary,
   type AutomationAction,
 } from "@/utils/aiAutomationData";
 import { cn } from "@/lib/utils";
@@ -60,6 +64,9 @@ export default function AIEngineActions() {
   const [isAutoRefreshing, setIsAutoRefreshing] = useState(true);
   const [refreshInterval, setRefreshInterval] = useState(5);
 
+  // Export state
+  const [exportFormat, setExportFormat] = useState<"xlsx" | "csv">("xlsx");
+
   // Generate all data
   const kpis = useMemo(() => generateAIHealthKPIs(filters), [filters]);
   const allActions = useMemo(() => generateAutomationActions(filters), [filters]);
@@ -68,6 +75,9 @@ export default function AIEngineActions() {
   const reliabilityData = useMemo(() => generateReliabilityData(), []);
   const executionModes = useMemo(() => generateExecutionModeDistribution(), []);
   const insights = useMemo(() => generateAIInsights(), []);
+  const failures = useMemo(() => generateFailureIntelligence(filters), [filters]);
+  const impactData = useMemo(() => generateImpactVisualizationData(), []);
+  const kpiImpacts = useMemo(() => generateKPIImpactSummary(), []);
 
   // Filter actions based on local filters
   const filteredActions = useMemo(() => {
@@ -137,14 +147,99 @@ export default function AIEngineActions() {
     return null;
   };
 
-  const failureRate = kpis.failed_automations.value > 0 
-    ? (kpis.failed_automations.value / kpis.total_actions.value) * 100 
+  const failureRate = kpis.failed_automations.value > 0
+    ? (kpis.failed_automations.value / kpis.total_actions.value) * 100
     : 0;
 
   const getFailureRateColor = (rate: number) => {
     if (rate < 2) return "text-green-600 bg-green-500/10";
     if (rate < 5) return "text-orange-600 bg-orange-500/10";
     return "text-red-600 bg-red-500/10";
+  };
+
+  const handleExport = () => {
+    const timestamp = new Date().toISOString().split("T")[0];
+
+    // Prepare action history data
+    const actionData = filteredActions.map((action) => ({
+      ID: action.id,
+      Action: action.action,
+      Category: action.category,
+      Scope: action.scope,
+      Confidence: `${action.confidence.toFixed(0)}%`,
+      ExecutionMode: action.automationLevel,
+      Result: action.result,
+      Timestamp: new Date(action.timestamp).toLocaleString(),
+    }));
+
+    // Prepare failures data
+    const failureData = failures.map((failure) => ({
+      ID: failure.id,
+      Action: failure.action,
+      FailureCause: failure.failureCause,
+      RolledBack: failure.rolledBack ? "Yes" : "No",
+      Severity: failure.severity,
+      Scope: failure.scope,
+      Timestamp: new Date(failure.timestamp).toLocaleString(),
+    }));
+
+    // Prepare KPI impact data
+    const impactData = kpiImpacts.map((impact) => ({
+      KPI: impact.kpi,
+      Before: impact.before,
+      After: impact.after,
+      ImprovementPercent: `${impact.improvement}%`,
+      Unit: impact.unit,
+      Description: impact.description,
+      AutomationTime: impact.automationTime,
+    }));
+
+    if (exportFormat === "csv") {
+      // Export as CSV
+      const sections = [
+        ["AI ENGINE ACTIONS"],
+        ["ID", "Action", "Category", "Scope", "Confidence", "Execution Mode", "Result", "Timestamp"],
+        ...actionData.map((d) => Object.values(d)),
+        [],
+        ["FAILED AUTOMATIONS"],
+        ["ID", "Action", "Failure Cause", "Rolled Back", "Severity", "Scope", "Timestamp"],
+        ...failureData.map((d) => Object.values(d)),
+        [],
+        ["KPI IMPACT SUMMARY"],
+        ["KPI", "Before", "After", "Improvement %", "Unit", "Description", "Automation Time"],
+        ...impactData.map((d) => Object.values(d)),
+      ];
+
+      const csvContent = sections
+        .map((row) => row.map((cell) => `"${cell}"`).join(","))
+        .join("\n");
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", `AIEngine-${timestamp}.csv`);
+      link.click();
+    } else {
+      // Export as Excel
+      const wb = XLSX.utils.book_new();
+
+      const actionsSheet = XLSX.utils.json_to_sheet(actionData);
+      XLSX.utils.book_append_sheet(wb, actionsSheet, "Actions");
+
+      const failuresSheet = XLSX.utils.json_to_sheet(failureData);
+      XLSX.utils.book_append_sheet(wb, failuresSheet, "Failures");
+
+      const impactSheet = XLSX.utils.json_to_sheet(impactData);
+      XLSX.utils.book_append_sheet(wb, impactSheet, "Impact");
+
+      XLSX.writeFile(wb, `AIEngine-${timestamp}.xlsx`);
+    }
+
+    toast({
+      title: "Export successful",
+      description: `AI Engine data has been exported as ${exportFormat.toUpperCase()}`,
+    });
   };
 
   return (
@@ -180,7 +275,18 @@ export default function AIEngineActions() {
                 {isAutoRefreshing ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
                 {isAutoRefreshing ? "Live" : "Paused"}
               </button>
-              <button className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
+              <select
+                value={exportFormat}
+                onChange={(e) => setExportFormat(e.target.value as "xlsx" | "csv")}
+                className="px-3 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50"
+              >
+                <option value="xlsx">Excel (.xlsx)</option>
+                <option value="csv">CSV (.csv)</option>
+              </select>
+              <button
+                onClick={handleExport}
+                className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+              >
                 <Download className="w-4 h-4" />
                 Export
               </button>
@@ -491,6 +597,130 @@ export default function AIEngineActions() {
                 <Bar dataKey="percentage" fill="#3b82f6" />
               </BarChart>
             </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Section 4.7: Failure Intelligence */}
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold text-foreground">Failure Intelligence</h2>
+          <div className="card-elevated rounded-xl border border-border/50 overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50">
+                <tr className="border-b border-border/50">
+                  <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Action</th>
+                  <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Failure Cause</th>
+                  <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Scope</th>
+                  <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Severity</th>
+                  <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Rolled Back</th>
+                  <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Timestamp</th>
+                </tr>
+              </thead>
+              <tbody>
+                {failures.map((failure) => (
+                  <tr key={failure.id} className="border-b border-border/30 hover:bg-muted/30 transition-colors">
+                    <td className="py-3 px-4 text-foreground font-medium">{failure.action}</td>
+                    <td className="py-3 px-4 text-red-600">{failure.failureCause}</td>
+                    <td className="py-3 px-4 text-muted-foreground text-xs">{failure.scope}</td>
+                    <td className="py-3 px-4">
+                      <span className={cn(
+                        "px-2.5 py-1 rounded text-xs font-semibold",
+                        failure.severity === "critical"
+                          ? "bg-red-500/10 text-red-700"
+                          : failure.severity === "major"
+                            ? "bg-orange-500/10 text-orange-700"
+                            : "bg-blue-500/10 text-blue-700"
+                      )}>
+                        {failure.severity}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className={cn(
+                        "px-2.5 py-1 rounded text-xs font-semibold",
+                        failure.rolledBack ? "bg-orange-500/10 text-orange-700" : "bg-green-500/10 text-green-700"
+                      )}>
+                        {failure.rolledBack ? "Yes" : "No"}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-muted-foreground text-xs">
+                      {new Date(failure.timestamp).toLocaleString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Section 4.8: Impact Visualization */}
+        <div className="space-y-6">
+          <h2 className="text-2xl font-bold text-foreground">Impact Visualization</h2>
+
+          {/* Impact Summary Card */}
+          <div className="card-elevated rounded-xl border border-border/50 p-6 bg-gradient-to-r from-green-500/5 to-blue-500/5">
+            <div className="space-y-4">
+              <p className="text-lg font-bold text-foreground">Automation Impact</p>
+              <p className="text-muted-foreground">
+                Automation prevented approximately <strong className="text-green-600">320 minutes</strong> of potential downtime this week and improved network KPIs across <strong className="text-green-600">14 clusters</strong>.
+              </p>
+            </div>
+          </div>
+
+          {/* KPI Before/After Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {kpiImpacts.map((impact) => (
+              <div
+                key={impact.kpi}
+                className="card-elevated rounded-xl border border-border/50 p-5 hover:shadow-md transition-shadow"
+              >
+                <p className="text-sm font-bold text-foreground mb-3">{impact.kpi}</p>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">Before</span>
+                    <span className="text-sm font-semibold text-foreground">
+                      {impact.before}{impact.unit}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">After</span>
+                    <span className="text-sm font-semibold text-green-600">
+                      {impact.after}{impact.unit}
+                    </span>
+                  </div>
+                  <div className="pt-2 border-t border-border/50">
+                    <p className="text-xs text-green-600 font-bold mb-1">
+                      ↓ {impact.improvement}% Improvement
+                    </p>
+                    <p className="text-xs text-muted-foreground">{impact.description}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* KPI Trend Chart */}
+          <div className="card-elevated rounded-xl border border-border/50 p-6">
+            <h3 className="text-lg font-bold text-foreground mb-4">KPI Trend with Automation Markers</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={impactData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="timestamp" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+                <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--card))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "8px",
+                  }}
+                />
+                <Legend />
+                <Line type="monotone" dataKey="latency" stroke="#3b82f6" dot={false} strokeWidth={2} name="Latency (ms)" />
+                <Line type="monotone" dataKey="packet_loss" stroke="#ef4444" dot={false} strokeWidth={2} name="Packet Loss %" />
+                <Line type="monotone" dataKey="availability" stroke="#22c55e" dot={false} strokeWidth={2} name="Availability %" />
+              </LineChart>
+            </ResponsiveContainer>
+            <p className="text-xs text-muted-foreground mt-4 text-center">
+              Vertical markers indicate automation executed. Improved metrics follow automation execution.
+            </p>
           </div>
         </div>
 

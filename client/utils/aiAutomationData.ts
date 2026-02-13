@@ -72,6 +72,36 @@ export interface ExecutionModeDistribution {
   percentage: number;
 }
 
+export interface FailureRecord {
+  id: string;
+  action: string;
+  failureCause: string;
+  rolledBack: boolean;
+  timestamp: string;
+  scope: string;
+  severity: "critical" | "major" | "minor";
+}
+
+export interface ImpactDataPoint {
+  timestamp: string;
+  drop_rate?: number;
+  throughput?: number;
+  latency?: number;
+  packet_loss?: number;
+  availability?: number;
+  mttr?: number;
+}
+
+export interface KPIImpact {
+  kpi: string;
+  before: number;
+  after: number;
+  improvement: number;
+  unit: string;
+  description: string;
+  automationTime?: string;
+}
+
 /**
  * Generate AI & Automation Activity KPIs
  */
@@ -411,5 +441,149 @@ export const generateExecutionModeDistribution = (): ExecutionModeDistribution[]
     { mode: "Insight Only", value: insight, percentage: (insight / total) * 100 },
     { mode: "Approval-Based", value: approved, percentage: (approved / total) * 100 },
     { mode: "Fully Automated", value: automated, percentage: (automated / total) * 100 },
+  ];
+};
+
+/**
+ * Generate Failure Intelligence Data (section 4.7)
+ */
+export const generateFailureIntelligence = (filters: GlobalFilterState): FailureRecord[] => {
+  const failures: FailureRecord[] = [];
+  const causes = [
+    "Script timeout",
+    "Device unreachable",
+    "Parameter conflict",
+    "Dependency missing",
+    "Authentication failed",
+    "Network timeout",
+    "Resource unavailable",
+  ];
+  const scopes = ["DEL Cluster", "BLR Cluster", "Mumbai Region", "North Zone", "East Region"];
+  const severities: ("critical" | "major" | "minor")[] = ["critical", "major", "minor"];
+  const now = new Date();
+
+  for (let i = 0; i < 8; i++) {
+    const hoursAgo = Math.floor(Math.random() * 48);
+    const timestamp = new Date(now.getTime() - hoursAgo * 60 * 60 * 1000);
+
+    failures.push({
+      id: `failure-${i}`,
+      action: `Action ${i + 1}`,
+      failureCause: causes[Math.floor(Math.random() * causes.length)],
+      rolledBack: Math.random() > 0.6,
+      timestamp: timestamp.toISOString(),
+      scope: scopes[Math.floor(Math.random() * scopes.length)],
+      severity: severities[Math.floor(Math.random() * severities.length)],
+    });
+  }
+
+  return failures.sort(
+    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+  );
+};
+
+/**
+ * Generate Impact Visualization Data (section 4.8)
+ */
+export const generateImpactVisualizationData = (): ImpactDataPoint[] => {
+  const points: ImpactDataPoint[] = [];
+  const now = new Date();
+  const automationTime = Math.floor(Math.random() * 24); // Hours ago
+
+  for (let i = 48; i >= 0; i--) {
+    const timestamp = new Date(now.getTime() - i * 60 * 60 * 1000);
+    const dateStr = timestamp.toISOString().split("T")[0];
+
+    // Before automation: higher metrics, more variance
+    let dropRate = 2.1 + Math.sin(i / 8) * 0.5;
+    let throughput = 850 + Math.random() * 100;
+    let latency = 28 + Math.sin(i / 10) * 5;
+    let packetLoss = 1.8 + Math.random() * 0.5;
+    let availability = 97.4 + Math.random() * 1;
+    let mttr = 46 + Math.random() * 10;
+
+    // After automation (around automation time): improvements
+    if (i <= automationTime) {
+      dropRate = Math.max(0.6, dropRate * 0.3 + Math.random() * 0.3);
+      throughput = Math.min(950, throughput * 1.05 + Math.random() * 20);
+      latency = Math.max(16, latency * 0.6 + Math.random() * 2);
+      packetLoss = Math.max(0.3, packetLoss * 0.2 + Math.random() * 0.1);
+      availability = Math.min(99.8, availability * 1.002 + Math.random() * 0.3);
+      mttr = Math.max(9, mttr * 0.2 + Math.random() * 2);
+    }
+
+    points.push({
+      timestamp: dateStr,
+      drop_rate: Math.round(dropRate * 100) / 100,
+      throughput: Math.round(throughput),
+      latency: Math.round(latency * 10) / 10,
+      packet_loss: Math.round(packetLoss * 100) / 100,
+      availability: Math.round(availability * 100) / 100,
+      mttr: Math.round(mttr),
+    });
+  }
+
+  return points;
+};
+
+/**
+ * Generate KPI Impact Summary (section 4.8)
+ */
+export const generateKPIImpactSummary = (): KPIImpact[] => {
+  return [
+    {
+      kpi: "Call Drop Rate",
+      before: 2.1,
+      after: 0.6,
+      improvement: 71,
+      unit: "%",
+      description: "Service stability significantly improved",
+      automationTime: "2 hours ago",
+    },
+    {
+      kpi: "Site Availability",
+      before: 97.4,
+      after: 99.2,
+      improvement: 1.8,
+      unit: "%",
+      description: "Availability restored within 3 minutes",
+      automationTime: "4 hours ago",
+    },
+    {
+      kpi: "Cell Utilization",
+      before: 82,
+      after: 64,
+      improvement: 22,
+      unit: "%",
+      description: "Congestion risk reduced",
+      automationTime: "6 hours ago",
+    },
+    {
+      kpi: "Latency",
+      before: 28,
+      after: 16,
+      improvement: 43,
+      unit: "ms",
+      description: "User experience improved",
+      automationTime: "8 hours ago",
+    },
+    {
+      kpi: "Packet Loss",
+      before: 1.8,
+      after: 0.3,
+      improvement: 83,
+      unit: "%",
+      description: "Packet loss normalized after automated reroute",
+      automationTime: "10 hours ago",
+    },
+    {
+      kpi: "Mean Time to Resolve",
+      before: 46,
+      after: 9,
+      improvement: 80,
+      unit: "min",
+      description: "80% faster resolution",
+      automationTime: "12 hours ago",
+    },
   ];
 };

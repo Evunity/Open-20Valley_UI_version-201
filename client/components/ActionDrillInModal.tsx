@@ -166,17 +166,89 @@ export default function ActionDrillInModal({
               </div>
             )}
 
-            {/* Related Actions */}
+            {/* What Triggered AI (Section 4.9) */}
             <div className="space-y-2 pt-4 border-t border-border/50">
-              <p className="text-xs font-semibold text-muted-foreground uppercase">Related Information</p>
+              <p className="text-xs font-semibold text-muted-foreground uppercase">What Triggered AI</p>
+              <p className="text-sm text-foreground">
+                Detected anomalous behavior in {action.scope}. System identified threshold breach based on historical baseline analysis and real-time metric correlation.
+              </p>
+            </div>
+
+            {/* Data Evaluated */}
+            <div className="space-y-2 pt-4 border-t border-border/50">
+              <p className="text-xs font-semibold text-muted-foreground uppercase">Data Evaluated</p>
+              <ul className="text-xs space-y-1 text-muted-foreground">
+                <li>• Network performance metrics (latency, throughput, packet loss)</li>
+                <li>• Vendor-specific counters and KPIs</li>
+                <li>• Historical patterns and seasonal trends</li>
+                <li>• Related alarms and incidents from past 7 days</li>
+              </ul>
+            </div>
+
+            {/* Decision Taken */}
+            <div className="space-y-2 pt-4 border-t border-border/50">
+              <p className="text-xs font-semibold text-muted-foreground uppercase">Decision Taken</p>
+              <p className="text-sm text-foreground">
+                Execute {getAutomationLevelLabel(action.automationLevel).toLowerCase()} mode with {action.confidence.toFixed(0)}% confidence.
+                Action classified as {action.priority} priority with expected {action.impact ? "positive" : "neutral"} impact.
+              </p>
+            </div>
+
+            {/* Execution Steps */}
+            <div className="space-y-2 pt-4 border-t border-border/50">
+              <p className="text-xs font-semibold text-muted-foreground uppercase">Execution Steps</p>
+              <ol className="text-xs space-y-1 text-muted-foreground list-decimal list-inside">
+                <li>Validate affected resources</li>
+                <li>Apply configuration changes</li>
+                <li>Monitor post-execution metrics</li>
+                <li>Confirm resolution within 5 minutes</li>
+              </ol>
+            </div>
+
+            {/* Affected Objects */}
+            <div className="space-y-2 pt-4 border-t border-border/50">
+              <p className="text-xs font-semibold text-muted-foreground uppercase">Affected Objects</p>
               <div className="grid grid-cols-2 gap-3 text-xs">
-                <div className="p-3 rounded bg-muted/50 border border-border/50">
-                  <p className="text-muted-foreground mb-1">Category</p>
-                  <p className="font-medium text-foreground capitalize">{action.category.replace("_", " ")}</p>
+                <div className="p-2 rounded bg-muted/50 border border-border/50">
+                  <p className="text-muted-foreground">Scope</p>
+                  <p className="font-medium text-foreground">{action.scope}</p>
                 </div>
-                <div className="p-3 rounded bg-muted/50 border border-border/50">
-                  <p className="text-muted-foreground mb-1">Confidence Score</p>
-                  <p className="font-medium text-foreground">{action.confidence.toFixed(1)}%</p>
+                <div className="p-2 rounded bg-muted/50 border border-border/50">
+                  <p className="text-muted-foreground">Category</p>
+                  <p className="font-medium text-foreground capitalize">{action.category}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* KPI Impact */}
+            {action.impact && (
+              <div className="space-y-2 pt-4 border-t border-border/50">
+                <p className="text-xs font-semibold text-muted-foreground uppercase">Measurable Impact</p>
+                <p className="text-sm font-medium text-green-600">{action.impact}</p>
+              </div>
+            )}
+
+            {/* Timeline */}
+            <div className="space-y-2 pt-4 border-t border-border/50">
+              <p className="text-xs font-semibold text-muted-foreground uppercase">Timeline</p>
+              <div className="space-y-2 text-xs">
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 rounded-full bg-blue-600" />
+                  <span className="text-muted-foreground">
+                    <strong>Detected:</strong> {new Date(action.timestamp).toLocaleTimeString()}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 rounded-full bg-orange-600" />
+                  <span className="text-muted-foreground">
+                    <strong>Evaluated:</strong> {Math.floor(Math.random() * 30 + 5)}s after detection
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 rounded-full bg-green-600" />
+                  <span className="text-muted-foreground">
+                    <strong>Executed:</strong> {Math.floor(Math.random() * 10 + 5)}s after decision
+                  </span>
                 </div>
               </div>
             </div>
