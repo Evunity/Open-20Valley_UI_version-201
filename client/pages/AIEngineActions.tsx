@@ -1,10 +1,14 @@
-import { useState, useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { Download, Pause, Play, AlertCircle, Zap, TrendingUp, CheckCircle, X } from "lucide-react";
 import {
   LineChart,
   Line,
   BarChart,
   Bar,
+  PieChart,
+  Pie,
+  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -12,351 +16,495 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+
 import FilterPanel from "@/components/FilterPanel";
+import KPICard from "@/components/KPICard";
+import SearchableDropdown from "@/components/SearchableDropdown";
+import ActionDrillInModal from "@/components/ActionDrillInModal";
 import { useGlobalFilters } from "@/hooks/useGlobalFilters";
 import { useToast } from "@/hooks/use-toast";
-import { Download, Clock, CheckCircle2, XCircle } from "lucide-react";
-import * as XLSX from "xlsx";
 import {
-  generateAIActionsData,
-  generateAIActionsSummary,
-  generateAIActionsDetailList,
-} from "@/utils/dashboardData";
+  generateAIHealthKPIs,
+  generateAutomationActions,
+  generateAutomationTrend,
+  generateIncidentReductionTrend,
+  generateReliabilityData,
+  generateExecutionModeDistribution,
+  generateAIInsights,
+  type AutomationAction,
+} from "@/utils/aiAutomationData";
 import { cn } from "@/lib/utils";
 
-type ChartType = "line" | "bar" | "histogram";
+const ACTION_TYPES = ["Detection", "Recommendation", "Automated Action", "Scheduled"];
+const EXECUTION_MODES = ["Insight Only", "Approval-Based", "Fully Automated"];
+const STATUSES = ["Success", "Failed", "Rolled Back", "Running"];
+
+const PI_COLORS = ["#22c55e", "#ef4444", "#8b5cf6"];
 
 export default function AIEngineActions() {
   const { toast } = useToast();
   const { filters } = useGlobalFilters();
-  const [chartType, setChartType] = useState<ChartType>("bar");
 
-  // Generate all data with memoization
-  const aiActionsData = useMemo(() => generateAIActionsData(filters), [filters]);
-  const aiSummary = useMemo(() => generateAIActionsSummary(filters), [filters]);
-  const aiActionsDetailList = useMemo(() => generateAIActionsDetailList(filters), [filters]);
+  // Local filters
+  const [actionFilters, setActionFilters] = useState({
+    types: [] as string[],
+    executionModes: [] as string[],
+    statuses: [] as string[],
+  });
 
-  const renderChart = (type: ChartType, data: any[]) => {
-    switch (type) {
-      case "line":
-        return (
-          <LineChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <XAxis
-              dataKey="time"
-              stroke="hsl(var(--muted-foreground))"
-              style={{ fontSize: "12px" }}
-            />
-            <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: "hsl(var(--card))",
-                border: "1px solid hsl(var(--border))",
-                borderRadius: "8px",
-              }}
-            />
-            <Legend />
-            <Line
-              type="monotone"
-              dataKey="successful"
-              stroke="#22c55e"
-              strokeWidth={2}
-              name="Successful"
-            />
-            <Line type="monotone" dataKey="failed" stroke="#ef4444" strokeWidth={2} name="Failed" />
-          </LineChart>
-        );
-      case "bar":
-        return (
-          <BarChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <XAxis
-              dataKey="time"
-              stroke="hsl(var(--muted-foreground))"
-              style={{ fontSize: "12px" }}
-            />
-            <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: "hsl(var(--card))",
-                border: "1px solid hsl(var(--border))",
-                borderRadius: "8px",
-              }}
-            />
-            <Legend />
-            <Bar dataKey="successful" fill="#22c55e" radius={[8, 8, 0, 0]} name="Successful" />
-            <Bar dataKey="failed" fill="#ef4444" radius={[8, 8, 0, 0]} name="Failed" />
-          </BarChart>
-        );
-      case "histogram":
-        return (
-          <BarChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <XAxis
-              dataKey="time"
-              stroke="hsl(var(--muted-foreground))"
-              style={{ fontSize: "12px" }}
-            />
-            <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: "hsl(var(--card))",
-                border: "1px solid hsl(var(--border))",
-                borderRadius: "8px",
-              }}
-            />
-            <Legend />
-            <Bar dataKey="successful" fill="#22c55e" name="Successful Distribution" />
-            <Bar dataKey="failed" fill="#ef4444" name="Failed Distribution" />
-          </BarChart>
-        );
+  // Modal state
+  const [selectedAction, setSelectedAction] = useState<AutomationAction | null>(null);
+  const [isDrillInOpen, setIsDrillInOpen] = useState(false);
+
+  // Auto-refresh state
+  const [isAutoRefreshing, setIsAutoRefreshing] = useState(true);
+  const [refreshInterval, setRefreshInterval] = useState(5);
+
+  // Generate all data
+  const kpis = useMemo(() => generateAIHealthKPIs(filters), [filters]);
+  const allActions = useMemo(() => generateAutomationActions(filters), [filters]);
+  const successFailureTrend = useMemo(() => generateAutomationTrend(filters), [filters]);
+  const incidentReductionTrend = useMemo(() => generateIncidentReductionTrend(), []);
+  const reliabilityData = useMemo(() => generateReliabilityData(), []);
+  const executionModes = useMemo(() => generateExecutionModeDistribution(), []);
+  const insights = useMemo(() => generateAIInsights(), []);
+
+  // Filter actions based on local filters
+  const filteredActions = useMemo(() => {
+    return allActions.filter((action) => {
+      const typeMatch = actionFilters.types.length === 0 || actionFilters.types.some((t) => {
+        if (t === "Detection") return action.category === "detection";
+        if (t === "Recommendation") return action.category === "recommendation";
+        if (t === "Automated Action") return action.category === "automation";
+        return false;
+      });
+
+      const modeMatch = actionFilters.executionModes.length === 0 || actionFilters.executionModes.some((m) => {
+        if (m === "Insight Only") return action.automationLevel === "insight_only";
+        if (m === "Approval-Based") return action.automationLevel === "recommendation_only";
+        if (m === "Fully Automated") return action.automationLevel === "auto_executed";
+        return false;
+      });
+
+      const statusMatch = actionFilters.statuses.length === 0 || actionFilters.statuses.some((s) => {
+        if (s === "Success") return action.result === "successful";
+        if (s === "Failed") return action.result === "failed";
+        return false;
+      });
+
+      return typeMatch && modeMatch && statusMatch;
+    });
+  }, [allActions, actionFilters]);
+
+  const getStatusColor = (result: string) => {
+    switch (result) {
+      case "successful":
+        return "bg-green-500/10 text-green-700 border border-green-500/30";
+      case "failed":
+        return "bg-red-500/10 text-red-700 border border-red-500/30";
+      case "partial":
+        return "bg-orange-500/10 text-orange-700 border border-orange-500/30";
+      default:
+        return "bg-gray-500/10 text-gray-700";
     }
   };
 
-  const exportToExcel = () => {
-    // Create workbook and worksheet
-    const wb = XLSX.utils.book_new();
+  const getExecutionModeLabel = (level: string) => {
+    switch (level) {
+      case "insight_only":
+        return "Insight";
+      case "recommendation_only":
+        return "Approved";
+      case "auto_executed":
+        return "Auto";
+      default:
+        return level;
+    }
+  };
 
-    // Sheet data with sections
-    const sheetData: any[] = [];
+  const getReliabilityAlert = () => {
+    const successRate = reliabilityData[0].value;
+    if (successRate < 90) {
+      return (
+        <div className="flex items-start gap-3 p-4 rounded-lg bg-orange-500/10 border border-orange-500/30">
+          <AlertCircle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-orange-700">
+            Automation success rate dropped below normal range. Consider reviewing recent actions.
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
 
-    // Header
-    sheetData.push(["AI ENGINE ACTIONS EXPORT"]);
-    sheetData.push([`Generated: ${new Date().toLocaleString()}`]);
-    sheetData.push([]);
+  const failureRate = kpis.failed_automations.value > 0 
+    ? (kpis.failed_automations.value / kpis.total_actions.value) * 100 
+    : 0;
 
-    // Summary metrics section
-    sheetData.push(["SUMMARY METRICS:"]);
-    sheetData.push(["Total Actions", aiSummary.totalActions]);
-    sheetData.push(["Successful Actions", aiSummary.successfulActions]);
-    sheetData.push(["Failed Actions", aiSummary.failedActions]);
-    sheetData.push([
-      "Success Rate",
-      `${((aiSummary.successfulActions / aiSummary.totalActions) * 100).toFixed(1)}%`,
-    ]);
-    sheetData.push([]);
-
-    // Detailed actions section
-    sheetData.push(["DETAILED ACTION LIST:"]);
-    sheetData.push(["Action Name", "Time", "Severity", "Status"]);
-    aiActionsDetailList.forEach((action) => {
-      sheetData.push([action.name, action.time, action.severity, action.status]);
-    });
-
-    const ws = XLSX.utils.aoa_to_sheet(sheetData);
-
-    // Set column widths
-    ws["!cols"] = [{ wch: 25 }, { wch: 20 }, { wch: 15 }, { wch: 15 }];
-
-    XLSX.utils.book_append_sheet(wb, ws, "AI Actions");
-
-    // Generate file
-    const fileName = `ai-actions-export-${new Date().getTime()}.xlsx`;
-    XLSX.writeFile(wb, fileName);
-
-    toast({
-      title: "Export successful",
-      description: "Downloaded AI actions data as Excel file",
-    });
+  const getFailureRateColor = (rate: number) => {
+    if (rate < 2) return "text-green-600 bg-green-500/10";
+    if (rate < 5) return "text-orange-600 bg-orange-500/10";
+    return "text-red-600 bg-red-500/10";
   };
 
   return (
-    <div className="space-y-8 pb-6">
-      {/* Breadcrumb Navigation */}
-      <div className="flex items-center gap-2 text-sm">
-        <Link to="/" className="text-primary hover:text-primary/80 transition-colors font-medium">
-          Dashboard
-        </Link>
-        <span className="text-muted-foreground">/</span>
-        <span className="text-muted-foreground">AI Engine Actions</span>
-      </div>
-
-      {/* ===== HEADER SECTION ===== */}
-      <div className="space-y-6">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div className="space-y-1">
-            <h1 className="text-4xl font-bold text-foreground">AI Engine Actions</h1>
-            <p className="text-muted-foreground">
-              Detailed automated network operations and resolution activities
-            </p>
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="border-b border-border bg-card/50 backdrop-blur-sm">
+        <div className="px-8 py-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                <Link to="/" className="hover:text-foreground">
+                  Dashboard
+                </Link>
+                <span>/</span>
+                <span>AI & Automation Engine</span>
+              </div>
+              <h1 className="text-3xl font-bold text-foreground">AI & Automation Engine</h1>
+              <p className="text-muted-foreground">
+                Real-time AI-driven actions, recommendations, and automation performance
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsAutoRefreshing(!isAutoRefreshing)}
+                className={cn(
+                  "flex items-center gap-2 px-3 py-2 rounded-lg transition-colors",
+                  isAutoRefreshing
+                    ? "bg-primary/10 text-primary hover:bg-primary/20"
+                    : "bg-muted text-muted-foreground hover:bg-muted/70"
+                )}
+                title={isAutoRefreshing ? "Pause auto-refresh" : "Resume auto-refresh"}
+              >
+                {isAutoRefreshing ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                {isAutoRefreshing ? "Live" : "Paused"}
+              </button>
+              <button className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
+                <Download className="w-4 h-4" />
+                Export
+              </button>
+            </div>
           </div>
-          <button
-            onClick={exportToExcel}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-border bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium"
-          >
-            <Download className="w-4 h-4" />
-            Export to Excel
-          </button>
         </div>
 
-        {/* Global Filter Panel */}
+        {/* Global Filters */}
         <FilterPanel />
-      </div>
 
-      {/* ===== SUMMARY METRICS ===== */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {/* Total Actions */}
-        <div className="p-6 rounded-xl border border-border/50 bg-card">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wide">
-                Total Actions
-              </p>
-              <p className="text-3xl font-bold text-foreground">{aiSummary.totalActions}</p>
-            </div>
-            <div className="p-2.5 rounded-lg bg-primary/10">
-              <Clock className="w-5 h-5 text-primary" />
-            </div>
-          </div>
-        </div>
-
-        {/* Successful */}
-        <div className="p-6 rounded-xl border border-border/50 bg-card">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wide">
-                Successful
-              </p>
-              <p className="text-3xl font-bold text-status-healthy">
-                {aiSummary.successfulActions}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                {((aiSummary.successfulActions / aiSummary.totalActions) * 100).toFixed(1)}% success
-              </p>
-            </div>
-            <div className="p-2.5 rounded-lg bg-status-healthy/10">
-              <CheckCircle2 className="w-5 h-5 text-status-healthy" />
-            </div>
-          </div>
-        </div>
-
-        {/* Failed */}
-        <div className="p-6 rounded-xl border border-border/50 bg-card">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wide">
-                Failed
-              </p>
-              <p className="text-3xl font-bold text-status-critical">{aiSummary.failedActions}</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                {((aiSummary.failedActions / aiSummary.totalActions) * 100).toFixed(1)}% failure
-              </p>
-            </div>
-            <div className="p-2.5 rounded-lg bg-status-critical/10">
-              <XCircle className="w-5 h-5 text-status-critical" />
-            </div>
-          </div>
-        </div>
-
-        {/* Success Rate */}
-        <div className="p-6 rounded-xl border border-border/50 bg-card">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wide">
-                Success Rate
-              </p>
-              <p className="text-3xl font-bold text-foreground">
-                {((aiSummary.successfulActions / aiSummary.totalActions) * 100).toFixed(1)}%
-              </p>
-            </div>
-            <div className="p-2.5 rounded-lg bg-primary/10">
-              <CheckCircle2 className="w-5 h-5 text-primary" />
-            </div>
+        {/* AI Engine Specific Filters */}
+        <div className="px-8 py-4 border-t border-border/50 space-y-3">
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">AI Engine Filters</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <SearchableDropdown
+              label="Action Type"
+              options={ACTION_TYPES}
+              selected={actionFilters.types}
+              onChange={(selected) => setActionFilters(prev => ({ ...prev, types: selected }))}
+              placeholder="All types"
+            />
+            <SearchableDropdown
+              label="Execution Mode"
+              options={EXECUTION_MODES}
+              selected={actionFilters.executionModes}
+              onChange={(selected) => setActionFilters(prev => ({ ...prev, executionModes: selected }))}
+              placeholder="All modes"
+            />
+            <SearchableDropdown
+              label="Status"
+              options={STATUSES}
+              selected={actionFilters.statuses}
+              onChange={(selected) => setActionFilters(prev => ({ ...prev, statuses: selected }))}
+              placeholder="All statuses"
+            />
           </div>
         </div>
       </div>
 
-      {/* ===== CHART VISUALIZATION ===== */}
-      <div className="card-elevated rounded-xl border border-border/50 p-6">
-        <div className="mb-6 space-y-1">
+      {/* Main Content */}
+      <div className="px-8 py-8 space-y-10">
+
+        {/* Section 4.2: Executive AI Health Cards */}
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold text-foreground">AI Health Overview</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <KPICard
+              icon={Zap}
+              label="Total AI Actions"
+              value={kpis.total_actions.value}
+              unit="actions"
+              change={kpis.total_actions.change}
+              status={kpis.total_actions.status}
+              direction={kpis.total_actions.change > 0 ? "up" : "down"}
+            />
+            <KPICard
+              icon={CheckCircle}
+              label="Autonomous Actions"
+              value={kpis.autonomous_actions.value}
+              unit={kpis.autonomous_actions.label}
+              change={kpis.autonomous_actions.change}
+              status={kpis.autonomous_actions.status}
+              direction={kpis.autonomous_actions.change > 0 ? "up" : "down"}
+            />
+            <KPICard
+              icon={TrendingUp}
+              label="Recommendations"
+              value={kpis.recommendations_generated.value}
+              unit="generated"
+              change={kpis.recommendations_generated.change}
+              status={kpis.recommendations_generated.status}
+              direction={kpis.recommendations_generated.change > 0 ? "up" : "down"}
+            />
+            <KPICard
+              icon={AlertCircle}
+              label="Failed Automations"
+              value={kpis.failed_automations.value}
+              unit={`${failureRate.toFixed(1)}%`}
+              change={kpis.failed_automations.change}
+              status={kpis.failed_automations.status}
+              direction={kpis.failed_automations.change < 0 ? "down" : "up"}
+            />
+            <div className={cn(
+              "card-elevated rounded-xl border border-border/50 p-6 flex flex-col justify-between",
+              kpis.rollbacks_triggered.value > 50 ? "bg-red-500/5" : "bg-orange-500/5"
+            )}>
+              <div>
+                <p className="text-sm text-muted-foreground mb-2">Rollbacks Triggered</p>
+                <div className="flex items-end gap-3">
+                  <span className="text-3xl font-bold text-foreground">{kpis.rollbacks_triggered.value}</span>
+                  <span className={cn(
+                    "text-xs font-semibold px-2.5 py-1 rounded",
+                    kpis.rollbacks_triggered.change > 0 ? "text-orange-600 bg-orange-500/10" : "text-green-600 bg-green-500/10"
+                  )}>
+                    {kpis.rollbacks_triggered.change > 0 ? "↑" : "↓"} {Math.abs(kpis.rollbacks_triggered.change)}%
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Section 4.3: Action Stream */}
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <h2 className="text-2xl font-bold text-foreground">Actions Timeline</h2>
-              <p className="text-sm text-muted-foreground">
-                Success and failure distribution over time
-              </p>
+            <h2 className="text-2xl font-bold text-foreground">Action Stream</h2>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className={cn(
+                "w-2 h-2 rounded-full",
+                isAutoRefreshing ? "bg-green-600 animate-pulse" : "bg-gray-400"
+              )} />
+              {isAutoRefreshing ? "Live" : "Paused"}
             </div>
-            <select
-              value={chartType}
-              onChange={(e) => setChartType(e.target.value as ChartType)}
-              className="px-3 py-1 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50"
-            >
-              <option value="bar">Bar Chart</option>
-              <option value="line">Line Chart</option>
-              <option value="histogram">Histogram</option>
-            </select>
+          </div>
+          
+          <div className="card-elevated rounded-xl border border-border/50 overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50">
+                <tr className="border-b border-border/50">
+                  <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Action</th>
+                  <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Detected Issue</th>
+                  <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Scope</th>
+                  <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Confidence</th>
+                  <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Execution Mode</th>
+                  <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Status</th>
+                  <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Duration</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredActions.map((action) => (
+                  <tr
+                    key={action.id}
+                    onClick={() => {
+                      setSelectedAction(action);
+                      setIsDrillInOpen(true);
+                    }}
+                    className="border-b border-border/30 hover:bg-muted/30 transition-colors cursor-pointer"
+                  >
+                    <td className="py-3 px-4 text-foreground">{action.action.substring(0, 35)}</td>
+                    <td className="py-3 px-4 text-muted-foreground text-xs">{action.action}</td>
+                    <td className="py-3 px-4 text-muted-foreground text-xs">{action.scope}</td>
+                    <td className="py-3 px-4">
+                      <span className="inline-block px-2 py-1 rounded bg-blue-500/10 text-blue-700 text-xs font-semibold">
+                        {action.confidence.toFixed(0)}%
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-xs text-muted-foreground">
+                      {getExecutionModeLabel(action.automationLevel)}
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className={cn(
+                        "px-2.5 py-1 rounded text-xs font-semibold",
+                        getStatusColor(action.result)
+                      )}>
+                        {action.result}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-muted-foreground text-xs">
+                      {Math.floor(Math.random() * 60 + 5)}s
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
-        <ResponsiveContainer width="100%" height={350}>
-          {renderChart(chartType, aiActionsData)}
-        </ResponsiveContainer>
-      </div>
 
-      {/* ===== DETAILED ACTION LIST ===== */}
-      <div className="card-elevated rounded-xl border border-border/50 p-6">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-foreground">Action Details</h2>
-          <p className="text-sm text-muted-foreground">
-            Complete list of {aiActionsDetailList.length} actions
-          </p>
+        {/* Section 4.4: Automation Effectiveness */}
+        <div className="space-y-6">
+          <h2 className="text-2xl font-bold text-foreground">Automation Effectiveness</h2>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Success vs Failure Trend */}
+            <div className="card-elevated rounded-xl border border-border/50 p-6">
+              <h3 className="text-lg font-bold text-foreground mb-4">Success vs Failure Trend</h3>
+              <ResponsiveContainer width="100%" height={250}>
+                <LineChart data={successFailureTrend} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="timestamp" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+                  <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: "8px",
+                    }}
+                  />
+                  <Legend />
+                  <Line type="monotone" dataKey="successful" stroke="#22c55e" dot={false} strokeWidth={2} name="Successful" />
+                  <Line type="monotone" dataKey="failed" stroke="#ef4444" dot={false} strokeWidth={2} name="Failed" />
+                  <Line type="monotone" dataKey="rolled_back" stroke="#8b5cf6" dot={false} strokeWidth={2} name="Rolled Back" />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Repeated Incident Reduction */}
+            <div className="card-elevated rounded-xl border border-border/50 p-6">
+              <h3 className="text-lg font-bold text-foreground mb-4">Repeated Incident Reduction</h3>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={incidentReductionTrend} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="timestamp" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+                  <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: "8px",
+                    }}
+                  />
+                  <Bar dataKey="repeated_incidents_prevented" fill="#10b981" name="Incidents Prevented" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border/50">
-                <th className="text-left px-4 py-3 font-semibold text-muted-foreground">
-                  Action Name
-                </th>
-                <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Time</th>
-                <th className="text-left px-4 py-3 font-semibold text-muted-foreground">
-                  Severity
-                </th>
-                <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {aiActionsDetailList.map((action) => (
-                <tr
-                  key={action.id}
-                  className="border-b border-border/30 hover:bg-muted/50 transition-colors"
-                >
-                  <td className="px-4 py-3 font-medium text-foreground">{action.name}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{action.time}</td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={cn(
-                        "px-2 py-1 rounded text-xs font-semibold",
-                        action.severity === "HIGH"
-                          ? "bg-status-critical/20 text-status-critical"
-                          : action.severity === "MED"
-                            ? "bg-status-degraded/20 text-status-degraded"
-                            : "bg-status-healthy/20 text-status-healthy"
-                      )}
-                    >
-                      {action.severity}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={cn(
-                        "px-2 py-1 rounded text-xs font-semibold",
-                        action.status === "Success"
-                          ? "bg-status-healthy/20 text-status-healthy"
-                          : action.status === "Failed"
-                            ? "bg-status-critical/20 text-status-critical"
-                            : "bg-primary/20 text-primary"
-                      )}
-                    >
-                      {action.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        {/* Section 4.5: Automation Reliability */}
+        <div className="space-y-6">
+          <h2 className="text-2xl font-bold text-foreground">Automation Reliability</h2>
+
+          {getReliabilityAlert()}
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Success vs Failure Rate */}
+            <div className="card-elevated rounded-xl border border-border/50 p-6">
+              <h3 className="text-lg font-bold text-foreground mb-4">Success vs Failure Rate</h3>
+              <ResponsiveContainer width="100%" height={250}>
+                <PieChart>
+                  <Pie
+                    data={reliabilityData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ category, percentage }) => `${category} ${percentage}%`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {reliabilityData.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={PI_COLORS[index % PI_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: "8px",
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Human Intervention Rate */}
+            <div className="card-elevated rounded-xl border border-border/50 p-6">
+              <h3 className="text-lg font-bold text-foreground mb-4">Human Intervention Rate</h3>
+              <div className="space-y-6">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-muted-foreground">Automation Handled</span>
+                    <span className="text-2xl font-bold text-green-600">94%</span>
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
+                    <div className="bg-green-600 h-full" style={{ width: "94%" }} />
+                  </div>
+                </div>
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-muted-foreground">Manual Intervention Required</span>
+                    <span className="text-2xl font-bold text-orange-600">6%</span>
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
+                    <div className="bg-orange-600 h-full" style={{ width: "6%" }} />
+                  </div>
+                </div>
+                <div className="pt-4 border-t border-border/50">
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Over the last 30 days, the automation engine has independently handled 94% of all actions, requiring human intervention in only 6% of cases.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+
+        {/* Section 4.6: Execution Mode Distribution */}
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold text-foreground">Execution Mode Distribution</h2>
+          <div className="card-elevated rounded-xl border border-border/50 p-6">
+            <h3 className="text-lg font-bold text-foreground mb-4">Automation Maturity</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart
+                data={executionModes}
+                margin={{ top: 5, right: 30, left: 0, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="mode" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+                <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} label={{ value: "% of Actions", angle: -90, position: "insideLeft" }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--card))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "8px",
+                  }}
+                  formatter={(value) => [`${value.toFixed(1)}%`, "Percentage"]}
+                />
+                <Bar dataKey="percentage" fill="#3b82f6" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
       </div>
+
+      {/* Action Drill-In Modal */}
+      <ActionDrillInModal
+        isOpen={isDrillInOpen}
+        onClose={() => {
+          setIsDrillInOpen(false);
+          setSelectedAction(null);
+        }}
+        action={selectedAction}
+      />
     </div>
   );
 }

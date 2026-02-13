@@ -45,6 +45,33 @@ export interface AIInsight {
   percentageChange: number;
 }
 
+export interface AIHealthKPI {
+  value: number;
+  change: number;
+  status: "healthy" | "critical" | "degraded";
+  label?: string;
+}
+
+export interface TrendDataPoint {
+  timestamp: string;
+  successful?: number;
+  failed?: number;
+  rolled_back?: number;
+  repeated_incidents_prevented?: number;
+}
+
+export interface ReliabilityData {
+  category: string;
+  value: number;
+  percentage: string;
+}
+
+export interface ExecutionModeDistribution {
+  mode: string;
+  value: number;
+  percentage: number;
+}
+
 /**
  * Generate AI & Automation Activity KPIs
  */
@@ -259,5 +286,130 @@ export const generateAIInsights = (): AIInsight[] => {
       metricAffected: "Decision Stability",
       percentageChange: 5.8,
     },
+  ];
+};
+
+/**
+ * Generate AI Health KPIs for section 4.2
+ */
+export const generateAIHealthKPIs = (filters: GlobalFilterState): Record<string, AIHealthKPI> => {
+  const filterImpact = 1 + filters.vendors.length * 0.05 + filters.technologies.length * 0.03;
+
+  const totalActions = Math.round((12842 + Math.random() * 500) * filterImpact);
+  const autonomousActions = Math.round(totalActions * 0.24);
+  const failedCount = Math.round(totalActions * 0.007);
+  const rollbackCount = Math.round(totalActions * 0.0015);
+
+  return {
+    total_actions: {
+      value: totalActions,
+      change: 14.2,
+      status: "healthy",
+    },
+    autonomous_actions: {
+      value: autonomousActions,
+      change: 8.5,
+      status: "healthy",
+      label: `${Math.round((autonomousActions / totalActions) * 100)}% of all actions`,
+    },
+    recommendations_generated: {
+      value: Math.round((5221 + Math.random() * 200) * filterImpact),
+      change: 5.3,
+      status: "healthy",
+    },
+    failed_automations: {
+      value: failedCount,
+      change: -2.1,
+      status: failedCount / totalActions < 0.02 ? "healthy" : failedCount / totalActions < 0.05 ? "degraded" : "critical",
+    },
+    rollbacks_triggered: {
+      value: rollbackCount,
+      change: 1.8,
+      status: rollbackCount / totalActions < 0.01 ? "healthy" : "degraded",
+    },
+  };
+};
+
+/**
+ * Generate Success vs Failure Trend (section 4.4)
+ */
+export const generateAutomationTrend = (filters: GlobalFilterState): TrendDataPoint[] => {
+  const points: TrendDataPoint[] = [];
+  const now = new Date();
+  const daysToGenerate = 30;
+
+  for (let i = daysToGenerate - 1; i >= 0; i--) {
+    const timestamp = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+    const dateStr = timestamp.toISOString().split("T")[0];
+
+    const baseSuccess = 90 + Math.sin(i / 10) * 5;
+    const multiplier = 1 + (filters.vendors.length * 0.03 + filters.technologies.length * 0.02);
+
+    const successful = Math.round((baseSuccess * multiplier + Math.random() * 5) * 1.2);
+    const failed = Math.max(0, Math.round(successful * (0.05 + Math.random() * 0.08)));
+    const rolled_back = Math.max(0, Math.round(successful * (0.01 + Math.random() * 0.03)));
+
+    points.push({
+      timestamp: dateStr,
+      successful,
+      failed,
+      rolled_back,
+    });
+  }
+
+  return points;
+};
+
+/**
+ * Generate Repeated Incident Reduction data (section 4.4)
+ */
+export const generateIncidentReductionTrend = (): TrendDataPoint[] => {
+  const points: TrendDataPoint[] = [];
+  const now = new Date();
+
+  for (let i = 29; i >= 0; i--) {
+    const timestamp = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+    const dateStr = timestamp.toISOString().split("T")[0];
+
+    const basePrevention = 50 + Math.sin(i / 8) * 15 + i * 0.5;
+    const prevented = Math.round(Math.max(40, Math.min(100, basePrevention)));
+
+    points.push({
+      timestamp: dateStr,
+      repeated_incidents_prevented: prevented,
+    });
+  }
+
+  return points;
+};
+
+/**
+ * Generate Automation Reliability Data (section 4.5)
+ */
+export const generateReliabilityData = (): ReliabilityData[] => {
+  const successful = 94;
+  const failed = 4;
+  const rolled_back = 2;
+
+  return [
+    { category: "Successful Actions", value: successful, percentage: `${successful}%` },
+    { category: "Failed", value: failed, percentage: `${failed}%` },
+    { category: "Rolled Back", value: rolled_back, percentage: `${rolled_back}%` },
+  ];
+};
+
+/**
+ * Generate Execution Mode Distribution (section 4.6)
+ */
+export const generateExecutionModeDistribution = (): ExecutionModeDistribution[] => {
+  const total = 100;
+  const insight = 40;
+  const approved = 35;
+  const automated = 25;
+
+  return [
+    { mode: "Insight Only", value: insight, percentage: (insight / total) * 100 },
+    { mode: "Approval-Based", value: approved, percentage: (approved / total) * 100 },
+    { mode: "Fully Automated", value: automated, percentage: (automated / total) * 100 },
   ];
 };
