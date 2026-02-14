@@ -99,6 +99,8 @@ export default function AIEngineActions() {
       const statusMatch = actionFilters.statuses.length === 0 || actionFilters.statuses.some((s) => {
         if (s === "Success") return action.result === "successful";
         if (s === "Failed") return action.result === "failed";
+        if (s === "Rolled Back") return action.result === "partial";
+        if (s === "Running") return action.result === "partial";
         return false;
       });
 
