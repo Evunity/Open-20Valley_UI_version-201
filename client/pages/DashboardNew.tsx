@@ -223,6 +223,10 @@ export default function DashboardNew() {
   // AI Chart type state
   const [aiChartType, setAiChartType] = useState<ChartType>("bar");
 
+  // Region and Vendor chart type states
+  const [regionChartType, setRegionChartType] = useState<ChartType>("bar");
+  const [vendorChartType, setVendorChartType] = useState<ChartType>("pie");
+
   // AI Actions sorting state
   const [actionsSortOrder, setActionsSortOrder] = useState<"low-to-high" | "high-to-low">(
     "high-to-low"
@@ -954,8 +958,8 @@ export default function DashboardNew() {
             </div>
             <select
               className="px-3 py-1 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50"
-              defaultValue="bar"
-              onChange={(e) => {}}
+              value={regionChartType}
+              onChange={(e) => setRegionChartType(e.target.value as ChartType)}
             >
               <option value="bar">Bar Chart</option>
               <option value="line">Line Chart</option>
@@ -963,7 +967,7 @@ export default function DashboardNew() {
           </div>
         </div>
         <ResponsiveContainer width="100%" height={300}>
-          {renderChart("bar", regionData, ["sites"])}
+          {renderChart(regionChartType, regionData, ["sites"])}
         </ResponsiveContainer>
       </div>
 
@@ -977,8 +981,8 @@ export default function DashboardNew() {
             </div>
             <select
               className="px-3 py-1 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50"
-              defaultValue="pie"
-              onChange={(e) => {}}
+              value={vendorChartType}
+              onChange={(e) => setVendorChartType(e.target.value as ChartType)}
             >
               <option value="pie">Pie Chart</option>
               <option value="bar">Bar Chart</option>
@@ -986,22 +990,24 @@ export default function DashboardNew() {
           </div>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
+          <div className={vendorChartType === "pie" ? "lg:col-span-2" : "lg:col-span-3"}>
             <ResponsiveContainer width="100%" height={300}>
-              {renderChart("pie", vendorData, ["sites"])}
+              {renderChart(vendorChartType, vendorData, ["sites"])}
             </ResponsiveContainer>
           </div>
-          <div className="space-y-3 flex flex-col justify-center">
-            {vendorData.map((vendor, idx) => (
-              <div key={idx} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50">
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: vendor.fill }} />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground">{vendor.vendor}</p>
-                  <p className="text-xs text-muted-foreground">{vendor.sites} sites</p>
+          {vendorChartType === "pie" && (
+            <div className="space-y-3 flex flex-col justify-center">
+              {vendorData.map((vendor, idx) => (
+                <div key={idx} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50">
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: vendor.fill }} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground">{vendor.vendor}</p>
+                    <p className="text-xs text-muted-foreground">{vendor.sites} sites</p>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

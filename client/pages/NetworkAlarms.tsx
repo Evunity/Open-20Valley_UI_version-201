@@ -291,15 +291,56 @@ export default function NetworkAlarms() {
             </div>
           </div>
 
-          {/* Alarm Clear Rate */}
-          <TrendChartContainer
-            title="Alarm Clear Rate"
-            data={trendData}
-            dataKeys={["clear_rate"]}
-            exportable
-            zoomable
-            defaultChartType="area"
-          />
+          {/* Alarm Clear Rate with Severity Breakdown */}
+          <div className="space-y-4">
+            <TrendChartContainer
+              title="Alarm Clear Rate"
+              data={trendData}
+              dataKeys={["clear_rate"]}
+              exportable
+              zoomable
+              defaultChartType="area"
+            />
+
+            {/* Clear Rate by Severity */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="card-elevated rounded-xl border border-border/50 p-6">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-semibold text-foreground">Critical</h4>
+                  <span className="w-3 h-3 rounded-full bg-red-500" />
+                </div>
+                <p className="text-2xl font-bold text-red-600">85%</p>
+                <p className="text-xs text-muted-foreground mt-2">Clear rate for critical alarms</p>
+              </div>
+
+              <div className="card-elevated rounded-xl border border-border/50 p-6">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-semibold text-foreground">Major</h4>
+                  <span className="w-3 h-3 rounded-full bg-yellow-500" />
+                </div>
+                <p className="text-2xl font-bold text-yellow-600">78%</p>
+                <p className="text-xs text-muted-foreground mt-2">Clear rate for major alarms</p>
+              </div>
+
+              <div className="card-elevated rounded-xl border border-border/50 p-6">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-semibold text-foreground">Minor</h4>
+                  <span className="w-3 h-3 rounded-full bg-blue-500" />
+                </div>
+                <p className="text-2xl font-bold text-blue-600">92%</p>
+                <p className="text-xs text-muted-foreground mt-2">Clear rate for minor alarms</p>
+              </div>
+
+              <div className="card-elevated rounded-xl border border-border/50 p-6">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-semibold text-foreground">Warning</h4>
+                  <span className="w-3 h-3 rounded-full bg-cyan-500" />
+                </div>
+                <p className="text-2xl font-bold text-cyan-600">96%</p>
+                <p className="text-xs text-muted-foreground mt-2">Clear rate for warnings</p>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Alarm Distribution & Hotspots */}
@@ -307,65 +348,33 @@ export default function NetworkAlarms() {
           <h2 className="text-2xl font-bold text-foreground">Alarm Distribution & Hotspots</h2>
 
           {/* By Vendor Distribution */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="card-elevated rounded-xl border border-border/50 p-6">
-              <h3 className="text-lg font-bold text-foreground mb-4">By Vendor</h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart
-                  data={vendorDistribution}
-                  margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis
-                    dataKey="name"
-                    stroke="hsl(var(--muted-foreground))"
-                    style={{ fontSize: "12px" }}
-                  />
-                  <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "8px",
-                    }}
-                  />
-                  <Legend />
-                  <Bar dataKey="active" fill="#3b82f6" name="Active" />
-                  <Bar dataKey="critical" fill="#ef4444" name="Critical" />
-                  <Bar dataKey="major" fill="#f59e0b" name="Major" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-
-            {/* By Technology Distribution */}
-            <div className="card-elevated rounded-xl border border-border/50 p-6">
-              <h3 className="text-lg font-bold text-foreground mb-4">By Technology</h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart
-                  data={techDistribution}
-                  margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis
-                    dataKey="name"
-                    stroke="hsl(var(--muted-foreground))"
-                    style={{ fontSize: "12px" }}
-                  />
-                  <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "8px",
-                    }}
-                  />
-                  <Legend />
-                  <Bar dataKey="active" fill="#3b82f6" name="Active" />
-                  <Bar dataKey="critical" fill="#ef4444" name="Critical" />
-                  <Bar dataKey="major" fill="#f59e0b" name="Major" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+          <div className="card-elevated rounded-xl border border-border/50 p-6">
+            <h3 className="text-lg font-bold text-foreground mb-4">By Vendor</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart
+                data={vendorDistribution}
+                margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis
+                  dataKey="name"
+                  stroke="hsl(var(--muted-foreground))"
+                  style={{ fontSize: "12px" }}
+                />
+                <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--card))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "8px",
+                  }}
+                />
+                <Legend />
+                <Bar dataKey="active" fill="#3b82f6" name="Active" />
+                <Bar dataKey="critical" fill="#ef4444" name="Critical" />
+                <Bar dataKey="major" fill="#f59e0b" name="Major" />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
 
           {/* By Region & Cluster Distribution */}

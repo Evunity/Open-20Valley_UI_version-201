@@ -956,7 +956,7 @@ export default function DataAnalytics() {
                       </div>
                     ))}
                   </div>
-                  <div className="flex gap-4 mt-6 text-xs">
+                  <div className="flex justify-center gap-4 mt-6 text-xs">
                     <div className="flex items-center gap-2">
                       <div className="w-6 h-4 rounded bg-green-300"></div>
                       <span>0-40%</span>

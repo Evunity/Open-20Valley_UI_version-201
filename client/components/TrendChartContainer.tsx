@@ -57,7 +57,6 @@ export default function TrendChartContainer({
   onChartTypeChange,
 }: TrendChartContainerProps) {
   const { toast } = useToast();
-  const [showLegend, setShowLegend] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
   const [chartType, setChartType] = useState<ChartType>(defaultChartType);
   const [zoomStart, setZoomStart] = useState(0);
@@ -180,7 +179,7 @@ export default function TrendChartContainer({
           }}
           labelFormatter={(label) => `Time: ${label}`}
         />
-        {showLegend && <Legend />}
+        <Legend />
       </>
     );
 
@@ -255,7 +254,7 @@ export default function TrendChartContainer({
                   return value;
                 }}
               />
-              {showLegend && <Legend />}
+              <Legend />
               {dataKeys.length > 0 && (
                 <Pie
                   data={[
@@ -334,24 +333,6 @@ export default function TrendChartContainer({
             )}
           </div>
 
-          {/* Legend Toggle */}
-          <button
-            onClick={() => setShowLegend(!showLegend)}
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-background hover:bg-muted/50 transition-colors text-sm font-medium"
-            title={showLegend ? "Hide legend" : "Show legend"}
-          >
-            {showLegend ? (
-              <>
-                <Eye className="w-4 h-4" />
-                <span className="hidden sm:inline">Legend</span>
-              </>
-            ) : (
-              <>
-                <EyeOff className="w-4 h-4" />
-                <span className="hidden sm:inline">Legend Off</span>
-              </>
-            )}
-          </button>
 
           {/* Zoom Controls */}
           {zoomable && (
