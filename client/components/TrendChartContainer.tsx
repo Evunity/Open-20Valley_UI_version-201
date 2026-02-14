@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Eye, EyeOff, Download, RotateCcw, ChevronDown } from "lucide-react";
+import { Download, RotateCcw, ChevronDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import * as XLSX from "xlsx";
 import { cn } from "@/lib/utils";
