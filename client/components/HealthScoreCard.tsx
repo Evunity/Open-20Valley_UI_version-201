@@ -1,4 +1,4 @@
-import { ArrowUp, ArrowDown, TrendingFlat } from "lucide-react";
+import { ArrowUp, ArrowDown, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { HealthScoreCard as HealthScoreCardType } from "@/utils/healthScores";
 import { getStatusColor, getTrendColor } from "@/utils/healthScores";
@@ -21,7 +21,7 @@ export default function HealthScoreCard({ card, onClick }: HealthScoreCardProps)
     if (card.trend === "degrading") {
       return <ArrowDown className="w-4 h-4" />;
     }
-    return <TrendingFlat className="w-4 h-4" />;
+    return <Minus className="w-4 h-4" />;
   };
 
   return (
