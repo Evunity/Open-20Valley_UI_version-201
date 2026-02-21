@@ -518,7 +518,7 @@ export default function DataAnalytics() {
           <div className="space-y-3">
             {stressAreas.length > 0 ? (
               stressAreas.map((item, idx) => (
-              <div key={idx} className="p-4 rounded-lg border border-border/50 hover:bg-muted/50">
+              <div key={item.area} className="p-4 rounded-lg border border-border/50 hover:bg-muted/50">
                 <div className="flex items-center justify-between mb-2">
                   <p className="font-semibold text-foreground">{item.area}</p>
                   <span
@@ -626,7 +626,7 @@ export default function DataAnalytics() {
                 recommendation: "Plan upgrade timeline",
               },
             ].map((item, idx) => (
-              <div key={idx} className="p-4 rounded-lg border border-red-200 bg-red-50">
+              <div key={item.area} className="p-4 rounded-lg border border-red-200 bg-red-50">
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <p className="font-semibold text-foreground">{item.area}</p>
@@ -687,7 +687,7 @@ export default function DataAnalytics() {
 
                       return (
                         <div
-                          key={idx}
+                          key={`${row.name}-${cell.label}`}
                           className={cn(
                             "w-24 h-10 rounded flex items-center justify-center text-xs font-bold text-gray-900",
                             bgColor
@@ -760,7 +760,7 @@ export default function DataAnalytics() {
 
                       return (
                         <div
-                          key={idx}
+                          key={`${row.name}-${cell.label}`}
                           className={cn(
                             "w-24 h-10 rounded flex items-center justify-center text-xs font-bold text-gray-900",
                             bgColor
@@ -878,7 +878,7 @@ export default function DataAnalytics() {
 
                           return (
                             <div
-                              key={idx}
+                              key={`${row.name}-${idx}`}
                               className={cn("w-8 h-8 rounded", bgColor)}
                               title={`${row.name} ${tooltipPrefix} ${columnHeaders[idx]} - ${cell.value.toFixed(1)}%`}
                             ></div>
@@ -1091,7 +1091,7 @@ export default function DataAnalytics() {
                         <span className="text-xs text-muted-foreground">Affected:</span>
                         {insight.affectedFilters.map((filter, idx) => (
                           <span
-                            key={idx}
+                            key={filter}
                             className="inline-flex items-center px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs"
                           >
                             {filter}
@@ -1141,7 +1141,7 @@ export default function DataAnalytics() {
                             : "bg-red-100";
                       const performanceRank = idx + 1;
                       return (
-                        <tr key={idx} className="border-b border-border/50 hover:bg-muted/50">
+                        <tr key={vendor.name} className="border-b border-border/50 hover:bg-muted/50">
                           <td className="py-2 px-4 font-medium flex items-center gap-2">
                             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
                               #{performanceRank}
@@ -1260,7 +1260,7 @@ export default function DataAnalytics() {
                 <div className="space-y-2">
                   {vendors.map((vendor, idx) => (
                     <div
-                      key={idx}
+                      key={vendor.name}
                       className="p-3 rounded border border-border/50 hover:bg-muted/30 transition-colors"
                     >
                       <p className="font-medium text-sm text-foreground">{vendor.name}</p>
@@ -1314,7 +1314,7 @@ export default function DataAnalytics() {
                 <div className="space-y-2">
                   {techs.map((tech, idx) => (
                     <div
-                      key={idx}
+                      key={tech.name}
                       className="p-3 rounded border border-border/50 hover:bg-muted/30 transition-colors"
                     >
                       <p className="font-medium text-sm text-foreground">{tech.name}</p>
@@ -1368,7 +1368,7 @@ export default function DataAnalytics() {
                 <div className="space-y-2">
                   {regions.map((region, idx) => (
                     <div
-                      key={idx}
+                      key={region.name}
                       className="p-3 rounded border border-border/50 hover:bg-muted/30 transition-colors"
                     >
                       <p className="font-medium text-sm text-foreground">{region.name}</p>
@@ -1422,7 +1422,7 @@ export default function DataAnalytics() {
                 <div className="space-y-2">
                   {clusters.map((cluster, idx) => (
                     <div
-                      key={idx}
+                      key={cluster.name}
                       className="p-3 rounded border border-border/50 hover:bg-muted/30 transition-colors"
                     >
                       <p className="font-medium text-sm text-foreground">{cluster.name}</p>
@@ -1626,7 +1626,7 @@ export default function DataAnalytics() {
                         ? "bg-yellow-100"
                         : "bg-red-100";
                   return (
-                    <tr key={idx} className="border-b border-border/50 hover:bg-muted/50">
+                    <tr key={vendor.name} className="border-b border-border/50 hover:bg-muted/50">
                       <td className="py-3 px-2 md:px-4 font-medium text-foreground text-left">{vendor.name}</td>
                       <td className="py-3 px-2 md:px-4 text-right text-foreground font-medium tabular-nums">{vendor.count.toLocaleString()}</td>
                       <td className="py-3 px-2 md:px-4 text-right text-foreground font-medium tabular-nums">{failureCount.toLocaleString()}</td>
@@ -1670,7 +1670,7 @@ export default function DataAnalytics() {
                         ? "bg-yellow-100"
                         : "bg-red-100";
                   return (
-                    <tr key={idx} className="border-b border-border/50 hover:bg-muted/50">
+                    <tr key={tech.name} className="border-b border-border/50 hover:bg-muted/50">
                       <td className="py-3 px-2 md:px-4 font-medium text-foreground text-left">{tech.name}</td>
                       <td className="py-3 px-2 md:px-4 text-right text-foreground font-medium tabular-nums">{tech.count.toLocaleString()}</td>
                       <td className="py-3 px-2 md:px-4 text-right text-foreground font-medium tabular-nums">{failureCount.toLocaleString()}</td>
@@ -1717,7 +1717,7 @@ export default function DataAnalytics() {
                         ? "bg-yellow-100"
                         : "bg-red-100";
                   return (
-                    <tr key={idx} className="border-b border-border/50 hover:bg-muted/50">
+                    <tr key={region.name} className="border-b border-border/50 hover:bg-muted/50">
                       <td className="py-3 px-2 md:px-4 font-medium text-foreground text-left">{region.name}</td>
                       <td className="py-3 px-2 md:px-4 text-right text-foreground font-medium tabular-nums">{region.count.toLocaleString()}</td>
                       <td className="py-3 px-2 md:px-4 text-right text-foreground font-medium tabular-nums">{failureCount.toLocaleString()}</td>
@@ -1761,7 +1761,7 @@ export default function DataAnalytics() {
                         ? "bg-yellow-100"
                         : "bg-red-100";
                   return (
-                    <tr key={idx} className="border-b border-border/50 hover:bg-muted/50">
+                    <tr key={cluster.name} className="border-b border-border/50 hover:bg-muted/50">
                       <td className="py-3 px-2 md:px-4 font-medium text-foreground text-left">{cluster.name}</td>
                       <td className="py-3 px-2 md:px-4 text-right text-foreground font-medium tabular-nums">{cluster.count.toLocaleString()}</td>
                       <td className="py-3 px-2 md:px-4 text-right text-foreground font-medium tabular-nums">{failureCount.toLocaleString()}</td>
@@ -1793,7 +1793,7 @@ export default function DataAnalytics() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {vendorSegmented["Congested"].map((vendor, idx) => (
               <div
-                key={idx}
+                key={vendor.name}
                 className="p-4 rounded-lg border border-status-critical/20 bg-status-critical/5"
               >
                 <p className="font-semibold text-foreground">{vendor.name}</p>
@@ -1819,7 +1819,7 @@ export default function DataAnalytics() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {regionSegmented["Congested"].map((region, idx) => (
               <div
-                key={idx}
+                key={region.name}
                 className="p-4 rounded-lg border border-status-critical/20 bg-status-critical/5"
               >
                 <p className="font-semibold text-foreground">{region.name}</p>
