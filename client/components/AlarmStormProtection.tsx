@@ -29,7 +29,7 @@ export const AlarmStormProtection: React.FC<AlarmStormProtectionProps & { curren
   if (!isStormDetected) return null;
 
   return (
-    <div className="sticky top-0 z-40 bg-red-50 border-b-2 border-red-600 p-3 shadow-md">
+    <div className="sticky top-0 z-10 bg-red-50 border-b-2 border-red-600 p-3 shadow-md">
       <div className="flex items-center justify-between gap-3">
         {/* Alert content */}
         <div className="flex items-center gap-3 flex-1 min-w-0">

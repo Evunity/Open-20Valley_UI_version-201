@@ -370,7 +370,7 @@ export const AlarmManagement: React.FC = () => {
 
       {/* Incident Mode Banner */}
       {isIncidentMode && (
-        <div className="relative z-20 bg-red-600 text-white px-4 py-2 flex items-center justify-between">
+        <div className="relative z-10 bg-red-600 text-white px-4 py-2 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-lg">🚨</span>
             <h2 className="text-sm font-bold">MAJOR INCIDENT ACTIVE — {incidentRegion || 'Network'}</h2>
