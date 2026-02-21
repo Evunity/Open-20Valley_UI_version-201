@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
-import { Map, GitBranch, Network, Box, Layers, ZoomIn } from 'lucide-react';
+import { Map, GitBranch, Network, Box, Layers, ZoomIn, Route, Clock } from 'lucide-react';
 import { generateMockTopologyHierarchy, TopologyObject } from '../utils/topologyData';
+import { RackView } from '../components/RackView';
+import { TransportPathView } from '../components/TransportPathView';
+import { ImpactAnalysisView } from '../components/ImpactAnalysisView';
+import { TimelineReplayView } from '../components/TimelineReplayView';
 
-type ViewType = 'map' | 'tree' | 'dependency' | 'rack';
+type ViewType = 'map' | 'tree' | 'dependency' | 'rack' | 'transport' | 'impact' | 'timeline';
 
 interface TopologyViewConfig {
   id: ViewType;
@@ -15,7 +19,10 @@ const VIEWS: TopologyViewConfig[] = [
   { id: 'map', label: 'Geospatial Map', icon: Map, description: 'Global network map with geo coordinates' },
   { id: 'tree', label: 'Tree View', icon: GitBranch, description: 'Hierarchical network structure' },
   { id: 'dependency', label: 'Dependency Graph', icon: Network, description: 'Upstream/downstream relationships' },
-  { id: 'rack', label: 'Site & Rack', icon: Box, description: 'Physical hardware layout' }
+  { id: 'rack', label: 'Rack View', icon: Box, description: 'Physical hardware layout with RRU/BBU binding' },
+  { id: 'transport', label: 'Transport', icon: Route, description: 'Transport topology patterns and path tracing' },
+  { id: 'impact', label: 'Impact Analysis', icon: Layers, description: 'Blast radius and service impact calculation' },
+  { id: 'timeline', label: 'Timeline', icon: Clock, description: 'Historical replay and RCA' }
 ];
 
 export const TopologyManagement: React.FC = () => {
@@ -152,34 +159,22 @@ export const TopologyManagement: React.FC = () => {
     </div>
   );
 
-  const renderRackView = () => (
-    <div className="w-full h-full flex flex-col gap-4 p-4 bg-gray-50 overflow-y-auto">
-      <h2 className="text-lg font-bold text-gray-900">Physical Site & Rack View</h2>
-      <div className="flex-1 bg-white rounded-lg border border-gray-200 p-4 flex items-center justify-center">
-        <div className="text-center max-w-md">
-          <Box className="w-16 h-16 text-gray-400 mx-auto mb-3 opacity-50" />
-          <p className="text-sm font-semibold text-gray-600 mb-2">Hardware Visualization</p>
-          <p className="text-xs text-gray-500 mb-4">
-            Physical layout: Cabinet → Rack → Shelf → Board → RRU/BBU
-          </p>
-          <div className="text-left bg-gray-50 rounded p-3 mt-4 text-xs text-gray-700">
-            <p className="font-semibold mb-1">Rack Features:</p>
-            <ul className="space-y-0.5">
-              <li>✓ Power system monitoring</li>
-              <li>✓ Temperature sensors</li>
-              <li>✓ Port-level packet loss</li>
-              <li>✓ RRU/BBU health status</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  const renderRackView = () => <RackView onDeviceSelect={(device) => console.log(device)} />;
+
+  const renderTransportView = () => <TransportPathView onPathSelect={(path) => console.log(path)} />;
+
+  const renderImpactView = () => <ImpactAnalysisView onImpactSelect={(object) => console.log(object)} />;
+
+  const renderTimelineView = () => <TimelineReplayView onEventSelect={(event) => console.log(event)} />;
 
   const currentView = activeView === 'map' ? renderMapView() :
                       activeView === 'tree' ? renderTreeView() :
                       activeView === 'dependency' ? renderDependencyView() :
-                      renderRackView();
+                      activeView === 'rack' ? renderRackView() :
+                      activeView === 'transport' ? renderTransportView() :
+                      activeView === 'impact' ? renderImpactView() :
+                      activeView === 'timeline' ? renderTimelineView() :
+                      renderMapView();
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
