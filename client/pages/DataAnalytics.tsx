@@ -1691,8 +1691,8 @@ export default function DataAnalytics() {
           </div>
         </div>
 
-        {/* Region and Cluster Tables - Side by Side */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Region and Cluster Tables - Stacked */}
+        <div className="grid grid-cols-1 gap-6">
           {/* Region Breakdown Table */}
           <div className="card-elevated rounded-xl border border-border/50 p-6 overflow-x-auto">
             <h3 className="text-lg font-bold text-foreground mb-4">By Region</h3>

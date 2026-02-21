@@ -563,8 +563,8 @@ export default function VoiceAnalytics() {
           />
         </div>
 
-        {/* By Region and By Cluster - Side by Side */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* By Region and By Cluster - Stacked */}
+        <div className="grid grid-cols-1 gap-6">
           {/* By Region */}
           <VoicePerformanceTable
             data={regionBreakdown.map((r) => ({
