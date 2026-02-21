@@ -301,6 +301,17 @@ export const AlarmManagement: React.FC = () => {
     setSelectedAlarmIds(new Set());
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 font-medium">Loading alarms...</p>
+        </div>
+      </div>
+    );
+  }
+
   // Calculate summary stats
   const summaryStats = {
     critical: filteredAlarms.filter(a => a.severity === 'critical').length,
@@ -312,17 +323,6 @@ export const AlarmManagement: React.FC = () => {
   // Incident mode state
   const isIncidentMode = summaryStats.critical >= 5 || summaryStats.major >= 10;
   const incidentRegion = filteredAlarms.length > 0 ? filteredAlarms[0].hierarchy.region : null;
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 font-medium">Loading alarms...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
