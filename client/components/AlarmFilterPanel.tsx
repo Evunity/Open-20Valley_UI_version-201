@@ -147,24 +147,24 @@ export const AlarmFilterPanel: React.FC<AlarmFilterPanelProps> = ({ onFiltersCha
         </button>
 
         {isExpanded && (
-          <div className="px-4 py-3 bg-gray-50 space-y-2 border-t border-gray-200">
+          <div className="px-2 py-2 bg-gray-50 space-y-1 border-t border-gray-200">
             {options.map(option => (
-              <label key={option} className="flex items-center gap-3 cursor-pointer group">
+              <label key={option} className="flex items-center gap-2 cursor-pointer group">
                 <input
                   type="checkbox"
                   checked={filters[selectedKey].includes(option)}
                   onChange={() => toggleOption(selectedKey, option)}
-                  className="w-4 h-4 rounded border-gray-300 text-blue-600"
+                  className="w-3 h-3 rounded border-gray-300 text-blue-600 flex-shrink-0"
                 />
-                <span className="text-sm text-gray-700 group-hover:text-gray-900">
+                <span className="text-xs text-gray-700 group-hover:text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis">
                   {selectedKey === 'severity' && (
-                    <span className="flex items-center gap-2">
+                    <span className="flex items-center gap-1">
                       <span>{getSeverityIcon(option as AlarmSeverity)}</span>
                       <span>{option.charAt(0).toUpperCase() + option.slice(1)}</span>
                     </span>
                   )}
                   {selectedKey !== 'severity' && (
-                    option.charAt(0).toUpperCase() + option.slice(1).replace(/_/g, ' ')
+                    option.replace(/_/g, ' ')
                   )}
                 </span>
               </label>

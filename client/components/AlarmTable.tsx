@@ -160,12 +160,13 @@ export const AlarmTable: React.FC<AlarmTableProps> = ({
             {sortedAlarms.map(alarm => (
               <React.Fragment key={alarm.globalAlarmId}>
                 <tr
-                  className={`border-b border-gray-200 hover:bg-gray-50 transition ${
-                    selectedAlarmIds.has(alarm.globalAlarmId) ? 'bg-blue-100' :
-                    alarm.severity === 'critical' ? 'bg-red-50' :
-                    alarm.severity === 'major' ? 'bg-orange-50' :
-                    alarm.acknowledged ? 'bg-gray-50' : 'bg-white'
-                  }`}
+                  className={`border-b border-gray-200 border-l-4 hover:bg-gray-50 transition ${
+                    alarm.severity === 'critical' ? 'border-l-red-600 bg-red-50' :
+                    alarm.severity === 'major' ? 'border-l-orange-600 bg-orange-50' :
+                    alarm.severity === 'minor' ? 'border-l-yellow-500 bg-yellow-50' :
+                    alarm.severity === 'warning' ? 'border-l-blue-600 bg-blue-50' :
+                    'border-l-gray-500 bg-white'
+                  } ${selectedAlarmIds.has(alarm.globalAlarmId) ? 'bg-blue-100' : ''}`}
                 >
                   <td className="px-2 py-3 text-center">
                     <input

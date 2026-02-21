@@ -18,6 +18,8 @@ import { AlarmDetailsSidePanel } from '../components/AlarmDetailsSidePanel';
 import { AlarmOverviewWidgets } from '../components/AlarmOverviewWidgets';
 import { AlarmStormProtection, detectAlarmStorm, useAlarmStormView } from '../components/AlarmStormProtection';
 import { AlarmBulkOperations } from '../components/AlarmBulkOperations';
+import { AlarmSideInspectionPanel } from '../components/AlarmSideInspectionPanel';
+import { AlarmDetailsPage } from './AlarmDetailsPage';
 
 export const AlarmManagement: React.FC = () => {
   // State management
@@ -63,6 +65,14 @@ export const AlarmManagement: React.FC = () => {
 
   // Bulk operations state
   const [selectedAlarmIds, setSelectedAlarmIds] = useState<Set<string>>(new Set());
+
+  // Side inspection panel state
+  const [inspectionAlarm, setInspectionAlarm] = useState<Alarm | null>(null);
+  const [viewFullDetails, setViewFullDetails] = useState(false);
+
+  // Incident mode state
+  const isIncidentMode = summaryStats.critical >= 5 || summaryStats.major >= 10;
+  const incidentRegion = filteredAlarms.length > 0 ? filteredAlarms[0].hierarchy.region : null;
 
   // Initialize alarms on mount
   useEffect(() => {
@@ -358,6 +368,19 @@ export const AlarmManagement: React.FC = () => {
         />
       </div>
 
+      {/* Incident Mode Banner */}
+      {isIncidentMode && (
+        <div className="bg-red-600 text-white px-4 py-2 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">🚨</span>
+            <h2 className="text-sm font-bold">MAJOR INCIDENT ACTIVE — {incidentRegion || 'Network'}</h2>
+          </div>
+          <p className="text-xs opacity-90">
+            Critical: {summaryStats.critical} | Major: {summaryStats.major}
+          </p>
+        </div>
+      )}
+
       {/* Alarm Storm Protection */}
       {isStormActive && !dismissStormBanner && (
         <AlarmStormProtection
@@ -432,7 +455,10 @@ export const AlarmManagement: React.FC = () => {
               <AlarmTable
                 alarms={filteredAlarms}
                 expertMode={expertMode}
-                onAlarmSelect={setSelectedAlarm}
+                onAlarmSelect={(alarm) => {
+                  setInspectionAlarm(alarm);
+                  setSelectedAlarm(null);
+                }}
                 onObjectClick={(objectName, objectType) => {
                   console.log(`Navigate to ${objectType}: ${objectName}`);
                 }}
@@ -444,7 +470,29 @@ export const AlarmManagement: React.FC = () => {
         </div>
       </div>
 
-      {/* Alarm details side panel */}
+      {/* Show full details page if requested */}
+      {viewFullDetails && inspectionAlarm && (
+        <div className="fixed inset-0 bg-white z-50 overflow-auto">
+          <AlarmDetailsPage alarm={inspectionAlarm} />
+          <button
+            onClick={() => setViewFullDetails(false)}
+            className="fixed top-4 right-4 bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 z-10"
+          >
+            Close Details
+          </button>
+        </div>
+      )}
+
+      {/* Side Inspection Panel */}
+      {inspectionAlarm && !viewFullDetails && (
+        <AlarmSideInspectionPanel
+          alarm={inspectionAlarm}
+          onClose={() => setInspectionAlarm(null)}
+          onViewFullDetails={() => setViewFullDetails(true)}
+        />
+      )}
+
+      {/* Original alarm details side panel (kept for backwards compatibility) */}
       {selectedAlarm && (
         <AlarmDetailsSidePanel
           alarm={selectedAlarm}
