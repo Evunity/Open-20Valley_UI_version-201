@@ -675,7 +675,7 @@ export default function DataAnalytics() {
                     <div className="w-20 text-xs font-semibold text-muted-foreground">
                       {row.name}
                     </div>
-                    {row.cells.map((cell, idx) => {
+                    {row.cells.map((cell, cellIdx) => {
                       const bgColor =
                         cell.intensity === "critical"
                           ? "bg-red-500"
@@ -687,7 +687,7 @@ export default function DataAnalytics() {
 
                       return (
                         <div
-                          key={`${row.name}-${cell.label}`}
+                          key={`${row.name}-cell-${cellIdx}`}
                           className={cn(
                             "w-24 h-10 rounded flex items-center justify-center text-xs font-bold text-gray-900",
                             bgColor
@@ -748,7 +748,7 @@ export default function DataAnalytics() {
                     <div className="w-20 text-xs font-semibold text-muted-foreground">
                       {row.name}
                     </div>
-                    {row.cells.map((cell, idx) => {
+                    {row.cells.map((cell, cellIdx) => {
                       const bgColor =
                         cell.intensity === "critical"
                           ? "bg-red-500"
@@ -760,7 +760,7 @@ export default function DataAnalytics() {
 
                       return (
                         <div
-                          key={`${row.name}-${cell.label}`}
+                          key={`${row.name}-cell-${cellIdx}`}
                           className={cn(
                             "w-24 h-10 rounded flex items-center justify-center text-xs font-bold text-gray-900",
                             bgColor
@@ -850,9 +850,9 @@ export default function DataAnalytics() {
                     {/* Column headers */}
                     <div className="flex gap-0.5 mb-2">
                       <div className="w-16"></div>
-                      {columnHeaders.map((header) => (
+                      {columnHeaders.map((header, colIdx) => (
                         <div
-                          key={header}
+                          key={`header-${colIdx}`}
                           className="w-8 text-center text-xs font-semibold text-muted-foreground"
                         >
                           {header}
@@ -866,7 +866,7 @@ export default function DataAnalytics() {
                         <div className="w-16 text-xs font-semibold text-muted-foreground flex items-center">
                           {row.name}
                         </div>
-                        {row.cells.slice(0, columnHeaders.length).map((cell, idx) => {
+                        {row.cells.slice(0, columnHeaders.length).map((cell, cellIdx) => {
                           const bgColor =
                             cell.intensity === "critical"
                               ? "bg-red-500"
@@ -878,9 +878,9 @@ export default function DataAnalytics() {
 
                           return (
                             <div
-                              key={`${row.name}-${idx}`}
+                              key={`${row.name}-cell-${cellIdx}`}
                               className={cn("w-8 h-8 rounded", bgColor)}
-                              title={`${row.name} ${tooltipPrefix} ${columnHeaders[idx]} - ${cell.value.toFixed(1)}%`}
+                              title={`${row.name} ${tooltipPrefix} ${columnHeaders[cellIdx]} - ${cell.value.toFixed(1)}%`}
                             ></div>
                           );
                         })}
