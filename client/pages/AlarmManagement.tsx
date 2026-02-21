@@ -70,10 +70,6 @@ export const AlarmManagement: React.FC = () => {
   const [inspectionAlarm, setInspectionAlarm] = useState<Alarm | null>(null);
   const [viewFullDetails, setViewFullDetails] = useState(false);
 
-  // Incident mode state
-  const isIncidentMode = summaryStats.critical >= 5 || summaryStats.major >= 10;
-  const incidentRegion = filteredAlarms.length > 0 ? filteredAlarms[0].hierarchy.region : null;
-
   // Initialize alarms on mount
   useEffect(() => {
     const alarms = generateMockAlarms(80);
@@ -312,6 +308,10 @@ export const AlarmManagement: React.FC = () => {
     unacknowledged: filteredAlarms.filter(a => !a.acknowledged).length,
     total: filteredAlarms.length
   };
+
+  // Incident mode state
+  const isIncidentMode = summaryStats.critical >= 5 || summaryStats.major >= 10;
+  const incidentRegion = filteredAlarms.length > 0 ? filteredAlarms[0].hierarchy.region : null;
 
   if (isLoading) {
     return (
