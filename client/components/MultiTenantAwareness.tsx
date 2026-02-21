@@ -166,54 +166,54 @@ export const MultiTenantAwareness: React.FC<MultiTenantAwarenessProps> = ({
   };
 
   return (
-    <div className="w-full flex flex-col gap-4 bg-white rounded-lg border border-gray-200 p-4">
+    <div className="w-full flex flex-col gap-2 bg-white rounded-lg border border-gray-200 p-3">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Globe className="w-5 h-5 text-blue-600" />
-          <h3 className="font-semibold text-gray-900">Multi-Country & Tenant Awareness</h3>
+        <div className="flex items-center gap-1.5">
+          <Globe className="w-4 h-4 text-blue-600" />
+          <h3 className="font-semibold text-xs text-gray-900">Multi-Tenant</h3>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-1">
           <button
             onClick={() => setViewMode('countries')}
-            className={`px-3 py-1 rounded text-sm font-semibold transition ${
+            className={`px-2 py-0.5 rounded text-xs font-semibold transition ${
               viewMode === 'countries'
                 ? 'bg-blue-600 text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            Countries
+            C
           </button>
           <button
             onClick={() => setViewMode('tenants')}
-            className={`px-3 py-1 rounded text-sm font-semibold transition ${
+            className={`px-2 py-0.5 rounded text-xs font-semibold transition ${
               viewMode === 'tenants'
                 ? 'bg-blue-600 text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            Tenants
+            T
           </button>
         </div>
       </div>
 
       {/* Country View */}
       {viewMode === 'countries' && (
-        <div className="space-y-2">
-          <div className="flex items-center justify-between mb-2">
-            <h4 className="text-sm font-semibold text-gray-700">Country Boundaries & Regions</h4>
-            <label className="flex items-center gap-2 text-xs cursor-pointer">
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between mb-1.5">
+            <h4 className="text-xs font-semibold text-gray-700">Country Boundaries</h4>
+            <label className="flex items-center gap-1 text-xs cursor-pointer">
               <input
                 type="checkbox"
                 checked={showTimezoneInfo}
                 onChange={(e) => setShowTimezoneInfo(e.target.checked)}
-                className="w-4 h-4 rounded"
+                className="w-3 h-3 rounded"
               />
-              <span>Show Timezones</span>
+              <span className="text-xs">TZ</span>
             </label>
           </div>
 
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-1.5">
             {Object.entries(countriesWithData).map(([countryName, country]) => (
               <div
                 key={countryName}
@@ -221,48 +221,47 @@ export const MultiTenantAwareness: React.FC<MultiTenantAwarenessProps> = ({
                   onCountryChange?.(countryName);
                   setExpandedCountry(expandedCountry === countryName ? null : countryName);
                 }}
-                className={`p-3 rounded-lg border-2 cursor-pointer transition ${
+                className={`p-2 rounded-lg border-2 cursor-pointer transition ${
                   selectedCountry === countryName
                     ? `${country.color} border-current`
                     : `${country.color} hover:border-current border-gray-200`
                 }`}
               >
-                <div className="flex items-start justify-between gap-2 mb-2">
+                <div className="flex items-start justify-between gap-1 mb-1">
                   <div>
-                    <p className="font-semibold text-sm text-gray-900">{country.code}</p>
-                    <p className="text-xs text-gray-600">{country.name}</p>
+                    <p className="font-semibold text-xs text-gray-900">{country.code}</p>
                   </div>
-                  <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
+                  <span className={`px-1 py-0.5 rounded text-xs font-semibold leading-none ${
                     country.healthStatus === 'healthy'
                       ? 'bg-green-200 text-green-800'
                       : country.healthStatus === 'degraded'
                       ? 'bg-yellow-200 text-yellow-800'
                       : 'bg-red-200 text-red-800'
                   }`}>
-                    {country.healthStatus}
+                    {country.healthStatus[0].toUpperCase()}
                   </span>
                 </div>
 
-                <div className="space-y-1 text-xs text-gray-700">
-                  <p>Objects: <strong>{country.objectCount}</strong></p>
+                <div className="space-y-0.5 text-xs text-gray-700">
+                  <p className="text-xs">Obj: <strong>{country.objectCount}</strong></p>
                   {showTimezoneInfo && (
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      <span>{country.timezone}</span>
+                    <div className="flex items-center gap-0.5 text-xs">
+                      <Clock className="w-2.5 h-2.5" />
+                      <span className="text-xs">{country.timezone.split(' ')[0]}</span>
                     </div>
                   )}
                 </div>
 
                 {expandedCountry === countryName && (
-                  <div className="mt-2 pt-2 border-t border-current border-opacity-30">
+                  <div className="mt-1 pt-1 border-t border-current border-opacity-30">
                     {showTimezoneInfo && (
-                      <p className="text-xs font-mono text-center p-1 bg-black bg-opacity-5 rounded">
-                        {getCurrentTimeForCountry(country.timezone)}
+                      <p className="text-xs font-mono text-center p-0.5 bg-black bg-opacity-5 rounded">
+                        {getCurrentTimeForCountry(country.timezone).split(':').slice(0, 2).join(':')}
                       </p>
                     )}
-                    <p className="text-xs mt-2 flex items-center gap-1">
-                      <Shield className="w-3 h-3" />
-                      Isolation: <strong>{country.tenantIsolation}</strong>
+                    <p className="text-xs mt-1 flex items-center gap-0.5">
+                      <Shield className="w-2.5 h-2.5" />
+                      <strong className="text-xs">{country.tenantIsolation[0]}</strong>
                     </p>
                   </div>
                 )}
@@ -271,10 +270,10 @@ export const MultiTenantAwareness: React.FC<MultiTenantAwarenessProps> = ({
           </div>
 
           {selectedCountry && (
-            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm font-semibold text-blue-900 mb-1">Selected: {selectedCountry}</p>
+            <div className="p-1.5 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-xs font-semibold text-blue-900">{selectedCountry}</p>
               <p className="text-xs text-blue-700">
-                Showing {visibleObjects.length} network objects from {selectedCountry}
+                {visibleObjects.length} objects
               </p>
             </div>
           )}
@@ -283,51 +282,51 @@ export const MultiTenantAwareness: React.FC<MultiTenantAwarenessProps> = ({
 
       {/* Tenant View */}
       {viewMode === 'tenants' && (
-        <div className="space-y-2">
-          <h4 className="text-sm font-semibold text-gray-700 mb-2">Tenant Isolation</h4>
+        <div className="space-y-1.5">
+          <h4 className="text-xs font-semibold text-gray-700 mb-1.5">Tenant Isolation</h4>
 
-          <div className="grid grid-cols-1 gap-2">
+          <div className="grid grid-cols-1 gap-1.5">
             {TENANTS_CONFIG.map(tenant => (
               <div
                 key={tenant.id}
                 onClick={() => onTenantChange?.(tenant.id)}
-                className={`p-3 rounded-lg border-2 cursor-pointer transition ${
+                className={`p-2 rounded-lg border-2 cursor-pointer transition ${
                   selectedTenant === tenant.id
                     ? `${tenant.color} border-current`
                     : `${tenant.color} hover:border-current border-gray-200`
                 }`}
               >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Building2 className="w-4 h-4" />
-                      <p className="font-semibold text-sm text-gray-900">{tenant.name}</p>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1 mb-0.5">
+                      <Building2 className="w-3 h-3 flex-shrink-0" />
+                      <p className="font-semibold text-xs text-gray-900 truncate">{tenant.name}</p>
                     </div>
-                    <div className="space-y-1 text-xs text-gray-700">
-                      <p>Countries: <strong>{tenant.countries.join(', ')}</strong></p>
-                      <p>Data Residency: <strong>{tenant.dataResidency}</strong></p>
-                      <p>Isolation Level: <strong className="uppercase">{tenant.isolationLevel}</strong></p>
+                    <div className="space-y-0.5 text-xs text-gray-700">
+                      <p className="truncate">C: <strong>{tenant.countries.join(', ')}</strong></p>
+                      <p className="truncate">DR: <strong>{tenant.dataResidency}</strong></p>
+                      <p className="truncate">IL: <strong className="uppercase">{tenant.isolationLevel[0]}</strong></p>
                     </div>
                   </div>
-                  <span className={`px-2 py-1 rounded text-xs font-semibold whitespace-nowrap ${
+                  <span className={`px-1 py-0.5 rounded text-xs font-semibold whitespace-nowrap flex-shrink-0 ${
                     tenant.isolationLevel === 'complete'
                       ? 'bg-green-200 text-green-800'
                       : tenant.isolationLevel === 'logical'
                       ? 'bg-yellow-200 text-yellow-800'
                       : 'bg-orange-200 text-orange-800'
                   }`}>
-                    {tenant.isolationLevel}
+                    {tenant.isolationLevel[0]}
                   </span>
                 </div>
 
                 {selectedTenant === tenant.id && (
-                  <div className="mt-2 pt-2 border-t border-current border-opacity-30 text-xs text-gray-700">
-                    <p className="flex items-center gap-1">
-                      <Shield className="w-3 h-3" />
-                      Full network isolation from other tenants
+                  <div className="mt-1 pt-1 border-t border-current border-opacity-30 text-xs text-gray-700">
+                    <p className="flex items-center gap-0.5">
+                      <Shield className="w-2.5 h-2.5" />
+                      <span className="text-xs">Isolated</span>
                     </p>
-                    <p className="mt-1 text-xs text-gray-600">
-                      {visibleObjects.length} network objects visible in this tenant scope
+                    <p className="mt-0.5 text-xs text-gray-600">
+                      {visibleObjects.length} objects
                     </p>
                   </div>
                 )}
@@ -338,11 +337,11 @@ export const MultiTenantAwareness: React.FC<MultiTenantAwarenessProps> = ({
       )}
 
       {/* Summary */}
-      <div className="p-3 bg-gray-50 rounded-lg">
+      <div className="p-1.5 bg-gray-50 rounded-lg">
         <p className="text-xs text-gray-600">
           {viewMode === 'countries'
-            ? '✓ Country boundaries support multi-operator deployments with strict isolation'
-            : '✓ Tenant isolation prevents unauthorized cross-tenant data visibility'}
+            ? '✓ Country isolation'
+            : '✓ Tenant isolation'}
         </p>
       </div>
     </div>

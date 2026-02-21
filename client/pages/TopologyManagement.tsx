@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
-import { Map, GitBranch, Network, Box, Layers, ZoomIn, Route, Clock, Settings } from 'lucide-react';
-import { generateMockTopologyHierarchy, TopologyObject } from '../utils/topologyData';
+import React, { useState, useEffect } from 'react';
+import { Map, GitBranch, Network, Box, Layers, ZoomIn, Route, Clock } from 'lucide-react';
 import { RackView } from '../components/RackView';
 import { TransportPathView } from '../components/TransportPathView';
 import { ImpactAnalysisView } from '../components/ImpactAnalysisView';
@@ -10,6 +9,7 @@ import { PredictiveRiskHighlight } from '../components/PredictiveRiskHighlight';
 import { ExportPanel } from '../components/ExportPanel';
 import { MultiTenantAwareness } from '../components/MultiTenantAwareness';
 import { EnhancedGeospatialMap } from '../components/EnhancedGeospatialMap';
+import { TopologyProvider, useTopology } from '../contexts/TopologyContext';
 
 type ViewType = 'map' | 'tree' | 'dependency' | 'rack' | 'transport' | 'impact' | 'timeline';
 
@@ -30,12 +30,23 @@ const VIEWS: TopologyViewConfig[] = [
   { id: 'timeline', label: 'Timeline', icon: Clock, description: 'Historical replay and RCA' }
 ];
 
-export const TopologyManagement: React.FC = () => {
+/**
+ * Internal component - uses topology context
+ */
+const TopologyManagementContent: React.FC = () => {
+  const {
+    selectedNode,
+    selectNode,
+    expandedNodes,
+    expandNode,
+    visibleNodes,
+    zoomLevel,
+    setZoomLevel,
+    stats,
+    performance
+  } = useTopology();
+
   const [activeView, setActiveView] = useState<ViewType>('map');
-  const [topology] = useState<TopologyObject[]>(generateMockTopologyHierarchy());
-  const [selectedObject, setSelectedObject] = useState<TopologyObject | null>(null);
-  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
-  const [zoomLevel, setZoomLevel] = useState(1);
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [selectedTenant, setSelectedTenant] = useState<string | null>(null);
   const [showPredictiveRisks, setShowPredictiveRisks] = useState(true);
@@ -124,7 +135,7 @@ export const TopologyManagement: React.FC = () => {
 
           {showTenantPanel && (
             <MultiTenantAwareness
-              topology={topology}
+              topology={visibleNodes}
               selectedCountry={selectedCountry}
               selectedTenant={selectedTenant}
               onCountryChange={setSelectedCountry}
@@ -134,7 +145,7 @@ export const TopologyManagement: React.FC = () => {
 
           {showExportPanel && (
             <ExportPanel
-              topology={topology}
+              topology={visibleNodes}
               currentView="geospatial-map"
               filters={{ country: selectedCountry, tenant: selectedTenant }}
             />
@@ -144,10 +155,10 @@ export const TopologyManagement: React.FC = () => {
         {/* Main map area */}
         <div className="col-span-3">
           <EnhancedGeospatialMap
-            topology={topology}
+            topology={visibleNodes}
             layers={layers}
-            selectedObject={selectedObject}
-            onObjectSelect={setSelectedObject}
+            selectedObject={selectedNode}
+            onObjectSelect={(node) => selectNode(node.id)}
             showPredictiveRisks={showPredictiveRisks}
           />
         </div>
@@ -156,19 +167,25 @@ export const TopologyManagement: React.FC = () => {
       {/* Predictive Risk Panel */}
       {showPredictiveRisks && (
         <div className="max-h-60 overflow-y-auto">
-          <PredictiveRiskHighlight topology={topology} isEnabled={showPredictiveRisks} />
+          <PredictiveRiskHighlight topology={visibleNodes} isEnabled={showPredictiveRisks} />
         </div>
       )}
     </div>
   );
 
   const renderTreeView = () => {
-    const renderNode = (obj: TopologyObject, level: number) => (
+    const renderNode = (obj: typeof visibleNodes[0], level: number) => (
       <div key={obj.id} style={{ marginLeft: `${level * 16}px` }} className="mb-1">
         <button
           onClick={() => {
-            toggleNode(obj.id);
-            setSelectedObject(obj);
+            if (obj.childrenIds.length > 0) {
+              if (expandedNodes.has(obj.id)) {
+                // Collapse
+              } else {
+                expandNode(obj.id);
+              }
+            }
+            selectNode(obj.id);
           }}
           className="w-full text-left px-2 py-1.5 rounded hover:bg-gray-100 transition flex items-center gap-2 text-sm"
         >
@@ -188,7 +205,7 @@ export const TopologyManagement: React.FC = () => {
         {expandedNodes.has(obj.id) && obj.childrenIds.length > 0 && (
           <div>
             {obj.childrenIds.map(childId => {
-              const child = topology.find(o => o.id === childId);
+              const child = visibleNodes.find(o => o.id === childId);
               return child ? renderNode(child, level + 1) : null;
             })}
           </div>
@@ -196,12 +213,14 @@ export const TopologyManagement: React.FC = () => {
       </div>
     );
 
-    const roots = topology.filter(o => !o.parentId);
+    const roots = visibleNodes.filter(o => !o.parentId);
     return (
       <div className="w-full flex flex-col h-full gap-4 p-4 bg-gray-50 overflow-y-auto">
         <h2 className="text-lg font-bold text-gray-900">Hierarchical Tree View</h2>
         <div className="flex-1 bg-white rounded-lg border border-gray-200 p-4 overflow-y-auto">
-          {roots.map(root => renderNode(root, 0))}
+          {roots.length > 0 ? roots.map(root => renderNode(root, 0)) : (
+            <p className="text-sm text-gray-600">No nodes visible with current filters</p>
+          )}
         </div>
       </div>
     );
@@ -217,11 +236,11 @@ export const TopologyManagement: React.FC = () => {
           <p className="text-xs text-gray-500 mb-4">
             Visualizes upstream/downstream dependencies. Click a node to see its impact chain.
           </p>
-          {selectedObject && (
+          {selectedNode && (
             <div className="text-left bg-gray-50 rounded p-3 mt-4">
-              <p className="text-xs font-semibold text-gray-700 mb-2">Selected: {selectedObject.name}</p>
+              <p className="text-xs font-semibold text-gray-700 mb-2">Selected: {selectedNode.name}</p>
               <p className="text-xs text-gray-600">
-                {selectedObject.childrenIds.length} downstream dependencies
+                {selectedNode.childrenIds.length} downstream dependencies
               </p>
             </div>
           )}
@@ -284,23 +303,47 @@ export const TopologyManagement: React.FC = () => {
         {currentView}
       </div>
 
-      {/* Footer Info */}
-      {selectedObject && (
-        <div className="bg-white border-t border-gray-200 px-6 py-3">
-          <div className="flex items-center justify-between text-xs">
-            <div>
-              <span className="font-semibold text-gray-900">{selectedObject.name}</span>
-              <span className="text-gray-600 ml-2">({selectedObject.type})</span>
-              {selectedObject.vendor && <span className="text-gray-600 ml-2">• {selectedObject.vendor}</span>}
+      {/* Footer Info & Stats */}
+      <div className="bg-white border-t border-gray-200 px-6 py-2">
+        <div className="flex items-center justify-between text-xs">
+          {selectedNode ? (
+            <>
+              <div>
+                <span className="font-semibold text-gray-900">{selectedNode.name}</span>
+                <span className="text-gray-600 ml-2">({selectedNode.type})</span>
+                {selectedNode.vendor && <span className="text-gray-600 ml-2">• {selectedNode.vendor}</span>}
+              </div>
+              <div className="flex gap-4">
+                <span>Health: <strong>{selectedNode.healthState}</strong></span>
+                <span>Alarms: <strong>{selectedNode.alarmSummary.critical}C/{selectedNode.alarmSummary.major}M</strong></span>
+                <span>Availability: <strong>{selectedNode.kpiSummary.availability.toFixed(2)}%</strong></span>
+              </div>
+            </>
+          ) : (
+            <div className="w-full flex items-center justify-between">
+              <p className="text-gray-600">Visible: <strong>{stats.totalVisible}</strong> | Alarms: <strong>{stats.totalAlarms}</strong></p>
+              <div className="text-xs text-gray-500">
+                {performance.lastRegionLoadTime < 2000 && performance.lastZoomTime < 300 && performance.lastExpandTime < 200 ? (
+                  <span className="text-green-600">✓ Performance optimal</span>
+                ) : (
+                  <span className="text-orange-600">⚠ Monitor performance</span>
+                )}
+              </div>
             </div>
-            <div className="flex gap-4">
-              <span>Health: <strong>{selectedObject.healthState}</strong></span>
-              <span>Alarms: <strong>{selectedObject.alarmSummary.critical}C/{selectedObject.alarmSummary.major}M</strong></span>
-              <span>Availability: <strong>{selectedObject.kpiSummary.availability.toFixed(2)}%</strong></span>
-            </div>
-          </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
+  );
+};
+
+/**
+ * Main export - wraps content with Topology Provider for graph-driven architecture
+ */
+export const TopologyManagement: React.FC = () => {
+  return (
+    <TopologyProvider>
+      <TopologyManagementContent />
+    </TopologyProvider>
   );
 };
