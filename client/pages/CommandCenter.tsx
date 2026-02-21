@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Terminal, Code, Settings2, Zap, FileText, Eye, RotateCcw, Package, AlertTriangle } from 'lucide-react';
+import { Terminal, Code, Settings2, Zap, FileText, Eye, RotateCcw, Package, AlertTriangle, GitCompare, Clock } from 'lucide-react';
 import { CommandConsole } from '../components/CommandConsole';
 import { ParameterExplorer } from '../components/ParameterExplorer';
 import { ModifyChangeEngine } from '../components/ModifyChangeEngine';
@@ -8,8 +8,10 @@ import { ScriptLibrary } from '../components/ScriptLibrary';
 import { ExecutionMonitor } from '../components/ExecutionMonitor';
 import { AuditRollbackCenter } from '../components/AuditRollbackCenter';
 import { SandboxMode } from '../components/SandboxMode';
+import { RollbackVersionControl } from '../components/RollbackVersionControl';
+import { DiffView } from '../components/DiffView';
 
-type ModuleView = 'console' | 'parameters' | 'modify' | 'bulk' | 'scripts' | 'monitor' | 'audit' | 'sandbox';
+type ModuleView = 'console' | 'parameters' | 'modify' | 'bulk' | 'scripts' | 'monitor' | 'audit' | 'sandbox' | 'rollback' | 'diff';
 
 interface ModuleConfig {
   id: ModuleView;
@@ -45,29 +47,22 @@ const MODULES: ModuleConfig[] = [
     id: 'bulk',
     label: 'Bulk Editor',
     icon: Code,
-    description: 'Execute bulk configuration changes',
+    description: 'Execute bulk configuration changes with diff preview',
     riskLevel: 'dangerous'
   },
   {
     id: 'scripts',
     label: 'Script Library',
     icon: FileText,
-    description: 'Create and reuse scripts',
+    description: 'Create, store, and execute reusable scripts',
     riskLevel: 'dangerous'
   },
   {
     id: 'monitor',
     label: 'Execution Monitor',
     icon: Zap,
-    description: 'Real-time monitoring of command execution',
+    description: 'Real-time monitoring with pause/resume/retry controls',
     riskLevel: 'read-only'
-  },
-  {
-    id: 'audit',
-    label: 'Audit & Rollback',
-    icon: RotateCcw,
-    description: 'View audit logs and perform rollbacks',
-    riskLevel: 'dangerous'
   },
   {
     id: 'sandbox',
@@ -75,6 +70,27 @@ const MODULES: ModuleConfig[] = [
     icon: Package,
     description: 'Test commands and scripts safely',
     riskLevel: 'safe'
+  },
+  {
+    id: 'diff',
+    label: 'Diff View',
+    icon: GitCompare,
+    description: 'Compare configurations between sites or time periods',
+    riskLevel: 'read-only'
+  },
+  {
+    id: 'rollback',
+    label: 'Rollback & Version',
+    icon: RotateCcw,
+    description: 'Version control and rollback with full/partial/selective modes',
+    riskLevel: 'dangerous'
+  },
+  {
+    id: 'audit',
+    label: 'Audit & Rollback',
+    icon: AlertTriangle,
+    description: 'Complete audit trail with exportable logs',
+    riskLevel: 'read-only'
   }
 ];
 
@@ -114,10 +130,14 @@ export const CommandCenter: React.FC = () => {
         return <ScriptLibrary {...props} />;
       case 'monitor':
         return <ExecutionMonitor {...props} />;
-      case 'audit':
-        return <AuditRollbackCenter {...props} />;
       case 'sandbox':
         return <SandboxMode {...props} />;
+      case 'diff':
+        return <DiffView {...props} />;
+      case 'rollback':
+        return <RollbackVersionControl {...props} />;
+      case 'audit':
+        return <AuditRollbackCenter {...props} />;
       default:
         return null;
     }
@@ -154,7 +174,7 @@ export const CommandCenter: React.FC = () => {
 
       {/* Module Selector */}
       <div className="bg-white border-b border-gray-200 rounded-lg p-4">
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-10 gap-2">
           {MODULES.map(module => {
             const Icon = module.icon;
             return (
