@@ -51,7 +51,7 @@ export const TriggerEngine: React.FC<TriggerEngineProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full gap-4 p-4 bg-gray-50 overflow-y-auto">
+    <div className="w-full flex flex-col h-full gap-4 p-4 bg-gray-50 overflow-y-auto">
       <div className="flex items-center gap-2 mb-2">
         <Zap className="w-5 h-5 text-amber-500" />
         <h2 className="text-lg font-bold text-gray-900">Trigger Engine</h2>

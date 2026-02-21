@@ -21,6 +21,7 @@ import AnalyticsManagement from "@/pages/AnalyticsManagement";
 import NetworkStatus from "@/pages/NetworkStatus";
 import { AlarmManagement } from "@/pages/AlarmManagement";
 import { AutomationManagement } from "@/pages/AutomationManagement";
+import { TopologyManagement } from "@/pages/TopologyManagement";
 import ComingSoon from "@/pages/ComingSoon";
 import NotFound from "@/pages/NotFound";
 
@@ -161,6 +162,14 @@ export default function App() {
                 element={
                   <Layout>
                     <AutomationManagement />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/topology-management"
+                element={
+                  <Layout>
+                    <TopologyManagement />
                   </Layout>
                 }
               />

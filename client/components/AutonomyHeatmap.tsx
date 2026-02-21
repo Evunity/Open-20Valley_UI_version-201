@@ -23,7 +23,7 @@ export const AutonomyHeatmap: React.FC = () => {
   const totalLastHour = heatmapData.reduce((sum, d) => sum + d.lastHour, 0);
 
   return (
-    <div className="flex flex-col h-full gap-4 p-4 bg-gray-50 overflow-y-auto">
+    <div className="w-full flex flex-col h-full gap-4 p-4 bg-gray-50 overflow-y-auto">
       {/* Header */}
       <div className="flex items-center gap-2">
         <Activity className="w-5 h-5 text-blue-600" />

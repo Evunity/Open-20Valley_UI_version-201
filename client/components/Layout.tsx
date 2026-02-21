@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, LayoutDashboard, Settings, Moon, Sun, Gauge, Bell, Zap, History, FileText, Lock, AlertTriangle } from "lucide-react";
+import { Menu, X, LayoutDashboard, Settings, Moon, Sun, Gauge, Bell, Zap, History, FileText, Lock, AlertTriangle, Map } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface LayoutProps {
@@ -51,6 +51,7 @@ export default function Layout({ children }: LayoutProps) {
     { path: "/analytics-management", label: "Analytics Management", icon: Gauge },
     { path: "/alarm-management", label: "Alarm Management", icon: Bell },
     { path: "/automation-management", label: "Automation & AI", icon: Zap },
+    { path: "/topology-management", label: "Topology & Network", icon: Map },
     { path: "/activity-log", label: "Activity & Audit", icon: History },
     { path: "/reports", label: "Reports", icon: FileText },
     { path: "/access-control", label: "Access Control", icon: Lock },

@@ -88,7 +88,7 @@ export const ExecutionOrchestrator: React.FC<ExecutionOrchestratorProps> = ({
   const pipelineStages = ['Queued', 'Running', 'Validating', 'Completed'];
 
   return (
-    <div className="flex flex-col h-full gap-4 p-4 bg-gray-50 overflow-y-auto">
+    <div className="w-full flex flex-col h-full gap-4 p-4 bg-gray-50 overflow-y-auto">
       {/* Control Bar */}
       <div className="bg-white rounded-lg border border-gray-200 p-4 flex items-center justify-between">
         <div>

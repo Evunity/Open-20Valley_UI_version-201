@@ -66,7 +66,7 @@ export const AutomationCommandCenter: React.FC<AutomationCommandCenterProps> = (
   );
 
   return (
-    <div className="flex flex-col h-full gap-4 p-4 bg-gray-50 overflow-y-auto">
+    <div className="w-full flex flex-col h-full gap-4 p-4 bg-gray-50 overflow-y-auto">
       {/* Executive Strip */}
       <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
         <h2 className="text-xl font-bold text-gray-900 mb-6">Autonomous Network Status</h2>

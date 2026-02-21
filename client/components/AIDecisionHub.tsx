@@ -115,7 +115,7 @@ export const AIDecisionHub: React.FC<AIDecisionHubProps> = ({
   const decisions = generateMockDecisionCards();
 
   return (
-    <div className="flex flex-col h-full gap-4 p-4 bg-gray-50 overflow-y-auto">
+    <div className="w-full flex flex-col h-full gap-4 p-4 bg-gray-50 overflow-y-auto">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
