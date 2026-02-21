@@ -16,6 +16,7 @@ import DetailPage from "@/pages/DetailPage";
 import VoiceAnalytics from "@/pages/VoiceAnalytics";
 import DataAnalytics from "@/pages/DataAnalytics";
 import NetworkAlarms from "@/pages/NetworkAlarms";
+import AnalyticsManagement from "@/pages/AnalyticsManagement";
 import NetworkStatus from "@/pages/NetworkStatus";
 import ComingSoon from "@/pages/ComingSoon";
 import NotFound from "@/pages/NotFound";
@@ -132,7 +133,7 @@ export default function App() {
                 path="/analytics-management"
                 element={
                   <Layout>
-                    <ComingSoon title="Analytics Management" description="Manage and configure advanced analytics features" />
+                    <AnalyticsManagement />
                   </Layout>
                 }
               />
