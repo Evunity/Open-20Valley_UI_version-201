@@ -1606,8 +1606,8 @@ export default function DataAnalytics() {
           <div className="card-elevated rounded-xl border border-border/50 p-6 overflow-x-auto">
             <h3 className="text-lg font-bold text-foreground mb-4">By Vendor</h3>
             <table className="w-full text-xs md:text-sm">
-              <thead className="border-b border-border">
-                <tr className="text-muted-foreground font-semibold text-xs md:text-sm">
+              <thead>
+                <tr className="border-b border-border text-muted-foreground font-semibold text-xs md:text-sm">
                   <th className="text-left py-3 px-2 md:px-4">Vendor</th>
                   <th className="text-right py-3 px-2 md:px-4">Sessions</th>
                   <th className="text-right py-3 px-2 md:px-4">Failures</th>
@@ -1650,8 +1650,8 @@ export default function DataAnalytics() {
           <div className="card-elevated rounded-xl border border-border/50 p-6 overflow-x-auto">
             <h3 className="text-lg font-bold text-foreground mb-4">By Technology</h3>
             <table className="w-full text-xs md:text-sm">
-              <thead className="border-b border-border">
-                <tr className="text-muted-foreground font-semibold text-xs md:text-sm">
+              <thead>
+                <tr className="border-b border-border text-muted-foreground font-semibold text-xs md:text-sm">
                   <th className="text-left py-3 px-2 md:px-4">Technology</th>
                   <th className="text-right py-3 px-2 md:px-4">Sessions</th>
                   <th className="text-right py-3 px-2 md:px-4">Failures</th>
@@ -1696,15 +1696,15 @@ export default function DataAnalytics() {
           {/* Region Breakdown Table */}
           <div className="card-elevated rounded-xl border border-border/50 p-6 overflow-x-auto">
             <h3 className="text-lg font-bold text-foreground mb-4">By Region</h3>
-            <table className="w-full text-sm">
-              <thead className="border-b border-border">
-                <tr className="text-muted-foreground font-semibold">
-                  <th className="text-left py-2 px-4">Region</th>
-                  <th className="text-right py-2 px-4">Sessions</th>
-                  <th className="text-right py-2 px-4">Failures</th>
-                  <th className="text-right py-2 px-4">Avg Speed</th>
-                  <th className="text-right py-2 px-4">Avg Latency</th>
-                  <th className="text-center py-2 px-4">Status</th>
+            <table className="w-full text-xs md:text-sm">
+              <thead>
+                <tr className="border-b border-border text-muted-foreground font-semibold text-xs md:text-sm">
+                  <th className="text-left py-3 px-2 md:px-4">Region</th>
+                  <th className="text-right py-3 px-2 md:px-4">Sessions</th>
+                  <th className="text-right py-3 px-2 md:px-4">Failures</th>
+                  <th className="text-right py-3 px-2 md:px-4">Avg Speed</th>
+                  <th className="text-right py-3 px-2 md:px-4">Avg Latency</th>
+                  <th className="text-center py-3 px-2 md:px-4">Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -1718,12 +1718,12 @@ export default function DataAnalytics() {
                         : "bg-red-100";
                   return (
                     <tr key={idx} className="border-b border-border/50 hover:bg-muted/50">
-                      <td className="py-2 px-4 font-medium">{region.name}</td>
-                      <td className="py-2 px-4 text-right">{region.count.toLocaleString()}</td>
-                      <td className="py-2 px-4 text-right">{failureCount.toLocaleString()}</td>
-                      <td className="py-2 px-4 text-right">{avgSpeed.toFixed(2)} Mbps</td>
-                      <td className="py-2 px-4 text-right">{avgLatency.toFixed(2)} ms</td>
-                      <td className="py-2 px-4 text-center">
+                      <td className="py-3 px-2 md:px-4 font-medium text-foreground text-left">{region.name}</td>
+                      <td className="py-3 px-2 md:px-4 text-right text-foreground font-medium tabular-nums">{region.count.toLocaleString()}</td>
+                      <td className="py-3 px-2 md:px-4 text-right text-foreground font-medium tabular-nums">{failureCount.toLocaleString()}</td>
+                      <td className="py-3 px-2 md:px-4 text-right text-foreground font-medium tabular-nums">{avgSpeed.toFixed(2)} Mbps</td>
+                      <td className="py-3 px-2 md:px-4 text-right text-foreground font-medium tabular-nums">{avgLatency.toFixed(2)} ms</td>
+                      <td className="py-3 px-2 md:px-4 text-center">
                         <span
                           className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor}`}
                         >
@@ -1740,15 +1740,15 @@ export default function DataAnalytics() {
           {/* Cluster Breakdown Table */}
           <div className="card-elevated rounded-xl border border-border/50 p-6 overflow-x-auto">
             <h3 className="text-lg font-bold text-foreground mb-4">By Cluster</h3>
-            <table className="w-full text-sm">
-              <thead className="border-b border-border">
-                <tr className="text-muted-foreground font-semibold">
-                  <th className="text-left py-2 px-4">Cluster</th>
-                  <th className="text-right py-2 px-4">Sessions</th>
-                  <th className="text-right py-2 px-4">Failures</th>
-                  <th className="text-right py-2 px-4">Avg Speed</th>
-                  <th className="text-right py-2 px-4">Avg Latency</th>
-                  <th className="text-center py-2 px-4">Status</th>
+            <table className="w-full text-xs md:text-sm">
+              <thead>
+                <tr className="border-b border-border text-muted-foreground font-semibold text-xs md:text-sm">
+                  <th className="text-left py-3 px-2 md:px-4">Cluster</th>
+                  <th className="text-right py-3 px-2 md:px-4">Sessions</th>
+                  <th className="text-right py-3 px-2 md:px-4">Failures</th>
+                  <th className="text-right py-3 px-2 md:px-4">Avg Speed</th>
+                  <th className="text-right py-3 px-2 md:px-4">Avg Latency</th>
+                  <th className="text-center py-3 px-2 md:px-4">Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -1762,12 +1762,12 @@ export default function DataAnalytics() {
                         : "bg-red-100";
                   return (
                     <tr key={idx} className="border-b border-border/50 hover:bg-muted/50">
-                      <td className="py-2 px-4 font-medium">{cluster.name}</td>
-                      <td className="py-2 px-4 text-right">{cluster.count.toLocaleString()}</td>
-                      <td className="py-2 px-4 text-right">{failureCount.toLocaleString()}</td>
-                      <td className="py-2 px-4 text-right">{avgSpeed.toFixed(2)} Mbps</td>
-                      <td className="py-2 px-4 text-right">{avgLatency.toFixed(2)} ms</td>
-                      <td className="py-2 px-4 text-center">
+                      <td className="py-3 px-2 md:px-4 font-medium text-foreground text-left">{cluster.name}</td>
+                      <td className="py-3 px-2 md:px-4 text-right text-foreground font-medium tabular-nums">{cluster.count.toLocaleString()}</td>
+                      <td className="py-3 px-2 md:px-4 text-right text-foreground font-medium tabular-nums">{failureCount.toLocaleString()}</td>
+                      <td className="py-3 px-2 md:px-4 text-right text-foreground font-medium tabular-nums">{avgSpeed.toFixed(2)} Mbps</td>
+                      <td className="py-3 px-2 md:px-4 text-right text-foreground font-medium tabular-nums">{avgLatency.toFixed(2)} ms</td>
+                      <td className="py-3 px-2 md:px-4 text-center">
                         <span
                           className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor}`}
                         >
