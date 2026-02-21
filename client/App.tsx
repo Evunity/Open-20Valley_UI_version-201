@@ -16,6 +16,7 @@ import DetailPage from "@/pages/DetailPage";
 import VoiceAnalytics from "@/pages/VoiceAnalytics";
 import DataAnalytics from "@/pages/DataAnalytics";
 import NetworkAlarms from "@/pages/NetworkAlarms";
+import AnalyticsHome from "@/pages/AnalyticsHome";
 import AnalyticsManagement from "@/pages/AnalyticsManagement";
 import NetworkStatus from "@/pages/NetworkStatus";
 import ComingSoon from "@/pages/ComingSoon";
@@ -126,6 +127,14 @@ export default function App() {
                 element={
                   <Layout>
                     <DetailPage />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/analytics-home"
+                element={
+                  <Layout>
+                    <AnalyticsHome />
                   </Layout>
                 }
               />

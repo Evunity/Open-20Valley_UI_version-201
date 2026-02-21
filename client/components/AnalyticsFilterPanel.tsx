@@ -1,8 +1,15 @@
 import { useState, useMemo } from "react";
-import { ChevronDown, X } from "lucide-react";
+import { ChevronDown, X, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Technology, Vendor, Domain, KPICategory, KPIScope } from "@/utils/kpiData";
 import { getAvailableFilterOptions } from "@/utils/kpiData";
+import {
+  TIME_PRESETS,
+  getValidGranularities,
+  validateTimeAndGranularity,
+  formatTimeRange,
+  type TimePreset,
+} from "@/utils/timeGranularityRules";
 
 export interface AnalyticsFilters {
   technologies: Technology[];
