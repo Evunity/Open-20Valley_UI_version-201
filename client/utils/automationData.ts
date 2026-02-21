@@ -1,6 +1,8 @@
 export type AutomationStatus = 'success' | 'pending' | 'rollback' | 'failed';
 export type AutomationType = 'cell_outage_recovery' | 'kpi_degradation' | 'transport_failover' | 'parameter_drift' | 'custom';
 export type ExecutionStage = 'detected' | 'decision' | 'executed' | 'validated';
+export type TriggerCategory = 'network' | 'performance' | 'predictive' | 'behavioral' | 'external';
+export type ModelStage = 'training' | 'testing' | 'shadow' | 'approved' | 'active';
 
 export interface AutomationMetrics {
   autonomousResolutionRate: number; // 0-100%
@@ -89,6 +91,59 @@ export interface AutomationPolicy {
   approvalRequired: boolean;
   maxRiskLevel: 'low' | 'medium' | 'high';
 }
+
+export interface Trigger {
+  id: string;
+  category: TriggerCategory;
+  name: string;
+  description: string;
+  icon: string;
+}
+
+export interface ModelVersion {
+  version: string;
+  stage: ModelStage;
+  createdAt: string;
+  accuracy: number;
+  trainingDataPoints: number;
+  metrics?: Record<string, number>;
+}
+
+export interface DecisionCard {
+  id: string;
+  decision: string;
+  model: string;
+  confidence: number;
+  features: string[];
+  similarIncidents: number;
+  alternatives: string[];
+}
+
+export interface ExecutionWave {
+  id: string;
+  wave: number;
+  nodeCount: number;
+  status: 'queued' | 'running' | 'completed' | 'failed' | 'locked';
+  progress: number;
+}
+
+export const TRIGGER_LIBRARY: Trigger[] = [
+  // Network
+  { id: 't1', category: 'network', name: 'Alarms', description: 'Critical/Major alarms detected', icon: '🔔' },
+  { id: 't2', category: 'network', name: 'Topology Changes', description: 'Network topology modifications', icon: '🔄' },
+  // Performance
+  { id: 't3', category: 'performance', name: 'KPI Thresholds', description: 'Performance metrics exceed limits', icon: '📈' },
+  { id: 't4', category: 'performance', name: 'Counter Anomalies', description: 'Counter value anomalies detected', icon: '⚠️' },
+  // Predictive
+  { id: 't5', category: 'predictive', name: 'Forecast Breach', description: 'ML forecasts imminent breach', icon: '🔮' },
+  { id: 't6', category: 'predictive', name: 'Anomaly Score', description: 'Behavioral anomalies detected', icon: '🤖' },
+  // Behavioral
+  { id: 't7', category: 'behavioral', name: 'Flapping', description: 'Recurring state changes detected', icon: '📊' },
+  { id: 't8', category: 'behavioral', name: 'Recurring Incidents', description: 'Pattern of incidents detected', icon: '🔁' },
+  // External
+  { id: 't9', category: 'external', name: 'Ticket Created', description: 'External ticket system event', icon: '🎫' },
+  { id: 't10', category: 'external', name: 'API Event', description: 'Third-party API trigger', icon: '🔗' }
+];
 
 export const AUTOMATION_TEMPLATES: AutomationTemplate[] = [
   {
@@ -270,4 +325,92 @@ export function getRiskColor(risk: 'low' | 'medium' | 'high'): string {
     high: 'bg-red-100 text-red-800'
   };
   return colors[risk];
+}
+
+export function generateMockDecisionCards(): DecisionCard[] {
+  return [
+    {
+      id: 'decision_1',
+      decision: 'Restart DU – Cluster East',
+      model: 'v4 (Latest)',
+      confidence: 94,
+      features: ['CPU > 85%', 'Memory leak detected', 'Response time +240%'],
+      similarIncidents: 12,
+      alternatives: ['Scale resources', 'Isolate component']
+    },
+    {
+      id: 'decision_2',
+      decision: 'Failover Transport Link',
+      model: 'v4 (Latest)',
+      confidence: 87,
+      features: ['Link latency spike', 'Packet loss detected', 'BER threshold exceeded'],
+      similarIncidents: 8,
+      alternatives: ['Reroute traffic', 'Increase bandwidth']
+    }
+  ];
+}
+
+export function generateMockModelVersions(): ModelVersion[] {
+  return [
+    {
+      version: '4.2.1',
+      stage: 'active',
+      createdAt: new Date(Date.now() - 7 * 24 * 3600000).toISOString(),
+      accuracy: 94.2,
+      trainingDataPoints: 125000,
+      metrics: { precision: 0.92, recall: 0.95, f1: 0.935 }
+    },
+    {
+      version: '4.2.0',
+      stage: 'approved',
+      createdAt: new Date(Date.now() - 14 * 24 * 3600000).toISOString(),
+      accuracy: 93.8,
+      trainingDataPoints: 120000,
+      metrics: { precision: 0.91, recall: 0.94, f1: 0.925 }
+    },
+    {
+      version: '4.1.5',
+      stage: 'shadow',
+      createdAt: new Date(Date.now() - 21 * 24 * 3600000).toISOString(),
+      accuracy: 92.1,
+      trainingDataPoints: 115000
+    },
+    {
+      version: '4.1.4',
+      stage: 'testing',
+      createdAt: new Date(Date.now() - 28 * 24 * 3600000).toISOString(),
+      accuracy: 91.5,
+      trainingDataPoints: 110000
+    }
+  ];
+}
+
+export function generateMockExecutionWaves(): ExecutionWave[] {
+  return [
+    { id: 'wave_1', wave: 1, nodeCount: 5, status: 'completed', progress: 100 },
+    { id: 'wave_2', wave: 2, nodeCount: 20, status: 'running', progress: 65 },
+    { id: 'wave_3', wave: 3, nodeCount: 50, status: 'locked', progress: 0 }
+  ];
+}
+
+export function getModelStageColor(stage: ModelStage): string {
+  const colors = {
+    training: 'bg-blue-100 text-blue-800',
+    testing: 'bg-indigo-100 text-indigo-800',
+    shadow: 'bg-purple-100 text-purple-800',
+    approved: 'bg-amber-100 text-amber-800',
+    active: 'bg-green-100 text-green-800'
+  };
+  return colors[stage];
+}
+
+export function getTriggerCategoryColor(category: TriggerCategory): string {
+  const colors = {
+    network: 'bg-blue-100 text-blue-800',
+    performance: 'bg-purple-100 text-purple-800',
+    predictive: 'bg-indigo-100 text-indigo-800',
+    behavioral: 'bg-amber-100 text-amber-800',
+    external: 'bg-pink-100 text-pink-800'
+  };
+  return colors[category];
 }
