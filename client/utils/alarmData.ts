@@ -367,3 +367,103 @@ export function filterAlarms(
     return true;
   });
 }
+
+// Legacy functions for NetworkAlarms page compatibility
+export interface AlarmKPI {
+  label: string;
+  value: string;
+  status: 'healthy' | 'warning' | 'critical';
+  trend: string;
+}
+
+export function generateAlarmKPIs(filters: any): AlarmKPI[] {
+  return [
+    { label: "Total Alarms", value: Math.floor(Math.random() * 500 + 100).toString(), status: "warning", trend: "↑ 12%" },
+    { label: "Critical Alarms", value: Math.floor(Math.random() * 50 + 10).toString(), status: "critical", trend: "↑ 5%" },
+    { label: "Acknowledged", value: Math.floor(Math.random() * 100 + 50).toString() + "%", status: "healthy", trend: "↑ 8%" },
+    { label: "Avg Duration", value: Math.floor(Math.random() * 3 + 1) + "h", status: "warning", trend: "↓ 3%" }
+  ];
+}
+
+export function generateAlarmHealthIndex(filters: any): number {
+  return Math.floor(Math.random() * 40 + 60);
+}
+
+export function generateAlarmTrendData(filters: any): any[] {
+  const data = [];
+  for (let i = 0; i < 24; i++) {
+    data.push({
+      time: `${i}:00`,
+      critical: Math.floor(Math.random() * 30),
+      major: Math.floor(Math.random() * 50),
+      minor: Math.floor(Math.random() * 80)
+    });
+  }
+  return data;
+}
+
+export function generateAlarmDistributionByVendor(filters: any): any[] {
+  return [
+    { name: "Huawei", value: Math.floor(Math.random() * 300 + 100) },
+    { name: "Ericsson", value: Math.floor(Math.random() * 250 + 80) },
+    { name: "Nokia", value: Math.floor(Math.random() * 200 + 60) },
+    { name: "OpenRAN", value: Math.floor(Math.random() * 150 + 40) }
+  ];
+}
+
+export function generateAlarmDistributionByTechnology(filters: any): any[] {
+  return [
+    { name: "4G", value: Math.floor(Math.random() * 300 + 100) },
+    { name: "5G", value: Math.floor(Math.random() * 250 + 80) },
+    { name: "3G", value: Math.floor(Math.random() * 100 + 30) },
+    { name: "2G", value: Math.floor(Math.random() * 80 + 20) }
+  ];
+}
+
+export function generateAlarmDistributionByRegion(filters: any): any[] {
+  return [
+    { name: "Cairo", value: Math.floor(Math.random() * 200 + 50) },
+    { name: "Alexandria", value: Math.floor(Math.random() * 150 + 40) },
+    { name: "Giza", value: Math.floor(Math.random() * 120 + 30) },
+    { name: "Port Said", value: Math.floor(Math.random() * 100 + 20) }
+  ];
+}
+
+export function generateAlarmDistributionByCluster(filters: any): any[] {
+  return [
+    { name: "East Cluster", value: Math.floor(Math.random() * 200 + 50) },
+    { name: "West Cluster", value: Math.floor(Math.random() * 180 + 45) },
+    { name: "North Cluster", value: Math.floor(Math.random() * 150 + 40) },
+    { name: "South Cluster", value: Math.floor(Math.random() * 120 + 30) }
+  ];
+}
+
+export interface AlarmInsight {
+  title: string;
+  description: string;
+  severity: 'info' | 'warning' | 'critical';
+  action?: string;
+}
+
+export function generateAlarmInsights(filters: any): AlarmInsight[] {
+  return [
+    {
+      title: "High Critical Alarm Rate",
+      description: "Critical alarms increased by 25% in the last hour",
+      severity: "critical",
+      action: "View Details"
+    },
+    {
+      title: "Vendor-Specific Issue",
+      description: "Ericsson RAN reporting unusual alarm patterns",
+      severity: "warning",
+      action: "Investigate"
+    },
+    {
+      title: "Cluster Performance",
+      description: "East Cluster showing improvement in alarm reduction",
+      severity: "info",
+      action: "View Trend"
+    }
+  ];
+}
