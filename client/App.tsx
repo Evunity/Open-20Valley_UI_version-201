@@ -22,6 +22,7 @@ import NetworkStatus from "@/pages/NetworkStatus";
 import { AlarmManagement } from "@/pages/AlarmManagement";
 import { AutomationManagement } from "@/pages/AutomationManagement";
 import { TopologyManagement } from "@/pages/TopologyManagement";
+import { CommandCenter } from "@/pages/CommandCenter";
 import ComingSoon from "@/pages/ComingSoon";
 import NotFound from "@/pages/NotFound";
 
@@ -170,6 +171,14 @@ export default function App() {
                 element={
                   <Layout>
                     <TopologyManagement />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/command-center"
+                element={
+                  <Layout>
+                    <CommandCenter />
                   </Layout>
                 }
               />
