@@ -3,6 +3,7 @@ import { X, Copy, Download, AlertCircle } from 'lucide-react';
 import { Alarm, getSeverityIcon, getSeverityColor, getSeverityTextColor } from '../utils/alarmData';
 import { CommentsPanel } from './CommentsPanel';
 import { VendorFieldsDisplay } from './ExpertModeToggle';
+import { AlarmSLATimer } from './AlarmSLATimer';
 import { formatDateTime } from '../utils/timeModeManager';
 
 interface AlarmDetailsSidePanelProps {
@@ -244,6 +245,9 @@ export const AlarmDetailsSidePanel: React.FC<AlarmDetailsSidePanelProps> = ({
             </div>
           </div>
         </div>
+
+        {/* SLA Timer */}
+        <AlarmSLATimer alarm={alarm} />
 
         {/* Acknowledgment status */}
         {alarm.acknowledged && alarm.acknowledgedAt && (

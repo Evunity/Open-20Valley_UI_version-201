@@ -8,6 +8,8 @@ interface AlarmTableProps {
   expertMode: boolean;
   onAlarmSelect: (alarm: Alarm) => void;
   onObjectClick: (objectName: string, objectType: string) => void;
+  selectedAlarmIds?: Set<string>;
+  onSelectionChange?: (selectedIds: Set<string>) => void;
 }
 
 interface SortConfig {
@@ -19,13 +21,34 @@ export const AlarmTable: React.FC<AlarmTableProps> = ({
   alarms,
   expertMode,
   onAlarmSelect,
-  onObjectClick
+  onObjectClick,
+  selectedAlarmIds = new Set(),
+  onSelectionChange
 }) => {
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'updatedAt', direction: 'desc' });
   const [expandedAlarmId, setExpandedAlarmId] = useState<string | null>(null);
   const [visibleColumns, setVisibleColumns] = useState<Set<string>>(
     new Set(['severity', 'title', 'object', 'sourceSystem', 'duration', 'assignedTeam', 'escalation', 'comments'])
   );
+
+  const handleSelectAlarm = (alarmId: string) => {
+    const newSelection = new Set(selectedAlarmIds);
+    if (newSelection.has(alarmId)) {
+      newSelection.delete(alarmId);
+    } else {
+      newSelection.add(alarmId);
+    }
+    onSelectionChange?.(newSelection);
+  };
+
+  const handleSelectAll = () => {
+    if (selectedAlarmIds.size === sortedAlarms.length) {
+      onSelectionChange?.(new Set());
+    } else {
+      const allIds = new Set(sortedAlarms.map(a => a.globalAlarmId));
+      onSelectionChange?.(allIds);
+    }
+  };
 
   // Sort alarms
   const sortedAlarms = React.useMemo(() => {
@@ -81,7 +104,7 @@ export const AlarmTable: React.FC<AlarmTableProps> = ({
   const ColumnHeader = ({ label, column }: { label: string; column: SortConfig['key'] }) => (
     <th
       onClick={() => handleSort(column)}
-      className="px-4 py-3 text-left text-sm font-semibold text-gray-700 bg-gray-50 border-b border-gray-200 cursor-pointer hover:bg-gray-100 transition"
+      className="px-2 py-2 text-left text-xs font-semibold text-gray-700 bg-gray-50 border-b border-gray-200 cursor-pointer hover:bg-gray-100 transition"
     >
       {label}
       <SortIndicator column={column} />
@@ -91,8 +114,8 @@ export const AlarmTable: React.FC<AlarmTableProps> = ({
   return (
     <div className="flex flex-col h-full">
       {/* Column visibility toggle */}
-      <div className="flex items-center gap-2 px-4 py-3 bg-gray-50 border-b border-gray-200 flex-wrap">
-        <span className="text-xs font-semibold text-gray-600">Columns:</span>
+      <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 border-b border-gray-200 flex-wrap">
+        <span className="text-xs font-semibold text-gray-600 whitespace-nowrap">Cols:</span>
         {['severity', 'title', 'object', 'sourceSystem', 'duration', 'assignedTeam', 'escalation', 'comments'].map(col => (
           <button
             key={col}
@@ -113,6 +136,14 @@ export const AlarmTable: React.FC<AlarmTableProps> = ({
         <table className="w-full border-collapse text-sm">
           <thead className="sticky top-0 z-10">
             <tr>
+              <th className="px-2 py-2 text-left bg-gray-50 border-b border-gray-200 w-10">
+                <input
+                  type="checkbox"
+                  checked={selectedAlarmIds.size === sortedAlarms.length && sortedAlarms.length > 0}
+                  onChange={handleSelectAll}
+                  className="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer"
+                />
+              </th>
               {visibleColumns.has('severity') && <ColumnHeader label="Severity" column="severity" />}
               {visibleColumns.has('title') && <ColumnHeader label="Title" column="title" />}
               {visibleColumns.has('object') && <ColumnHeader label="Object" column="objectName" />}
@@ -129,16 +160,24 @@ export const AlarmTable: React.FC<AlarmTableProps> = ({
             {sortedAlarms.map(alarm => (
               <React.Fragment key={alarm.globalAlarmId}>
                 <tr
-                  className={`border-b border-gray-200 hover:bg-gray-50 transition cursor-pointer ${
+                  className={`border-b border-gray-200 hover:bg-gray-50 transition ${
+                    selectedAlarmIds.has(alarm.globalAlarmId) ? 'bg-blue-100' :
                     alarm.severity === 'critical' ? 'bg-red-50' :
                     alarm.severity === 'major' ? 'bg-orange-50' :
                     alarm.acknowledged ? 'bg-gray-50' : 'bg-white'
                   }`}
-                  onClick={() => onAlarmSelect(alarm)}
                 >
+                  <td className="px-2 py-3 text-center">
+                    <input
+                      type="checkbox"
+                      checked={selectedAlarmIds.has(alarm.globalAlarmId)}
+                      onChange={() => handleSelectAlarm(alarm.globalAlarmId)}
+                      className="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer"
+                    />
+                  </td>
                   {/* Severity */}
                   {visibleColumns.has('severity') && (
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 cursor-pointer hover:bg-gray-100" onClick={() => onAlarmSelect(alarm)}>
                       <div className="flex items-center gap-2">
                         <span className="text-lg">{getSeverityIcon(alarm.severity)}</span>
                         <span className={`font-semibold ${getSeverityTextColor(alarm.severity)}`}>

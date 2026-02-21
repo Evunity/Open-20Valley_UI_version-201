@@ -8,12 +8,12 @@ interface ExpertModeToggleProps {
 
 export const ExpertModeToggle: React.FC<ExpertModeToggleProps> = ({ enabled, onToggle }) => {
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-3">
-          <Code className="w-5 h-5 text-purple-600" />
+    <div className="bg-white border border-gray-200 rounded-lg p-3">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <Code className="w-4 h-4 text-purple-600" />
           <div>
-            <h3 className="font-bold text-gray-900">Expert Mode</h3>
+            <h3 className="text-sm font-bold text-gray-900">Expert Mode</h3>
             <p className="text-xs text-gray-600">
               {enabled ? 'Vendor fields visible' : 'Vendor fields hidden'}
             </p>

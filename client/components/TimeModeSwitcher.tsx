@@ -61,40 +61,40 @@ export const TimeModeSwitcher: React.FC<TimeModeSwitcherProps> = ({
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-4">
+    <div className="bg-white border border-gray-200 rounded-lg p-3 space-y-3">
       {/* Mode selector */}
       <div className="flex gap-2">
         <button
           onClick={() => handleModeSwitch('live')}
-          className={`flex-1 px-4 py-2 rounded-lg font-semibold transition flex items-center justify-center gap-2 ${
+          className={`flex-1 px-3 py-1.5 rounded text-sm font-semibold transition flex items-center justify-center gap-1 ${
             currentMode === 'live'
-              ? 'bg-green-100 text-green-800 border-2 border-green-500'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border-2 border-gray-300'
+              ? 'bg-green-100 text-green-800 border border-green-500'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
           }`}
         >
-          <CircleDot className="w-4 h-4" />
+          <CircleDot className="w-3 h-3" />
           LIVE
         </button>
         <button
           onClick={() => handleModeSwitch('snapshot')}
-          className={`flex-1 px-4 py-2 rounded-lg font-semibold transition flex items-center justify-center gap-2 ${
+          className={`flex-1 px-3 py-1.5 rounded text-sm font-semibold transition flex items-center justify-center gap-1 ${
             currentMode === 'snapshot'
-              ? 'bg-blue-100 text-blue-800 border-2 border-blue-500'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border-2 border-gray-300'
+              ? 'bg-blue-100 text-blue-800 border border-blue-500'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
           }`}
         >
-          <Clock className="w-4 h-4" />
+          <Clock className="w-3 h-3" />
           SNAPSHOT
         </button>
         <button
           onClick={() => handleModeSwitch('historical')}
-          className={`flex-1 px-4 py-2 rounded-lg font-semibold transition flex items-center justify-center gap-2 ${
+          className={`flex-1 px-3 py-1.5 rounded text-sm font-semibold transition flex items-center justify-center gap-1 ${
             currentMode === 'historical'
-              ? 'bg-purple-100 text-purple-800 border-2 border-purple-500'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border-2 border-gray-300'
+              ? 'bg-purple-100 text-purple-800 border border-purple-500'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
           }`}
         >
-          <Calendar className="w-4 h-4" />
+          <Calendar className="w-3 h-3" />
           HISTORICAL
         </button>
       </div>

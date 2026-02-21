@@ -72,8 +72,8 @@ export const ObjectHierarchy: React.FC<ObjectHierarchyProps> = ({
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-4">
-      <h3 className="text-sm font-bold text-gray-900">Object Hierarchy</h3>
+    <div className="bg-white border border-gray-200 rounded-lg p-3 space-y-3">
+      <h3 className="text-xs font-bold text-gray-900">Object Hierarchy</h3>
 
       {/* Breadcrumb navigation */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2">

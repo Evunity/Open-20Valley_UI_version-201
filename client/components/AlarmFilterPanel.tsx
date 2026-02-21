@@ -178,8 +178,8 @@ export const AlarmFilterPanel: React.FC<AlarmFilterPanelProps> = ({ onFiltersCha
   return (
     <div className="flex flex-col h-full bg-white border-r border-gray-200">
       {/* Header */}
-      <div className="px-4 py-4 border-b border-gray-200">
-        <h2 className="text-lg font-bold text-gray-900 mb-4">Filters</h2>
+      <div className="px-3 py-3 border-b border-gray-200">
+        <h2 className="text-sm font-bold text-gray-900 mb-3">Filters</h2>
 
         {/* Search input */}
         <div className="relative">
