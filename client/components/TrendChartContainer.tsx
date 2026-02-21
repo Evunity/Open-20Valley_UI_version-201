@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Download, RotateCcw, ChevronDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import * as XLSX from "xlsx";
@@ -63,6 +64,17 @@ export default function TrendChartContainer({
   const [zoomEnd, setZoomEnd] = useState(data.length - 1);
   const [showChartTypeMenu, setShowChartTypeMenu] = useState(false);
   const [showZoomControls, setShowZoomControls] = useState(false);
+  const [dateZoomStart, setDateZoomStart] = useState("");
+  const [dateZoomEnd, setDateZoomEnd] = useState("");
+  const [timeZoomStart, setTimeZoomStart] = useState("");
+  const [timeZoomEnd, setTimeZoomEnd] = useState("");
+
+  // Detect if data is time-based (hourly) or date-based
+  const isHourlyData = useMemo(() => {
+    if (data.length === 0) return false;
+    const firstTime = data[0].time as string;
+    return firstTime.includes(":") && !firstTime.includes("-");
+  }, [data]);
 
   // Get zoomed data
   const zoomedData = useMemo(() => {
@@ -70,6 +82,53 @@ export default function TrendChartContainer({
     const end = Math.min(data.length - 1, zoomEnd);
     return data.slice(start, end + 1);
   }, [data, zoomStart, zoomEnd]);
+
+  // Apply date/time filters
+  const applyDateTimeFilters = () => {
+    if (isHourlyData) {
+      // For hourly data, filter by time
+      let startIdx = 0;
+      let endIdx = data.length - 1;
+
+      if (timeZoomStart) {
+        startIdx = data.findIndex((d) => (d.time as string) >= timeZoomStart);
+        if (startIdx === -1) startIdx = 0;
+      }
+
+      if (timeZoomEnd) {
+        endIdx = data.findIndex((d) => (d.time as string) >= timeZoomEnd);
+        if (endIdx === -1) endIdx = data.length - 1;
+      }
+
+      setZoomStart(startIdx);
+      setZoomEnd(Math.max(startIdx, endIdx));
+      toast({
+        title: "Time filter applied",
+        description: `Showing data from ${timeZoomStart || "00:00"} to ${timeZoomEnd || "23:00"}`,
+      });
+    } else {
+      // For date-based data, filter by date
+      let startIdx = 0;
+      let endIdx = data.length - 1;
+
+      if (dateZoomStart) {
+        startIdx = data.findIndex((d) => (d.time as string) >= dateZoomStart);
+        if (startIdx === -1) startIdx = 0;
+      }
+
+      if (dateZoomEnd) {
+        endIdx = data.findIndex((d) => (d.time as string) <= dateZoomEnd);
+        if (endIdx === -1) endIdx = data.length - 1;
+      }
+
+      setZoomStart(startIdx);
+      setZoomEnd(Math.max(startIdx, endIdx));
+      toast({
+        title: "Date filter applied",
+        description: `Showing data from ${dateZoomStart || "start"} to ${dateZoomEnd || "end"}`,
+      });
+    }
+  };
 
   const handleChartTypeChange = (type: ChartType) => {
     setChartType(type);
@@ -344,48 +403,92 @@ export default function TrendChartContainer({
                   (zoomStart > 0 || zoomEnd < data.length - 1) &&
                     "border-primary/50 bg-primary/5 text-primary"
                 )}
-                title="Zoom controls"
+                title="Zoom and filter controls"
               >
-                <span className="hidden sm:inline">Zoom</span>
+                <span className="hidden sm:inline">Filters</span>
                 <ChevronDown className="w-4 h-4" />
               </button>
 
               {showZoomControls && (
-                <div className="absolute top-full right-0 mt-1 w-64 bg-card border border-border rounded-lg shadow-lg z-10 p-4 space-y-3">
-                  <div>
-                    <label className="text-xs font-semibold text-muted-foreground">
-                      Start: {zoomStart} / End: {zoomEnd}
-                    </label>
-                    <input
-                      type="range"
-                      min="0"
-                      max={Math.max(0, data.length - 1)}
-                      value={zoomStart}
-                      onChange={(e) => {
-                        const val = parseInt(e.target.value);
-                        if (val <= zoomEnd) setZoomStart(val);
-                      }}
-                      className="w-full mt-2"
-                    />
-                    <input
-                      type="range"
-                      min="0"
-                      max={Math.max(0, data.length - 1)}
-                      value={zoomEnd}
-                      onChange={(e) => {
-                        const val = parseInt(e.target.value);
-                        if (val >= zoomStart) setZoomEnd(val);
-                      }}
-                      className="w-full mt-2"
-                    />
-                  </div>
+                <div className="absolute top-full right-0 mt-1 w-72 bg-card border border-border rounded-lg shadow-lg z-10 p-4 space-y-4">
+                  {/* Date/Time Filters */}
+                  {isHourlyData ? (
+                    <>
+                      <div>
+                        <label className="text-xs font-semibold text-muted-foreground block mb-2">
+                          Time Start
+                        </label>
+                        <input
+                          type="time"
+                          value={timeZoomStart}
+                          onChange={(e) => setTimeZoomStart(e.target.value)}
+                          className="w-full px-2 py-1 rounded border border-border text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-semibold text-muted-foreground block mb-2">
+                          Time End
+                        </label>
+                        <input
+                          type="time"
+                          value={timeZoomEnd}
+                          onChange={(e) => setTimeZoomEnd(e.target.value)}
+                          className="w-full px-2 py-1 rounded border border-border text-sm"
+                        />
+                      </div>
+                      <button
+                        onClick={applyDateTimeFilters}
+                        className="w-full px-3 py-2 rounded-lg border border-border bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium"
+                      >
+                        Apply Time Filter
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <div>
+                        <label className="text-xs font-semibold text-muted-foreground block mb-2">
+                          Date Start
+                        </label>
+                        <input
+                          type="date"
+                          value={dateZoomStart}
+                          onChange={(e) => setDateZoomStart(e.target.value)}
+                          className="w-full px-2 py-1 rounded border border-border text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-semibold text-muted-foreground block mb-2">
+                          Date End
+                        </label>
+                        <input
+                          type="date"
+                          value={dateZoomEnd}
+                          onChange={(e) => setDateZoomEnd(e.target.value)}
+                          className="w-full px-2 py-1 rounded border border-border text-sm"
+                        />
+                      </div>
+                      <button
+                        onClick={applyDateTimeFilters}
+                        className="w-full px-3 py-2 rounded-lg border border-border bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium"
+                      >
+                        Apply Date Filter
+                      </button>
+                    </>
+                  )}
+
+                  {/* Reset Button */}
                   <button
                     onClick={handleResetZoom}
                     className="w-full px-3 py-2 rounded-lg border border-border bg-background hover:bg-muted/50 transition-colors text-sm font-medium flex items-center justify-center gap-2"
                   >
                     <RotateCcw className="w-4 h-4" />
-                    Reset Zoom
+                    Reset All Filters
                   </button>
+
+                  {/* Info */}
+                  <div className="text-xs text-muted-foreground pt-2 border-t border-border/50">
+                    Showing {zoomedData.length} of {data.length} data points
+                  </div>
                 </div>
               )}
             </div>

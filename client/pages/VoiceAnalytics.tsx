@@ -19,6 +19,7 @@ import VoicePerformanceTable from "@/components/VoicePerformanceTable";
 import DegradationInsights from "@/components/DegradationInsights";
 import TrendChartContainer from "@/components/TrendChartContainer";
 import SegmentationSummary from "@/components/SegmentationSummary";
+import ContributionTable from "@/components/ContributionTable";
 import { useGlobalFilters } from "@/hooks/useGlobalFilters";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -477,64 +478,11 @@ export default function VoiceAnalytics() {
         {/* By Vendor - Contribution & By Technology - Performance Comparison - Side by Side */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* By Vendor - Contribution */}
-          <div className="card-elevated rounded-xl border border-border/50 p-6">
-            <div className="mb-4">
-              <h3 className="text-lg font-bold text-foreground">
-                By Vendor - Call Volume Contribution
-              </h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                Stacked bar chart showing each vendor's contribution to total call volume
-              </p>
-            </div>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart
-                data={[
-                  {
-                    name: "Call Volume Distribution",
-                    ...vendorBreakdown.reduce(
-                      (acc, vendor) => ({
-                        ...acc,
-                        [vendor.name]: vendor.count,
-                      }),
-                      {}
-                    ),
-                  },
-                ]}
-                margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
-                layout="vertical"
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis
-                  type="number"
-                  stroke="hsl(var(--muted-foreground))"
-                  style={{ fontSize: "12px" }}
-                />
-                <YAxis
-                  dataKey="name"
-                  type="category"
-                  stroke="hsl(var(--muted-foreground))"
-                  style={{ fontSize: "12px" }}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "8px",
-                  }}
-                />
-                <Legend />
-                {vendorBreakdown.map((vendor, idx) => (
-                  <Bar
-                    key={vendor.name}
-                    dataKey={vendor.name}
-                    stackId="a"
-                    fill={["#22c55e", "#3b82f6", "#f59e0b", "#ef4444"][idx % 4]}
-                    name={vendor.name}
-                  />
-                ))}
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          <ContributionTable
+            data={vendorBreakdown}
+            title="By Vendor - Call Volume Contribution"
+            dimension="Vendor"
+          />
 
           {/* By Technology - Performance Comparison */}
           <div className="card-elevated rounded-xl border border-border/50 p-6">
@@ -608,61 +556,11 @@ export default function VoiceAnalytics() {
           </div>
 
           {/* By Technology - Contribution */}
-          <div className="card-elevated rounded-xl border border-border/50 p-6">
-            <div className="mb-4">
-              <h3 className="text-lg font-bold text-foreground">
-                By Technology - Call Volume Contribution
-              </h3>
-            </div>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart
-                data={[
-                  {
-                    name: "Call Volume Distribution",
-                    ...techBreakdown.reduce(
-                      (acc, tech) => ({
-                        ...acc,
-                        [tech.name]: tech.count,
-                      }),
-                      {}
-                    ),
-                  },
-                ]}
-                margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
-                layout="vertical"
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis
-                  type="number"
-                  stroke="hsl(var(--muted-foreground))"
-                  style={{ fontSize: "12px" }}
-                />
-                <YAxis
-                  dataKey="name"
-                  type="category"
-                  stroke="hsl(var(--muted-foreground))"
-                  style={{ fontSize: "12px" }}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "8px",
-                  }}
-                />
-                <Legend />
-                {techBreakdown.map((tech, idx) => (
-                  <Bar
-                    key={tech.name}
-                    dataKey={tech.name}
-                    stackId="a"
-                    fill={["#22c55e", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6"][idx % 5]}
-                    name={tech.name}
-                  />
-                ))}
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          <ContributionTable
+            data={techBreakdown}
+            title="By Technology - Call Volume Contribution"
+            dimension="Technology"
+          />
         </div>
 
         {/* By Region and By Cluster - Side by Side */}

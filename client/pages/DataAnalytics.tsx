@@ -17,6 +17,7 @@ import {
 import FilterPanel from "@/components/FilterPanel";
 import KPICard from "@/components/KPICard";
 import ExecutiveInsightSummary, { type InsightData } from "@/components/ExecutiveInsightSummary";
+import TrendChartContainer from "@/components/TrendChartContainer";
 import { useGlobalFilters } from "@/hooks/useGlobalFilters";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -78,6 +79,52 @@ export default function DataAnalytics() {
     () => generateDataInsights(trendData, filters),
     [trendData, filters]
   );
+
+  // Generate capacity stress areas based on filters
+  const stressAreas = useMemo(() => {
+    const baseAreas = [
+      {
+        area: "Region: South - Cluster C",
+        utilization: 85,
+        speed: 62,
+        latency: 67,
+        status: "critical",
+      },
+      {
+        area: "Region: East - Cluster B",
+        utilization: 78,
+        speed: 71,
+        latency: 54,
+        status: "high",
+      },
+      {
+        area: "Technology: 3G - North",
+        utilization: 72,
+        speed: 58,
+        latency: 78,
+        status: "high",
+      },
+      {
+        area: "Vendor: Huawei - Central",
+        utilization: 68,
+        speed: 73,
+        latency: 45,
+        status: "medium",
+      },
+    ];
+
+    // Filter areas based on selected vendors, technologies, and regions
+    return baseAreas.filter((item) => {
+      const matchesVendor =
+        filters.vendors.length === 0 || filters.vendors.some((v) => item.area.includes(v));
+      const matchesTech =
+        filters.technologies.length === 0 || filters.technologies.some((t) => item.area.includes(t));
+      const matchesRegion =
+        filters.regions.length === 0 || filters.regions.some((r) => item.area.includes(r));
+
+      return matchesVendor && matchesTech && matchesRegion;
+    });
+  }, [filters]);
 
   // Generate insights
   const insights = useMemo(() => {
@@ -386,137 +433,44 @@ export default function DataAnalytics() {
 
         {/* Data Volume Trend & Speed & Latency Metrics - Side by Side */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Data Volume Trend */}
-          <div className="card-elevated rounded-xl border border-border/50 p-6">
-            <h3 className="text-lg font-bold text-foreground mb-4">Data Volume Trend</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={trendData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis
-                  dataKey="time"
-                  type="category"
-                  stroke="hsl(var(--muted-foreground))"
-                  style={{ fontSize: "12px" }}
-                />
-                <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "8px",
-                  }}
-                />
-                <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="data_volume"
-                  stroke="#7c3aed"
-                  strokeWidth={2}
-                  name="Data Volume"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+          <TrendChartContainer
+            title="Data Volume Trend"
+            data={trendData}
+            dataKeys={["data_volume"]}
+            exportable
+            zoomable
+            defaultChartType="line"
+          />
 
-          {/* Speed & Latency Metrics */}
-          <div className="card-elevated rounded-xl border border-border/50 p-6">
-            <h3 className="text-lg font-bold text-foreground mb-4">Speed & Latency Metrics</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={trendData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis
-                  dataKey="time"
-                  type="category"
-                  stroke="hsl(var(--muted-foreground))"
-                  style={{ fontSize: "12px" }}
-                />
-                <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "8px",
-                  }}
-                />
-                <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="avg_speed"
-                  stroke="#22c55e"
-                  strokeWidth={2}
-                  name="Avg Speed (Mbps)"
-                />
-                <Line
-                  type="monotone"
-                  dataKey="avg_latency"
-                  stroke="#f59e0b"
-                  strokeWidth={2}
-                  name="Avg Latency (ms)"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+          <TrendChartContainer
+            title="Speed & Latency Metrics"
+            data={trendData}
+            dataKeys={["avg_speed", "avg_latency"]}
+            exportable
+            zoomable
+            defaultChartType="line"
+          />
         </div>
 
         {/* Data Experience Index Trend & Packet Loss Trend - Side by Side */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Data Experience Index */}
-          <div className="card-elevated rounded-xl border border-border/50 p-6">
-            <h3 className="text-lg font-bold text-foreground mb-4">Data Experience Index Trend</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={trendData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis
-                  dataKey="time"
-                  type="category"
-                  stroke="hsl(var(--muted-foreground))"
-                  style={{ fontSize: "12px" }}
-                />
-                <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "8px",
-                  }}
-                />
-                <Legend />
-                <Line type="monotone" dataKey="dei" stroke="#3b82f6" strokeWidth={2} name="DEI" />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+          <TrendChartContainer
+            title="Data Experience Index Trend"
+            data={trendData}
+            dataKeys={["dei"]}
+            exportable
+            zoomable
+            defaultChartType="line"
+          />
 
-          {/* Packet Loss Trend */}
-          <div className="card-elevated rounded-xl border border-border/50 p-6">
-            <h3 className="text-lg font-bold text-foreground mb-4">Packet Loss Trend</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={trendData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis
-                  dataKey="time"
-                  type="category"
-                  stroke="hsl(var(--muted-foreground))"
-                  style={{ fontSize: "12px" }}
-                />
-                <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "8px",
-                  }}
-                />
-                <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="packet_loss"
-                  stroke="#ef4444"
-                  strokeWidth={2}
-                  name="Packet Loss (%)"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+          <TrendChartContainer
+            title="Packet Loss Trend"
+            data={trendData}
+            dataKeys={["packet_loss"]}
+            exportable
+            zoomable
+            defaultChartType="line"
+          />
         </div>
       </div>
 
@@ -562,36 +516,8 @@ export default function DataAnalytics() {
             <FilterPanel />
           </div>
           <div className="space-y-3">
-            {[
-              {
-                area: "Region: South - Cluster C",
-                utilization: 85,
-                speed: 62,
-                latency: 67,
-                status: "critical",
-              },
-              {
-                area: "Region: East - Cluster B",
-                utilization: 78,
-                speed: 71,
-                latency: 54,
-                status: "high",
-              },
-              {
-                area: "Technology: 3G - North",
-                utilization: 72,
-                speed: 58,
-                latency: 78,
-                status: "high",
-              },
-              {
-                area: "Vendor: Huawei - Central",
-                utilization: 68,
-                speed: 73,
-                latency: 45,
-                status: "medium",
-              },
-            ].map((item, idx) => (
+            {stressAreas.length > 0 ? (
+              stressAreas.map((item, idx) => (
               <div key={idx} className="p-4 rounded-lg border border-border/50 hover:bg-muted/50">
                 <div className="flex items-center justify-between mb-2">
                   <p className="font-semibold text-foreground">{item.area}</p>
@@ -662,7 +588,12 @@ export default function DataAnalytics() {
                   </div>
                 </div>
               </div>
-            ))}
+              ))
+            ) : (
+              <div className="p-4 rounded-lg border border-border/50 text-center text-muted-foreground">
+                No capacity stress areas found for the selected filters.
+              </div>
+            )}
           </div>
         </div>
 
@@ -801,7 +732,7 @@ export default function DataAnalytics() {
                 {/* Column headers (Regions) */}
                 <div className="flex gap-1 mb-2">
                   <div className="w-20"></div>
-                  {["North", "South", "East", "West"].map((region) => (
+                  {["North", "South", "East", "West", "Central"].map((region) => (
                     <div
                       key={region}
                       className="w-24 text-center text-xs font-semibold text-muted-foreground"
@@ -1674,15 +1605,15 @@ export default function DataAnalytics() {
           {/* Vendor Breakdown Table */}
           <div className="card-elevated rounded-xl border border-border/50 p-6 overflow-x-auto">
             <h3 className="text-lg font-bold text-foreground mb-4">By Vendor</h3>
-            <table className="w-full text-sm">
+            <table className="w-full text-xs md:text-sm">
               <thead className="border-b border-border">
-                <tr className="text-muted-foreground font-semibold">
-                  <th className="text-left py-2 px-4">Vendor</th>
-                  <th className="text-right py-2 px-4">Sessions</th>
-                  <th className="text-right py-2 px-4">Failures</th>
-                  <th className="text-right py-2 px-4">Avg Speed</th>
-                  <th className="text-right py-2 px-4">Avg Latency</th>
-                  <th className="text-center py-2 px-4">Status</th>
+                <tr className="text-muted-foreground font-semibold text-xs md:text-sm">
+                  <th className="text-left py-3 px-2 md:px-4">Vendor</th>
+                  <th className="text-right py-3 px-2 md:px-4">Sessions</th>
+                  <th className="text-right py-3 px-2 md:px-4">Failures</th>
+                  <th className="text-right py-3 px-2 md:px-4">Avg Speed</th>
+                  <th className="text-right py-3 px-2 md:px-4">Avg Latency</th>
+                  <th className="text-center py-3 px-2 md:px-4">Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -1696,12 +1627,12 @@ export default function DataAnalytics() {
                         : "bg-red-100";
                   return (
                     <tr key={idx} className="border-b border-border/50 hover:bg-muted/50">
-                      <td className="py-2 px-4 font-medium">{vendor.name}</td>
-                      <td className="py-2 px-4 text-right">{vendor.count.toLocaleString()}</td>
-                      <td className="py-2 px-4 text-right">{failureCount.toLocaleString()}</td>
-                      <td className="py-2 px-4 text-right">{avgSpeed.toFixed(2)} Mbps</td>
-                      <td className="py-2 px-4 text-right">{avgLatency.toFixed(2)} ms</td>
-                      <td className="py-2 px-4 text-center">
+                      <td className="py-3 px-2 md:px-4 font-medium text-foreground text-left">{vendor.name}</td>
+                      <td className="py-3 px-2 md:px-4 text-right text-foreground font-medium tabular-nums">{vendor.count.toLocaleString()}</td>
+                      <td className="py-3 px-2 md:px-4 text-right text-foreground font-medium tabular-nums">{failureCount.toLocaleString()}</td>
+                      <td className="py-3 px-2 md:px-4 text-right text-foreground font-medium tabular-nums">{avgSpeed.toFixed(2)} Mbps</td>
+                      <td className="py-3 px-2 md:px-4 text-right text-foreground font-medium tabular-nums">{avgLatency.toFixed(2)} ms</td>
+                      <td className="py-3 px-2 md:px-4 text-center">
                         <span
                           className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor}`}
                         >
@@ -1718,15 +1649,15 @@ export default function DataAnalytics() {
           {/* Technology Breakdown Table */}
           <div className="card-elevated rounded-xl border border-border/50 p-6 overflow-x-auto">
             <h3 className="text-lg font-bold text-foreground mb-4">By Technology</h3>
-            <table className="w-full text-sm">
+            <table className="w-full text-xs md:text-sm">
               <thead className="border-b border-border">
-                <tr className="text-muted-foreground font-semibold">
-                  <th className="text-left py-2 px-4">Technology</th>
-                  <th className="text-right py-2 px-4">Sessions</th>
-                  <th className="text-right py-2 px-4">Failures</th>
-                  <th className="text-right py-2 px-4">Avg Speed</th>
-                  <th className="text-right py-2 px-4">Avg Latency</th>
-                  <th className="text-center py-2 px-4">Status</th>
+                <tr className="text-muted-foreground font-semibold text-xs md:text-sm">
+                  <th className="text-left py-3 px-2 md:px-4">Technology</th>
+                  <th className="text-right py-3 px-2 md:px-4">Sessions</th>
+                  <th className="text-right py-3 px-2 md:px-4">Failures</th>
+                  <th className="text-right py-3 px-2 md:px-4">Avg Speed</th>
+                  <th className="text-right py-3 px-2 md:px-4">Avg Latency</th>
+                  <th className="text-center py-3 px-2 md:px-4">Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -1740,12 +1671,12 @@ export default function DataAnalytics() {
                         : "bg-red-100";
                   return (
                     <tr key={idx} className="border-b border-border/50 hover:bg-muted/50">
-                      <td className="py-2 px-4 font-medium">{tech.name}</td>
-                      <td className="py-2 px-4 text-right">{tech.count.toLocaleString()}</td>
-                      <td className="py-2 px-4 text-right">{failureCount.toLocaleString()}</td>
-                      <td className="py-2 px-4 text-right">{avgSpeed.toFixed(2)} Mbps</td>
-                      <td className="py-2 px-4 text-right">{avgLatency.toFixed(2)} ms</td>
-                      <td className="py-2 px-4 text-center">
+                      <td className="py-3 px-2 md:px-4 font-medium text-foreground text-left">{tech.name}</td>
+                      <td className="py-3 px-2 md:px-4 text-right text-foreground font-medium tabular-nums">{tech.count.toLocaleString()}</td>
+                      <td className="py-3 px-2 md:px-4 text-right text-foreground font-medium tabular-nums">{failureCount.toLocaleString()}</td>
+                      <td className="py-3 px-2 md:px-4 text-right text-foreground font-medium tabular-nums">{avgSpeed.toFixed(2)} Mbps</td>
+                      <td className="py-3 px-2 md:px-4 text-right text-foreground font-medium tabular-nums">{avgLatency.toFixed(2)} ms</td>
+                      <td className="py-3 px-2 md:px-4 text-center">
                         <span
                           className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor}`}
                         >

@@ -119,7 +119,7 @@ export const generateVoiceTrendData = (filters: GlobalFilterState): VoiceTrendDa
       };
     });
   } else {
-    return Array.from({ length: Math.min(dayCount, 30) }, (_, i) => {
+    return Array.from({ length: Math.min(dayCount, 60) }, (_, i) => {
       let dateStr = "";
       if (filters.dateRange.from) {
         const date = new Date(filters.dateRange.from);
@@ -364,7 +364,7 @@ export const generateDataTrendData = (filters: GlobalFilterState): DataTrendData
       };
     });
   } else {
-    return Array.from({ length: Math.min(dayCount, 30) }, (_, i) => {
+    return Array.from({ length: Math.min(dayCount, 60) }, (_, i) => {
       let dateStr = "";
       if (filters.dateRange.from) {
         const date = new Date(filters.dateRange.from);
@@ -663,7 +663,7 @@ export const generateTimeRegionHeatmap = (): HeatmapRow[] => {
 // Technology vs Capacity Stress heatmap
 export const generateTechCapacityHeatmap = (): HeatmapRow[] => {
   const technologies = ["2G", "3G", "4G", "5G", "O-RAN"];
-  const regions = ["North", "South", "East", "West"];
+  const regions = ["North", "South", "East", "West", "Central"];
 
   return technologies.map((tech) => ({
     name: tech,
