@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X, LayoutDashboard, Settings, Moon, Sun, Gauge, Bell, Zap, History, FileText, Lock, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
