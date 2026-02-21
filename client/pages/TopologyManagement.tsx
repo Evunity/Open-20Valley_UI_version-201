@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Map, Tree, Network, Box, Layers, ZoomIn } from 'lucide-react';
+import { Map, GitBranch, Network, Box, Layers, ZoomIn } from 'lucide-react';
 import { generateMockTopologyHierarchy, TopologyObject } from '../utils/topologyData';
 
 type ViewType = 'map' | 'tree' | 'dependency' | 'rack';
@@ -13,7 +13,7 @@ interface TopologyViewConfig {
 
 const VIEWS: TopologyViewConfig[] = [
   { id: 'map', label: 'Geospatial Map', icon: Map, description: 'Global network map with geo coordinates' },
-  { id: 'tree', label: 'Tree View', icon: Tree, description: 'Hierarchical network structure' },
+  { id: 'tree', label: 'Tree View', icon: GitBranch, description: 'Hierarchical network structure' },
   { id: 'dependency', label: 'Dependency Graph', icon: Network, description: 'Upstream/downstream relationships' },
   { id: 'rack', label: 'Site & Rack', icon: Box, description: 'Physical hardware layout' }
 ];
