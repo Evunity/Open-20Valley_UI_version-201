@@ -1,279 +1,369 @@
-import { GlobalFilterState } from "@/hooks/useGlobalFilters";
+import { v4 as uuidv4 } from 'uuid';
 
-export interface AlarmKPI {
-  value: number;
-  unit: string;
-  change: number; // percentage
-  status: "healthy" | "degraded" | "critical";
-  direction: "up" | "down" | "stable";
-}
+// Severity levels with mandatory multi-signal support
+export type AlarmSeverity = "critical" | "major" | "minor" | "warning" | "info" | "cleared";
 
-export interface AlarmDataPoint {
-  timestamp: string;
-  active_alarms: number;
-  critical_alarms: number;
-  major_alarms: number;
-  minor_alarms: number;
-  clear_rate: number;
-}
+export type AlarmType = "equipment" | "communications" | "quality_of_service" | "processing_error" | "environmental";
 
-export interface AlarmDistribution {
-  name: string;
-  active: number;
-  critical: number;
-  major: number;
-  minor: number;
-  avg_duration: number; // in minutes
-  status: "healthy" | "degraded" | "critical";
-}
+export type AlarmCategory = "accessibility" | "performance" | "configuration" | "security" | "maintenance";
 
-export interface AlarmInsight {
+export type Technology = "2G" | "3G" | "4G" | "5G" | "FTTx" | "IP" | "OpenRAN";
+
+export type ObjectType = "site" | "node" | "cell" | "interface" | "region" | "cluster";
+
+export type SourceSystem = "Huawei" | "Ericsson" | "Nokia" | "OpenRAN_SMO";
+
+export type TimeMode = "live" | "snapshot" | "historical";
+
+export type EscalationLevel = "L1" | "L2" | "L3" | "L4";
+
+// Alarm comment interface
+export interface AlarmComment {
   id: string;
-  type: "surge" | "persistent" | "severity_shift" | "pattern";
+  author: string;
+  timestamp: string;
+  text: string;
+  severity?: "info" | "warning" | "critical";
+}
+
+// Object hierarchy context
+export interface ObjectHierarchy {
+  region?: string;
+  cluster?: string;
+  site?: string;
+  node?: string;
+  cell?: string;
+  interface?: string;
+}
+
+// Core alarm interface
+export interface Alarm {
+  globalAlarmId: string;
+  vendorAlarmId: string;
+  vendorAlarmCode?: string; // Exposed in expert mode only
+  tenant: string;
+  sourceSystem: SourceSystem;
+  severity: AlarmSeverity;
+  alarmType: AlarmType;
+  category: AlarmCategory;
+  technologies: Technology[];
   title: string;
   description: string;
-  timestamp: string;
-  scope: string;
-  severity: "critical" | "major" | "minor";
+  objectType: ObjectType;
+  objectName: string;
+  hierarchy: ObjectHierarchy;
+  assignedTeam?: string;
+  escalationLevel?: EscalationLevel;
+  comments: AlarmComment[];
+  createdAt: string;
+  updatedAt: string;
+  duration: string; // e.g., "2h 15m"
+  acknowledged: boolean;
+  acknowledgedBy?: string;
+  acknowledgedAt?: string;
+  rawVendorData?: Record<string, any>; // Exposed in expert mode only
 }
 
-export interface AlarmHealthIndex {
-  value: number;
-  change: number;
-  status: "healthy" | "degraded" | "critical";
+// Helper type for vendor normalization
+export interface VendorNormalizedAlarm {
+  alarm: Alarm;
+  vendorFields: {
+    alarmCode: string;
+    severity: string;
+    type: string;
+  };
 }
 
-/**
- * Generate Alarm KPIs based on filters
- */
-export const generateAlarmKPIs = (filters: GlobalFilterState): Record<string, AlarmKPI> => {
-  // Apply filter impact
-  const filterImpact = 1 + (filters.vendors.length * 0.05 + filters.technologies.length * 0.03);
+// Mock data generation
+const REGIONS = ["Cairo", "Alexandria", "Giza", "Port Said", "Suez"];
+const CLUSTERS = ["East Cluster", "West Cluster", "North Cluster", "South Cluster"];
+const SITES = ["CAI1022", "CAI1023", "ALX1001", "GIZ2001", "PSA3001"];
+const NODES = ["Node-1", "Node-2", "Node-3", "RRH-1", "RRH-2"];
+const CELLS = ["Cell-1", "Cell-2", "Cell-3", "Cell-4"];
+const INTERFACES = ["IF-ETH-1", "IF-ETH-2", "IF-RADIO-1"];
 
-  return {
-    active_alarms: {
-      value: Math.round((42 + Math.random() * 25) * filterImpact),
-      unit: "alarms",
-      change: 3.2,
-      status: Math.random() > 0.7 ? "critical" : "degraded",
-      direction: Math.random() > 0.5 ? "up" : "down",
-    },
-    critical_alarms: {
-      value: Math.round((8 + Math.random() * 6) * filterImpact),
-      unit: "alarms",
-      change: 1.8,
-      status: "critical",
-      direction: "up",
-    },
-    major_alarms: {
-      value: Math.round((15 + Math.random() * 12) * filterImpact),
-      unit: "alarms",
-      change: 2.1,
-      status: "degraded",
-      direction: "stable",
-    },
-    alarm_rate: {
-      value: Math.round((8.5 + Math.random() * 4) * filterImpact),
-      unit: "per site",
-      change: -1.2,
-      status: Math.random() > 0.6 ? "degraded" : "healthy",
-      direction: "down",
-    },
+const ALARM_TITLES: Record<AlarmSeverity, string[]> = {
+  critical: [
+    "Hardware failure detected",
+    "System overload",
+    "Network connectivity lost",
+    "Service unavailable"
+  ],
+  major: [
+    "High CPU utilization",
+    "Memory threshold exceeded",
+    "Interface down",
+    "Configuration error"
+  ],
+  minor: [
+    "Minor performance degradation",
+    "Maintenance due",
+    "Software update available",
+    "License expiring"
+  ],
+  warning: [
+    "Threshold approaching",
+    "Unusual traffic pattern",
+    "Backup failure",
+    "Log space low"
+  ],
+  info: [
+    "System started",
+    "Maintenance completed",
+    "Configuration updated",
+    "Status changed"
+  ],
+  cleared: [
+    "Alert cleared",
+    "Issue resolved",
+    "Service restored",
+    "Performance normalized"
+  ]
+};
+
+const SOURCE_SYSTEMS: SourceSystem[] = ["Huawei", "Ericsson", "Nokia", "OpenRAN_SMO"];
+const ALARM_TYPES: AlarmType[] = ["equipment", "communications", "quality_of_service", "processing_error", "environmental"];
+const ALARM_CATEGORIES: AlarmCategory[] = ["accessibility", "performance", "configuration", "security", "maintenance"];
+const TECHNOLOGIES: Technology[] = ["2G", "3G", "4G", "5G", "FTTx", "IP", "OpenRAN"];
+const TEAMS = ["NOC Team A", "NOC Team B", "Field Support", "Engineering"];
+const ESCALATION_LEVELS: EscalationLevel[] = ["L1", "L2", "L3", "L4"];
+
+const SAMPLE_COMMENTS = [
+  "Investigating the issue",
+  "Escalated to vendor",
+  "Temporary workaround applied",
+  "Waiting for spare parts",
+  "Issue confirmed by field team"
+];
+
+function getRandomElement<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function getRandomElements<T>(arr: T[], min: number, max: number): T[] {
+  const count = Math.floor(Math.random() * (max - min + 1)) + min;
+  const result: T[] = [];
+  const indices = new Set<number>();
+  while (indices.size < count && indices.size < arr.length) {
+    indices.add(Math.floor(Math.random() * arr.length));
+  }
+  return Array.from(indices).map(i => arr[i]);
+}
+
+function generateDuration(): string {
+  const hours = Math.floor(Math.random() * 48);
+  const minutes = Math.floor(Math.random() * 60);
+  if (hours === 0) return `${minutes}m`;
+  if (minutes === 0) return `${hours}h`;
+  return `${hours}h ${minutes}m`;
+}
+
+function generateTimestamp(hoursAgo: number = 0): string {
+  const date = new Date();
+  date.setHours(date.getHours() - hoursAgo);
+  return date.toISOString();
+}
+
+export function generateMockAlarms(count: number = 50): Alarm[] {
+  const alarms: Alarm[] = [];
+  const severities: AlarmSeverity[] = ["critical", "major", "minor", "warning", "info"];
+  const severityDistribution = [0.1, 0.2, 0.25, 0.25, 0.2]; // Distribution percentages
+
+  let criticalCount = 0;
+  let majorCount = 0;
+
+  for (let i = 0; i < count; i++) {
+    const rand = Math.random();
+    let severity: AlarmSeverity;
+    
+    if (rand < severityDistribution[0] && criticalCount < 5) {
+      severity = "critical";
+      criticalCount++;
+    } else if (rand < severityDistribution[0] + severityDistribution[1] && majorCount < 10) {
+      severity = "major";
+      majorCount++;
+    } else {
+      severity = getRandomElement(["minor", "warning", "info"]);
+    }
+
+    const sourceSystem = getRandomElement(SOURCE_SYSTEMS);
+    const objectType = getRandomElement<ObjectType>(["site", "node", "cell", "interface"]);
+    const hoursAgo = Math.floor(Math.random() * 24);
+    
+    const alarm: Alarm = {
+      globalAlarmId: `ALARM-${uuidv4()}`,
+      vendorAlarmId: `${sourceSystem}-${Math.floor(Math.random() * 10000)}`,
+      vendorAlarmCode: `${sourceSystem.charAt(0)}${Math.floor(Math.random() * 999999).toString().padStart(6, "0")}`,
+      tenant: "Egypt Telecom",
+      sourceSystem,
+      severity,
+      alarmType: getRandomElement(ALARM_TYPES),
+      category: getRandomElement(ALARM_CATEGORIES),
+      technologies: getRandomElements(TECHNOLOGIES, 1, 2),
+      title: getRandomElement(ALARM_TITLES[severity]),
+      description: `${severity.toUpperCase()} alarm detected on ${objectType}`,
+      objectType,
+      objectName: getRandomElement(SITES),
+      hierarchy: {
+        region: getRandomElement(REGIONS),
+        cluster: getRandomElement(CLUSTERS),
+        site: getRandomElement(SITES),
+        node: getRandomElement(NODES),
+        cell: getRandomElement(CELLS),
+        interface: getRandomElement(INTERFACES)
+      },
+      assignedTeam: Math.random() > 0.3 ? getRandomElement(TEAMS) : undefined,
+      escalationLevel: severity === "critical" ? getRandomElement(ESCALATION_LEVELS) : 
+                       severity === "major" ? (Math.random() > 0.5 ? "L2" : "L1") : undefined,
+      comments: Math.random() > 0.6 ? [
+        {
+          id: uuidv4(),
+          author: getRandomElement(TEAMS).split(" ")[2] || "Team A",
+          timestamp: generateTimestamp(hoursAgo - 1),
+          text: getRandomElement(SAMPLE_COMMENTS),
+          severity: Math.random() > 0.7 ? "warning" : "info"
+        }
+      ] : [],
+      createdAt: generateTimestamp(hoursAgo),
+      updatedAt: generateTimestamp(Math.max(0, hoursAgo - 1)),
+      duration: generateDuration(),
+      acknowledged: Math.random() > 0.4,
+      acknowledgedBy: Math.random() > 0.4 ? getRandomElement(TEAMS) : undefined,
+      acknowledgedAt: Math.random() > 0.4 ? generateTimestamp(hoursAgo - 1) : undefined,
+      rawVendorData: {
+        vendorSpecificField1: `Value-${Math.random()}`,
+        vendorSpecificField2: `Status-${getRandomElement(["OK", "FAULT", "WARNING"])}`,
+        lastUpdated: new Date().toISOString()
+      }
+    };
+    
+    alarms.push(alarm);
+  }
+
+  return alarms;
+}
+
+// Severity utilities with multi-signal support
+export function getSeverityColor(severity: AlarmSeverity): string {
+  const colors: Record<AlarmSeverity, string> = {
+    critical: "bg-red-600",
+    major: "bg-orange-600",
+    minor: "bg-yellow-500",
+    warning: "bg-blue-500",
+    info: "bg-gray-500",
+    cleared: "bg-green-600"
   };
-};
+  return colors[severity];
+}
 
-/**
- * Generate Alarm Health Index
- */
-export const generateAlarmHealthIndex = (filters: GlobalFilterState): AlarmHealthIndex => {
-  const baseValue = 65 - (filters.vendors.length * 5 + filters.technologies.length * 3);
-  const healthValue = Math.max(20, Math.min(100, baseValue + Math.random() * 15));
-
-  return {
-    value: Math.round(healthValue),
-    change: -2.5,
-    status: healthValue > 75 ? "healthy" : healthValue > 50 ? "degraded" : "critical",
+export function getSeverityTextColor(severity: AlarmSeverity): string {
+  const colors: Record<AlarmSeverity, string> = {
+    critical: "text-red-600",
+    major: "text-orange-600",
+    minor: "text-yellow-600",
+    warning: "text-blue-600",
+    info: "text-gray-600",
+    cleared: "text-green-600"
   };
-};
+  return colors[severity];
+}
 
-/**
- * Generate time-series alarm trend data
- */
-export const generateAlarmTrendData = (filters: GlobalFilterState): AlarmDataPoint[] => {
-  const points: AlarmDataPoint[] = [];
-  const now = new Date();
-  const hoursToGenerate = 24;
+export function getSeverityIcon(severity: AlarmSeverity): string {
+  const icons: Record<AlarmSeverity, string> = {
+    critical: "🔴",
+    major: "🟠",
+    minor: "🟡",
+    warning: "🔵",
+    info: "⚪",
+    cleared: "✅"
+  };
+  return icons[severity];
+}
 
-  for (let i = hoursToGenerate - 1; i >= 0; i--) {
-    const timestamp = new Date(now.getTime() - i * 60 * 60 * 1000);
-    const timeStr = timestamp.toISOString().split("T")[0] + " " + String(timestamp.getHours()).padStart(2, "0") + ":00";
+export function getSeverityBadgeClass(severity: AlarmSeverity): string {
+  const classes: Record<AlarmSeverity, string> = {
+    critical: "bg-red-100 text-red-800 border-red-300",
+    major: "bg-orange-100 text-orange-800 border-orange-300",
+    minor: "bg-yellow-100 text-yellow-800 border-yellow-300",
+    warning: "bg-blue-100 text-blue-800 border-blue-300",
+    info: "bg-gray-100 text-gray-800 border-gray-300",
+    cleared: "bg-green-100 text-green-800 border-green-300"
+  };
+  return classes[severity];
+}
 
-    // Generate alarm counts with some variation
-    const baseActive = 35 + Math.sin(i / 6) * 15;
-    const baseCritical = 6 + Math.cos(i / 8) * 4;
-    const baseMajor = 12 + Math.sin(i / 4) * 8;
+// Vendor normalization
+export function normalizeAlarm(alarm: Alarm): VendorNormalizedAlarm {
+  return {
+    alarm,
+    vendorFields: {
+      alarmCode: alarm.vendorAlarmCode || "N/A",
+      severity: alarm.severity.toUpperCase(),
+      type: alarm.alarmType
+    }
+  };
+}
 
-    const multiplier = 1 + (filters.vendors.length * 0.05 + filters.technologies.length * 0.03);
+// Vendor field mapping (for expert mode)
+export function getVendorFieldsForSource(sourceSystem: SourceSystem): string[] {
+  const vendorFields: Record<SourceSystem, string[]> = {
+    "Huawei": ["alarmCode", "alarmLevel", "additionalInfo"],
+    "Ericsson": ["alarmCode", "eventType", "probableCause"],
+    "Nokia": ["alarmCode", "alarmSeverity", "managedObject"],
+    "OpenRAN_SMO": ["alarmId", "alarmType", "affectedResource"]
+  };
+  return vendorFields[sourceSystem] || [];
+}
 
-    points.push({
-      timestamp: timeStr,
-      active_alarms: Math.round(baseActive * multiplier + Math.random() * 5),
-      critical_alarms: Math.round(baseCritical * multiplier + Math.random() * 2),
-      major_alarms: Math.round(baseMajor * multiplier + Math.random() * 3),
-      minor_alarms: Math.round((15 + Math.random() * 10) * multiplier),
-      clear_rate: 62 + Math.random() * 20,
-    });
+// Time duration calculation
+export function calculateDuration(createdAt: string, updatedAt?: string): string {
+  const start = new Date(createdAt);
+  const end = updatedAt ? new Date(updatedAt) : new Date();
+  
+  const diffMs = end.getTime() - start.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  
+  if (diffMins < 1) return "< 1m";
+  if (diffMins < 60) return `${diffMins}m`;
+  
+  const diffHours = Math.floor(diffMins / 60);
+  const remainingMins = diffMins % 60;
+  
+  if (diffHours < 24) {
+    return remainingMins > 0 ? `${diffHours}h ${remainingMins}m` : `${diffHours}h`;
   }
+  
+  const diffDays = Math.floor(diffHours / 24);
+  const remainingHours = diffHours % 24;
+  
+  return remainingHours > 0 ? `${diffDays}d ${remainingHours}h` : `${diffDays}d`;
+}
 
-  return points;
-};
-
-/**
- * Generate alarm distribution by dimension (vendor, technology, region, cluster)
- */
-export const generateAlarmDistributionByVendor = (
-  filters: GlobalFilterState
-): AlarmDistribution[] => {
-  const vendors = ["Ericsson", "Huawei", "Nokia", "Samsung"];
-
-  return vendors.map((vendor, idx) => ({
-    name: vendor,
-    active: Math.round(12 + Math.random() * 18),
-    critical: Math.round(2 + Math.random() * 5),
-    major: Math.round(4 + Math.random() * 8),
-    minor: Math.round(5 + Math.random() * 10),
-    avg_duration: Math.round(45 + Math.random() * 120 + idx * 20),
-    status: Math.random() > 0.6 ? "critical" : Math.random() > 0.3 ? "degraded" : "healthy",
-  }));
-};
-
-export const generateAlarmDistributionByTechnology = (
-  filters: GlobalFilterState
-): AlarmDistribution[] => {
-  const techs = ["5G", "4G", "3G", "2G"];
-
-  return techs.map((tech, idx) => ({
-    name: tech,
-    active: Math.round(10 + Math.random() * 15),
-    critical: Math.round(1 + Math.random() * 4),
-    major: Math.round(3 + Math.random() * 7),
-    minor: Math.round(4 + Math.random() * 8),
-    avg_duration: Math.round(50 + Math.random() * 100 + idx * 30),
-    status: Math.random() > 0.5 ? "degraded" : "healthy",
-  }));
-};
-
-export const generateAlarmDistributionByRegion = (
-  filters: GlobalFilterState
-): AlarmDistribution[] => {
-  const regions = ["North", "South", "East", "West", "Central"];
-
-  return regions.map((region, idx) => ({
-    name: region,
-    active: Math.round(8 + Math.random() * 14),
-    critical: Math.round(1 + Math.random() * 4),
-    major: Math.round(3 + Math.random() * 7),
-    minor: Math.round(4 + Math.random() * 8),
-    avg_duration: Math.round(40 + Math.random() * 110 + idx * 15),
-    status: Math.random() > 0.55 ? "degraded" : "healthy",
-  }));
-};
-
-export const generateAlarmDistributionByCluster = (
-  filters: GlobalFilterState
-): AlarmDistribution[] => {
-  const clusters = ["Cluster A", "Cluster B", "Cluster C", "Cluster D"];
-
-  return clusters.map((cluster, idx) => ({
-    name: cluster,
-    active: Math.round(9 + Math.random() * 16),
-    critical: Math.round(1 + Math.random() * 4),
-    major: Math.round(3 + Math.random() * 7),
-    minor: Math.round(5 + Math.random() * 9),
-    avg_duration: Math.round(45 + Math.random() * 115 + idx * 20),
-    status: Math.random() > 0.5 ? "degraded" : "healthy",
-  }));
-};
-
-/**
- * Generate alarm pattern insights
- */
-export const generateAlarmInsights = (
-  trendData: AlarmDataPoint[],
-  distributions: Record<string, AlarmDistribution[]>,
-  filters: GlobalFilterState
-): AlarmInsight[] => {
-  const insights: AlarmInsight[] = [];
-  const now = new Date();
-
-  // Detect surge if recent alarms are high
-  const recentAverage =
-    trendData.slice(-6).reduce((sum, p) => sum + p.active_alarms, 0) / 6;
-  const overallAverage =
-    trendData.reduce((sum, p) => sum + p.active_alarms, 0) / trendData.length;
-
-  if (recentAverage > overallAverage * 1.3) {
-    insights.push({
-      id: "surge-1",
-      type: "surge",
-      title: "Alarm Surge Detected",
-      description: `Active alarms have increased by ${Math.round(((recentAverage / overallAverage - 1) * 100))}% in the last 6 hours compared to daily average.`,
-      timestamp: new Date(now.getTime() - 30 * 60 * 1000).toISOString(),
-      scope: filters.regions.length > 0 ? filters.regions.join(", ") : "All Regions",
-      severity: "critical",
-    });
+// Filter utilities
+export function filterAlarms(
+  alarms: Alarm[],
+  filters: {
+    severity?: AlarmSeverity[];
+    sourceSystem?: SourceSystem[];
+    technology?: Technology[];
+    category?: AlarmCategory[];
+    alarmType?: AlarmType[];
+    assignedTeam?: string;
+    acknowledged?: boolean;
+    region?: string;
+    site?: string;
   }
-
-  // Detect persistent alarms
-  const highDurationDimensions = Object.entries(distributions)
-    .flatMap(([dimension, items]) =>
-      items
-        .filter((item) => item.avg_duration > 120)
-        .map((item) => `${item.name} (${item.avg_duration} min)`)
-    )
-    .slice(0, 2);
-
-  if (highDurationDimensions.length > 0) {
-    insights.push({
-      id: "persistent-1",
-      type: "persistent",
-      title: "Persistent Alarms Detected",
-      description: `Alarms lasting longer than 2 hours detected in: ${highDurationDimensions.join(", ")}.`,
-      timestamp: new Date(now.getTime() - 90 * 60 * 1000).toISOString(),
-      scope: "Multiple Dimensions",
-      severity: "major",
-    });
-  }
-
-  // Severity mix shift
-  const criticalCount = trendData[trendData.length - 1].critical_alarms;
-  const majorCount = trendData[trendData.length - 1].major_alarms;
-  const severityRatio = criticalCount / (majorCount + criticalCount);
-
-  if (severityRatio > 0.35) {
-    insights.push({
-      id: "severity-1",
-      type: "severity_shift",
-      title: "Severity Mix Shift",
-      description: `Critical alarms now comprise ${Math.round(severityRatio * 100)}% of major+critical alarms, indicating increased network instability.`,
-      timestamp: new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString(),
-      scope: "Network-wide",
-      severity: "critical",
-    });
-  }
-
-  // Recurring pattern
-  if (Math.random() > 0.5) {
-    insights.push({
-      id: "pattern-1",
-      type: "pattern",
-      title: "Recurring Alarm Pattern Identified",
-      description: "Alarm spikes detected at consistent 6-hour intervals over the last 48 hours. Pattern suggests cyclical load or configuration issue.",
-      timestamp: new Date(now.getTime() - 4 * 60 * 60 * 1000).toISOString(),
-      scope: filters.clusters.length > 0 ? filters.clusters.join(", ") : "All Clusters",
-      severity: "major",
-    });
-  }
-
-  return insights;
-};
+): Alarm[] {
+  return alarms.filter(alarm => {
+    if (filters.severity && !filters.severity.includes(alarm.severity)) return false;
+    if (filters.sourceSystem && !filters.sourceSystem.includes(alarm.sourceSystem)) return false;
+    if (filters.technology && !alarm.technologies.some(t => filters.technology?.includes(t))) return false;
+    if (filters.category && alarm.category !== filters.category[0]) return false;
+    if (filters.alarmType && alarm.alarmType !== filters.alarmType[0]) return false;
+    if (filters.assignedTeam && alarm.assignedTeam !== filters.assignedTeam) return false;
+    if (filters.acknowledged !== undefined && alarm.acknowledged !== filters.acknowledged) return false;
+    if (filters.region && alarm.hierarchy.region !== filters.region) return false;
+    if (filters.site && alarm.hierarchy.site !== filters.site) return false;
+    return true;
+  });
+}

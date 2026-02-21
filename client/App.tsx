@@ -19,6 +19,7 @@ import NetworkAlarms from "@/pages/NetworkAlarms";
 import AnalyticsHome from "@/pages/AnalyticsHome";
 import AnalyticsManagement from "@/pages/AnalyticsManagement";
 import NetworkStatus from "@/pages/NetworkStatus";
+import { AlarmManagement } from "@/pages/AlarmManagement";
 import ComingSoon from "@/pages/ComingSoon";
 import NotFound from "@/pages/NotFound";
 
@@ -150,7 +151,7 @@ export default function App() {
                 path="/alarm-management"
                 element={
                   <Layout>
-                    <ComingSoon title="Alarm Management" description="Configure and manage network alarms" />
+                    <AlarmManagement />
                   </Layout>
                 }
               />
