@@ -414,3 +414,109 @@ export function getTriggerCategoryColor(category: TriggerCategory): string {
   };
   return colors[category];
 }
+
+export interface AutomationLearning {
+  automationId: string;
+  name: string;
+  successRate: number;
+  trend: 'improving' | 'stable' | 'degrading';
+  trendValue: number; // percentage change
+  recommendations: string[];
+}
+
+export interface TrustScore {
+  overall: number; // 0-100
+  level: 'LOW' | 'MEDIUM' | 'HIGH';
+  eligibleForAutonomy: boolean;
+  maturityLevel: 'L1' | 'L2' | 'L3' | 'L4';
+  nextMilestone: string;
+}
+
+export interface ApprovalContext {
+  automationName: string;
+  action: string;
+  blastRadius: number;
+  affectedRegions: string[];
+  confidence: number;
+  rollbackReady: boolean;
+  estimatedDuration: number;
+}
+
+export interface HeatmapData {
+  region: string;
+  automationCount: number;
+  successRate: number;
+  lastHour: number;
+}
+
+export interface ROIData {
+  downtimeAvoided: number; // hours
+  truckRollsPrevented: number;
+  revenueProtected: number; // dollars
+  periodDays: number;
+}
+
+export function generateMockLearningData(): AutomationLearning[] {
+  return [
+    {
+      automationId: 'auto_1',
+      name: 'Cell Outage Recovery',
+      successRate: 94.2,
+      trend: 'improving',
+      trendValue: 8.5,
+      recommendations: [
+        'Increase confidence threshold from 82 → 88%',
+        'Reduce timeout window from 45s → 35s',
+        'Expand trigger scope to regional level'
+      ]
+    },
+    {
+      automationId: 'auto_2',
+      name: 'Transport Failover',
+      successRate: 87.5,
+      trend: 'stable',
+      trendValue: 0.2,
+      recommendations: []
+    },
+    {
+      automationId: 'auto_3',
+      name: 'Parameter Drift Correction',
+      successRate: 71.3,
+      trend: 'degrading',
+      trendValue: -5.2,
+      recommendations: [
+        'Retrain model with recent data',
+        'Reduce max change delta to prevent over-correction'
+      ]
+    }
+  ];
+}
+
+export function generateMockTrustScore(): TrustScore {
+  return {
+    overall: 87,
+    level: 'HIGH',
+    eligibleForAutonomy: true,
+    maturityLevel: 'L3',
+    nextMilestone: 'L4 - Full Autonomous Mode (pending audit approval)'
+  };
+}
+
+export function generateMockHeatmapData(): HeatmapData[] {
+  return [
+    { region: 'Cairo', automationCount: 145, successRate: 94, lastHour: 23 },
+    { region: 'Alexandria', automationCount: 98, successRate: 91, lastHour: 18 },
+    { region: 'Giza', automationCount: 156, successRate: 96, lastHour: 31 },
+    { region: 'Suez', automationCount: 67, successRate: 88, lastHour: 12 },
+    { region: 'Mansoura', automationCount: 89, successRate: 92, lastHour: 15 }
+  ];
+}
+
+export function generateMockROIData(): ROIData {
+  return {
+    downtimeAvoided: 187.5,
+    truckRollsPrevented: 43,
+    revenueProtected: 2450000,
+    periodDays: 30
+  };
+}

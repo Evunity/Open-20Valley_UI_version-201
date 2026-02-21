@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Eye, Hammer, Lock, Plus, Settings, Brain } from 'lucide-react';
+import { Eye, Hammer, Lock, Plus, Settings, Brain, Lightbulb, Shield, Map, TrendingUp } from 'lucide-react';
 import { AutomationCommandCenter } from '../components/AutomationCommandCenter';
 import { AutomationBuilder } from '../components/AutomationBuilder';
 import { RunbookDesigner } from '../components/RunbookDesigner';
@@ -9,18 +9,27 @@ import { ExecutionOrchestrator } from '../components/ExecutionOrchestrator';
 import { AIDecisionHub } from '../components/AIDecisionHub';
 import { ModelGovernance } from '../components/ModelGovernance';
 import { ClosedLoopValidation } from '../components/ClosedLoopValidation';
+import { LearningEngine } from '../components/LearningEngine';
+import { TrustScoring } from '../components/TrustScoring';
+import { HumanInLoopDialog } from '../components/HumanInLoopDialog';
+import { AutonomyHeatmap } from '../components/AutonomyHeatmap';
+import { AutomationROI } from '../components/AutomationROI';
 import { generateMockPolicies } from '../utils/automationData';
 
 type SuperDomain = 'awareness' | 'design' | 'execution';
-type WorkspaceType = 
-  | 'command_center' 
-  | 'ai_hub' 
+type WorkspaceType =
+  | 'command_center'
+  | 'ai_hub'
   | 'impact_engine'
+  | 'learning_engine'
+  | 'trust_scoring'
   | 'builder'
   | 'runbook'
   | 'policy'
   | 'orchestrator'
-  | 'governance';
+  | 'governance'
+  | 'heatmap'
+  | 'roi';
 
 interface WorkspaceTab {
   id: WorkspaceType;
@@ -33,13 +42,17 @@ const WORKSPACES: WorkspaceTab[] = [
   { id: 'command_center', label: 'Command Center', domain: 'awareness' },
   { id: 'ai_hub', label: 'AI Decision Hub', domain: 'awareness' },
   { id: 'impact_engine', label: 'Impact & Learning', domain: 'awareness' },
+  { id: 'learning_engine', label: 'Learning Engine', domain: 'awareness' },
+  { id: 'trust_scoring', label: 'Trust Score', domain: 'awareness' },
   // Design Layer
   { id: 'builder', label: 'Builder', domain: 'design' },
   { id: 'runbook', label: 'Runbook Designer', domain: 'design' },
   { id: 'policy', label: 'Policy & Guardrails', domain: 'design' },
   // Execution Layer
   { id: 'orchestrator', label: 'Orchestrator', domain: 'execution' },
-  { id: 'governance', label: 'Model Governance', domain: 'execution' }
+  { id: 'governance', label: 'Model Governance', domain: 'execution' },
+  { id: 'heatmap', label: 'Autonomy Heatmap', domain: 'execution' },
+  { id: 'roi', label: 'ROI Panel', domain: 'execution' }
 ];
 
 const DOMAINS = [
@@ -53,6 +66,7 @@ export const AutomationManagement: React.FC = () => {
   const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceType>('command_center');
   const [showBuilder, setShowBuilder] = useState(false);
   const [showRunbook, setShowRunbook] = useState(false);
+  const [showApprovalDialog, setShowApprovalDialog] = useState(false);
   const [policies] = useState(generateMockPolicies());
 
   const domainWorkspaces = WORKSPACES.filter(w => w.domain === activeDomain);
@@ -191,6 +205,18 @@ export const AutomationManagement: React.FC = () => {
       case 'governance':
         return <ModelGovernance />;
 
+      case 'learning_engine':
+        return <LearningEngine onRecommendationApply={(id, rec) => console.log(id, rec)} />;
+
+      case 'trust_scoring':
+        return <TrustScoring />;
+
+      case 'heatmap':
+        return <AutonomyHeatmap />;
+
+      case 'roi':
+        return <AutomationROI />;
+
       default:
         return null;
     }
@@ -260,6 +286,29 @@ export const AutomationManagement: React.FC = () => {
       <div className="flex-1 overflow-hidden flex">
         {renderWorkspaceContent()}
       </div>
+
+      {/* Human-in-Loop Approval Dialog */}
+      <HumanInLoopDialog
+        isOpen={showApprovalDialog}
+        context={{
+          automationName: 'Cell Outage Recovery',
+          action: 'Restart DU – Cluster East',
+          blastRadius: 182,
+          affectedRegions: ['Cairo', 'Giza', 'Alexandria'],
+          confidence: 94,
+          rollbackReady: true,
+          estimatedDuration: 45
+        }}
+        onApprove={() => {
+          setShowApprovalDialog(false);
+          alert('✓ Automation approved and executing...');
+        }}
+        onReject={() => {
+          setShowApprovalDialog(false);
+          alert('✗ Automation execution cancelled');
+        }}
+        onClose={() => setShowApprovalDialog(false)}
+      />
     </div>
   );
 };

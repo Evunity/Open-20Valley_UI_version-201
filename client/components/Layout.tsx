@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, LayoutDashboard, Settings, Moon, Sun, Gauge, Bell, Zap, History, FileText, Lock } from "lucide-react";
+import { Menu, X, LayoutDashboard, Settings, Moon, Sun, Gauge, Bell, Zap, History, FileText, Lock, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface LayoutProps {
@@ -12,6 +13,7 @@ export default function Layout({ children }: LayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [emergencyKillActive, setEmergencyKillActive] = useState(false);
   const location = useLocation();
 
   // Handle responsive behavior
@@ -283,6 +285,28 @@ export default function Layout({ children }: LayoutProps) {
                 day: "numeric",
               })}
             </div>
+
+            {/* Emergency Kill Switch */}
+            <button
+              onClick={() => {
+                setEmergencyKillActive(!emergencyKillActive);
+                if (!emergencyKillActive) {
+                  alert('🚨 EMERGENCY KILL SWITCH ACTIVATED\n\nAll automations have been paused.\nManual intervention required to resume.');
+                }
+              }}
+              className={cn(
+                "px-3 py-2 rounded-lg font-semibold text-sm flex items-center gap-2 transition-all flex-shrink-0",
+                emergencyKillActive
+                  ? "bg-red-600 text-white hover:bg-red-700 animate-pulse"
+                  : "bg-red-100 text-red-700 hover:bg-red-200"
+              )}
+              title="Emergency Kill Switch - Stops all automations immediately (Auditor Required)"
+            >
+              <AlertTriangle className="w-4 h-4" />
+              <span className="hidden sm:inline">
+                {emergencyKillActive ? "🚨 KILL ACTIVE" : "Kill Switch"}
+              </span>
+            </button>
           </div>
         </header>
 
