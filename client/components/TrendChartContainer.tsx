@@ -72,6 +72,7 @@ export default function TrendChartContainer({
   const isHourlyData = useMemo(() => {
     if (data.length === 0) return false;
     const firstTime = data[0].time as string;
+    if (!firstTime) return false;
     return firstTime.includes(":") && !firstTime.includes("-");
   }, [data]);
 

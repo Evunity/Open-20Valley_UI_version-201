@@ -235,7 +235,7 @@ export default function NetworkAlarms() {
           <div className="space-y-4">
             <TrendChartContainer
               title="Alarm Clear Rate"
-              data={trendData}
+              data={trendData.map((d) => ({ ...d, time: d.timestamp }))}
               dataKeys={["clear_rate"]}
               exportable
               zoomable
