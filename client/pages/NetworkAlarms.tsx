@@ -208,87 +208,27 @@ export default function NetworkAlarms() {
         <div className="space-y-6">
           <h2 className="text-2xl font-bold text-foreground">Trend Analysis</h2>
 
-          {/* Alarm Volume & Critical vs Non-Critical - Side by Side */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Alarm Volume & Critical vs Non-Critical - Stacked */}
+          <div className="space-y-4">
             {/* Alarm Volume Trend */}
-            <div className="card-elevated rounded-xl border border-border/50 p-6">
-              <h3 className="text-lg font-bold text-foreground mb-4">Alarm Volume Trend</h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={trendData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis
-                    dataKey="timestamp"
-                    stroke="hsl(var(--muted-foreground))"
-                    style={{ fontSize: "12px" }}
-                  />
-                  <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "8px",
-                    }}
-                  />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="active_alarms"
-                    stroke="#8b5cf6"
-                    dot={false}
-                    strokeWidth={2}
-                    name="Active Alarms"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
+            <TrendChartContainer
+              title="Alarm Volume Trend"
+              data={trendData.map((d) => ({ ...d, time: d.timestamp }))}
+              dataKeys={["active_alarms"]}
+              exportable
+              zoomable
+              defaultChartType="line"
+            />
 
             {/* Critical vs Non-Critical Distribution */}
-            <div className="card-elevated rounded-xl border border-border/50 p-6">
-              <h3 className="text-lg font-bold text-foreground mb-4">Critical vs Non-Critical Distribution</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={trendData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis
-                  dataKey="timestamp"
-                  stroke="hsl(var(--muted-foreground))"
-                  style={{ fontSize: "12px" }}
-                />
-                <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "8px",
-                  }}
-                />
-                <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="critical_alarms"
-                  stroke="#ef4444"
-                  dot={false}
-                  strokeWidth={2}
-                  name="Critical"
-                />
-                <Line
-                  type="monotone"
-                  dataKey="major_alarms"
-                  stroke="#f59e0b"
-                  dot={false}
-                  strokeWidth={2}
-                  name="Major"
-                />
-                <Line
-                  type="monotone"
-                  dataKey="minor_alarms"
-                  stroke="#3b82f6"
-                  dot={false}
-                  strokeWidth={2}
-                  name="Minor"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-            </div>
+            <TrendChartContainer
+              title="Critical vs Non-Critical Distribution"
+              data={trendData.map((d) => ({ ...d, time: d.timestamp }))}
+              dataKeys={["critical_alarms", "major_alarms", "minor_alarms"]}
+              exportable
+              zoomable
+              defaultChartType="line"
+            />
           </div>
 
           {/* Alarm Clear Rate with Severity Breakdown */}

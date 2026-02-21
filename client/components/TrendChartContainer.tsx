@@ -84,11 +84,11 @@ export default function TrendChartContainer({
 
   // Apply date/time filters
   const applyDateTimeFilters = () => {
-    if (isHourlyData) {
-      // For hourly data, filter by time
-      let startIdx = 0;
-      let endIdx = data.length - 1;
+    let startIdx = 0;
+    let endIdx = data.length - 1;
 
+    if (isHourlyData) {
+      // For hourly data, filter by time only
       if (timeZoomStart) {
         startIdx = data.findIndex((d) => (d.time as string) >= timeZoomStart);
         if (startIdx === -1) startIdx = 0;
@@ -106,10 +106,7 @@ export default function TrendChartContainer({
         description: `Showing data from ${timeZoomStart || "00:00"} to ${timeZoomEnd || "23:00"}`,
       });
     } else {
-      // For date-based data, filter by date
-      let startIdx = 0;
-      let endIdx = data.length - 1;
-
+      // For date-based data, filter by date and/or time
       if (dateZoomStart) {
         startIdx = data.findIndex((d) => (d.time as string) >= dateZoomStart);
         if (startIdx === -1) startIdx = 0;
@@ -120,11 +117,35 @@ export default function TrendChartContainer({
         if (endIdx === -1) endIdx = data.length - 1;
       }
 
+      // If time filters are also specified, apply them
+      if (timeZoomStart || timeZoomEnd) {
+        const filteredData = data.slice(startIdx, endIdx + 1);
+        let timeStartIdx = 0;
+        let timeEndIdx = filteredData.length - 1;
+
+        if (timeZoomStart) {
+          timeStartIdx = filteredData.findIndex((d) => (d.time as string).split(" ")[1] >= timeZoomStart);
+          if (timeStartIdx === -1) timeStartIdx = 0;
+        }
+
+        if (timeZoomEnd) {
+          timeEndIdx = filteredData.findIndex((d) => (d.time as string).split(" ")[1] >= timeZoomEnd);
+          if (timeEndIdx === -1) timeEndIdx = filteredData.length - 1;
+        }
+
+        startIdx = startIdx + timeStartIdx;
+        endIdx = startIdx + Math.max(0, timeEndIdx);
+      }
+
       setZoomStart(startIdx);
       setZoomEnd(Math.max(startIdx, endIdx));
+
+      const dateDesc = dateZoomStart || dateZoomEnd ? `${dateZoomStart || "start"} to ${dateZoomEnd || "end"}` : "full range";
+      const timeDesc = timeZoomStart || timeZoomEnd ? ` (${timeZoomStart || "00:00"} to ${timeZoomEnd || "23:00"})` : "";
+
       toast({
-        title: "Date filter applied",
-        description: `Showing data from ${dateZoomStart || "start"} to ${dateZoomEnd || "end"}`,
+        title: "Filters applied",
+        description: `Showing data from ${dateDesc}${timeDesc}`,
       });
     }
   };
@@ -409,13 +430,47 @@ export default function TrendChartContainer({
               </button>
 
               {showZoomControls && (
-                <div className="absolute top-full right-0 mt-1 w-72 bg-card border border-border rounded-lg shadow-lg z-10 p-4 space-y-4">
-                  {/* Date/Time Filters */}
-                  {isHourlyData ? (
+                <div className="absolute top-full right-0 mt-1 w-80 bg-card border border-border rounded-lg shadow-lg z-10 p-4 space-y-4">
+                  {/* Date Filters */}
+                  {!isHourlyData && (
                     <>
+                      <div className="border-b border-border/50 pb-3 mb-3">
+                        <h4 className="text-xs font-semibold text-foreground mb-3">Date Filters</h4>
+                        <div className="space-y-2">
+                          <div>
+                            <label className="text-xs font-semibold text-muted-foreground block mb-1">
+                              Start Date
+                            </label>
+                            <input
+                              type="date"
+                              value={dateZoomStart}
+                              onChange={(e) => setDateZoomStart(e.target.value)}
+                              className="w-full px-2 py-1 rounded border border-border text-sm"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs font-semibold text-muted-foreground block mb-1">
+                              End Date
+                            </label>
+                            <input
+                              type="date"
+                              value={dateZoomEnd}
+                              onChange={(e) => setDateZoomEnd(e.target.value)}
+                              className="w-full px-2 py-1 rounded border border-border text-sm"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Time Filters */}
+                  <div className="pb-3">
+                    <h4 className="text-xs font-semibold text-foreground mb-3">Time Filters</h4>
+                    <div className="space-y-2">
                       <div>
-                        <label className="text-xs font-semibold text-muted-foreground block mb-2">
-                          Time Start
+                        <label className="text-xs font-semibold text-muted-foreground block mb-1">
+                          Start Time
                         </label>
                         <input
                           type="time"
@@ -425,8 +480,8 @@ export default function TrendChartContainer({
                         />
                       </div>
                       <div>
-                        <label className="text-xs font-semibold text-muted-foreground block mb-2">
-                          Time End
+                        <label className="text-xs font-semibold text-muted-foreground block mb-1">
+                          End Time
                         </label>
                         <input
                           type="time"
@@ -435,45 +490,16 @@ export default function TrendChartContainer({
                           className="w-full px-2 py-1 rounded border border-border text-sm"
                         />
                       </div>
-                      <button
-                        onClick={applyDateTimeFilters}
-                        className="w-full px-3 py-2 rounded-lg border border-border bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium"
-                      >
-                        Apply Time Filter
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <div>
-                        <label className="text-xs font-semibold text-muted-foreground block mb-2">
-                          Date Start
-                        </label>
-                        <input
-                          type="date"
-                          value={dateZoomStart}
-                          onChange={(e) => setDateZoomStart(e.target.value)}
-                          className="w-full px-2 py-1 rounded border border-border text-sm"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs font-semibold text-muted-foreground block mb-2">
-                          Date End
-                        </label>
-                        <input
-                          type="date"
-                          value={dateZoomEnd}
-                          onChange={(e) => setDateZoomEnd(e.target.value)}
-                          className="w-full px-2 py-1 rounded border border-border text-sm"
-                        />
-                      </div>
-                      <button
-                        onClick={applyDateTimeFilters}
-                        className="w-full px-3 py-2 rounded-lg border border-border bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium"
-                      >
-                        Apply Date Filter
-                      </button>
-                    </>
-                  )}
+                    </div>
+                  </div>
+
+                  {/* Apply Button */}
+                  <button
+                    onClick={applyDateTimeFilters}
+                    className="w-full px-3 py-2 rounded-lg border border-border bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium"
+                  >
+                    Apply Filters
+                  </button>
 
                   {/* Reset Button */}
                   <button

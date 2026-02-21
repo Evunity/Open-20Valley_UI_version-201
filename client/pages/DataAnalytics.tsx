@@ -1600,8 +1600,8 @@ export default function DataAnalytics() {
           <h2 className="text-2xl font-bold text-foreground">Data Performance Breakdown</h2>
         </div>
 
-        {/* By Vendor & By Technology Tables - Side by Side */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* By Vendor & By Technology Tables - Stacked */}
+        <div className="grid grid-cols-1 gap-6">
           {/* Vendor Breakdown Table */}
           <div className="card-elevated rounded-xl border border-border/50 p-6 overflow-x-auto">
             <h3 className="text-lg font-bold text-foreground mb-4">By Vendor</h3>
