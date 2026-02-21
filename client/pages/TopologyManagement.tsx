@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
-import { Map, GitBranch, Network, Box, Layers, ZoomIn, Route, Clock } from 'lucide-react';
+import { Map, GitBranch, Network, Box, Layers, ZoomIn, Route, Clock, Settings } from 'lucide-react';
 import { generateMockTopologyHierarchy, TopologyObject } from '../utils/topologyData';
 import { RackView } from '../components/RackView';
 import { TransportPathView } from '../components/TransportPathView';
 import { ImpactAnalysisView } from '../components/ImpactAnalysisView';
 import { TimelineReplayView } from '../components/TimelineReplayView';
+import { LayerControlPanel, LayerSettings } from '../components/LayerControlPanel';
+import { PredictiveRiskHighlight } from '../components/PredictiveRiskHighlight';
+import { ExportPanel } from '../components/ExportPanel';
+import { MultiTenantAwareness } from '../components/MultiTenantAwareness';
+import { EnhancedGeospatialMap } from '../components/EnhancedGeospatialMap';
 
 type ViewType = 'map' | 'tree' | 'dependency' | 'rack' | 'transport' | 'impact' | 'timeline';
 
@@ -31,6 +36,22 @@ export const TopologyManagement: React.FC = () => {
   const [selectedObject, setSelectedObject] = useState<TopologyObject | null>(null);
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [zoomLevel, setZoomLevel] = useState(1);
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+  const [selectedTenant, setSelectedTenant] = useState<string | null>(null);
+  const [showPredictiveRisks, setShowPredictiveRisks] = useState(true);
+  const [showLayerPanel, setShowLayerPanel] = useState(false);
+  const [showExportPanel, setShowExportPanel] = useState(false);
+  const [showTenantPanel, setShowTenantPanel] = useState(false);
+  const [layers, setLayers] = useState<LayerSettings>({
+    alarms: true,
+    kpi: true,
+    traffic: true,
+    automation: false,
+    aiPredictions: true,
+    vendorOverlay: true,
+    transportOnly: false,
+    ranOnly: false
+  });
 
   const toggleNode = (id: string) => {
     const newExpanded = new Set(expandedNodes);
@@ -44,50 +65,100 @@ export const TopologyManagement: React.FC = () => {
 
   const renderMapView = () => (
     <div className="w-full h-full flex flex-col gap-4 p-4 bg-gray-50 overflow-y-auto">
-      <h2 className="text-lg font-bold text-gray-900">Global Geospatial Map</h2>
-      
-      {/* Map Legend */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4">
-        <p className="text-xs font-semibold text-gray-700 mb-3">Vendor Legend</p>
-        <div className="grid grid-cols-2 gap-2">
-          {[
-            { vendor: 'Nokia', color: 'border-blue-500', fill: 'bg-blue-100' },
-            { vendor: 'Ericsson', color: 'border-black', fill: 'bg-gray-100' },
-            { vendor: 'Huawei', color: 'border-red-500', fill: 'bg-red-100' },
-            { vendor: 'ZTE', color: 'border-orange-500', fill: 'bg-orange-100' }
-          ].map(item => (
-            <div key={item.vendor} className="flex items-center gap-2">
-              <div className={`w-4 h-4 rounded-full border-2 ${item.color} ${item.fill}`} />
-              <span className="text-xs text-gray-700">{item.vendor}</span>
-            </div>
-          ))}
+      <div className="flex items-center justify-between mb-2">
+        <h2 className="text-lg font-bold text-gray-900">Global Geospatial Map - MENA Network</h2>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowLayerPanel(!showLayerPanel)}
+            className={`px-3 py-1 rounded text-xs font-semibold transition ${
+              showLayerPanel
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+            title="Toggle layer controls"
+          >
+            <Layers className="w-3 h-3 inline mr-1" />
+            Layers
+          </button>
+          <button
+            onClick={() => setShowTenantPanel(!showTenantPanel)}
+            className={`px-3 py-1 rounded text-xs font-semibold transition ${
+              showTenantPanel
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+            title="Toggle tenant/country controls"
+          >
+            Multi-Tenant
+          </button>
+          <button
+            onClick={() => setShowExportPanel(!showExportPanel)}
+            className={`px-3 py-1 rounded text-xs font-semibold transition ${
+              showExportPanel
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+            title="Export options"
+          >
+            Export
+          </button>
+          <label className="flex items-center gap-2 text-xs cursor-pointer px-3 py-1 bg-gray-100 rounded hover:bg-gray-200 transition">
+            <input
+              type="checkbox"
+              checked={showPredictiveRisks}
+              onChange={(e) => setShowPredictiveRisks(e.target.checked)}
+              className="w-4 h-4 rounded"
+            />
+            <span>Predictive AI</span>
+          </label>
         </div>
       </div>
 
-      {/* Map Canvas */}
-      <div className="flex-1 bg-white rounded-lg border border-gray-200 p-4 flex items-center justify-center">
-        <div className="text-center">
-          <Map className="w-16 h-16 text-gray-400 mx-auto mb-3 opacity-50" />
-          <p className="text-sm font-semibold text-gray-600 mb-1">Interactive Geospatial Map</p>
-          <p className="text-xs text-gray-500">
-            Zoomed View: {zoomLevel}x • {topology.length} network objects
-          </p>
-          <div className="flex gap-2 justify-center mt-3">
-            <button
-              onClick={() => setZoomLevel(Math.max(0.5, zoomLevel - 0.1))}
-              className="px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded hover:bg-gray-200 transition"
-            >
-              Zoom Out
-            </button>
-            <button
-              onClick={() => setZoomLevel(Math.min(3, zoomLevel + 0.1))}
-              className="px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded hover:bg-gray-200 transition"
-            >
-              Zoom In
-            </button>
-          </div>
+      {/* Main content grid */}
+      <div className="grid grid-cols-4 gap-4 flex-1">
+        {/* Left sidebar - Controls */}
+        <div className="space-y-4 overflow-y-auto max-h-[calc(100vh-250px)]">
+          {showLayerPanel && (
+            <LayerControlPanel layers={layers} onLayerChange={setLayers} />
+          )}
+
+          {showTenantPanel && (
+            <MultiTenantAwareness
+              topology={topology}
+              selectedCountry={selectedCountry}
+              selectedTenant={selectedTenant}
+              onCountryChange={setSelectedCountry}
+              onTenantChange={setSelectedTenant}
+            />
+          )}
+
+          {showExportPanel && (
+            <ExportPanel
+              topology={topology}
+              currentView="geospatial-map"
+              filters={{ country: selectedCountry, tenant: selectedTenant }}
+            />
+          )}
+        </div>
+
+        {/* Main map area */}
+        <div className="col-span-3">
+          <EnhancedGeospatialMap
+            topology={topology}
+            layers={layers}
+            selectedObject={selectedObject}
+            onObjectSelect={setSelectedObject}
+            showPredictiveRisks={showPredictiveRisks}
+          />
         </div>
       </div>
+
+      {/* Predictive Risk Panel */}
+      {showPredictiveRisks && (
+        <div className="max-h-60 overflow-y-auto">
+          <PredictiveRiskHighlight topology={topology} isEnabled={showPredictiveRisks} />
+        </div>
+      )}
     </div>
   );
 
