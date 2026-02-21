@@ -20,6 +20,7 @@ import AnalyticsHome from "@/pages/AnalyticsHome";
 import AnalyticsManagement from "@/pages/AnalyticsManagement";
 import NetworkStatus from "@/pages/NetworkStatus";
 import { AlarmManagement } from "@/pages/AlarmManagement";
+import { AutomationManagement } from "@/pages/AutomationManagement";
 import ComingSoon from "@/pages/ComingSoon";
 import NotFound from "@/pages/NotFound";
 
@@ -159,7 +160,7 @@ export default function App() {
                 path="/automation-management"
                 element={
                   <Layout>
-                    <ComingSoon title="Automation & AI Management" description="Manage AI-powered automation rules and workflows" />
+                    <AutomationManagement />
                   </Layout>
                 }
               />
