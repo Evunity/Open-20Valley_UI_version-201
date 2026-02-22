@@ -25,6 +25,7 @@ import { TopologyManagement } from "@/pages/TopologyManagement";
 import { CommandCenter } from "@/pages/CommandCenter";
 import ReportsModule from "@/pages/ReportsModule";
 import ActivityAudit from "@/pages/ActivityAudit";
+import AccessControl from "@/pages/AccessControl";
 import ComingSoon from "@/pages/ComingSoon";
 import NotFound from "@/pages/NotFound";
 
@@ -133,6 +134,14 @@ export default function App() {
                 element={
                   <Layout>
                     <ActivityAudit />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/access-control"
+                element={
+                  <Layout>
+                    <AccessControl />
                   </Layout>
                 }
               />
