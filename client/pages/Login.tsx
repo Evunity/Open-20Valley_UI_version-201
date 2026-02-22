@@ -34,11 +34,11 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-purple-900 via-purple-800 to-purple-900">
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-1/2 -right-1/2 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute -bottom-1/2 -left-1/2 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute -top-1/2 -right-1/2 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute -bottom-1/2 -left-1/2 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl animate-pulse" />
       </div>
 
       {/* Login container */}
@@ -47,7 +47,7 @@ export default function Login() {
           {/* Logo Section */}
           <div className="flex flex-col items-center mb-8">
             <svg
-              className="w-16 h-16 text-blue-400 mb-4"
+              className="w-16 h-16 text-purple-500 mb-4"
               viewBox="0 0 100 100"
               xmlns="http://www.w3.org/2000/svg"
             >
@@ -76,7 +76,7 @@ export default function Login() {
               />
             </svg>
             <h1 className="text-3xl font-bold text-white">Open Valley</h1>
-            <p className="text-sm text-slate-300 mt-1">Network Operations</p>
+            <p className="text-sm text-slate-300 mt-1">Transforming Networks</p>
           </div>
 
           {/* Form Section */}
@@ -99,7 +99,7 @@ export default function Login() {
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Enter your username"
                 disabled={isLoading}
-                className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-slate-400 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all disabled:opacity-50"
+                className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-slate-400 focus:outline-none focus:border-purple-400 focus:ring-1 focus:ring-purple-400 transition-all disabled:opacity-50"
               />
             </div>
 
@@ -115,7 +115,7 @@ export default function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
                   disabled={isLoading}
-                  className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-slate-400 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all disabled:opacity-50 pr-12"
+                  className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-slate-400 focus:outline-none focus:border-purple-400 focus:ring-1 focus:ring-purple-400 transition-all disabled:opacity-50 pr-12"
                 />
                 <button
                   type="button"
@@ -138,7 +138,7 @@ export default function Login() {
                 type="button"
                 onClick={handleForgotPassword}
                 disabled={isLoading}
-                className="text-sm text-blue-300 hover:text-blue-200 transition-colors disabled:opacity-50"
+                className="text-sm text-purple-300 hover:text-purple-200 transition-colors disabled:opacity-50"
               >
                 Forgot password?
               </button>
@@ -148,7 +148,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={isLoading || !username || !password}
-              className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-semibold py-3 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-6"
+              className="w-full bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600 text-white font-semibold py-3 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-6"
             >
               {isLoading ? 'Logging in...' : 'Login'}
             </button>
