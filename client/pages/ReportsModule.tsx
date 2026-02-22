@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
-import { 
-  FileText, BarChart3, Database, Palette, Lightbulb, Library, Clock, Send, 
-  Activity, TrendingUp, Scale, AlertCircle, Plus, Download, Settings 
+import {
+  FileText, BarChart3, Database, Palette, Lightbulb, Library, Clock, Send,
+  Activity, TrendingUp, Scale, AlertCircle, Plus, Download, Settings, Zap
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ExecutiveReportingOverview from "@/components/reports/ExecutiveReportingOverview";

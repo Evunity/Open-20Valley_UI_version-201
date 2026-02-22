@@ -125,16 +125,12 @@ ORDER BY hour DESC`}
             >
               <div className="text-2xl mb-2">{block.icon}</div>
               <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{block.label}</p>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  addBlock(block.type);
-                }}
-                className="mt-2 w-full px-2 py-1 text-xs rounded bg-primary/10 text-primary opacity-0 group-hover:opacity-100 transition-opacity"
+              <div
+                className="mt-2 w-full px-2 py-1 text-xs rounded bg-primary/10 text-primary opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer font-medium"
               >
                 <Plus className="w-3 h-3 inline mr-1" />
                 Add
-              </button>
+              </div>
             </button>
           ))}
         </div>
