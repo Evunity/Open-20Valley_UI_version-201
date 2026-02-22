@@ -1,255 +1,247 @@
-import { useState, useCallback } from "react";
-import { Eye, EyeOff, GripVertical, RotateCcw } from "lucide-react";
-import { useLocalStorage, DEFAULT_WIDGETS, type DashboardLayout, type WidgetConfig } from "@/hooks/useLocalStorage";
-import { cn } from "@/lib/utils";
+import React, { useState } from 'react';
+import {
+  Settings,
+  Sliders,
+  Zap,
+  Database,
+  Gauge,
+  Bell,
+  Shield,
+  Cloud,
+  RotateCcw,
+  Palette,
+  ChevronDown,
+  ChevronRight
+} from 'lucide-react';
+import SystemConfiguration from './settings/SystemConfiguration';
+import ModuleConfiguration from './settings/ModuleConfiguration';
+import IntegrationSettings from './settings/IntegrationSettings';
+import DataRetentionPolicies from './settings/DataRetentionPolicies';
+import PerformanceLimits from './settings/PerformanceLimits';
+import NotificationSettings from './settings/NotificationSettings';
+import AutomationGuardrails from './settings/AutomationGuardrails';
+import EnvironmentDeployment from './settings/EnvironmentDeployment';
+import BackupRecovery from './settings/BackupRecovery';
+import BrandingUI from './settings/BrandingUI';
 
-const WIDGET_LABELS: Record<string, { title: string; description: string }> = {
-  voice: {
-    title: "Voice",
-    description: "Voice traffic and call quality metrics",
+type WorkspaceType = 
+  | 'system-configuration'
+  | 'module-configuration'
+  | 'integration-settings'
+  | 'data-retention'
+  | 'performance-limits'
+  | 'notification-settings'
+  | 'automation-guardrails'
+  | 'environment-deployment'
+  | 'backup-recovery'
+  | 'branding-ui';
+
+interface WorkspaceConfig {
+  id: WorkspaceType;
+  label: string;
+  icon: React.ReactNode;
+  category: string;
+  description: string;
+}
+
+const workspaces: WorkspaceConfig[] = [
+  {
+    id: 'system-configuration',
+    label: 'System Configuration',
+    icon: <Settings className="w-5 h-5" />,
+    category: 'Core Controls',
+    description: 'Platform settings, maintenance mode, kill switches'
   },
-  data: {
-    title: "Data",
-    description: "Data traffic and consumption patterns",
+  {
+    id: 'module-configuration',
+    label: 'Module Configuration',
+    icon: <Sliders className="w-5 h-5" />,
+    category: 'Core Controls',
+    description: 'Per-module behavior and feature toggles'
   },
-  subscribers: {
-    title: "Subscribers",
-    description: "Subscriber distribution by type",
+  {
+    id: 'integration-settings',
+    label: 'Integration Settings',
+    icon: <Zap className="w-5 h-5" />,
+    category: 'Integrations',
+    description: 'External systems, northbound & southbound adapters'
   },
-  vendors: {
-    title: "Mobile Device Vendors",
-    description: "Device distribution by manufacturer",
+  {
+    id: 'data-retention',
+    label: 'Data & Retention',
+    icon: <Database className="w-5 h-5" />,
+    category: 'Data Management',
+    description: 'Data lifecycle, retention policies, cleanup rules'
   },
-  aiActions: {
-    title: "Recent AI-Engine Actions",
-    description: "Recent automated network operations",
+  {
+    id: 'performance-limits',
+    label: 'Performance & Limits',
+    icon: <Gauge className="w-5 h-5" />,
+    category: 'Data Management',
+    description: 'Rate limits, thresholds, resource allocation'
   },
-  alarms: {
-    title: "Network Alarms",
-    description: "Network alarm trends and incidents",
+  {
+    id: 'notification-settings',
+    label: 'Notifications & Communication',
+    icon: <Bell className="w-5 h-5" />,
+    category: 'Operations',
+    description: 'Alert channels, notification rules, delivery settings'
   },
-  failures: {
-    title: "Total Failures per Vendor",
-    description: "Equipment failures by vendor",
+  {
+    id: 'automation-guardrails',
+    label: 'Automation Guardrails',
+    icon: <Shield className="w-5 h-5" />,
+    category: 'Operations',
+    description: 'Automation safety rules, approval workflows, limits'
   },
-};
+  {
+    id: 'environment-deployment',
+    label: 'Environment & Deployment',
+    icon: <Cloud className="w-5 h-5" />,
+    category: 'Operations',
+    description: 'Environment-specific settings, deployment config'
+  },
+  {
+    id: 'backup-recovery',
+    label: 'Backup & Recovery',
+    icon: <RotateCcw className="w-5 h-5" />,
+    category: 'Data Management',
+    description: 'Backup policies, recovery procedures, RTO/RPO'
+  },
+  {
+    id: 'branding-ui',
+    label: 'Branding & UI',
+    icon: <Palette className="w-5 h-5" />,
+    category: 'Customization',
+    description: 'Platform branding, theme, UI customization'
+  }
+];
+
+const categories = ['Core Controls', 'Integrations', 'Data Management', 'Operations', 'Customization'];
 
 export default function Settings() {
-  const [widgetLayout, setWidgetLayout] = useLocalStorage<DashboardLayout>(
-    "dashboard_layout",
-    DEFAULT_WIDGETS
-  );
-  const [draggedId, setDraggedId] = useState<string | null>(null);
-  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceType>('system-configuration');
+  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({
+    'Core Controls': true,
+    'Integrations': false,
+    'Data Management': false,
+    'Operations': false,
+    'Customization': false
+  });
 
-  const widgets = Object.entries(widgetLayout).sort(
-    ([, a], [, b]) => a.order - b.order
-  );
-
-  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, id: string) => {
-    setDraggedId(id);
-    e.dataTransfer.effectAllowed = "move";
+  const toggleCategory = (category: string) => {
+    setExpandedCategories(prev => ({
+      ...prev,
+      [category]: !prev[category]
+    }));
   };
 
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
+  const renderWorkspace = () => {
+    switch (activeWorkspace) {
+      case 'system-configuration':
+        return <SystemConfiguration />;
+      case 'module-configuration':
+        return <ModuleConfiguration />;
+      case 'integration-settings':
+        return <IntegrationSettings />;
+      case 'data-retention':
+        return <DataRetentionPolicies />;
+      case 'performance-limits':
+        return <PerformanceLimits />;
+      case 'notification-settings':
+        return <NotificationSettings />;
+      case 'automation-guardrails':
+        return <AutomationGuardrails />;
+      case 'environment-deployment':
+        return <EnvironmentDeployment />;
+      case 'backup-recovery':
+        return <BackupRecovery />;
+      case 'branding-ui':
+        return <BrandingUI />;
+      default:
+        return <SystemConfiguration />;
+    }
   };
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>, targetId: string) => {
-    e.preventDefault();
-    if (!draggedId || draggedId === targetId) return;
-
-    const draggedIndex = widgets.findIndex(([id]) => id === draggedId);
-    const targetIndex = widgets.findIndex(([id]) => id === targetId);
-
-    if (draggedIndex === -1 || targetIndex === -1) return;
-
-    // Create new layout with swapped orders
-    const newLayout = { ...widgetLayout };
-    const draggedOrder = newLayout[draggedId].order;
-    const targetOrder = newLayout[targetId].order;
-
-    newLayout[draggedId] = { ...newLayout[draggedId], order: targetOrder };
-    newLayout[targetId] = { ...newLayout[targetId], order: draggedOrder };
-
-    setWidgetLayout(newLayout);
-    setDraggedId(null);
-  };
-
-  const toggleVisibility = useCallback(
-    (id: string) => {
-      setWidgetLayout((prev) => ({
-        ...prev,
-        [id]: {
-          ...prev[id],
-          visible: !prev[id].visible,
-        },
-      }));
-      setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 3000);
-    },
-    [setWidgetLayout]
-  );
-
-  const resetAll = useCallback(() => {
-    setWidgetLayout(DEFAULT_WIDGETS);
-    setSaveSuccess(true);
-    setTimeout(() => setSaveSuccess(false), 3000);
-  }, [setWidgetLayout]);
-
-  const visibleCount = widgets.filter(([, config]) => config.visible).length;
+  const activeConfig = workspaces.find(w => w.id === activeWorkspace);
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold text-foreground">Dashboard Settings</h1>
-        <p className="text-muted-foreground">
-          Customize your dashboard layout, show/hide widgets, and reset to defaults
-        </p>
+    <div className="flex h-full bg-gray-50">
+      {/* Sidebar Navigation */}
+      <div className="w-72 border-r border-gray-200 bg-white overflow-y-auto">
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <Settings className="w-6 h-6 text-blue-600" />
+            </div>
+            <div>
+              <h1 className="text-lg font-bold text-gray-900">Settings</h1>
+              <p className="text-xs text-gray-500">Platform Configuration</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-4">
+          {categories.map(category => (
+            <div key={category} className="mb-2">
+              <button
+                onClick={() => toggleCategory(category)}
+                className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors text-sm font-semibold text-gray-700"
+              >
+                <span>{category}</span>
+                {expandedCategories[category] ? (
+                  <ChevronDown className="w-4 h-4" />
+                ) : (
+                  <ChevronRight className="w-4 h-4" />
+                )}
+              </button>
+
+              {expandedCategories[category] && (
+                <div className="mt-1 space-y-1">
+                  {workspaces
+                    .filter(w => w.category === category)
+                    .map(workspace => (
+                      <button
+                        key={workspace.id}
+                        onClick={() => setActiveWorkspace(workspace.id)}
+                        className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
+                          activeWorkspace === workspace.id
+                            ? 'bg-blue-100 text-blue-700 font-semibold'
+                            : 'text-gray-600 hover:bg-gray-100'
+                        }`}
+                      >
+                        {workspace.icon}
+                        <span>{workspace.label}</span>
+                      </button>
+                    ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Success Message */}
-      {saveSuccess && (
-        <div className="fixed bottom-6 right-6 bg-status-healthy text-white px-6 py-3 rounded-lg shadow-lg animate-in fade-in slide-in-from-bottom-2 duration-300">
-          <p className="text-sm font-medium">Settings saved to your device</p>
-        </div>
-      )}
-
-      {/* Settings Cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Widget Management */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="card-elevated p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-xl font-semibold text-foreground">Manage Widgets</h2>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {visibleCount} of {widgets.length} widgets visible
-                </p>
+      {/* Main Content Area */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-8">
+          {/* Header */}
+          {activeConfig && (
+            <div className="mb-8">
+              <div className="flex items-center gap-4 mb-3">
+                <div className="p-3 bg-blue-100 rounded-lg">
+                  {activeConfig.icon}
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900">{activeConfig.label}</h1>
+                  <p className="text-gray-500 mt-1">{activeConfig.description}</p>
+                </div>
               </div>
             </div>
+          )}
 
-            <div className="space-y-3">
-              {widgets.map(([id, config]) => {
-                const label = WIDGET_LABELS[id as keyof typeof WIDGET_LABELS] || {
-                  title: id,
-                  description: "Widget",
-                };
-
-                return (
-                  <div
-                    key={id}
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, id)}
-                    onDragOver={handleDragOver}
-                    onDrop={(e) => handleDrop(e, id)}
-                    className={cn(
-                      "p-4 border rounded-lg transition-all cursor-move",
-                      draggedId === id
-                        ? "border-primary bg-primary/5 opacity-50"
-                        : "border-border hover:border-primary/50 bg-card"
-                    )}
-                  >
-                    <div className="flex items-start gap-4">
-                      {/* Drag Handle */}
-                      <div className="mt-1 flex-shrink-0 text-muted-foreground cursor-grab active:cursor-grabbing">
-                        <GripVertical className="w-5 h-5" />
-                      </div>
-
-                      {/* Widget Info */}
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-foreground">{label.title}</h3>
-                        <p className="text-sm text-muted-foreground mt-0.5">
-                          {label.description}
-                        </p>
-                      </div>
-
-                      {/* Visibility Toggle */}
-                      <button
-                        onClick={() => toggleVisibility(id)}
-                        className={cn(
-                          "flex-shrink-0 p-2 rounded-lg transition-colors",
-                          config.visible
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted text-muted-foreground hover:bg-muted/70"
-                        )}
-                        title={config.visible ? "Hide widget" : "Show widget"}
-                      >
-                        {config.visible ? (
-                          <Eye className="w-5 h-5" />
-                        ) : (
-                          <EyeOff className="w-5 h-5" />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="mt-6 pt-6 border-t border-border">
-              <p className="text-xs text-muted-foreground mb-4">
-                💡 Drag widgets to reorder them on your dashboard
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="space-y-4">
-          <div className="card-elevated p-6">
-            <h2 className="text-lg font-semibold text-foreground mb-4">Actions</h2>
-
-            {/* Reset Button */}
-            <button
-              onClick={resetAll}
-              className="w-full px-4 py-3 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 mb-3"
-            >
-              <RotateCcw className="w-4 h-4" />
-              Reset to Default
-            </button>
-
-            <div className="p-4 bg-secondary/20 rounded-lg space-y-3">
-              <div>
-                <h3 className="font-semibold text-sm text-foreground">Widget Count</h3>
-                <p className="text-2xl font-bold text-primary mt-1">{visibleCount}/{widgets.length}</p>
-              </div>
-              <div>
-                <h3 className="font-semibold text-sm text-foreground">Auto-Save</h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Changes are automatically saved to your device
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Info Card */}
-          <div className="card-elevated p-6">
-            <h3 className="font-semibold text-foreground mb-3">Customization Info</h3>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li className="flex gap-2">
-                <span className="text-primary flex-shrink-0">•</span>
-                <span>Drag to reorder widgets</span>
-              </li>
-              <li className="flex gap-2">
-                <span className="text-primary flex-shrink-0">•</span>
-                <span>Toggle visibility on/off</span>
-              </li>
-              <li className="flex gap-2">
-                <span className="text-primary flex-shrink-0">•</span>
-                <span>Change chart types in dashboard</span>
-              </li>
-              <li className="flex gap-2">
-                <span className="text-primary flex-shrink-0">•</span>
-                <span>Toggle tooltips & legends</span>
-              </li>
-              <li className="flex gap-2">
-                <span className="text-primary flex-shrink-0">•</span>
-                <span>Reset individual widgets</span>
-              </li>
-            </ul>
+          {/* Workspace Content */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+            {renderWorkspace()}
           </div>
         </div>
       </div>
