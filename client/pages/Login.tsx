@@ -46,37 +46,11 @@ export default function Login() {
         <div className="bg-white/10 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 p-8 md:p-12">
           {/* Logo Section */}
           <div className="flex flex-col items-center mb-8">
-            <svg
-              className="w-16 h-16 text-purple-500 mb-4"
-              viewBox="0 0 100 100"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <circle
-                cx="50"
-                cy="50"
-                r="45"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="3"
-                opacity="0.8"
-              />
-              <path
-                d="M 50 10 A 40 40 0 0 1 70 15"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-              />
-              <path
-                d="M 75 20 A 35 35 0 0 1 85 40"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-              />
-            </svg>
-            <h1 className="text-3xl font-bold text-white">Open Valley</h1>
-            <p className="text-sm text-slate-300 mt-1">Transforming Networks</p>
+            <img
+              src="https://cdn.builder.io/api/v1/image/assets%2Fc13b4e0240ec42a0981c688ed8e4138d%2Feedb7e1bfab14e1491bd3778fc9c7eaa?format=webp&width=800&height=1200"
+              alt="Open Valley Logo"
+              className="w-64 h-auto mb-6 drop-shadow-lg"
+            />
           </div>
 
           {/* Form Section */}
