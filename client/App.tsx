@@ -23,6 +23,7 @@ import { AlarmManagement } from "@/pages/AlarmManagement";
 import { AutomationManagement } from "@/pages/AutomationManagement";
 import { TopologyManagement } from "@/pages/TopologyManagement";
 import { CommandCenter } from "@/pages/CommandCenter";
+import ReportsModule from "@/pages/ReportsModule";
 import ComingSoon from "@/pages/ComingSoon";
 import NotFound from "@/pages/NotFound";
 
@@ -115,6 +116,14 @@ export default function App() {
                 element={
                   <Layout>
                     <ReportsPage />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/reports-module"
+                element={
+                  <Layout>
+                    <ReportsModule />
                   </Layout>
                 }
               />

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, LayoutDashboard, Settings, Moon, Sun, Gauge, Bell, Zap, History, FileText, Lock, AlertTriangle, Map, Terminal } from "lucide-react";
+import { Menu, X, LayoutDashboard, Settings, Moon, Sun, Gauge, Bell, Zap, History, FileText, Lock, AlertTriangle, Map, Terminal, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface LayoutProps {
@@ -55,6 +55,7 @@ export default function Layout({ children }: LayoutProps) {
     { path: "/command-center", label: "Command Center", icon: Terminal },
     { path: "/activity-log", label: "Activity & Audit", icon: History },
     { path: "/reports", label: "Reports", icon: FileText },
+    { path: "/reports-module", label: "Reports Module", icon: BarChart3 },
     { path: "/access-control", label: "Access Control", icon: Lock },
     { path: "/settings", label: "Settings", icon: Settings },
   ];
