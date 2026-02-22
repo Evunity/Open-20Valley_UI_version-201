@@ -1,8 +1,73 @@
-import { SearchCode, Download, Filter, AlertTriangle } from 'lucide-react';
+import { SearchCode, Download, Filter, AlertTriangle, ArrowRight, Zap, Package, Brain, BarChart3 } from 'lucide-react';
+import { useState } from 'react';
+import ChangeDiffViewer from './ChangeDiffViewer';
+import BlastCorrelationEngine from './BlastCorrelationEngine';
+import ActivityNormalizationRules from './ActivityNormalizationRules';
+import EvidencePackagingEngine from './EvidencePackagingEngine';
+import BehavioralBaselinesPanel from './BehavioralBaselinesPanel';
+
+type ForensicView = 'investigation' | 'change-diff' | 'blast-correlation' | 'normalization' | 'evidence' | 'baselines';
 
 export default function ForensicInvestigationExplorer() {
-  return (
-    <div className="space-y-8">
+  const [activeView, setActiveView] = useState<ForensicView>('investigation');
+
+  const forensicTools = [
+    {
+      id: 'change-diff',
+      name: 'Change Diff Viewer',
+      icon: ArrowRight,
+      description: 'Side-by-side parameter comparison with visual highlighting',
+      badge: 'forensic'
+    },
+    {
+      id: 'blast-correlation',
+      name: 'Blast Correlation Engine',
+      icon: Zap,
+      description: 'Automatically link event chains and causal relationships',
+      badge: 'analysis'
+    },
+    {
+      id: 'normalization',
+      name: 'Activity Normalization',
+      icon: BarChart3,
+      description: 'Categorize events into standard taxonomy (10 categories)',
+      badge: 'classification'
+    },
+    {
+      id: 'evidence',
+      name: 'Evidence Packaging',
+      icon: Package,
+      description: 'Export forensically-sound bundles with chain of custody',
+      badge: 'export'
+    },
+    {
+      id: 'baselines',
+      name: 'Behavioral Baselines',
+      icon: Brain,
+      description: 'Learn normal patterns and detect deviations',
+      badge: 'ai'
+    }
+  ];
+
+  const renderView = () => {
+    switch (activeView) {
+      case 'change-diff':
+        return <ChangeDiffViewer />;
+      case 'blast-correlation':
+        return <BlastCorrelationEngine />;
+      case 'normalization':
+        return <ActivityNormalizationRules />;
+      case 'evidence':
+        return <EvidencePackagingEngine />;
+      case 'baselines':
+        return <BehavioralBaselinesPanel />;
+      default:
+        return renderInvestigation();
+    }
+  };
+
+  const renderInvestigation = () => (
+    <>
       {/* Description */}
       <div className="bg-purple-500/5 border border-purple-500/20 rounded-xl p-6">
         <h3 className="font-bold text-foreground mb-2 flex items-center gap-2">
@@ -12,6 +77,38 @@ export default function ForensicInvestigationExplorer() {
         <p className="text-sm text-muted-foreground">
           Deep-dive analysis tools for security incidents and compliance reviews. Reconstruct events, analyze patterns, and generate forensic reports for legal discovery.
         </p>
+      </div>
+
+      {/* Advanced Forensic Tools */}
+      <div className="rounded-xl border border-border/50 p-6 bg-card/50">
+        <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
+          <Zap className="w-4 h-4" />
+          Advanced Forensic Analysis Tools
+        </h3>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {forensicTools.map((tool) => {
+            const Icon = tool.icon;
+            return (
+              <button
+                key={tool.id}
+                onClick={() => setActiveView(tool.id as ForensicView)}
+                className="p-4 rounded-lg border border-border/50 hover:border-primary/50 hover:bg-muted/50 transition-all text-left group"
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <Icon className="w-5 h-5 text-primary group-hover:scale-110 transition-transform" />
+                  <span className="text-xs px-2 py-0.5 rounded bg-primary/10 text-primary font-semibold uppercase">
+                    {tool.badge}
+                  </span>
+                </div>
+                <p className="font-bold text-foreground text-sm mb-1 group-hover:text-primary transition-colors">
+                  {tool.name}
+                </p>
+                <p className="text-xs text-muted-foreground">{tool.description}</p>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Investigation Search */}
@@ -120,8 +217,11 @@ export default function ForensicInvestigationExplorer() {
         </p>
 
         <div className="space-y-2">
-          <button className="w-full px-4 py-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors text-sm font-medium text-left">
-            Generate Full Incident Report (PDF)
+          <button 
+            onClick={() => setActiveView('evidence')}
+            className="w-full px-4 py-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors text-sm font-medium text-left"
+          >
+            Generate Evidence Package
           </button>
           <button className="w-full px-4 py-2 rounded-lg border border-border hover:bg-muted transition-colors text-sm font-medium text-left">
             Export Raw Event Data (JSON)
@@ -131,6 +231,32 @@ export default function ForensicInvestigationExplorer() {
           </button>
         </div>
       </div>
+    </>
+  );
+
+  return (
+    <div className="space-y-8">
+      {/* Navigation Tabs for Forensic Tools */}
+      {activeView !== 'investigation' && (
+        <div className="flex items-center gap-2 border-b border-border pb-4 -mx-8 px-8">
+          <button
+            onClick={() => setActiveView('investigation')}
+            className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            ← Back to Investigation
+          </button>
+          <div className="flex-1" />
+          <button
+            onClick={() => setActiveView('investigation')}
+            className="px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 border-primary text-primary"
+          >
+            {forensicTools.find(t => t.id === activeView)?.name || 'Forensic Tool'}
+          </button>
+        </div>
+      )}
+
+      {/* Content */}
+      {renderView()}
     </div>
   );
 }

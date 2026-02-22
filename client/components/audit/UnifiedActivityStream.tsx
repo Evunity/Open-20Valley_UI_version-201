@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Search, Filter, Download, Copy, AlertCircle, CheckCircle } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Search, Filter, Download, Copy, AlertCircle, CheckCircle, Settings, Save, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface AuditEvent {
@@ -19,6 +19,11 @@ export default function UnifiedActivityStream() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterSeverity, setFilterSeverity] = useState<string>('all');
   const [timeRange, setTimeRange] = useState('24h');
+  const [pinnedColumns, setPinnedColumns] = useState<string[]>(['eventId', 'timestamp']);
+  const [selectedView, setSelectedView] = useState('default');
+  const [groupBy, setGroupBy] = useState<string>('none');
+  const [useRegex, setUseRegex] = useState(false);
+  const [highlightRules, setHighlightRules] = useState<string[]>(['critical']);
 
   const events: AuditEvent[] = [
     {
@@ -138,6 +143,82 @@ export default function UnifiedActivityStream() {
         <p className="text-sm text-muted-foreground">
           Complete immutable log of all platform events. Every action is timestamped to nanosecond precision, correlated, and forensically complete.
         </p>
+      </div>
+
+      {/* Advanced Table Controls */}
+      <div className="rounded-xl border border-border/50 p-4 bg-card/50 space-y-4">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-bold text-foreground">Advanced Table Features</h3>
+          <button className="text-xs px-2 py-1 bg-primary/10 text-primary rounded hover:bg-primary/20 transition-colors flex items-center gap-1">
+            <Save className="w-3 h-3" />
+            Save View
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div>
+            <label className="text-xs font-semibold text-foreground block mb-1">Saved Views</label>
+            <select value={selectedView} onChange={(e) => setSelectedView(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm">
+              <option value="default">Default View</option>
+              <option value="security">Security Focus</option>
+              <option value="compliance">Compliance View</option>
+              <option value="custom">Custom View</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold text-foreground block mb-1">Group By</label>
+            <select value={groupBy} onChange={(e) => setGroupBy(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm">
+              <option value="none">None</option>
+              <option value="actor">By Actor</option>
+              <option value="action">By Action</option>
+              <option value="module">By Module</option>
+              <option value="severity">By Severity</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold text-foreground block mb-1">Regex Search</label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" checked={useRegex} onChange={(e) => setUseRegex(e.target.checked)} />
+              <span className="text-sm text-foreground">Enable pattern matching</span>
+            </label>
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold text-foreground block mb-1">Highlight Rules</label>
+            <div className="flex items-center gap-1">
+              <input type="text" placeholder="e.g., critical, error" className="flex-1 px-2 py-1 rounded text-xs border border-border bg-background" />
+              <button className="px-2 py-1 rounded text-xs bg-primary/10 text-primary hover:bg-primary/20">Add</button>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label className="text-xs font-semibold text-foreground block mb-2">Pinned Columns</label>
+          <div className="flex flex-wrap gap-2">
+            {['eventId', 'timestamp', 'actor', 'action', 'severity'].map(col => (
+              <button
+                key={col}
+                onClick={() => {
+                  if (pinnedColumns.includes(col)) {
+                    setPinnedColumns(pinnedColumns.filter(c => c !== col));
+                  } else {
+                    setPinnedColumns([...pinnedColumns, col]);
+                  }
+                }}
+                className={cn(
+                  "text-xs px-2 py-1 rounded transition-colors",
+                  pinnedColumns.includes(col)
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground hover:bg-muted/70"
+                )}
+              >
+                {col}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Controls */}
