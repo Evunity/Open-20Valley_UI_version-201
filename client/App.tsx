@@ -6,6 +6,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { FilterProvider } from "@/hooks/useGlobalFilters";
 import ScrollToTop from "@/components/ScrollToTop";
 import Layout from "@/components/Layout";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+import Login from "@/pages/Login";
 import DashboardNew from "@/pages/DashboardNew";
 import AIEngineActions from "@/pages/AIEngineActions";
 import Settings from "@/pages/Settings";
@@ -39,196 +42,246 @@ export default function App() {
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          <BrowserRouter>
-            <ScrollToTop />
-            <Routes>
-              <Route
-                path="/"
-                element={
-                  <Layout>
-                    <DashboardNew />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/voice-analytics"
-                element={
-                  <Layout>
-                    <VoiceAnalytics />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/data-analytics"
-                element={
-                  <Layout>
-                    <DataAnalytics />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/network-alarms"
-                element={
-                  <Layout>
-                    <NetworkAlarms />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/network-status"
-                element={
-                  <Layout>
-                    <NetworkStatus />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/settings"
-                element={
-                  <Layout>
-                    <Settings />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/settings-2"
-                element={
-                  <Layout>
-                    <Settings2 />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/ai-actions"
-                element={
-                  <Layout>
-                    <AIEngineActions />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/network"
-                element={
-                  <Layout>
-                    <NetworkNew />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/incidents"
-                element={
-                  <Layout>
-                    <IncidentsNew />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/reports"
-                element={
-                  <Layout>
-                    <ReportsPage />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/reports-module"
-                element={
-                  <Layout>
-                    <ReportsModule />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/activity-audit"
-                element={
-                  <Layout>
-                    <ActivityAudit />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/access-control"
-                element={
-                  <Layout>
-                    <AccessControl />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/detail/:section"
-                element={
-                  <Layout>
-                    <DetailPage />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/detail/:section/:action"
-                element={
-                  <Layout>
-                    <DetailPage />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/analytics-home"
-                element={
-                  <Layout>
-                    <AnalyticsHome />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/analytics-management"
-                element={
-                  <Layout>
-                    <AnalyticsManagement />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/alarm-management"
-                element={
-                  <Layout>
-                    <AlarmManagement />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/automation-management"
-                element={
-                  <Layout>
-                    <AutomationManagement />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/topology-management"
-                element={
-                  <Layout>
-                    <TopologyManagement />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/command-center"
-                element={
-                  <Layout>
-                    <CommandCenter />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/activity-log"
-                element={
-                  <Layout>
-                    <ComingSoon title="Activity & Audit Trail" description="Track all system activities and audit logs" />
-                  </Layout>
-                }
-              />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
+          <AuthProvider>
+            <BrowserRouter>
+              <ScrollToTop />
+              <Routes>
+                <Route path="/login" element={<Login />} />
+                
+                <Route
+                  path="/"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <DashboardNew />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/voice-analytics"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <VoiceAnalytics />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/data-analytics"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <DataAnalytics />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/network-alarms"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <NetworkAlarms />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/network-status"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <NetworkStatus />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/settings"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <Settings />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/settings-2"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <Settings2 />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/ai-actions"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <AIEngineActions />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/network"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <NetworkNew />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/incidents"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <IncidentsNew />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/reports"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <ReportsPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/reports-module"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <ReportsModule />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/activity-audit"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <ActivityAudit />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/access-control"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <AccessControl />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/detail/:section"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <DetailPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/detail/:section/:action"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <DetailPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/analytics-home"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <AnalyticsHome />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/analytics-management"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <AnalyticsManagement />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/alarm-management"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <AlarmManagement />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/automation-management"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <AutomationManagement />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/topology-management"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <TopologyManagement />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/command-center"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <CommandCenter />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/activity-log"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <ComingSoon title="Activity & Audit Trail" description="Track all system activities and audit logs" />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </AuthProvider>
         </TooltipProvider>
       </FilterProvider>
     </QueryClientProvider>
