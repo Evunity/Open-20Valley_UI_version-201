@@ -24,6 +24,7 @@ import { AutomationManagement } from "@/pages/AutomationManagement";
 import { TopologyManagement } from "@/pages/TopologyManagement";
 import { CommandCenter } from "@/pages/CommandCenter";
 import ReportsModule from "@/pages/ReportsModule";
+import ActivityAuditModule from "@/pages/ActivityAuditModule";
 import ComingSoon from "@/pages/ComingSoon";
 import NotFound from "@/pages/NotFound";
 
@@ -124,6 +125,14 @@ export default function App() {
                 element={
                   <Layout>
                     <ReportsModule />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/activity-audit"
+                element={
+                  <Layout>
+                    <ActivityAuditModule />
                   </Layout>
                 }
               />
