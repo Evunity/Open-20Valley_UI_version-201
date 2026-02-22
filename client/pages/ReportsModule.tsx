@@ -16,8 +16,13 @@ import ReliabilityCenter from "@/components/reports/ReliabilityCenter";
 import ConsumptionIntelligence from "@/components/reports/ConsumptionIntelligence";
 import DecisionImpactEngine from "@/components/reports/DecisionImpactEngine";
 import RegulatoryIntelligenceHub from "@/components/reports/RegulatoryIntelligenceHub";
+import LayoutIntelligence from "@/components/reports/LayoutIntelligence";
+import SimulationPreview from "@/components/reports/SimulationPreview";
+import ExecutiveOneclickBriefing from "@/components/reports/ExecutiveOneclickBriefing";
+import PredictiveReporting from "@/components/reports/PredictiveReporting";
+import CrossModuleIntelligence from "@/components/reports/CrossModuleIntelligence";
 
-type IntelligenceWorkspace = 
+type IntelligenceWorkspace =
   | 'executive-overview'
   | 'report-builder'
   | 'dataset-manager'
@@ -29,7 +34,12 @@ type IntelligenceWorkspace =
   | 'reliability'
   | 'consumption'
   | 'decision-impact'
-  | 'regulatory';
+  | 'regulatory'
+  | 'layout'
+  | 'simulation'
+  | 'briefing'
+  | 'predictive'
+  | 'cross-module';
 
 interface WorkspaceConfig {
   id: IntelligenceWorkspace;
@@ -136,6 +146,46 @@ const WORKSPACES: WorkspaceConfig[] = [
     description: 'Compliance, audit trails, and governance',
     criticality: 'core',
     color: 'from-red-500 to-rose-500'
+  },
+  {
+    id: 'layout',
+    label: 'Layout Intelligence',
+    icon: Palette,
+    description: 'Pre-built report templates and branding',
+    criticality: 'enterprise',
+    color: 'from-pink-500 to-rose-500'
+  },
+  {
+    id: 'simulation',
+    label: 'Simulation Preview',
+    icon: AlertCircle,
+    description: 'Render exact output before scheduling',
+    criticality: 'enterprise',
+    color: 'from-sky-500 to-blue-500'
+  },
+  {
+    id: 'briefing',
+    label: 'Executive One-Click Briefing',
+    icon: Zap,
+    description: 'Board-ready summary generation in seconds',
+    criticality: 'strategic',
+    color: 'from-amber-500 to-yellow-500'
+  },
+  {
+    id: 'predictive',
+    label: 'Predictive Reporting',
+    icon: TrendingUp,
+    description: 'Forward-looking AI trends and forecasts',
+    criticality: 'strategic',
+    color: 'from-lime-500 to-green-500'
+  },
+  {
+    id: 'cross-module',
+    label: 'Cross-Module Intelligence',
+    icon: FileText,
+    description: 'Strategic insights across all modules',
+    criticality: 'strategic',
+    color: 'from-cyan-500 to-blue-500'
   }
 ];
 
@@ -174,6 +224,16 @@ export default function ReportsModule() {
         return <DecisionImpactEngine />;
       case 'regulatory':
         return <RegulatoryIntelligenceHub />;
+      case 'layout':
+        return <LayoutIntelligence />;
+      case 'simulation':
+        return <SimulationPreview />;
+      case 'briefing':
+        return <ExecutiveOneclickBriefing />;
+      case 'predictive':
+        return <PredictiveReporting />;
+      case 'cross-module':
+        return <CrossModuleIntelligence />;
       default:
         return null;
     }

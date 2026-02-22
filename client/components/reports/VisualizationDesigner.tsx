@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Palette, Grid3x3, Settings, Plus } from 'lucide-react';
+import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, ReferenceArea } from 'recharts';
+import { Palette, Grid3x3, Settings, Plus, AlertCircle, Zap, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface Visualization {
@@ -8,6 +8,12 @@ interface Visualization {
   type: 'bar' | 'line' | 'pie' | 'area' | 'scatter' | 'heatmap' | 'gauge' | 'sankey';
   title: string;
   dataSource: string;
+  enableThresholds?: boolean;
+  enableAutomationMarkers?: boolean;
+  enableIncidentAnnotations?: boolean;
+  enablePredictionBands?: boolean;
+  enableConfidenceIntervals?: boolean;
+  enableEventShading?: boolean;
 }
 
 const mockData = [
@@ -41,7 +47,13 @@ export default function VisualizationDesigner() {
         id: Date.now().toString(),
         type,
         title: `New ${chartTypes.find(c => c.type === type)?.label}`,
-        dataSource: 'Select dataset...'
+        dataSource: 'Select dataset...',
+        enableThresholds: true,
+        enableAutomationMarkers: true,
+        enableIncidentAnnotations: true,
+        enablePredictionBands: false,
+        enableConfidenceIntervals: false,
+        enableEventShading: true
       }
     ]);
   };
@@ -91,7 +103,7 @@ export default function VisualizationDesigner() {
                 </button>
               </div>
 
-              {/* Preview */}
+              {/* Preview with Advanced Overlays */}
               <div className="mb-4 p-4 bg-muted/30 rounded-lg border border-border/30 min-h-[300px] flex items-center justify-center">
                 {viz.type === 'bar' && (
                   <ResponsiveContainer width="100%" height={250}>
@@ -100,6 +112,12 @@ export default function VisualizationDesigner() {
                       <XAxis dataKey="name" />
                       <YAxis />
                       <Tooltip />
+                      {viz.enableThresholds && (
+                        <ReferenceLine y={3500} stroke="#ef4444" strokeDasharray="5 5" label="SLA Threshold" />
+                      )}
+                      {viz.enableEventShading && (
+                        <ReferenceArea x1="Feb" x2="Mar" stroke="none" fill="#fbbf24" fillOpacity={0.1} label={{ value: 'Incident', position: 'top' }} />
+                      )}
                       <Bar dataKey="value" fill="#3b82f6" />
                     </BarChart>
                   </ResponsiveContainer>
@@ -111,7 +129,16 @@ export default function VisualizationDesigner() {
                       <XAxis dataKey="name" />
                       <YAxis />
                       <Tooltip />
-                      <Line type="monotone" dataKey="value" stroke="#3b82f6" />
+                      {viz.enableThresholds && (
+                        <ReferenceLine y={3500} stroke="#ef4444" strokeDasharray="5 5" label="Alert Threshold" />
+                      )}
+                      {viz.enablePredictionBands && (
+                        <ReferenceArea y1={2800} y2={3500} stroke="none" fill="#3b82f6" fillOpacity={0.05} label="Prediction Band" />
+                      )}
+                      {viz.enableEventShading && (
+                        <ReferenceArea x1="Apr" x2="May" stroke="none" fill="#10b981" fillOpacity={0.1} label={{ value: 'Automation Applied', position: 'top' }} />
+                      )}
+                      <Line type="monotone" dataKey="value" stroke="#3b82f6" strokeWidth={2} />
                     </LineChart>
                   </ResponsiveContainer>
                 )}
@@ -141,8 +168,73 @@ export default function VisualizationDesigner() {
                 )}
               </div>
 
+              {/* Advanced Overlays Configuration */}
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <label className="flex items-center gap-2 cursor-pointer p-2 bg-muted/20 rounded hover:bg-muted/30 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={viz.enableThresholds}
+                      onChange={(e) => {
+                        const updated = [...visualizations];
+                        updated[visualizations.indexOf(viz)].enableThresholds = e.target.checked;
+                        setVisualizations(updated);
+                      }}
+                    />
+                    <span className="text-foreground font-medium">Threshold Overlays</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer p-2 bg-muted/20 rounded hover:bg-muted/30 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={viz.enableAutomationMarkers}
+                      onChange={(e) => {
+                        const updated = [...visualizations];
+                        updated[visualizations.indexOf(viz)].enableAutomationMarkers = e.target.checked;
+                        setVisualizations(updated);
+                      }}
+                    />
+                    <Zap className="w-3 h-3" />
+                    <span className="text-foreground font-medium">Automation Markers</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer p-2 bg-muted/20 rounded hover:bg-muted/30 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={viz.enableIncidentAnnotations}
+                      onChange={(e) => {
+                        const updated = [...visualizations];
+                        updated[visualizations.indexOf(viz)].enableIncidentAnnotations = e.target.checked;
+                        setVisualizations(updated);
+                      }}
+                    />
+                    <AlertCircle className="w-3 h-3" />
+                    <span className="text-foreground font-medium">Incident Annotations</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer p-2 bg-muted/20 rounded hover:bg-muted/30 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={viz.enablePredictionBands}
+                      onChange={(e) => {
+                        const updated = [...visualizations];
+                        updated[visualizations.indexOf(viz)].enablePredictionBands = e.target.checked;
+                        setVisualizations(updated);
+                      }}
+                    />
+                    <TrendingUp className="w-3 h-3" />
+                    <span className="text-foreground font-medium">AI Prediction Bands</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer p-2 bg-muted/20 rounded hover:bg-muted/30 transition-colors">
+                    <input type="checkbox" defaultChecked />
+                    <span className="text-foreground font-medium">Confidence Intervals</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer p-2 bg-muted/20 rounded hover:bg-muted/30 transition-colors">
+                    <input type="checkbox" defaultChecked />
+                    <span className="text-foreground font-medium">Event Shading</span>
+                  </label>
+                </div>
+              </div>
+
               {/* Configuration */}
-              <div className="flex gap-2">
+              <div className="flex gap-2 mt-3">
                 <button className="flex-1 px-3 py-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors text-sm flex items-center justify-center gap-2">
                   <Grid3x3 className="w-4 h-4" />
                   Configure
