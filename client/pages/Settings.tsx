@@ -11,7 +11,9 @@ import {
   RotateCcw,
   Palette,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  FileText,
+  Lock
 } from 'lucide-react';
 import SystemConfiguration from './settings/SystemConfiguration';
 import ModuleConfiguration from './settings/ModuleConfiguration';
@@ -23,8 +25,10 @@ import AutomationGuardrails from './settings/AutomationGuardrails';
 import EnvironmentDeployment from './settings/EnvironmentDeployment';
 import BackupRecovery from './settings/BackupRecovery';
 import BrandingUI from './settings/BrandingUI';
+import SettingsAudit from './settings/SettingsAudit';
+import SettingsPermissions from './settings/SettingsPermissions';
 
-type WorkspaceType = 
+type WorkspaceType =
   | 'system-configuration'
   | 'module-configuration'
   | 'integration-settings'
@@ -34,7 +38,9 @@ type WorkspaceType =
   | 'automation-guardrails'
   | 'environment-deployment'
   | 'backup-recovery'
-  | 'branding-ui';
+  | 'branding-ui'
+  | 'settings-audit'
+  | 'settings-permissions';
 
 interface WorkspaceConfig {
   id: WorkspaceType;
@@ -114,10 +120,24 @@ const workspaces: WorkspaceConfig[] = [
     icon: <Palette className="w-5 h-5" />,
     category: 'Customization',
     description: 'Platform branding, theme, UI customization'
+  },
+  {
+    id: 'settings-audit',
+    label: 'Audit & Change Control',
+    icon: <FileText className="w-5 h-5" />,
+    category: 'Compliance',
+    description: 'Track all settings changes, approvals, and compliance audit trail'
+  },
+  {
+    id: 'settings-permissions',
+    label: 'Permissions & Access',
+    icon: <Lock className="w-5 h-5" />,
+    category: 'Compliance',
+    description: 'Granular admin role permissions and access control'
   }
 ];
 
-const categories = ['Core Controls', 'Integrations', 'Data Management', 'Operations', 'Customization'];
+const categories = ['Core Controls', 'Integrations', 'Data Management', 'Operations', 'Customization', 'Compliance'];
 
 export default function Settings() {
   const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceType>('system-configuration');
@@ -126,7 +146,8 @@ export default function Settings() {
     'Integrations': false,
     'Data Management': false,
     'Operations': false,
-    'Customization': false
+    'Customization': false,
+    'Compliance': false
   });
 
   const toggleCategory = (category: string) => {
@@ -158,6 +179,10 @@ export default function Settings() {
         return <BackupRecovery />;
       case 'branding-ui':
         return <BrandingUI />;
+      case 'settings-audit':
+        return <SettingsAudit />;
+      case 'settings-permissions':
+        return <SettingsPermissions />;
       default:
         return <SystemConfiguration />;
     }
