@@ -1,4 +1,4 @@
-import React, { useState, Suspense, lazy } from 'react';
+import React, { useState } from 'react';
 import {
   Settings,
   Sliders,
@@ -16,19 +16,19 @@ import {
   Lock
 } from 'lucide-react';
 
-// Lazy load components to prevent bundle issues
-const SystemConfiguration = lazy(() => import('./settings/SystemConfiguration'));
-const ModuleConfiguration = lazy(() => import('./settings/ModuleConfiguration'));
-const IntegrationSettings = lazy(() => import('./settings/IntegrationSettings'));
-const DataRetentionPolicies = lazy(() => import('./settings/DataRetentionPolicies'));
-const PerformanceLimits = lazy(() => import('./settings/PerformanceLimits'));
-const NotificationSettings = lazy(() => import('./settings/NotificationSettings'));
-const AutomationGuardrails = lazy(() => import('./settings/AutomationGuardrails'));
-const EnvironmentDeployment = lazy(() => import('./settings/EnvironmentDeployment'));
-const BackupRecovery = lazy(() => import('./settings/BackupRecovery'));
-const BrandingUI = lazy(() => import('./settings/BrandingUI'));
-const SettingsAudit = lazy(() => import('./settings/SettingsAudit'));
-const SettingsPermissions = lazy(() => import('./settings/SettingsPermissions'));
+// Import all workspace components
+import SystemConfiguration from './settings/SystemConfiguration';
+import ModuleConfiguration from './settings/ModuleConfiguration';
+import IntegrationSettings from './settings/IntegrationSettings';
+import DataRetentionPolicies from './settings/DataRetentionPolicies';
+import PerformanceLimits from './settings/PerformanceLimits';
+import NotificationSettings from './settings/NotificationSettings';
+import AutomationGuardrails from './settings/AutomationGuardrails';
+import EnvironmentDeployment from './settings/EnvironmentDeployment';
+import BackupRecovery from './settings/BackupRecovery';
+import BrandingUI from './settings/BrandingUI';
+import SettingsAudit from './settings/SettingsAudit';
+import SettingsPermissions from './settings/SettingsPermissions';
 
 type WorkspaceType = 
   | 'system-configuration'
@@ -141,14 +141,6 @@ const workspaces: WorkspaceConfig[] = [
 
 const categories = ['Core Controls', 'Integrations', 'Data Management', 'Operations', 'Customization', 'Compliance'];
 
-function LoadingSpinner() {
-  return (
-    <div className="flex items-center justify-center p-12">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-    </div>
-  );
-}
-
 export default function Settings() {
   const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceType>('system-configuration');
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({
@@ -168,33 +160,41 @@ export default function Settings() {
   };
 
   const renderWorkspace = () => {
-    switch (activeWorkspace) {
-      case 'system-configuration':
-        return <SystemConfiguration />;
-      case 'module-configuration':
-        return <ModuleConfiguration />;
-      case 'integration-settings':
-        return <IntegrationSettings />;
-      case 'data-retention':
-        return <DataRetentionPolicies />;
-      case 'performance-limits':
-        return <PerformanceLimits />;
-      case 'notification-settings':
-        return <NotificationSettings />;
-      case 'automation-guardrails':
-        return <AutomationGuardrails />;
-      case 'environment-deployment':
-        return <EnvironmentDeployment />;
-      case 'backup-recovery':
-        return <BackupRecovery />;
-      case 'branding-ui':
-        return <BrandingUI />;
-      case 'settings-audit':
-        return <SettingsAudit />;
-      case 'settings-permissions':
-        return <SettingsPermissions />;
-      default:
-        return <SystemConfiguration />;
+    try {
+      switch (activeWorkspace) {
+        case 'system-configuration':
+          return <SystemConfiguration />;
+        case 'module-configuration':
+          return <ModuleConfiguration />;
+        case 'integration-settings':
+          return <IntegrationSettings />;
+        case 'data-retention':
+          return <DataRetentionPolicies />;
+        case 'performance-limits':
+          return <PerformanceLimits />;
+        case 'notification-settings':
+          return <NotificationSettings />;
+        case 'automation-guardrails':
+          return <AutomationGuardrails />;
+        case 'environment-deployment':
+          return <EnvironmentDeployment />;
+        case 'backup-recovery':
+          return <BackupRecovery />;
+        case 'branding-ui':
+          return <BrandingUI />;
+        case 'settings-audit':
+          return <SettingsAudit />;
+        case 'settings-permissions':
+          return <SettingsPermissions />;
+        default:
+          return <SystemConfiguration />;
+      }
+    } catch (error) {
+      return (
+        <div className="p-8 text-red-600">
+          <p>Error loading component: {String(error)}</p>
+        </div>
+      );
     }
   };
 
@@ -274,11 +274,9 @@ export default function Settings() {
             </div>
           )}
 
-          {/* Workspace Content with Suspense */}
-          <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-            <Suspense fallback={<LoadingSpinner />}>
-              {activeWorkspace ? renderWorkspace() : <SystemConfiguration />}
-            </Suspense>
+          {/* Workspace Content */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+            {renderWorkspace()}
           </div>
         </div>
       </div>
