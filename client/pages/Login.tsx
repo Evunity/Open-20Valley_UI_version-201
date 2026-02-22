@@ -45,11 +45,11 @@ export default function Login() {
       <div className="relative z-10 w-full max-w-md">
         <div className="bg-white/10 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 p-8 md:p-12">
           {/* Logo Section */}
-          <div className="flex flex-col items-center mb-8">
+          <div className="flex flex-col items-center mb-8 bg-white/90 rounded-xl p-6">
             <img
               src="https://cdn.builder.io/api/v1/image/assets%2Fc13b4e0240ec42a0981c688ed8e4138d%2Feedb7e1bfab14e1491bd3778fc9c7eaa?format=webp&width=800&height=1200"
               alt="Open Valley Logo"
-              className="w-64 h-auto mb-6 drop-shadow-lg"
+              className="w-64 h-auto"
             />
           </div>
 
