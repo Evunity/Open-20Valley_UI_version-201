@@ -265,8 +265,8 @@ export default function Settings() {
           )}
 
           {/* Workspace Content */}
-          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-            {renderWorkspace()}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+            {activeWorkspace ? renderWorkspace() : <SystemConfiguration />}
           </div>
         </div>
       </div>

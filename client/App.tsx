@@ -217,14 +217,6 @@ export default function App() {
                   </Layout>
                 }
               />
-              <Route
-                path="/access-control"
-                element={
-                  <Layout>
-                    <ComingSoon title="Access Control" description="Manage user roles and permissions" />
-                  </Layout>
-                }
-              />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
