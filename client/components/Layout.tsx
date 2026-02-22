@@ -56,7 +56,7 @@ export default function Layout({ children }: LayoutProps) {
     { path: "/activity-audit", label: "Activity & Audit", icon: Shield },
     { path: "/reports-module", label: "Reports", icon: BarChart3 },
     { path: "/access-control", label: "Access Control", icon: Lock },
-    { path: "/settings", label: "Settings", icon: Settings },
+    { path: "/settings-2", label: "Settings 2", icon: Settings },
   ];
 
   const isActive = (path: string) => location.pathname === path;

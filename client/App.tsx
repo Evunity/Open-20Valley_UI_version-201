@@ -9,6 +9,7 @@ import Layout from "@/components/Layout";
 import DashboardNew from "@/pages/DashboardNew";
 import AIEngineActions from "@/pages/AIEngineActions";
 import Settings from "@/pages/Settings";
+import Settings2 from "@/pages/Settings2";
 import ReportsPage from "@/pages/ReportsPage";
 import NetworkNew from "@/pages/NetworkNew";
 import IncidentsNew from "@/pages/IncidentsNew";
@@ -86,6 +87,14 @@ export default function App() {
                 element={
                   <Layout>
                     <Settings />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/settings-2"
+                element={
+                  <Layout>
+                    <Settings2 />
                   </Layout>
                 }
               />
