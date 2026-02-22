@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import {
   Lock, Users, Shield, Building2, Settings, GitBranch, AlertCircle, Key,
-  Download, Plus
+  Download, Plus, CheckCircle, Clock, AlertTriangle, Zap
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import TenantGovernance from "@/components/access-control/TenantGovernance";
@@ -12,6 +12,11 @@ import PermissionManagement from "@/components/access-control/PermissionManageme
 import CrossTenantAccess from "@/components/access-control/CrossTenantAccess";
 import TenantPoliciesControl from "@/components/access-control/TenantPoliciesControl";
 import TenantSwitcher from "@/components/access-control/TenantSwitcher";
+import PermissionEvaluationFlow from "@/components/access-control/PermissionEvaluationFlow";
+import ModuleAccessMatrix from "@/components/access-control/ModuleAccessMatrix";
+import TemporaryElevation from "@/components/access-control/TemporaryElevation";
+import SeparationOfDuties from "@/components/access-control/SeparationOfDuties";
+import GlobalSecurityControls from "@/components/access-control/GlobalSecurityControls";
 import ComingSoon from "@/pages/ComingSoon";
 
 type AccessControlWorkspace =
@@ -21,14 +26,19 @@ type AccessControlWorkspace =
   | 'role-management'
   | 'permission-management'
   | 'cross-tenant-access'
-  | 'tenant-policies';
+  | 'tenant-policies'
+  | 'permission-flow'
+  | 'module-access'
+  | 'temporary-elevation'
+  | 'separation-duties'
+  | 'global-controls';
 
 interface WorkspaceConfig {
   id: AccessControlWorkspace;
   label: string;
   icon: React.FC<any>;
   description: string;
-  category: 'governance' | 'administration' | 'security';
+  category: 'governance' | 'administration' | 'security' | 'compliance';
   color: string;
 }
 
@@ -88,6 +98,46 @@ const WORKSPACES: WorkspaceConfig[] = [
     description: 'Policy inheritance, compliance rules, and data residency',
     category: 'governance',
     color: 'from-yellow-500 to-orange-500'
+  },
+  {
+    id: 'permission-flow',
+    label: 'Permission Evaluation Flow',
+    icon: CheckCircle,
+    description: '3-step permission check: Tenant → Role → Policy',
+    category: 'security',
+    color: 'from-cyan-500 to-blue-500'
+  },
+  {
+    id: 'module-access',
+    label: 'Module Access Matrix',
+    icon: Zap,
+    description: 'Module, page, operation-level access control',
+    category: 'security',
+    color: 'from-indigo-500 to-purple-500'
+  },
+  {
+    id: 'temporary-elevation',
+    label: 'Temporary Elevation',
+    icon: Clock,
+    description: 'Just-in-Time privilege elevation with auto-expiry',
+    category: 'compliance',
+    color: 'from-orange-500 to-yellow-500'
+  },
+  {
+    id: 'separation-duties',
+    label: 'Separation of Duties',
+    icon: AlertTriangle,
+    description: 'Prevent dangerous permission combinations',
+    category: 'compliance',
+    color: 'from-red-500 to-pink-500'
+  },
+  {
+    id: 'global-controls',
+    label: 'Global Security Controls',
+    icon: Lock,
+    description: 'Emergency guardrails for critical incidents',
+    category: 'security',
+    color: 'from-red-600 to-red-500'
   }
 ];
 
@@ -116,6 +166,16 @@ export default function AccessControl() {
         return <CrossTenantAccess />;
       case 'tenant-policies':
         return <TenantPoliciesControl />;
+      case 'permission-flow':
+        return <PermissionEvaluationFlow />;
+      case 'module-access':
+        return <ModuleAccessMatrix />;
+      case 'temporary-elevation':
+        return <TemporaryElevation />;
+      case 'separation-duties':
+        return <SeparationOfDuties />;
+      case 'global-controls':
+        return <GlobalSecurityControls />;
       default:
         return null;
     }
@@ -216,9 +276,33 @@ export default function AccessControl() {
             </div>
 
             {/* Security Workspaces */}
-            <div className="space-y-1">
+            <div className="space-y-1 mb-6">
               <div className="text-xs font-semibold text-red-600/70 px-3 py-2">Security</div>
               {WORKSPACES.filter(w => w.category === 'security').map(workspace => {
+                const Icon = workspace.icon;
+                const isActive = activeWorkspace === workspace.id;
+                return (
+                  <button
+                    key={workspace.id}
+                    onClick={() => setActiveWorkspace(workspace.id)}
+                    className={cn(
+                      "w-full flex items-start gap-3 px-3 py-2 rounded-lg text-sm transition-colors text-left group",
+                      isActive
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                    )}
+                  >
+                    <Icon className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                    <span className="flex-1">{workspace.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Compliance Workspaces */}
+            <div className="space-y-1">
+              <div className="text-xs font-semibold text-orange-600/70 px-3 py-2">Compliance</div>
+              {WORKSPACES.filter(w => w.category === 'compliance').map(workspace => {
                 const Icon = workspace.icon;
                 const isActive = activeWorkspace === workspace.id;
                 return (
