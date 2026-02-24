@@ -85,13 +85,13 @@ export const AutomationManagement: React.FC = () => {
 
       case 'builder':
         return (
-          <div className="flex-1 flex overflow-hidden">
+          <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
             {/* Trigger Engine on left */}
-            <div className="w-1/3 border-r border-gray-200 bg-white">
+            <div className="w-full lg:w-1/3 border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-card overflow-y-auto lg:overflow-y-auto">
               <TriggerEngine />
             </div>
             {/* Pre-Execution Simulation and Builder on right */}
-            <div className="w-2/3 flex flex-col overflow-hidden">
+            <div className="w-full lg:w-2/3 flex flex-col overflow-hidden">
               {!showBuilder && (
                 <div className="flex-1 border-b border-gray-200">
                   <PreExecutionSimulation />

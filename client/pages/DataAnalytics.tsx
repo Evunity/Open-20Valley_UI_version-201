@@ -498,11 +498,11 @@ export default function DataAnalytics() {
               <p className="text-xs text-muted-foreground">Avg Speed: +4.2% trend</p>
               <p className="text-xs text-muted-foreground">Latency: 28.1ms</p>
             </div>
-            <div className="p-4 rounded-lg bg-yellow-100 border border-yellow-200">
-              <p className="text-sm font-semibold text-foreground mb-2">Capacity Stress</p>
-              <p className="text-2xl font-bold text-yellow-700 mb-2">64%</p>
-              <p className="text-xs text-muted-foreground">Utilization during peak</p>
-              <p className="text-xs text-muted-foreground">Headroom: 36%</p>
+            <div className="p-4 rounded-lg bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-900">
+              <p className="text-sm font-semibold text-foreground dark:text-foreground mb-2">Capacity Stress</p>
+              <p className="text-2xl font-bold text-yellow-700 dark:text-yellow-400 mb-2">64%</p>
+              <p className="text-xs text-muted-foreground dark:text-muted-foreground">Utilization during peak</p>
+              <p className="text-xs text-muted-foreground dark:text-muted-foreground">Headroom: 36%</p>
             </div>
           </div>
         </div>
@@ -845,15 +845,15 @@ export default function DataAnalytics() {
                     </div>
                   )}
                 </div>
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto -mx-6 px-6">
                   <div className="min-w-max">
                     {/* Column headers */}
                     <div className="flex gap-0.5 mb-2">
-                      <div className="w-16"></div>
+                      <div className="w-14 sm:w-16"></div>
                       {columnHeaders.map((header, colIdx) => (
                         <div
                           key={`header-${colIdx}`}
-                          className="w-8 text-center text-xs font-semibold text-muted-foreground"
+                          className="w-6 sm:w-8 text-center text-xs font-semibold text-muted-foreground dark:text-muted-foreground"
                         >
                           {header}
                         </div>
@@ -863,23 +863,23 @@ export default function DataAnalytics() {
                     {/* Heatmap rows */}
                     {hourlyUtilizationHeatmap.map((row) => (
                       <div key={row.name} className="flex gap-0.5 mb-2">
-                        <div className="w-16 text-xs font-semibold text-muted-foreground flex items-center">
+                        <div className="w-14 sm:w-16 text-xs font-semibold text-muted-foreground dark:text-muted-foreground flex items-center truncate">
                           {row.name}
                         </div>
                         {row.cells.slice(0, columnHeaders.length).map((cell, cellIdx) => {
                           const bgColor =
                             cell.intensity === "critical"
-                              ? "bg-red-500"
+                              ? "bg-red-500 dark:bg-red-600"
                               : cell.intensity === "high"
-                                ? "bg-orange-400"
+                                ? "bg-orange-400 dark:bg-orange-500"
                                 : cell.intensity === "medium"
-                                  ? "bg-yellow-300"
-                                  : "bg-green-300";
+                                  ? "bg-yellow-300 dark:bg-yellow-500"
+                                  : "bg-green-400 dark:bg-green-600";
 
                           return (
                             <div
                               key={`${row.name}-cell-${cellIdx}`}
-                              className={cn("w-8 h-8 rounded", bgColor)}
+                              className={cn("w-6 h-6 sm:w-8 sm:h-8 rounded", bgColor)}
                               title={`${row.name} ${tooltipPrefix} ${columnHeaders[cellIdx]} - ${cell.value.toFixed(1)}%`}
                             ></div>
                           );
@@ -887,23 +887,23 @@ export default function DataAnalytics() {
                       </div>
                     ))}
                   </div>
-                  <div className="flex justify-center gap-4 mt-6 text-xs">
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-4 rounded bg-green-300"></div>
-                      <span>0-40%</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-4 rounded bg-yellow-300"></div>
-                      <span>40-60%</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-4 rounded bg-orange-400"></div>
-                      <span>60-80%</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-4 rounded bg-red-500"></div>
-                      <span>80-100%</span>
-                    </div>
+                </div>
+                <div className="flex justify-center gap-2 sm:gap-4 mt-6 text-xs flex-wrap">
+                  <div className="flex items-center gap-1 sm:gap-2">
+                    <div className="w-4 h-3 sm:w-6 sm:h-4 rounded bg-green-400 dark:bg-green-600"></div>
+                    <span>0-40%</span>
+                  </div>
+                  <div className="flex items-center gap-1 sm:gap-2">
+                    <div className="w-4 h-3 sm:w-6 sm:h-4 rounded bg-yellow-300 dark:bg-yellow-500"></div>
+                    <span>40-60%</span>
+                  </div>
+                  <div className="flex items-center gap-1 sm:gap-2">
+                    <div className="w-4 h-3 sm:w-6 sm:h-4 rounded bg-orange-400 dark:bg-orange-500"></div>
+                    <span>60-80%</span>
+                  </div>
+                  <div className="flex items-center gap-1 sm:gap-2">
+                    <div className="w-4 h-3 sm:w-6 sm:h-4 rounded bg-red-500 dark:bg-red-600"></div>
+                    <span>80-100%</span>
                   </div>
                 </div>
               </>
@@ -920,8 +920,8 @@ export default function DataAnalytics() {
 
         {/* Filter Context Info */}
         {(filters.technologies.length > 0 || filters.regions.length > 0) && (
-          <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
-            <p className="text-sm text-blue-900">
+          <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900">
+            <p className="text-sm text-blue-900 dark:text-blue-300">
               <span className="font-semibold">Viewing results:</span>
               {filters.technologies.length > 0 &&
                 ` Technologies: ${filters.technologies.join(", ")}`}
@@ -1189,32 +1189,32 @@ export default function DataAnalytics() {
 
                 return (
                   <>
-                    <div className="p-4 rounded-lg bg-green-50 border border-green-200">
-                      <p className="text-sm text-muted-foreground mb-2">Top Performer</p>
-                      <p className="text-2xl font-bold text-green-700">{topPerformer.name}</p>
-                      <p className="text-xs text-muted-foreground mt-2">
+                    <div className="p-4 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900">
+                      <p className="text-sm text-muted-foreground dark:text-muted-foreground mb-2">Top Performer</p>
+                      <p className="text-2xl font-bold text-green-700 dark:text-green-400">{topPerformer.name}</p>
+                      <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-2">
                         {topPerformer.call_success_rate.toFixed(2)}% success rate
                       </p>
                     </div>
-                    <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
-                      <p className="text-sm text-muted-foreground mb-2">Average Success Rate</p>
-                      <p className="text-2xl font-bold text-blue-700">
+                    <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900">
+                      <p className="text-sm text-muted-foreground dark:text-muted-foreground mb-2">Average Success Rate</p>
+                      <p className="text-2xl font-bold text-blue-700 dark:text-blue-400">
                         {avgSuccessRate.toFixed(2)}%
                       </p>
-                      <p className="text-xs text-muted-foreground mt-2">
+                      <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-2">
                         Across all selected vendors
                       </p>
                     </div>
                     <div
-                      className={`p-4 rounded-lg ${performanceGap > 3 ? "bg-orange-50 border border-orange-200" : "bg-green-50 border border-green-200"}`}
+                      className={`p-4 rounded-lg ${performanceGap > 3 ? "bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-900" : "bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900"}`}
                     >
-                      <p className="text-sm text-muted-foreground mb-2">Performance Gap</p>
+                      <p className="text-sm text-muted-foreground dark:text-muted-foreground mb-2">Performance Gap</p>
                       <p
-                        className={`text-2xl font-bold ${performanceGap > 3 ? "text-orange-700" : "text-green-700"}`}
+                        className={`text-2xl font-bold ${performanceGap > 3 ? "text-orange-700 dark:text-orange-400" : "text-green-700 dark:text-green-400"}`}
                       >
                         {performanceGap.toFixed(2)}%
                       </p>
-                      <p className="text-xs text-muted-foreground mt-2">
+                      <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-2">
                         {performanceGap > 3 ? "Significant variation detected" : "Good consistency"}
                       </p>
                     </div>
