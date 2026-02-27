@@ -650,12 +650,12 @@ export default function DataAnalytics() {
         {/* Heatmaps: Time vs Region & Technology Capacity Stress - Side by Side */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Heatmap: Time vs Region Capacity Stress */}
-          <div className="card-elevated rounded-xl border border-border/50 p-6 flex flex-col">
+          <div className="card-elevated rounded-xl border border-border/50 p-6 flex flex-col min-h-[420px]">
             <h3 className="text-lg font-bold text-foreground mb-4">
               Capacity Stress by Time & Region (Heatmap)
             </h3>
             <div className="flex-1 flex flex-col">
-              <div className="overflow-x-auto flex-1">
+              <div className="overflow-x-auto">
                 <div className="inline-block w-full">
                   {/* Column headers (Regions) */}
                   <div className="flex gap-1 mb-2">
@@ -703,7 +703,7 @@ export default function DataAnalytics() {
                   ))}
                 </div>
               </div>
-              <div className="flex gap-2 mt-6 text-xs flex-wrap">
+              <div className="flex gap-2 mt-6 text-xs flex-wrap justify-center">
                 <div className="flex items-center gap-2">
                   <div className="w-6 h-4 rounded bg-green-300"></div>
                   <span>Low (&lt;40%)</span>
@@ -725,12 +725,12 @@ export default function DataAnalytics() {
           </div>
 
           {/* Heatmap: Technology vs Capacity Stress */}
-          <div className="card-elevated rounded-xl border border-border/50 p-6 flex flex-col">
+          <div className="card-elevated rounded-xl border border-border/50 p-6 flex flex-col min-h-[420px]">
             <h3 className="text-lg font-bold text-foreground mb-4">
               Technology Performance by Region (Heatmap)
             </h3>
             <div className="flex-1 flex flex-col">
-              <div className="overflow-x-auto flex-1">
+              <div className="overflow-x-auto">
                 <div className="inline-block w-full">
                   {/* Column headers (Regions) */}
                   <div className="flex gap-1 mb-2">
@@ -778,7 +778,7 @@ export default function DataAnalytics() {
                   ))}
                 </div>
               </div>
-              <div className="flex gap-2 mt-6 text-xs flex-wrap">
+              <div className="flex gap-2 mt-6 text-xs flex-wrap justify-center">
                 <div className="flex items-center gap-2">
                   <div className="w-6 h-4 rounded bg-green-300"></div>
                   <span>Low Stress</span>
