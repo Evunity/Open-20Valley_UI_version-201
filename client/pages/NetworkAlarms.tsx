@@ -60,12 +60,12 @@ export default function NetworkAlarms() {
     const wb = XLSX.utils.book_new();
 
     // Add KPIs sheet
-    const kpiData = Object.entries(kpis).map(([key, value]) => ({
-      Metric: key,
-      Value: value.value,
-      Unit: value.unit,
-      Change: `${value.change}%`,
-      Status: value.status,
+    const kpiData = Object.entries(kpis).map(([key, kpiValue]) => ({
+      Metric: key.replace(/_/g, " ").toUpperCase(),
+      Value: kpiValue.value,
+      Unit: kpiValue.unit,
+      Change: `${kpiValue.change}%`,
+      Status: kpiValue.status,
     }));
     const kpiSheet = XLSX.utils.json_to_sheet(kpiData);
     XLSX.utils.book_append_sheet(wb, kpiSheet, "KPIs");
@@ -124,9 +124,8 @@ export default function NetworkAlarms() {
               label="Active Alarms"
               value={kpis.active_alarms.value}
               unit={kpis.active_alarms.unit}
-              change={kpis.active_alarms.change}
+              change={kpis.active_alarms.direction === "down" ? -kpis.active_alarms.change : kpis.active_alarms.change}
               status={kpis.active_alarms.status}
-              direction={kpis.active_alarms.direction}
             />
             <KPICard
               icon={AlertTriangle}
@@ -135,16 +134,14 @@ export default function NetworkAlarms() {
               unit={kpis.critical_alarms.unit}
               change={kpis.critical_alarms.change}
               status={kpis.critical_alarms.status}
-              direction={kpis.critical_alarms.direction}
             />
             <KPICard
               icon={AlertTriangle}
               label="Major Alarms"
               value={kpis.major_alarms.value}
               unit={kpis.major_alarms.unit}
-              change={kpis.major_alarms.change}
+              change={kpis.major_alarms.direction === "down" ? -kpis.major_alarms.change : kpis.major_alarms.change}
               status={kpis.major_alarms.status}
-              direction={kpis.major_alarms.direction}
             />
             <KPICard
               icon={TrendingUp}
@@ -153,7 +150,6 @@ export default function NetworkAlarms() {
               unit={kpis.alarm_rate.unit}
               change={kpis.alarm_rate.change}
               status={kpis.alarm_rate.status}
-              direction={kpis.alarm_rate.direction}
             />
           </div>
         </div>

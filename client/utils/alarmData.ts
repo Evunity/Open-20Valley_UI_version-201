@@ -369,34 +369,82 @@ export function filterAlarms(
 }
 
 // Legacy functions for NetworkAlarms page compatibility
-export interface AlarmKPI {
-  label: string;
-  value: string;
+export interface AlarmKPIValue {
+  value: number | string;
+  unit: string;
+  change: number;
   status: 'healthy' | 'warning' | 'critical';
-  trend: string;
+  direction: 'up' | 'down';
 }
 
-export function generateAlarmKPIs(filters: any): AlarmKPI[] {
-  return [
-    { label: "Total Alarms", value: Math.floor(Math.random() * 500 + 100).toString(), status: "warning", trend: "↑ 12%" },
-    { label: "Critical Alarms", value: Math.floor(Math.random() * 50 + 10).toString(), status: "critical", trend: "↑ 5%" },
-    { label: "Acknowledged", value: Math.floor(Math.random() * 100 + 50).toString() + "%", status: "healthy", trend: "↑ 8%" },
-    { label: "Avg Duration", value: Math.floor(Math.random() * 3 + 1) + "h", status: "warning", trend: "↓ 3%" }
-  ];
+export interface AlarmKPIs {
+  active_alarms: AlarmKPIValue;
+  critical_alarms: AlarmKPIValue;
+  major_alarms: AlarmKPIValue;
+  alarm_rate: AlarmKPIValue;
 }
 
-export function generateAlarmHealthIndex(filters: any): number {
-  return Math.floor(Math.random() * 40 + 60);
+export function generateAlarmKPIs(filters: any): AlarmKPIs {
+  return {
+    active_alarms: {
+      value: Math.floor(Math.random() * 500 + 100),
+      unit: "alarms",
+      change: Math.floor(Math.random() * 15 + 1),
+      status: Math.random() > 0.5 ? "warning" : "critical",
+      direction: Math.random() > 0.5 ? "up" : "down"
+    },
+    critical_alarms: {
+      value: Math.floor(Math.random() * 50 + 10),
+      unit: "alarms",
+      change: Math.floor(Math.random() * 8 + 1),
+      status: "critical",
+      direction: "up"
+    },
+    major_alarms: {
+      value: Math.floor(Math.random() * 100 + 30),
+      unit: "alarms",
+      change: Math.floor(Math.random() * 10 + 2),
+      status: "warning",
+      direction: Math.random() > 0.5 ? "up" : "down"
+    },
+    alarm_rate: {
+      value: (Math.random() * 15 + 5).toFixed(2),
+      unit: "alarms/h",
+      change: Math.floor(Math.random() * 5 + 1),
+      status: "warning",
+      direction: "up"
+    }
+  };
+}
+
+export interface HealthIndexData {
+  value: number;
+  status: 'healthy' | 'degraded' | 'critical';
+  change: number;
+}
+
+export function generateAlarmHealthIndex(filters: any): HealthIndexData {
+  const value = Math.floor(Math.random() * 40 + 60);
+  return {
+    value,
+    status: value >= 75 ? 'healthy' : value >= 50 ? 'degraded' : 'critical',
+    change: Math.floor(Math.random() * 10 - 5)
+  };
 }
 
 export function generateAlarmTrendData(filters: any): any[] {
   const data = [];
-  for (let i = 0; i < 24; i++) {
+  const now = new Date();
+  for (let i = 23; i >= 0; i--) {
+    const timestamp = new Date(now.getTime() - i * 60 * 60 * 1000);
     data.push({
-      time: `${i}:00`,
-      critical: Math.floor(Math.random() * 30),
-      major: Math.floor(Math.random() * 50),
-      minor: Math.floor(Math.random() * 80)
+      timestamp: timestamp.toISOString(),
+      time: `${timestamp.getHours()}:00`,
+      active_alarms: Math.floor(Math.random() * 150 + 50),
+      critical_alarms: Math.floor(Math.random() * 30 + 5),
+      major_alarms: Math.floor(Math.random() * 50 + 15),
+      minor_alarms: Math.floor(Math.random() * 80 + 20),
+      clear_rate: Math.floor(Math.random() * 40 + 60)
     });
   }
   return data;
@@ -404,66 +452,86 @@ export function generateAlarmTrendData(filters: any): any[] {
 
 export function generateAlarmDistributionByVendor(filters: any): any[] {
   return [
-    { name: "Huawei", value: Math.floor(Math.random() * 300 + 100) },
-    { name: "Ericsson", value: Math.floor(Math.random() * 250 + 80) },
-    { name: "Nokia", value: Math.floor(Math.random() * 200 + 60) },
-    { name: "OpenRAN", value: Math.floor(Math.random() * 150 + 40) }
+    { name: "Huawei", active: Math.floor(Math.random() * 300 + 100), critical: Math.floor(Math.random() * 30 + 10), major: Math.floor(Math.random() * 50 + 20), avg_duration: Math.floor(Math.random() * 120 + 30), status: Math.random() > 0.5 ? "healthy" : "degraded" },
+    { name: "Ericsson", active: Math.floor(Math.random() * 250 + 80), critical: Math.floor(Math.random() * 25 + 8), major: Math.floor(Math.random() * 45 + 18), avg_duration: Math.floor(Math.random() * 110 + 25), status: "healthy" },
+    { name: "Nokia", active: Math.floor(Math.random() * 200 + 60), critical: Math.floor(Math.random() * 20 + 6), major: Math.floor(Math.random() * 40 + 15), avg_duration: Math.floor(Math.random() * 100 + 20), status: Math.random() > 0.5 ? "healthy" : "degraded" },
+    { name: "OpenRAN", active: Math.floor(Math.random() * 150 + 40), critical: Math.floor(Math.random() * 15 + 4), major: Math.floor(Math.random() * 30 + 10), avg_duration: Math.floor(Math.random() * 90 + 15), status: "healthy" }
   ];
 }
 
 export function generateAlarmDistributionByTechnology(filters: any): any[] {
   return [
-    { name: "4G", value: Math.floor(Math.random() * 300 + 100) },
-    { name: "5G", value: Math.floor(Math.random() * 250 + 80) },
-    { name: "3G", value: Math.floor(Math.random() * 100 + 30) },
-    { name: "2G", value: Math.floor(Math.random() * 80 + 20) }
+    { name: "4G", active: Math.floor(Math.random() * 300 + 100), critical: Math.floor(Math.random() * 35 + 12), major: Math.floor(Math.random() * 55 + 22) },
+    { name: "5G", active: Math.floor(Math.random() * 250 + 80), critical: Math.floor(Math.random() * 30 + 10), major: Math.floor(Math.random() * 50 + 20) },
+    { name: "3G", active: Math.floor(Math.random() * 100 + 30), critical: Math.floor(Math.random() * 12 + 3), major: Math.floor(Math.random() * 20 + 8) },
+    { name: "2G", active: Math.floor(Math.random() * 80 + 20), critical: Math.floor(Math.random() * 8 + 2), major: Math.floor(Math.random() * 15 + 5) }
   ];
 }
 
 export function generateAlarmDistributionByRegion(filters: any): any[] {
   return [
-    { name: "Cairo", value: Math.floor(Math.random() * 200 + 50) },
-    { name: "Alexandria", value: Math.floor(Math.random() * 150 + 40) },
-    { name: "Giza", value: Math.floor(Math.random() * 120 + 30) },
-    { name: "Port Said", value: Math.floor(Math.random() * 100 + 20) }
+    { name: "Cairo", active: Math.floor(Math.random() * 200 + 50), critical: Math.floor(Math.random() * 25 + 8), major: Math.floor(Math.random() * 40 + 15) },
+    { name: "Alexandria", active: Math.floor(Math.random() * 150 + 40), critical: Math.floor(Math.random() * 18 + 6), major: Math.floor(Math.random() * 30 + 12) },
+    { name: "Giza", active: Math.floor(Math.random() * 120 + 30), critical: Math.floor(Math.random() * 15 + 5), major: Math.floor(Math.random() * 25 + 10) },
+    { name: "Port Said", active: Math.floor(Math.random() * 100 + 20), critical: Math.floor(Math.random() * 12 + 4), major: Math.floor(Math.random() * 20 + 8) }
   ];
 }
 
 export function generateAlarmDistributionByCluster(filters: any): any[] {
   return [
-    { name: "East Cluster", value: Math.floor(Math.random() * 200 + 50) },
-    { name: "West Cluster", value: Math.floor(Math.random() * 180 + 45) },
-    { name: "North Cluster", value: Math.floor(Math.random() * 150 + 40) },
-    { name: "South Cluster", value: Math.floor(Math.random() * 120 + 30) }
+    { name: "East Cluster", active: Math.floor(Math.random() * 200 + 50), critical: Math.floor(Math.random() * 28 + 9), major: Math.floor(Math.random() * 45 + 18) },
+    { name: "West Cluster", active: Math.floor(Math.random() * 180 + 45), critical: Math.floor(Math.random() * 25 + 8), major: Math.floor(Math.random() * 42 + 16) },
+    { name: "North Cluster", active: Math.floor(Math.random() * 150 + 40), critical: Math.floor(Math.random() * 20 + 6), major: Math.floor(Math.random() * 35 + 14) },
+    { name: "South Cluster", active: Math.floor(Math.random() * 120 + 30), critical: Math.floor(Math.random() * 16 + 5), major: Math.floor(Math.random() * 30 + 12) }
   ];
 }
 
 export interface AlarmInsight {
+  id: string;
   title: string;
   description: string;
   severity: 'info' | 'warning' | 'critical';
+  scope: string;
+  timestamp: string;
   action?: string;
 }
 
-export function generateAlarmInsights(filters: any): AlarmInsight[] {
-  return [
+export function generateAlarmInsights(
+  trendData: any[],
+  distributions: any,
+  filters: any
+): AlarmInsight[] {
+  const now = new Date();
+  const insights: AlarmInsight[] = [
     {
+      id: "insight-1",
       title: "High Critical Alarm Rate",
-      description: "Critical alarms increased by 25% in the last hour",
+      description: "Critical alarms increased by 25% in the last hour across all regions",
       severity: "critical",
+      scope: "Network-Wide",
+      timestamp: new Date(now.getTime() - 5 * 60000).toISOString(),
       action: "View Details"
     },
     {
+      id: "insight-2",
       title: "Vendor-Specific Issue",
-      description: "Ericsson RAN reporting unusual alarm patterns",
+      description: "Ericsson RAN reporting unusual alarm patterns in Cairo region",
       severity: "warning",
+      scope: "Cairo Region",
+      timestamp: new Date(now.getTime() - 15 * 60000).toISOString(),
       action: "Investigate"
     },
     {
+      id: "insight-3",
       title: "Cluster Performance",
-      description: "East Cluster showing improvement in alarm reduction",
+      description: "East Cluster showing improvement in alarm reduction metrics",
       severity: "info",
+      scope: "East Cluster",
+      timestamp: new Date(now.getTime() - 30 * 60000).toISOString(),
       action: "View Trend"
     }
   ];
+
+  // Filter insights based on applied filters
+  return insights.length > 0 ? insights : [];
 }
