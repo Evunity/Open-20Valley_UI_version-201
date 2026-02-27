@@ -119,38 +119,54 @@ export default function NetworkAlarms() {
         <div className="space-y-4">
           <h2 className="text-2xl font-bold text-foreground">Alarm Summary</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <KPICard
-              icon={AlertCircle}
-              label="Active Alarms"
-              value={kpis.active_alarms.value}
-              unit={kpis.active_alarms.unit}
-              change={kpis.active_alarms.direction === "down" ? -kpis.active_alarms.change : kpis.active_alarms.change}
-              status={kpis.active_alarms.status}
-            />
-            <KPICard
-              icon={AlertTriangle}
-              label="Critical Alarms"
-              value={kpis.critical_alarms.value}
-              unit={kpis.critical_alarms.unit}
-              change={kpis.critical_alarms.change}
-              status={kpis.critical_alarms.status}
-            />
-            <KPICard
-              icon={AlertTriangle}
-              label="Major Alarms"
-              value={kpis.major_alarms.value}
-              unit={kpis.major_alarms.unit}
-              change={kpis.major_alarms.direction === "down" ? -kpis.major_alarms.change : kpis.major_alarms.change}
-              status={kpis.major_alarms.status}
-            />
-            <KPICard
-              icon={TrendingUp}
-              label="Alarm Rate"
-              value={kpis.alarm_rate.value}
-              unit={kpis.alarm_rate.unit}
-              change={kpis.alarm_rate.change}
-              status={kpis.alarm_rate.status}
-            />
+            {[
+              {
+                key: "active",
+                icon: AlertCircle,
+                label: "Active Alarms",
+                value: kpis.active_alarms.value,
+                unit: kpis.active_alarms.unit,
+                change: kpis.active_alarms.direction === "down" ? -kpis.active_alarms.change : kpis.active_alarms.change,
+                status: kpis.active_alarms.status,
+              },
+              {
+                key: "critical",
+                icon: AlertTriangle,
+                label: "Critical Alarms",
+                value: kpis.critical_alarms.value,
+                unit: kpis.critical_alarms.unit,
+                change: kpis.critical_alarms.change,
+                status: kpis.critical_alarms.status,
+              },
+              {
+                key: "major",
+                icon: AlertTriangle,
+                label: "Major Alarms",
+                value: kpis.major_alarms.value,
+                unit: kpis.major_alarms.unit,
+                change: kpis.major_alarms.direction === "down" ? -kpis.major_alarms.change : kpis.major_alarms.change,
+                status: kpis.major_alarms.status,
+              },
+              {
+                key: "rate",
+                icon: TrendingUp,
+                label: "Alarm Rate",
+                value: kpis.alarm_rate.value,
+                unit: kpis.alarm_rate.unit,
+                change: kpis.alarm_rate.change,
+                status: kpis.alarm_rate.status,
+              },
+            ].map((card) => (
+              <KPICard
+                key={card.key}
+                icon={card.icon}
+                label={card.label}
+                value={card.value}
+                unit={card.unit}
+                change={card.change}
+                status={card.status}
+              />
+            ))}
           </div>
         </div>
 
@@ -240,41 +256,21 @@ export default function NetworkAlarms() {
 
             {/* Clear Rate by Severity */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="card-elevated rounded-xl border border-border/50 p-6">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-semibold text-foreground">Critical</h4>
-                  <span className="w-3 h-3 rounded-full bg-red-500" />
+              {[
+                { key: "critical", label: "Critical", color: "bg-red-500", value: "85%", text: "text-red-600", desc: "Clear rate for critical alarms" },
+                { key: "major", label: "Major", color: "bg-yellow-500", value: "78%", text: "text-yellow-600", desc: "Clear rate for major alarms" },
+                { key: "minor", label: "Minor", color: "bg-blue-500", value: "92%", text: "text-blue-600", desc: "Clear rate for minor alarms" },
+                { key: "warning", label: "Warning", color: "bg-cyan-500", value: "96%", text: "text-cyan-600", desc: "Clear rate for warnings" },
+              ].map((item) => (
+                <div key={item.key} className="card-elevated rounded-xl border border-border/50 p-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-semibold text-foreground">{item.label}</h4>
+                    <span className={`w-3 h-3 rounded-full ${item.color}`} />
+                  </div>
+                  <p className={`text-2xl font-bold ${item.text}`}>{item.value}</p>
+                  <p className="text-xs text-muted-foreground mt-2">{item.desc}</p>
                 </div>
-                <p className="text-2xl font-bold text-red-600">85%</p>
-                <p className="text-xs text-muted-foreground mt-2">Clear rate for critical alarms</p>
-              </div>
-
-              <div className="card-elevated rounded-xl border border-border/50 p-6">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-semibold text-foreground">Major</h4>
-                  <span className="w-3 h-3 rounded-full bg-yellow-500" />
-                </div>
-                <p className="text-2xl font-bold text-yellow-600">78%</p>
-                <p className="text-xs text-muted-foreground mt-2">Clear rate for major alarms</p>
-              </div>
-
-              <div className="card-elevated rounded-xl border border-border/50 p-6">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-semibold text-foreground">Minor</h4>
-                  <span className="w-3 h-3 rounded-full bg-blue-500" />
-                </div>
-                <p className="text-2xl font-bold text-blue-600">92%</p>
-                <p className="text-xs text-muted-foreground mt-2">Clear rate for minor alarms</p>
-              </div>
-
-              <div className="card-elevated rounded-xl border border-border/50 p-6">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-semibold text-foreground">Warning</h4>
-                  <span className="w-3 h-3 rounded-full bg-cyan-500" />
-                </div>
-                <p className="text-2xl font-bold text-cyan-600">96%</p>
-                <p className="text-xs text-muted-foreground mt-2">Clear rate for warnings</p>
-              </div>
+              ))}
             </div>
           </div>
         </div>
