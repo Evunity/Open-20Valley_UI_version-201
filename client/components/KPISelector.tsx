@@ -14,6 +14,11 @@ interface KPISelectorProps {
     vendors?: Vendor[];
     domains?: Domain[];
     categories?: KPICategory[];
+    networks?: string[];
+    regions?: string[];
+    clusters?: string[];
+    sites?: string[];
+    cells?: string[];
   };
 }
 

@@ -22,6 +22,11 @@ export default function AnalyticsManagement() {
     domains: [],
     categories: [],
     scopes: [],
+    networks: [],
+    regions: [],
+    clusters: [],
+    sites: [],
+    cells: [],
     timeRange: {
       from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
       to: new Date().toISOString().split("T")[0],
@@ -114,11 +119,6 @@ export default function AnalyticsManagement() {
       deleteView(viewId);
       setSavedViews(getSavedViews());
     }
-  };
-
-  // Handle drill down to different scope
-  const handleDrillDown = (scope: SavedView["scope"]) => {
-    setCurrentScope(scope);
   };
 
   return (
@@ -263,35 +263,118 @@ export default function AnalyticsManagement() {
               vendors: filters.vendors,
               domains: filters.domains,
               categories: filters.categories,
+              networks: filters.networks,
+              regions: filters.regions,
+              clusters: filters.clusters,
+              sites: filters.sites,
+              cells: filters.cells,
             }}
           />
         </div>
 
         {/* Main Content Area */}
         <div className="flex-1 space-y-6">
-          {/* Scope Navigation */}
-          <div className="bg-card border border-border rounded-lg p-4">
-            <h3 className="text-sm font-semibold text-muted-foreground mb-3">Analysis Scope</h3>
-            <div className="flex flex-wrap gap-2">
-              {(["Network", "Region", "Cluster", "Site", "Cell"] as const).map((scope) => (
-                <button
-                  key={scope}
-                  onClick={() => handleDrillDown(scope)}
-                  className={cn(
-                    "px-3 py-2 rounded text-sm font-medium transition-all",
-                    currentScope === scope
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-foreground hover:bg-muted/80"
-                  )}
-                >
-                  {scope}
-                </button>
-              ))}
+          {/* Analysis Scope Selection */}
+          {isGenerated && (
+            <div className="bg-card border border-border rounded-lg p-4 space-y-4">
+              <h3 className="text-sm font-semibold text-muted-foreground">Analysis Scope - Select Instance</h3>
+
+              {/* Networks */}
+              {filters.networks.length > 0 && (
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground block mb-2">Networks</label>
+                  <div className="flex flex-wrap gap-2">
+                    {filters.networks.map((network) => (
+                      <button
+                        key={network}
+                        className="px-3 py-2 rounded text-sm font-medium bg-muted text-foreground hover:bg-muted/80 transition-all"
+                      >
+                        {network}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Regions */}
+              {filters.regions.length > 0 && (
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground block mb-2">Regions</label>
+                  <div className="flex flex-wrap gap-2">
+                    {filters.regions.map((region) => (
+                      <button
+                        key={region}
+                        className="px-3 py-2 rounded text-sm font-medium bg-muted text-foreground hover:bg-muted/80 transition-all"
+                      >
+                        {region}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Clusters */}
+              {filters.clusters.length > 0 && (
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground block mb-2">Clusters</label>
+                  <div className="flex flex-wrap gap-2">
+                    {filters.clusters.map((cluster) => (
+                      <button
+                        key={cluster}
+                        className="px-3 py-2 rounded text-sm font-medium bg-muted text-foreground hover:bg-muted/80 transition-all"
+                      >
+                        {cluster}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Sites */}
+              {filters.sites.length > 0 && (
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground block mb-2">Sites</label>
+                  <div className="flex flex-wrap gap-2">
+                    {filters.sites.map((site) => (
+                      <button
+                        key={site}
+                        className="px-3 py-2 rounded text-sm font-medium bg-muted text-foreground hover:bg-muted/80 transition-all"
+                      >
+                        {site}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Cells */}
+              {filters.cells.length > 0 && (
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground block mb-2">Cells</label>
+                  <div className="flex flex-wrap gap-2">
+                    {filters.cells.map((cell) => (
+                      <button
+                        key={cell}
+                        className="px-3 py-2 rounded text-sm font-medium bg-muted text-foreground hover:bg-muted/80 transition-all"
+                      >
+                        {cell}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {filters.networks.length === 0 &&
+               filters.regions.length === 0 &&
+               filters.clusters.length === 0 &&
+               filters.sites.length === 0 &&
+               filters.cells.length === 0 && (
+                <p className="text-xs text-muted-foreground">
+                  Select Network, Region, Cluster, Site, or Cell in the Create KPI filters to view instances here.
+                </p>
+              )}
             </div>
-            <p className="text-xs text-muted-foreground mt-3">
-              Currently viewing: <span className="font-semibold">{currentScope}</span> level
-            </p>
-          </div>
+          )}
 
           {/* Analytics Dashboard */}
           {selectedKPIs.length > 0 && isGenerated ? (

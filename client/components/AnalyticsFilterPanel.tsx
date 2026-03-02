@@ -17,6 +17,11 @@ export interface AnalyticsFilters {
   domains: Domain[];
   categories: KPICategory[];
   scopes: KPIScope[];
+  networks: string[];
+  regions: string[];
+  clusters: string[];
+  sites: string[];
+  cells: string[];
   timeRange: {
     from: string;
     to: string;
@@ -41,6 +46,11 @@ export default function AnalyticsFilterPanel({
     domain: false,
     category: false,
     scope: false,
+    network: false,
+    region: false,
+    cluster: false,
+    site: false,
+    cell: false,
     time: false,
   });
   const [timeRangeMode, setTimeRangeMode] = useState<TimeRangeMode>("preset");
@@ -96,6 +106,41 @@ export default function AnalyticsFilterPanel({
     onFiltersChange({ ...filters, scopes: updated });
   };
 
+  const handleNetworkChange = (network: string, checked: boolean) => {
+    const updated = checked
+      ? [...filters.networks, network]
+      : filters.networks.filter((n) => n !== network);
+    onFiltersChange({ ...filters, networks: updated });
+  };
+
+  const handleRegionChange = (region: string, checked: boolean) => {
+    const updated = checked
+      ? [...filters.regions, region]
+      : filters.regions.filter((r) => r !== region);
+    onFiltersChange({ ...filters, regions: updated });
+  };
+
+  const handleClusterChange = (cluster: string, checked: boolean) => {
+    const updated = checked
+      ? [...filters.clusters, cluster]
+      : filters.clusters.filter((c) => c !== cluster);
+    onFiltersChange({ ...filters, clusters: updated });
+  };
+
+  const handleSiteChange = (site: string, checked: boolean) => {
+    const updated = checked
+      ? [...filters.sites, site]
+      : filters.sites.filter((s) => s !== site);
+    onFiltersChange({ ...filters, sites: updated });
+  };
+
+  const handleCellChange = (cell: string, checked: boolean) => {
+    const updated = checked
+      ? [...filters.cells, cell]
+      : filters.cells.filter((c) => c !== cell);
+    onFiltersChange({ ...filters, cells: updated });
+  };
+
   const handleClearAll = () => {
     onFiltersChange({
       technologies: [],
@@ -103,6 +148,11 @@ export default function AnalyticsFilterPanel({
       domains: [],
       categories: [],
       scopes: [],
+      networks: [],
+      regions: [],
+      clusters: [],
+      sites: [],
+      cells: [],
       timeRange: filters.timeRange,
       granularity: filters.granularity,
     });
@@ -120,13 +170,23 @@ export default function AnalyticsFilterPanel({
     "Traffic",
   ];
   const allScopes: KPIScope[] = ["Network", "Region", "Cluster", "Site", "Cell"];
+  const allNetworks: string[] = ["Network 1", "Network 2", "Network 3"];
+  const allRegions: string[] = ["North", "South", "East", "West", "Central"];
+  const allClusters: string[] = ["Cluster A", "Cluster B", "Cluster C", "Cluster D"];
+  const allSites: string[] = ["Site-01", "Site-02", "Site-03", "Site-04", "Site-05"];
+  const allCells: string[] = ["Cell-001", "Cell-002", "Cell-003", "Cell-004", "Cell-005"];
 
   const hasActiveFilters =
     filters.technologies.length > 0 ||
     filters.vendors.length > 0 ||
     filters.domains.length > 0 ||
     filters.categories.length > 0 ||
-    filters.scopes.length > 0;
+    filters.scopes.length > 0 ||
+    filters.networks.length > 0 ||
+    filters.regions.length > 0 ||
+    filters.clusters.length > 0 ||
+    filters.sites.length > 0 ||
+    filters.cells.length > 0;
 
   return (
     <div className="bg-card border border-border rounded-lg p-6 space-y-6">
@@ -288,6 +348,121 @@ export default function AnalyticsFilterPanel({
                 className="w-4 h-4 rounded border border-border"
               />
               <span className="text-sm text-foreground">{scope}</span>
+            </label>
+          ))}
+        </div>
+      </FilterSection>
+
+      {/* Network Filter */}
+      <FilterSection
+        title="Network"
+        sectionKey="network"
+        isExpanded={expandedSections.network}
+        onToggle={toggleSection}
+        selectedCount={filters.networks.length}
+      >
+        <div className="space-y-2">
+          {allNetworks.map((network) => (
+            <label key={network} className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={filters.networks.includes(network)}
+                onChange={(e) => handleNetworkChange(network, e.target.checked)}
+                className="w-4 h-4 rounded border border-border"
+              />
+              <span className="text-sm text-foreground">{network}</span>
+            </label>
+          ))}
+        </div>
+      </FilterSection>
+
+      {/* Region Filter */}
+      <FilterSection
+        title="Region"
+        sectionKey="region"
+        isExpanded={expandedSections.region}
+        onToggle={toggleSection}
+        selectedCount={filters.regions.length}
+      >
+        <div className="space-y-2">
+          {allRegions.map((region) => (
+            <label key={region} className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={filters.regions.includes(region)}
+                onChange={(e) => handleRegionChange(region, e.target.checked)}
+                className="w-4 h-4 rounded border border-border"
+              />
+              <span className="text-sm text-foreground">{region}</span>
+            </label>
+          ))}
+        </div>
+      </FilterSection>
+
+      {/* Cluster Filter */}
+      <FilterSection
+        title="Cluster"
+        sectionKey="cluster"
+        isExpanded={expandedSections.cluster}
+        onToggle={toggleSection}
+        selectedCount={filters.clusters.length}
+      >
+        <div className="space-y-2">
+          {allClusters.map((cluster) => (
+            <label key={cluster} className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={filters.clusters.includes(cluster)}
+                onChange={(e) => handleClusterChange(cluster, e.target.checked)}
+                className="w-4 h-4 rounded border border-border"
+              />
+              <span className="text-sm text-foreground">{cluster}</span>
+            </label>
+          ))}
+        </div>
+      </FilterSection>
+
+      {/* Site Filter */}
+      <FilterSection
+        title="Site"
+        sectionKey="site"
+        isExpanded={expandedSections.site}
+        onToggle={toggleSection}
+        selectedCount={filters.sites.length}
+      >
+        <div className="space-y-2">
+          {allSites.map((site) => (
+            <label key={site} className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={filters.sites.includes(site)}
+                onChange={(e) => handleSiteChange(site, e.target.checked)}
+                className="w-4 h-4 rounded border border-border"
+              />
+              <span className="text-sm text-foreground">{site}</span>
+            </label>
+          ))}
+        </div>
+      </FilterSection>
+
+      {/* Cell Filter */}
+      <FilterSection
+        title="Cell"
+        sectionKey="cell"
+        isExpanded={expandedSections.cell}
+        onToggle={toggleSection}
+        selectedCount={filters.cells.length}
+      >
+        <div className="space-y-2">
+          {allCells.map((cell) => (
+            <label key={cell} className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={filters.cells.includes(cell)}
+                onChange={(e) => handleCellChange(cell, e.target.checked)}
+                className="w-4 h-4 rounded border border-border"
+              />
+              <span className="text-sm text-foreground">{cell}</span>
             </label>
           ))}
         </div>
