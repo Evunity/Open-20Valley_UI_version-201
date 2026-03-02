@@ -54,6 +54,7 @@ export default function AnalyticsFilterPanel({
     time: false,
   });
   const [timeRangeMode, setTimeRangeMode] = useState<TimeRangeMode>("preset");
+  const [kpiSearch, setKpiSearch] = useState("");
 
   // Get available options based on current selections (hierarchical dependencies)
   const availableOptions = useMemo(() => {
@@ -309,30 +310,44 @@ export default function AnalyticsFilterPanel({
         onToggle={toggleSection}
         selectedCount={filters.categories.length}
       >
-        <div className="space-y-2">
-          {allCategories.map((category) => {
-            const isAvailable =
-              filters.technologies.length === 0 ||
-              availableOptions.categories.includes(category);
-            return (
-              <label
-                key={category}
-                className={cn(
-                  "flex items-center gap-2 cursor-pointer",
-                  !isAvailable && "opacity-50 cursor-not-allowed"
-                )}
-              >
-                <input
-                  type="checkbox"
-                  checked={filters.categories.includes(category)}
-                  onChange={(e) => handleCategoryChange(category, e.target.checked)}
-                  disabled={!isAvailable && !filters.categories.includes(category)}
-                  className="w-4 h-4 rounded border border-border"
-                />
-                <span className="text-sm text-foreground">{category}</span>
-              </label>
-            );
-          })}
+        <div className="space-y-3">
+          {/* KPI Search */}
+          <input
+            type="text"
+            placeholder="Search KPIs..."
+            value={kpiSearch}
+            onChange={(e) => setKpiSearch(e.target.value)}
+            className="w-full px-3 py-2 rounded border border-border text-sm text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+          />
+
+          {/* KPI Categories */}
+          <div className="space-y-2 max-h-48 overflow-y-auto">
+            {allCategories
+              .filter((c) => c.toLowerCase().includes(kpiSearch.toLowerCase()))
+              .map((category) => {
+                const isAvailable =
+                  filters.technologies.length === 0 ||
+                  availableOptions.categories.includes(category);
+                return (
+                  <label
+                    key={category}
+                    className={cn(
+                      "flex items-center gap-2 cursor-pointer px-2 py-1.5 rounded hover:bg-muted/30 transition-colors",
+                      !isAvailable && "opacity-50 cursor-not-allowed"
+                    )}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={filters.categories.includes(category)}
+                      onChange={(e) => handleCategoryChange(category, e.target.checked)}
+                      disabled={!isAvailable && !filters.categories.includes(category)}
+                      className="w-4 h-4 rounded border border-border"
+                    />
+                    <span className="text-sm text-foreground">{category}</span>
+                  </label>
+                );
+              })}
+          </div>
         </div>
       </FilterSection>
 

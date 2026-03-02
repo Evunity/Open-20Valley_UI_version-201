@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X, LayoutDashboard, Settings, Moon, Sun, Gauge, Bell, Zap, History, FileText, Lock, AlertTriangle, Map, Terminal, BarChart3, Shield, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -49,11 +49,15 @@ export default function Layout({ children }: LayoutProps) {
   }, [darkMode]);
 
   // Handle sidebar dragging
+  const dragStartXRef = useRef(0);
+  const dragStartWidthRef = useRef(0);
+
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isDragging || isMobile) return;
 
-      const newWidth = Math.max(MIN_WIDTH, Math.min(e.clientX, MAX_WIDTH));
+      const deltaX = e.clientX - dragStartXRef.current;
+      const newWidth = Math.max(MIN_WIDTH, Math.min(dragStartWidthRef.current + deltaX, MAX_WIDTH));
       setSidebarWidth(newWidth);
 
       // Auto-collapse if dragged too far left
@@ -71,15 +75,21 @@ export default function Layout({ children }: LayoutProps) {
     if (isDragging) {
       document.addEventListener("mousemove", handleMouseMove);
       document.addEventListener("mouseup", handleMouseUp);
+      document.body.style.cursor = "col-resize";
+      document.body.style.userSelect = "none";
     }
 
     return () => {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
+      document.body.style.cursor = "default";
+      document.body.style.userSelect = "auto";
     };
   }, [isDragging, isMobile, sidebarOpen]);
 
-  const handleDragStart = () => {
+  const handleDragStart = (e: React.MouseEvent) => {
+    dragStartXRef.current = e.clientX;
+    dragStartWidthRef.current = sidebarWidth;
     setIsDragging(true);
   };
 
@@ -271,9 +281,15 @@ export default function Layout({ children }: LayoutProps) {
         {sidebarOpen && (
           <div
             onMouseDown={handleDragStart}
-            className="hidden md:block absolute right-0 top-0 h-full w-1 bg-transparent hover:bg-primary/50 cursor-col-resize transition-colors opacity-0 group-hover:opacity-100 z-40"
+            className="hidden md:flex md:items-center md:justify-center absolute right-0 top-0 h-full w-1.5 bg-transparent hover:bg-primary/40 cursor-col-resize transition-all z-40 group-hover:w-2"
             title="Drag to resize sidebar"
-          />
+          >
+            <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="w-0.5 h-4 bg-primary/60 rounded-full"></div>
+              <div className="w-0.5 h-4 bg-primary/60 rounded-full"></div>
+              <div className="w-0.5 h-4 bg-primary/60 rounded-full"></div>
+            </div>
+          </div>
         )}
       </div>
 

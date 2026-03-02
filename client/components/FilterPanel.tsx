@@ -85,7 +85,7 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 flex flex-col h-full">
       {/* Active Filters Pills with Multi-Vendor Highlighting */}
       {activeFilterCount > 0 && (
         <div className="flex flex-wrap gap-2">
@@ -451,8 +451,8 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
 
       {/* Create Cluster Location Dialog removed - moved to Settings page */}
 
-      {/* Apply Filter Button */}
-      <div className="border-t border-border/50 pt-4 mt-4 flex gap-2">
+      {/* Apply Filter Button - Sticky Footer */}
+      <div className="mt-auto border-t border-border/50 pt-3 flex gap-2">
         <button
           onClick={handleApplyFilters}
           disabled={!hasChanges}
@@ -464,12 +464,19 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
           )}
         >
           <Check className="w-4 h-4" />
-          Apply Filter
+          Apply
+        </button>
+        <button
+          onClick={() => resetFilters()}
+          className="px-4 py-2 rounded border border-border text-foreground hover:bg-muted/50 transition-colors text-sm font-medium"
+          title="Clear all filters"
+        >
+          Reset All
         </button>
         {hasChanges && (
           <button
             onClick={handleResetChanges}
-            className="px-4 py-2 rounded border border-border text-foreground hover:bg-muted/50 transition-colors text-sm"
+            className="px-3 py-2 rounded border border-border text-foreground hover:bg-muted/50 transition-colors text-sm"
             title="Discard changes"
           >
             Cancel
