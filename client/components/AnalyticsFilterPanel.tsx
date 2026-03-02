@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import { ChevronDown, X, AlertCircle } from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
+import { ChevronDown, X, AlertCircle, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Technology, Vendor, Domain, KPICategory, KPIScope } from "@/utils/kpiData";
 import { getAvailableFilterOptions } from "@/utils/kpiData";
@@ -55,14 +55,25 @@ export default function AnalyticsFilterPanel({
   });
   const [timeRangeMode, setTimeRangeMode] = useState<TimeRangeMode>("preset");
 
+  // Staged filters - changes are made here until Apply is clicked
+  const [stagedFilters, setStagedFilters] = useState<AnalyticsFilters>(filters);
+
+  // Check if there are unsaved changes
+  const hasChanges = JSON.stringify(stagedFilters) !== JSON.stringify(filters);
+
+  // Sync staged filters when external filters change
+  useEffect(() => {
+    setStagedFilters(filters);
+  }, [filters]);
+
   // Get available options based on current selections (hierarchical dependencies)
   const availableOptions = useMemo(() => {
     return getAvailableFilterOptions(undefined, {
-      technologies: filters.technologies,
-      vendors: filters.vendors,
-      domains: filters.domains,
+      technologies: stagedFilters.technologies,
+      vendors: stagedFilters.vendors,
+      domains: stagedFilters.domains,
     });
-  }, [filters.technologies, filters.vendors, filters.domains]);
+  }, [stagedFilters.technologies, stagedFilters.vendors, stagedFilters.domains]);
 
   const toggleSection = (section: string) => {
     setExpandedSections((prev) => ({
@@ -73,76 +84,80 @@ export default function AnalyticsFilterPanel({
 
   const handleTechnologyChange = (tech: Technology, checked: boolean) => {
     const updated = checked
-      ? [...filters.technologies, tech]
-      : filters.technologies.filter((t) => t !== tech);
-    onFiltersChange({ ...filters, technologies: updated });
+      ? [...stagedFilters.technologies, tech]
+      : stagedFilters.technologies.filter((t) => t !== tech);
+    setStagedFilters({ ...stagedFilters, technologies: updated });
   };
 
   const handleVendorChange = (vendor: Vendor, checked: boolean) => {
     const updated = checked
-      ? [...filters.vendors, vendor]
-      : filters.vendors.filter((v) => v !== vendor);
-    onFiltersChange({ ...filters, vendors: updated });
+      ? [...stagedFilters.vendors, vendor]
+      : stagedFilters.vendors.filter((v) => v !== vendor);
+    setStagedFilters({ ...stagedFilters, vendors: updated });
   };
 
   const handleDomainChange = (domain: Domain, checked: boolean) => {
     const updated = checked
-      ? [...filters.domains, domain]
-      : filters.domains.filter((d) => d !== domain);
-    onFiltersChange({ ...filters, domains: updated });
+      ? [...stagedFilters.domains, domain]
+      : stagedFilters.domains.filter((d) => d !== domain);
+    setStagedFilters({ ...stagedFilters, domains: updated });
   };
 
   const handleCategoryChange = (category: KPICategory, checked: boolean) => {
     const updated = checked
-      ? [...filters.categories, category]
-      : filters.categories.filter((c) => c !== category);
-    onFiltersChange({ ...filters, categories: updated });
+      ? [...stagedFilters.categories, category]
+      : stagedFilters.categories.filter((c) => c !== category);
+    setStagedFilters({ ...stagedFilters, categories: updated });
   };
 
   const handleScopeChange = (scope: KPIScope, checked: boolean) => {
     const updated = checked
-      ? [...filters.scopes, scope]
-      : filters.scopes.filter((s) => s !== scope);
-    onFiltersChange({ ...filters, scopes: updated });
+      ? [...stagedFilters.scopes, scope]
+      : stagedFilters.scopes.filter((s) => s !== scope);
+    setStagedFilters({ ...stagedFilters, scopes: updated });
   };
 
   const handleNetworkChange = (network: string, checked: boolean) => {
     const updated = checked
-      ? [...filters.networks, network]
-      : filters.networks.filter((n) => n !== network);
-    onFiltersChange({ ...filters, networks: updated });
+      ? [...stagedFilters.networks, network]
+      : stagedFilters.networks.filter((n) => n !== network);
+    setStagedFilters({ ...stagedFilters, networks: updated });
   };
 
   const handleRegionChange = (region: string, checked: boolean) => {
     const updated = checked
-      ? [...filters.regions, region]
-      : filters.regions.filter((r) => r !== region);
-    onFiltersChange({ ...filters, regions: updated });
+      ? [...stagedFilters.regions, region]
+      : stagedFilters.regions.filter((r) => r !== region);
+    setStagedFilters({ ...stagedFilters, regions: updated });
   };
 
   const handleClusterChange = (cluster: string, checked: boolean) => {
     const updated = checked
-      ? [...filters.clusters, cluster]
-      : filters.clusters.filter((c) => c !== cluster);
-    onFiltersChange({ ...filters, clusters: updated });
+      ? [...stagedFilters.clusters, cluster]
+      : stagedFilters.clusters.filter((c) => c !== cluster);
+    setStagedFilters({ ...stagedFilters, clusters: updated });
   };
 
   const handleSiteChange = (site: string, checked: boolean) => {
     const updated = checked
-      ? [...filters.sites, site]
-      : filters.sites.filter((s) => s !== site);
-    onFiltersChange({ ...filters, sites: updated });
+      ? [...stagedFilters.sites, site]
+      : stagedFilters.sites.filter((s) => s !== site);
+    setStagedFilters({ ...stagedFilters, sites: updated });
   };
 
   const handleCellChange = (cell: string, checked: boolean) => {
     const updated = checked
-      ? [...filters.cells, cell]
-      : filters.cells.filter((c) => c !== cell);
-    onFiltersChange({ ...filters, cells: updated });
+      ? [...stagedFilters.cells, cell]
+      : stagedFilters.cells.filter((c) => c !== cell);
+    setStagedFilters({ ...stagedFilters, cells: updated });
+  };
+
+  const handleApplyFilters = () => {
+    onFiltersChange(stagedFilters);
   };
 
   const handleClearAll = () => {
-    onFiltersChange({
+    const clearedFilters: AnalyticsFilters = {
       technologies: [],
       vendors: [],
       domains: [],
@@ -155,7 +170,9 @@ export default function AnalyticsFilterPanel({
       cells: [],
       timeRange: filters.timeRange,
       granularity: filters.granularity,
-    });
+    };
+    setStagedFilters(clearedFilters);
+    onFiltersChange(clearedFilters);
   };
 
   const allTechnologies: Technology[] = ["2G", "3G", "4G", "5G", "O-RAN"];
@@ -177,16 +194,16 @@ export default function AnalyticsFilterPanel({
   const allCells: string[] = ["Cell-001", "Cell-002", "Cell-003", "Cell-004", "Cell-005"];
 
   const hasActiveFilters =
-    filters.technologies.length > 0 ||
-    filters.vendors.length > 0 ||
-    filters.domains.length > 0 ||
-    filters.categories.length > 0 ||
-    filters.scopes.length > 0 ||
-    filters.networks.length > 0 ||
-    filters.regions.length > 0 ||
-    filters.clusters.length > 0 ||
-    filters.sites.length > 0 ||
-    filters.cells.length > 0;
+    stagedFilters.technologies.length > 0 ||
+    stagedFilters.vendors.length > 0 ||
+    stagedFilters.domains.length > 0 ||
+    stagedFilters.categories.length > 0 ||
+    stagedFilters.scopes.length > 0 ||
+    stagedFilters.networks.length > 0 ||
+    stagedFilters.regions.length > 0 ||
+    stagedFilters.clusters.length > 0 ||
+    stagedFilters.sites.length > 0 ||
+    stagedFilters.cells.length > 0;
 
   return (
     <div className="bg-card border border-border rounded-lg p-6 space-y-6">
@@ -208,14 +225,14 @@ export default function AnalyticsFilterPanel({
         sectionKey="technology"
         isExpanded={expandedSections.technology}
         onToggle={toggleSection}
-        selectedCount={filters.technologies.length}
+        selectedCount={stagedFilters.technologies.length}
       >
         <div className="space-y-2">
           {allTechnologies.map((tech) => (
             <label key={tech} className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
-                checked={filters.technologies.includes(tech)}
+                checked={stagedFilters.technologies.includes(tech)}
                 onChange={(e) => handleTechnologyChange(tech, e.target.checked)}
                 className="w-4 h-4 rounded border border-border"
               />
@@ -231,12 +248,12 @@ export default function AnalyticsFilterPanel({
         sectionKey="vendor"
         isExpanded={expandedSections.vendor}
         onToggle={toggleSection}
-        selectedCount={filters.vendors.length}
+        selectedCount={stagedFilters.vendors.length}
       >
         <div className="space-y-2">
           {allVendors.map((vendor) => {
             const isAvailable =
-              filters.technologies.length === 0 ||
+              stagedFilters.technologies.length === 0 ||
               availableOptions.vendors.includes(vendor);
             return (
               <label
@@ -248,9 +265,9 @@ export default function AnalyticsFilterPanel({
               >
                 <input
                   type="checkbox"
-                  checked={filters.vendors.includes(vendor)}
+                  checked={stagedFilters.vendors.includes(vendor)}
                   onChange={(e) => handleVendorChange(vendor, e.target.checked)}
-                  disabled={!isAvailable && !filters.vendors.includes(vendor)}
+                  disabled={!isAvailable && !stagedFilters.vendors.includes(vendor)}
                   className="w-4 h-4 rounded border border-border"
                 />
                 <span className="text-sm text-foreground">{vendor}</span>
@@ -266,12 +283,12 @@ export default function AnalyticsFilterPanel({
         sectionKey="domain"
         isExpanded={expandedSections.domain}
         onToggle={toggleSection}
-        selectedCount={filters.domains.length}
+        selectedCount={stagedFilters.domains.length}
       >
         <div className="space-y-2">
           {allDomains.map((domain) => {
             const isAvailable =
-              (filters.technologies.length === 0 && filters.vendors.length === 0) ||
+              (stagedFilters.technologies.length === 0 && stagedFilters.vendors.length === 0) ||
               availableOptions.domains.includes(domain);
             return (
               <label
@@ -283,9 +300,9 @@ export default function AnalyticsFilterPanel({
               >
                 <input
                   type="checkbox"
-                  checked={filters.domains.includes(domain)}
+                  checked={stagedFilters.domains.includes(domain)}
                   onChange={(e) => handleDomainChange(domain, e.target.checked)}
-                  disabled={!isAvailable && !filters.domains.includes(domain)}
+                  disabled={!isAvailable && !stagedFilters.domains.includes(domain)}
                   className="w-4 h-4 rounded border border-border"
                 />
                 <span className="text-sm text-foreground">{domain}</span>
@@ -301,12 +318,12 @@ export default function AnalyticsFilterPanel({
         sectionKey="category"
         isExpanded={expandedSections.category}
         onToggle={toggleSection}
-        selectedCount={filters.categories.length}
+        selectedCount={stagedFilters.categories.length}
       >
         <div className="space-y-2">
           {allCategories.map((category) => {
             const isAvailable =
-              filters.technologies.length === 0 ||
+              stagedFilters.technologies.length === 0 ||
               availableOptions.categories.includes(category);
             return (
               <label
@@ -318,9 +335,9 @@ export default function AnalyticsFilterPanel({
               >
                 <input
                   type="checkbox"
-                  checked={filters.categories.includes(category)}
+                  checked={stagedFilters.categories.includes(category)}
                   onChange={(e) => handleCategoryChange(category, e.target.checked)}
-                  disabled={!isAvailable && !filters.categories.includes(category)}
+                  disabled={!isAvailable && !stagedFilters.categories.includes(category)}
                   className="w-4 h-4 rounded border border-border"
                 />
                 <span className="text-sm text-foreground">{category}</span>
@@ -336,14 +353,14 @@ export default function AnalyticsFilterPanel({
         sectionKey="scope"
         isExpanded={expandedSections.scope}
         onToggle={toggleSection}
-        selectedCount={filters.scopes.length}
+        selectedCount={stagedFilters.scopes.length}
       >
         <div className="space-y-2">
           {allScopes.map((scope) => (
             <label key={scope} className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
-                checked={filters.scopes.includes(scope)}
+                checked={stagedFilters.scopes.includes(scope)}
                 onChange={(e) => handleScopeChange(scope, e.target.checked)}
                 className="w-4 h-4 rounded border border-border"
               />
@@ -359,14 +376,14 @@ export default function AnalyticsFilterPanel({
         sectionKey="network"
         isExpanded={expandedSections.network}
         onToggle={toggleSection}
-        selectedCount={filters.networks.length}
+        selectedCount={stagedFilters.networks.length}
       >
         <div className="space-y-2">
           {allNetworks.map((network) => (
             <label key={network} className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
-                checked={filters.networks.includes(network)}
+                checked={stagedFilters.networks.includes(network)}
                 onChange={(e) => handleNetworkChange(network, e.target.checked)}
                 className="w-4 h-4 rounded border border-border"
               />
@@ -382,14 +399,14 @@ export default function AnalyticsFilterPanel({
         sectionKey="region"
         isExpanded={expandedSections.region}
         onToggle={toggleSection}
-        selectedCount={filters.regions.length}
+        selectedCount={stagedFilters.regions.length}
       >
         <div className="space-y-2">
           {allRegions.map((region) => (
             <label key={region} className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
-                checked={filters.regions.includes(region)}
+                checked={stagedFilters.regions.includes(region)}
                 onChange={(e) => handleRegionChange(region, e.target.checked)}
                 className="w-4 h-4 rounded border border-border"
               />
@@ -405,14 +422,14 @@ export default function AnalyticsFilterPanel({
         sectionKey="cluster"
         isExpanded={expandedSections.cluster}
         onToggle={toggleSection}
-        selectedCount={filters.clusters.length}
+        selectedCount={stagedFilters.clusters.length}
       >
         <div className="space-y-2">
           {allClusters.map((cluster) => (
             <label key={cluster} className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
-                checked={filters.clusters.includes(cluster)}
+                checked={stagedFilters.clusters.includes(cluster)}
                 onChange={(e) => handleClusterChange(cluster, e.target.checked)}
                 className="w-4 h-4 rounded border border-border"
               />
@@ -428,14 +445,14 @@ export default function AnalyticsFilterPanel({
         sectionKey="site"
         isExpanded={expandedSections.site}
         onToggle={toggleSection}
-        selectedCount={filters.sites.length}
+        selectedCount={stagedFilters.sites.length}
       >
         <div className="space-y-2">
           {allSites.map((site) => (
             <label key={site} className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
-                checked={filters.sites.includes(site)}
+                checked={stagedFilters.sites.includes(site)}
                 onChange={(e) => handleSiteChange(site, e.target.checked)}
                 className="w-4 h-4 rounded border border-border"
               />
@@ -451,14 +468,14 @@ export default function AnalyticsFilterPanel({
         sectionKey="cell"
         isExpanded={expandedSections.cell}
         onToggle={toggleSection}
-        selectedCount={filters.cells.length}
+        selectedCount={stagedFilters.cells.length}
       >
         <div className="space-y-2">
           {allCells.map((cell) => (
             <label key={cell} className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
-                checked={filters.cells.includes(cell)}
+                checked={stagedFilters.cells.includes(cell)}
                 onChange={(e) => handleCellChange(cell, e.target.checked)}
                 className="w-4 h-4 rounded border border-border"
               />
@@ -516,14 +533,14 @@ export default function AnalyticsFilterPanel({
                 const from = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
                   .toISOString()
                   .split("T")[0];
-                const isActive = filters.timeRange.from === from && filters.timeRange.to === to;
+                const isActive = stagedFilters.timeRange.from === from && stagedFilters.timeRange.to === to;
 
                 return (
                   <button
                     key={days}
                     onClick={() => {
-                      onFiltersChange({
-                        ...filters,
+                      setStagedFilters({
+                        ...stagedFilters,
                         timeRange: { from, to },
                       });
                     }}
@@ -550,11 +567,11 @@ export default function AnalyticsFilterPanel({
                 </label>
                 <input
                   type="date"
-                  value={filters.timeRange.from}
+                  value={stagedFilters.timeRange.from}
                   onChange={(e) =>
-                    onFiltersChange({
-                      ...filters,
-                      timeRange: { ...filters.timeRange, from: e.target.value },
+                    setStagedFilters({
+                      ...stagedFilters,
+                      timeRange: { ...stagedFilters.timeRange, from: e.target.value },
                     })
                   }
                   className="w-full px-2 py-1 rounded border border-border text-sm text-foreground"
@@ -566,11 +583,11 @@ export default function AnalyticsFilterPanel({
                 </label>
                 <input
                   type="date"
-                  value={filters.timeRange.to}
+                  value={stagedFilters.timeRange.to}
                   onChange={(e) =>
-                    onFiltersChange({
-                      ...filters,
-                      timeRange: { ...filters.timeRange, to: e.target.value },
+                    setStagedFilters({
+                      ...stagedFilters,
+                      timeRange: { ...stagedFilters.timeRange, to: e.target.value },
                     })
                   }
                   className="w-full px-2 py-1 rounded border border-border text-sm text-foreground"
@@ -585,10 +602,10 @@ export default function AnalyticsFilterPanel({
               Granularity
             </label>
             <select
-              value={filters.granularity}
+              value={stagedFilters.granularity}
               onChange={(e) =>
-                onFiltersChange({
-                  ...filters,
+                setStagedFilters({
+                  ...stagedFilters,
                   granularity: e.target.value as any,
                 })
               }
@@ -600,6 +617,32 @@ export default function AnalyticsFilterPanel({
           </div>
         </div>
       </FilterSection>
+
+      {/* Apply Filter Button */}
+      <div className="border-t border-border/50 pt-4 flex gap-2">
+        <button
+          onClick={handleApplyFilters}
+          disabled={!hasChanges}
+          className={cn(
+            "flex-1 px-4 py-2 rounded font-medium transition-colors text-sm flex items-center justify-center gap-2",
+            hasChanges
+              ? "bg-primary text-primary-foreground hover:bg-primary/90"
+              : "bg-muted text-muted-foreground cursor-not-allowed opacity-50"
+          )}
+        >
+          <Check className="w-4 h-4" />
+          Apply Filter
+        </button>
+        {hasChanges && (
+          <button
+            onClick={() => setStagedFilters(filters)}
+            className="px-4 py-2 rounded border border-border text-foreground hover:bg-muted/50 transition-colors text-sm"
+            title="Discard changes"
+          >
+            Cancel
+          </button>
+        )}
+      </div>
     </div>
   );
 }
