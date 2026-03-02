@@ -51,6 +51,7 @@ export default function AnalyticsManagement() {
   const [selectedCluster, setSelectedCluster] = useState<string | null>(null);
   const [selectedSite, setSelectedSite] = useState<string | null>(null);
   const [selectedCell, setSelectedCell] = useState<string | null>(null);
+  const [openScopeDropdown, setOpenScopeDropdown] = useState<string | null>(null);
 
   const handleGenerate = () => {
     setGeneratedTime(new Date());
@@ -416,155 +417,227 @@ export default function AnalyticsManagement() {
             </div>
           )}
 
-          {/* Analysis Scope Selection */}
+          {/* Analysis Scope Selection - Dropdown Menus */}
           {isGenerated && (
             <div className="bg-card border border-border rounded-lg p-4 space-y-4">
               <h3 className="text-sm font-semibold text-muted-foreground">Analysis Scope - Select Instance</h3>
 
-              {/* Networks */}
-              {filters.networks.length > 0 && (
-                <div>
-                  <label className="text-xs font-semibold text-muted-foreground block mb-2">Networks</label>
-                  <div className="flex flex-wrap gap-2">
-                    {filters.networks.map((network) => (
-                      <button
-                        key={network}
-                        onClick={() => {
-                          setSelectedNetwork(selectedNetwork === network ? null : network);
-                          setSelectedRegion(null);
-                          setSelectedCluster(null);
-                          setSelectedSite(null);
-                          setSelectedCell(null);
-                        }}
-                        className={cn(
-                          "px-3 py-2 rounded text-sm font-medium transition-all",
-                          selectedNetwork === network
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted text-foreground hover:bg-muted/80"
-                        )}
-                      >
-                        {network}
-                      </button>
-                    ))}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Networks Dropdown */}
+                {filters.networks.length > 0 && (
+                  <div className="relative">
+                    <button
+                      onClick={() => setOpenScopeDropdown(openScopeDropdown === "networks" ? null : "networks")}
+                      className="w-full flex items-center justify-between px-3 py-2 rounded border border-border bg-muted/50 hover:bg-muted text-sm font-medium text-foreground transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-blue-500" title="Network shape" />
+                        <span>{selectedNetwork ? selectedNetwork : "Networks"}</span>
+                      </div>
+                      <svg className={cn("w-4 h-4 transition-transform", openScopeDropdown === "networks" && "rotate-180")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                      </svg>
+                    </button>
+                    {openScopeDropdown === "networks" && (
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded shadow-lg z-10">
+                        {filters.networks.map((network) => (
+                          <button
+                            key={network}
+                            onClick={() => {
+                              setSelectedNetwork(selectedNetwork === network ? null : network);
+                              setSelectedRegion(null);
+                              setSelectedCluster(null);
+                              setSelectedSite(null);
+                              setSelectedCell(null);
+                              setOpenScopeDropdown(null);
+                            }}
+                            className={cn(
+                              "w-full flex items-center gap-2 px-3 py-2 text-sm text-left border-b border-border/50 last:border-b-0 hover:bg-muted/50 transition-colors",
+                              selectedNetwork === network && "bg-primary/10"
+                            )}
+                          >
+                            <div className="w-2 h-2 rounded-full bg-blue-500" />
+                            <span>{network}</span>
+                            {selectedNetwork === network && <span className="ml-auto text-primary">✓</span>}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Regions */}
-              {filters.regions.length > 0 && (
-                <div>
-                  <label className="text-xs font-semibold text-muted-foreground block mb-2">Regions</label>
-                  <div className="flex flex-wrap gap-2">
-                    {filters.regions.map((region) => (
-                      <button
-                        key={region}
-                        onClick={() => {
-                          setSelectedRegion(selectedRegion === region ? null : region);
-                          setSelectedNetwork(null);
-                          setSelectedCluster(null);
-                          setSelectedSite(null);
-                          setSelectedCell(null);
-                        }}
-                        className={cn(
-                          "px-3 py-2 rounded text-sm font-medium transition-all",
-                          selectedRegion === region
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted text-foreground hover:bg-muted/80"
-                        )}
-                      >
-                        {region}
-                      </button>
-                    ))}
+                {/* Regions Dropdown */}
+                {filters.regions.length > 0 && (
+                  <div className="relative">
+                    <button
+                      onClick={() => setOpenScopeDropdown(openScopeDropdown === "regions" ? null : "regions")}
+                      className="w-full flex items-center justify-between px-3 py-2 rounded border border-border bg-muted/50 hover:bg-muted text-sm font-medium text-foreground transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-green-500" title="Region shape (square)" />
+                        <span>{selectedRegion ? selectedRegion : "Regions"}</span>
+                      </div>
+                      <svg className={cn("w-4 h-4 transition-transform", openScopeDropdown === "regions" && "rotate-180")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                      </svg>
+                    </button>
+                    {openScopeDropdown === "regions" && (
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded shadow-lg z-10">
+                        {filters.regions.map((region) => (
+                          <button
+                            key={region}
+                            onClick={() => {
+                              setSelectedRegion(selectedRegion === region ? null : region);
+                              setSelectedNetwork(null);
+                              setSelectedCluster(null);
+                              setSelectedSite(null);
+                              setSelectedCell(null);
+                              setOpenScopeDropdown(null);
+                            }}
+                            className={cn(
+                              "w-full flex items-center gap-2 px-3 py-2 text-sm text-left border-b border-border/50 last:border-b-0 hover:bg-muted/50 transition-colors",
+                              selectedRegion === region && "bg-primary/10"
+                            )}
+                          >
+                            <div className="w-2 h-2 bg-green-500" />
+                            <span>{region}</span>
+                            {selectedRegion === region && <span className="ml-auto text-primary">✓</span>}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Clusters */}
-              {filters.clusters.length > 0 && (
-                <div>
-                  <label className="text-xs font-semibold text-muted-foreground block mb-2">Clusters</label>
-                  <div className="flex flex-wrap gap-2">
-                    {filters.clusters.map((cluster) => (
-                      <button
-                        key={cluster}
-                        onClick={() => {
-                          setSelectedCluster(selectedCluster === cluster ? null : cluster);
-                          setSelectedNetwork(null);
-                          setSelectedRegion(null);
-                          setSelectedSite(null);
-                          setSelectedCell(null);
-                        }}
-                        className={cn(
-                          "px-3 py-2 rounded text-sm font-medium transition-all",
-                          selectedCluster === cluster
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted text-foreground hover:bg-muted/80"
-                        )}
-                      >
-                        {cluster}
-                      </button>
-                    ))}
+                {/* Clusters Dropdown */}
+                {filters.clusters.length > 0 && (
+                  <div className="relative">
+                    <button
+                      onClick={() => setOpenScopeDropdown(openScopeDropdown === "clusters" ? null : "clusters")}
+                      className="w-full flex items-center justify-between px-3 py-2 rounded border border-border bg-muted/50 hover:bg-muted text-sm font-medium text-foreground transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 border-2 border-purple-500 transform rotate-45" title="Cluster shape (diamond)" />
+                        <span>{selectedCluster ? selectedCluster : "Clusters"}</span>
+                      </div>
+                      <svg className={cn("w-4 h-4 transition-transform", openScopeDropdown === "clusters" && "rotate-180")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                      </svg>
+                    </button>
+                    {openScopeDropdown === "clusters" && (
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded shadow-lg z-10">
+                        {filters.clusters.map((cluster) => (
+                          <button
+                            key={cluster}
+                            onClick={() => {
+                              setSelectedCluster(selectedCluster === cluster ? null : cluster);
+                              setSelectedNetwork(null);
+                              setSelectedRegion(null);
+                              setSelectedSite(null);
+                              setSelectedCell(null);
+                              setOpenScopeDropdown(null);
+                            }}
+                            className={cn(
+                              "w-full flex items-center gap-2 px-3 py-2 text-sm text-left border-b border-border/50 last:border-b-0 hover:bg-muted/50 transition-colors",
+                              selectedCluster === cluster && "bg-primary/10"
+                            )}
+                          >
+                            <div className="w-2 h-2 border border-purple-500 transform rotate-45" />
+                            <span>{cluster}</span>
+                            {selectedCluster === cluster && <span className="ml-auto text-primary">✓</span>}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Sites */}
-              {filters.sites.length > 0 && (
-                <div>
-                  <label className="text-xs font-semibold text-muted-foreground block mb-2">Sites</label>
-                  <div className="flex flex-wrap gap-2">
-                    {filters.sites.map((site) => (
-                      <button
-                        key={site}
-                        onClick={() => {
-                          setSelectedSite(selectedSite === site ? null : site);
-                          setSelectedNetwork(null);
-                          setSelectedRegion(null);
-                          setSelectedCluster(null);
-                          setSelectedCell(null);
-                        }}
-                        className={cn(
-                          "px-3 py-2 rounded text-sm font-medium transition-all",
-                          selectedSite === site
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted text-foreground hover:bg-muted/80"
-                        )}
-                      >
-                        {site}
-                      </button>
-                    ))}
+                {/* Sites Dropdown */}
+                {filters.sites.length > 0 && (
+                  <div className="relative">
+                    <button
+                      onClick={() => setOpenScopeDropdown(openScopeDropdown === "sites" ? null : "sites")}
+                      className="w-full flex items-center justify-between px-3 py-2 rounded border border-border bg-muted/50 hover:bg-muted text-sm font-medium text-foreground transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 border-2 border-orange-500 rounded-full" title="Site shape (ring)" />
+                        <span>{selectedSite ? selectedSite : "Sites"}</span>
+                      </div>
+                      <svg className={cn("w-4 h-4 transition-transform", openScopeDropdown === "sites" && "rotate-180")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                      </svg>
+                    </button>
+                    {openScopeDropdown === "sites" && (
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded shadow-lg z-10">
+                        {filters.sites.map((site) => (
+                          <button
+                            key={site}
+                            onClick={() => {
+                              setSelectedSite(selectedSite === site ? null : site);
+                              setSelectedNetwork(null);
+                              setSelectedRegion(null);
+                              setSelectedCluster(null);
+                              setSelectedCell(null);
+                              setOpenScopeDropdown(null);
+                            }}
+                            className={cn(
+                              "w-full flex items-center gap-2 px-3 py-2 text-sm text-left border-b border-border/50 last:border-b-0 hover:bg-muted/50 transition-colors",
+                              selectedSite === site && "bg-primary/10"
+                            )}
+                          >
+                            <div className="w-2 h-2 border border-orange-500 rounded-full" />
+                            <span>{site}</span>
+                            {selectedSite === site && <span className="ml-auto text-primary">✓</span>}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Cells */}
-              {filters.cells.length > 0 && (
-                <div>
-                  <label className="text-xs font-semibold text-muted-foreground block mb-2">Cells</label>
-                  <div className="flex flex-wrap gap-2">
-                    {filters.cells.map((cell) => (
-                      <button
-                        key={cell}
-                        onClick={() => {
-                          setSelectedCell(selectedCell === cell ? null : cell);
-                          setSelectedNetwork(null);
-                          setSelectedRegion(null);
-                          setSelectedCluster(null);
-                          setSelectedSite(null);
-                        }}
-                        className={cn(
-                          "px-3 py-2 rounded text-sm font-medium transition-all",
-                          selectedCell === cell
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted text-foreground hover:bg-muted/80"
-                        )}
-                      >
-                        {cell}
-                      </button>
-                    ))}
+                {/* Cells Dropdown */}
+                {filters.cells.length > 0 && (
+                  <div className="relative">
+                    <button
+                      onClick={() => setOpenScopeDropdown(openScopeDropdown === "cells" ? null : "cells")}
+                      className="w-full flex items-center justify-between px-3 py-2 rounded border border-border bg-muted/50 hover:bg-muted text-sm font-medium text-foreground transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-red-500 transform -rotate-45" title="Cell shape (triangle)" style={{clipPath: "polygon(50% 0%, 100% 100%, 0% 100%)"}} />
+                        <span>{selectedCell ? selectedCell : "Cells"}</span>
+                      </div>
+                      <svg className={cn("w-4 h-4 transition-transform", openScopeDropdown === "cells" && "rotate-180")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                      </svg>
+                    </button>
+                    {openScopeDropdown === "cells" && (
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded shadow-lg z-10">
+                        {filters.cells.map((cell) => (
+                          <button
+                            key={cell}
+                            onClick={() => {
+                              setSelectedCell(selectedCell === cell ? null : cell);
+                              setSelectedNetwork(null);
+                              setSelectedRegion(null);
+                              setSelectedCluster(null);
+                              setSelectedSite(null);
+                              setOpenScopeDropdown(null);
+                            }}
+                            className={cn(
+                              "w-full flex items-center gap-2 px-3 py-2 text-sm text-left border-b border-border/50 last:border-b-0 hover:bg-muted/50 transition-colors",
+                              selectedCell === cell && "bg-primary/10"
+                            )}
+                          >
+                            <div className="w-2 h-2 bg-red-500 transform -rotate-45" style={{clipPath: "polygon(50% 0%, 100% 100%, 0% 100%)"}} />
+                            <span>{cell}</span>
+                            {selectedCell === cell && <span className="ml-auto text-primary">✓</span>}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                </div>
-              )}
+                )}
+              </div>
 
               {filters.networks.length === 0 &&
                filters.regions.length === 0 &&

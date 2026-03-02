@@ -511,24 +511,33 @@ export default function AnalyticsFilterPanel({
                 { label: "Last 30 Days", days: 30 },
                 { label: "Last 3 Months", days: 90 },
                 { label: "Last 6 Months", days: 180 },
-              ].map(({ label, days }) => (
-                <button
-                  key={days}
-                  onClick={() => {
-                    const to = new Date().toISOString().split("T")[0];
-                    const from = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
-                      .toISOString()
-                      .split("T")[0];
-                    onFiltersChange({
-                      ...filters,
-                      timeRange: { from, to },
-                    });
-                  }}
-                  className="w-full px-3 py-2 rounded border border-border text-sm font-medium text-foreground hover:bg-muted/50 transition-colors text-left"
-                >
-                  {label}
-                </button>
-              ))}
+              ].map(({ label, days }) => {
+                const to = new Date().toISOString().split("T")[0];
+                const from = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
+                  .toISOString()
+                  .split("T")[0];
+                const isActive = filters.timeRange.from === from && filters.timeRange.to === to;
+
+                return (
+                  <button
+                    key={days}
+                    onClick={() => {
+                      onFiltersChange({
+                        ...filters,
+                        timeRange: { from, to },
+                      });
+                    }}
+                    className={cn(
+                      "w-full px-3 py-2 rounded text-sm font-medium transition-colors text-left",
+                      isActive
+                        ? "bg-primary text-primary-foreground border border-primary"
+                        : "border border-border text-foreground hover:bg-muted/50"
+                    )}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
             </div>
           )}
 
