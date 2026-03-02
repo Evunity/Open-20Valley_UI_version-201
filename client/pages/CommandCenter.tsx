@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Terminal, Code, Settings2, Zap, FileText, Eye, RotateCcw, Package, GitCompare, Clock } from 'lucide-react';
+import { Terminal, Code, Settings2, Zap, FileText, Eye, RotateCcw, Package, AlertTriangle, GitCompare, Clock } from 'lucide-react';
 import { CommandConsole } from '../components/CommandConsole';
 import { ParameterExplorer } from '../components/ParameterExplorer';
 import { ModifyChangeEngine } from '../components/ModifyChangeEngine';
