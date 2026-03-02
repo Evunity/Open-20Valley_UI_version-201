@@ -14,6 +14,7 @@ export default function Layout({ children }: LayoutProps) {
   const [isMobile, setIsMobile] = useState(false);
   const [emergencyKillActive, setEmergencyKillActive] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(256); // 64 * 4 = 256px (w-64)
+  const [savedSidebarWidth, setSavedSidebarWidth] = useState(256); // Save width for toggle
   const [isDragging, setIsDragging] = useState(false);
   const location = useLocation();
 
@@ -59,6 +60,11 @@ export default function Layout({ children }: LayoutProps) {
       const deltaX = e.clientX - dragStartXRef.current;
       const newWidth = Math.max(MIN_WIDTH, Math.min(dragStartWidthRef.current + deltaX, MAX_WIDTH));
       setSidebarWidth(newWidth);
+
+      // Save width when dragging to a normal size (above collapse threshold)
+      if (newWidth > COLLAPSE_THRESHOLD) {
+        setSavedSidebarWidth(newWidth);
+      }
 
       // Auto-collapse if dragged too far left
       if (newWidth <= COLLAPSE_THRESHOLD) {
@@ -242,7 +248,17 @@ export default function Layout({ children }: LayoutProps) {
 
         {!isMobile && (
           <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
+            onClick={() => {
+              if (sidebarOpen) {
+                // When collapsing, save current width and set to collapsed state
+                setSavedSidebarWidth(sidebarWidth);
+                setSidebarOpen(false);
+              } else {
+                // When expanding, restore the saved width
+                setSidebarWidth(savedSidebarWidth);
+                setSidebarOpen(true);
+              }
+            }}
             className={cn(
               "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors",
               sidebarOpen ? "justify-start" : "justify-center"
