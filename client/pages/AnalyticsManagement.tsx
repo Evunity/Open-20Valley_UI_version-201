@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo } from "react";
 import { Save, Trash2, Download, Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import AnalyticsFilterPanel, { type AnalyticsFilters } from "@/components/AnalyticsFilterPanel";

@@ -21,7 +21,7 @@ export default function KPISelector({
   selectedKPIs,
   onKPIsChange,
   onGenerate,
-  isGenerated: externalIsGenerated = false,
+  isGenerated = false,
   filters = {},
 }: KPISelectorProps) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -57,7 +57,7 @@ export default function KPISelector({
   return (
     <div className="space-y-4">
       {/* Generate Button */}
-      {!externalIsGenerated && (
+      {!isGenerated && (
         <button
           onClick={onGenerate}
           className="w-full px-4 py-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-semibold"
@@ -67,7 +67,7 @@ export default function KPISelector({
       )}
 
       {/* Selected KPIs Panel - Only show after Generate */}
-      {externalIsGenerated && (
+      {isGenerated && (
         <div className="bg-card border border-border rounded-lg p-6 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-bold text-foreground">Selected KPIs</h3>
@@ -135,7 +135,7 @@ export default function KPISelector({
       )}
 
       {/* KPI Selector Modal - Only show after Generate */}
-      {externalIsGenerated && showSelector && (
+      {isGenerated && showSelector && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-card rounded-lg border border-border max-w-2xl w-full max-h-[80vh] overflow-auto">
             <div className="sticky top-0 bg-card border-b border-border p-4 space-y-4">
