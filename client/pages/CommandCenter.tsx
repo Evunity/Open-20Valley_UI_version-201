@@ -107,9 +107,9 @@ export const CommandCenter: React.FC = () => {
 
   const getRiskColor = (level: string) => {
     const colors = {
-      'read-only': 'bg-blue-100 text-blue-800 border-blue-300',
-      'safe': 'bg-green-100 text-green-800 border-green-300',
-      'dangerous': 'bg-red-100 text-red-800 border-red-300'
+      'read-only': 'bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-800',
+      'safe': 'bg-green-100 dark:bg-green-950 text-green-800 dark:text-green-300 border-green-300 dark:border-green-800',
+      'dangerous': 'bg-red-100 dark:bg-red-950 text-red-800 dark:text-red-300 border-red-300 dark:border-red-800'
     };
     return colors[level as keyof typeof colors] || colors['safe'];
   };
@@ -144,25 +144,25 @@ export const CommandCenter: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full gap-4 bg-gray-50">
+    <div className="flex flex-col h-full gap-4 bg-background dark:bg-background">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 rounded-lg p-6">
+      <div className="bg-card dark:bg-card border-b border-border dark:border-border rounded-lg p-6">
         <div className="flex items-start justify-between mb-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Command Center</h1>
-            <p className="text-sm text-gray-600 mt-1">OSS-Level Network Control & Parameter Governance</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Command Center</h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">OSS-Level Network Control & Parameter Governance</p>
           </div>
           <div className="flex items-center gap-2">
             <AlertTriangle className="w-5 h-5 text-amber-600" />
-            <span className="text-sm font-semibold text-amber-700">Permission-Gated • Fully Audited • Transactional</span>
+            <span className="text-sm font-semibold text-amber-700 dark:text-amber-300">Permission-Gated • Fully Audited • Transactional</span>
           </div>
         </div>
 
         {/* Target Selection Context */}
         {(selectedTarget.country || selectedTarget.region || selectedTarget.site || selectedTarget.node) && (
-          <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-xs font-semibold text-blue-900 mb-1">Target Context</p>
-            <p className="text-sm text-blue-800 font-mono">
+          <div className="p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
+            <p className="text-xs font-semibold text-blue-900 dark:text-blue-300 mb-1">Target Context</p>
+            <p className="text-sm text-blue-800 dark:text-blue-300 font-mono">
               {selectedTarget.country && `${selectedTarget.country}`}
               {selectedTarget.region && ` → ${selectedTarget.region}`}
               {selectedTarget.site && ` → ${selectedTarget.site}`}
@@ -173,7 +173,7 @@ export const CommandCenter: React.FC = () => {
       </div>
 
       {/* Module Selector */}
-      <div className="bg-white border-b border-gray-200 rounded-lg p-4">
+      <div className="bg-card dark:bg-card border-b border-border dark:border-border rounded-lg p-4">
         <div className="grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-10 gap-2">
           {MODULES.map(module => {
             const Icon = module.icon;
@@ -183,13 +183,13 @@ export const CommandCenter: React.FC = () => {
                 onClick={() => setActiveModule(module.id)}
                 className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition ${
                   activeModule === module.id
-                    ? 'border-blue-600 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300 bg-white'
+                    ? 'border-blue-600 bg-blue-50 dark:bg-blue-950'
+                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 bg-card dark:bg-card'
                 }`}
                 title={module.description}
               >
-                <Icon className={`w-4 h-4 ${activeModule === module.id ? 'text-blue-600' : 'text-gray-600'}`} />
-                <span className="text-xs font-semibold text-center text-gray-900">{module.label}</span>
+                <Icon className={`w-4 h-4 ${activeModule === module.id ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400'}`} />
+                <span className="text-xs font-semibold text-center text-gray-900 dark:text-gray-100">{module.label}</span>
                 <span className={`text-xs px-1.5 py-0.5 rounded border ${getRiskColor(module.riskLevel)}`}>
                   {module.riskLevel}
                 </span>
@@ -200,14 +200,14 @@ export const CommandCenter: React.FC = () => {
       </div>
 
       {/* Active Module */}
-      <div className="flex-1 bg-white rounded-lg border border-gray-200 overflow-hidden flex flex-col">
+      <div className="flex-1 bg-card dark:bg-card rounded-lg border border-border dark:border-border overflow-hidden flex flex-col">
         {/* Module Header */}
-        <div className="px-6 py-4 border-b border-gray-200">
+        <div className="px-6 py-4 border-b border-border dark:border-border">
           <div className="flex items-center gap-3">
-            {React.createElement(activeModuleConfig.icon, { className: 'w-5 h-5 text-blue-600' })}
+            {React.createElement(activeModuleConfig.icon, { className: 'w-5 h-5 text-blue-600 dark:text-blue-400' })}
             <div>
-              <h2 className="text-lg font-bold text-gray-900">{activeModuleConfig.label}</h2>
-              <p className="text-sm text-gray-600">{activeModuleConfig.description}</p>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">{activeModuleConfig.label}</h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{activeModuleConfig.description}</p>
             </div>
           </div>
         </div>
@@ -219,8 +219,8 @@ export const CommandCenter: React.FC = () => {
       </div>
 
       {/* Safety Notice */}
-      <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-        <p className="text-xs text-amber-800">
+      <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+        <p className="text-xs text-amber-800 dark:text-amber-300">
           <strong>⚠️ Important:</strong> All commands are vendor-native and fully audited. Changes are transactional with rollback capability. 
           Never execute commands on production without testing in Sandbox Mode first.
         </p>

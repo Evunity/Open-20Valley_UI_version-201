@@ -58,15 +58,15 @@ export default function Settings() {
   ];
 
   return (
-    <div className="flex h-full flex-col bg-gray-50">
+    <div className="flex h-full flex-col bg-background dark:bg-background">
       {/* Header */}
-      <div className="border-b border-gray-200 bg-white px-8 py-6">
-        <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-        <p className="text-gray-500">Platform Configuration, System Controls & Operational Guardrails</p>
+      <div className="border-b border-border dark:border-border bg-card dark:bg-card px-8 py-6">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Settings</h1>
+        <p className="text-gray-500 dark:text-gray-400">Platform Configuration, System Controls & Operational Guardrails</p>
       </div>
 
       {/* Tab Navigation */}
-      <div className="border-b border-gray-200 bg-white overflow-x-auto">
+      <div className="border-b border-border dark:border-border bg-card dark:bg-card overflow-x-auto">
         <div className="flex px-8">
           {tabs.map(tab => {
             const Icon = tab.icon;
@@ -76,8 +76,8 @@ export default function Settings() {
                 onClick={() => setActiveTab(tab.id as TabType)}
                 className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
                   activeTab === tab.id
-                    ? 'border-blue-600 text-blue-600'
-                    : 'border-transparent text-gray-600 hover:text-gray-900'
+                    ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                    : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -95,23 +95,23 @@ export default function Settings() {
           {activeTab === 'system' && (
             <div className="space-y-6">
               <div>
-                <h2 className="mb-4 text-2xl font-bold text-gray-900">System Configuration</h2>
-                <div className="space-y-4 rounded-lg border border-gray-200 bg-white p-6">
+                <h2 className="mb-4 text-2xl font-bold text-gray-900 dark:text-gray-100">System Configuration</h2>
+                <div className="space-y-4 rounded-lg border border-border dark:border-border bg-card dark:bg-card p-6">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">System Name</label>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">System Name</label>
                     <input
                       type="text"
                       value={systemName}
                       onChange={(e) => setSystemName(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Timezone</label>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Timezone</label>
                     <select
                       value={timezone}
                       onChange={(e) => setTimezone(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                     >
                       <option>UTC</option>
                       <option>America/New_York</option>
@@ -120,11 +120,11 @@ export default function Settings() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Date/Time Format</label>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Date/Time Format</label>
                     <select
                       value={dateFormat}
                       onChange={(e) => setDateFormat(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                     >
                       <option>YYYY-MM-DD HH:mm:ss</option>
                       <option>DD/MM/YYYY HH:mm:ss</option>
@@ -132,11 +132,11 @@ export default function Settings() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Language</label>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Language</label>
                     <select
                       value={language}
                       onChange={(e) => setLanguage(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                     >
                       <option>English</option>
                       <option>Spanish</option>
@@ -148,7 +148,7 @@ export default function Settings() {
               </div>
 
               <div>
-                <h3 className="mb-4 text-xl font-bold text-gray-900">Global Kill Switches</h3>
+                <h3 className="mb-4 text-xl font-bold text-gray-900 dark:text-gray-100">Global Kill Switches</h3>
                 <div className="space-y-3">
                   {[
                     { name: 'Disable All Automations', risk: 'critical' },
@@ -157,10 +157,10 @@ export default function Settings() {
                     { name: 'Disable External Exports', risk: 'high' },
                     { name: 'Force System Read-Only', risk: 'critical' }
                   ].map(sw => (
-                    <div key={sw.name} className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-4">
+                    <div key={sw.name} className="flex items-center justify-between rounded-lg border border-border dark:border-border bg-card dark:bg-card p-4">
                       <div>
-                        <p className="font-semibold text-gray-900">{sw.name}</p>
-                        <p className="text-sm text-gray-600">Emergency control - use with caution</p>
+                        <p className="font-semibold text-gray-900 dark:text-gray-100">{sw.name}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Emergency control - use with caution</p>
                       </div>
                       <label className="relative inline-flex cursor-pointer items-center">
                         <input type="checkbox" className="sr-only peer" />
@@ -172,7 +172,7 @@ export default function Settings() {
               </div>
 
               <div>
-                <label className="flex items-center gap-3 rounded-lg border border-gray-200 bg-white p-4">
+                <label className="flex items-center gap-3 rounded-lg border border-border dark:border-border bg-card dark:bg-card p-4">
                   <input
                     type="checkbox"
                     checked={maintenanceMode}
@@ -180,10 +180,10 @@ export default function Settings() {
                     className="h-4 w-4"
                   />
                   <div>
-                    <p className="font-semibold text-gray-900">Maintenance Mode</p>
-                    <p className="text-sm text-gray-600">Prevents automations & scripts, allows read-only access</p>
+                    <p className="font-semibold text-gray-900 dark:text-gray-100">Maintenance Mode</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Prevents automations & scripts, allows read-only access</p>
                   </div>
-                </label>
+              </label>
               </div>
             </div>
           )}
@@ -191,21 +191,21 @@ export default function Settings() {
           {/* Module Configuration */}
           {activeTab === 'modules' && (
             <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-gray-900">Module Configuration</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Module Configuration</h2>
               {['Alarm', 'Analytics', 'Automation', 'Topology', 'Reports', 'Command Center'].map(module => (
-                <div key={module} className="rounded-lg border border-gray-200 bg-white p-6">
-                  <h3 className="mb-4 font-semibold text-gray-900">{module} Module</h3>
+                <div key={module} className="rounded-lg border border-border dark:border-border bg-card dark:bg-card p-6">
+                  <h3 className="mb-4 font-semibold text-gray-900 dark:text-gray-100">{module} Module</h3>
                   <div className="space-y-3">
                     <label className="flex items-center gap-2">
                       <input type="checkbox" defaultChecked className="h-4 w-4" />
-                      <span className="text-sm text-gray-700">Enable {module}</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-300">Enable {module}</span>
                     </label>
                     <div>
-                      <label className="text-sm font-semibold text-gray-700">Configuration</label>
+                      <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Configuration</label>
                       <input
                         type="text"
                         placeholder={`${module} settings...`}
-                        className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="mt-1 w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                       />
                     </div>
                   </div>
@@ -218,7 +218,7 @@ export default function Settings() {
           {activeTab === 'integration' && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-gray-900">Integration Settings</h2>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Integration Settings</h2>
                 <button className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
                   <Plus className="w-4 h-4" />
                   Add Integration
@@ -226,12 +226,12 @@ export default function Settings() {
               </div>
 
               <div className="space-y-2">
-                <h3 className="font-semibold text-gray-900">Northbound Integrations</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100">Northbound Integrations</h3>
                 {['ServiceNow ITSM', 'Splunk SIEM', 'SMTP Email'].map(int => (
-                  <div key={int} className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-4">
+                  <div key={int} className="flex items-center justify-between rounded-lg border border-border dark:border-border bg-card dark:bg-card p-4">
                     <div>
-                      <p className="font-semibold text-gray-900">{int}</p>
-                      <p className="text-xs text-gray-500">Status: Healthy</p>
+                      <p className="font-semibold text-gray-900 dark:text-gray-100">{int}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-500">Status: Healthy</p>
                     </div>
                     <button className="rounded p-2 text-blue-600 hover:bg-blue-50">
                       <TestTube className="w-4 h-4" />
@@ -241,12 +241,12 @@ export default function Settings() {
               </div>
 
               <div className="space-y-2">
-                <h3 className="font-semibold text-gray-900">Southbound Integrations</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100">Southbound Integrations</h3>
                 {['Cisco SNMP', 'Juniper NETCONF', 'REST API'].map(int => (
-                  <div key={int} className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-4">
+                  <div key={int} className="flex items-center justify-between rounded-lg border border-border dark:border-border bg-card dark:bg-card p-4">
                     <div>
-                      <p className="font-semibold text-gray-900">{int}</p>
-                      <p className="text-xs text-gray-500">Status: Healthy</p>
+                      <p className="font-semibold text-gray-900 dark:text-gray-100">{int}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-500">Status: Healthy</p>
                     </div>
                     <button className="rounded p-2 text-blue-600 hover:bg-blue-50">
                       <TestTube className="w-4 h-4" />
@@ -260,23 +260,23 @@ export default function Settings() {
           {/* Data & Retention */}
           {activeTab === 'retention' && (
             <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-gray-900">Data & Retention Policies</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Data & Retention Policies</h2>
               {[
                 { type: 'Alarms', retention: 90 },
                 { type: 'KPIs', retention: 365 },
                 { type: 'Audit Logs', retention: 2555 },
                 { type: 'Automation History', retention: 180 }
               ].map(policy => (
-                <div key={policy.type} className="rounded-lg border border-gray-200 bg-white p-6">
-                  <h3 className="mb-4 font-semibold text-gray-900">{policy.type}</h3>
+                <div key={policy.type} className="rounded-lg border border-border dark:border-border bg-card dark:bg-card p-6">
+                  <h3 className="mb-4 font-semibold text-gray-900 dark:text-gray-100">{policy.type}</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm font-semibold text-gray-700">Retention (days)</label>
-                      <input type="number" defaultValue={policy.retention} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" />
+                      <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Retention (days)</label>
+                      <input type="number" defaultValue={policy.retention} className="mt-1 w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" />
                     </div>
                     <div>
-                      <label className="text-sm font-semibold text-gray-700">Storage Tier</label>
-                      <select className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2">
+                      <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Storage Tier</label>
+                      <select className="mt-1 w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
                         <option>Hot</option>
                         <option>Warm</option>
                         <option>Cold</option>
@@ -285,7 +285,7 @@ export default function Settings() {
                   </div>
                   <label className="mt-3 flex items-center gap-2">
                     <input type="checkbox" defaultChecked className="h-4 w-4" />
-                    <span className="text-sm text-gray-700">Enable Compression</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">Enable Compression</span>
                   </label>
                 </div>
               ))}
@@ -295,8 +295,8 @@ export default function Settings() {
           {/* Performance & Limits */}
           {activeTab === 'performance' && (
             <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-gray-900">Performance & Limits</h2>
-              <div className="rounded-lg border border-gray-200 bg-white p-6">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Performance & Limits</h2>
+              <div className="rounded-lg border border-border dark:border-border bg-card dark:bg-card p-6">
                 <div className="space-y-4">
                   {[
                     { label: 'Max API Requests/min', value: 1000 },
@@ -305,8 +305,8 @@ export default function Settings() {
                     { label: 'Query Timeout (seconds)', value: 60 }
                   ].map(limit => (
                     <div key={limit.label}>
-                      <label className="text-sm font-semibold text-gray-700">{limit.label}</label>
-                      <input type="number" defaultValue={limit.value} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" />
+                      <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">{limit.label}</label>
+                      <input type="number" defaultValue={limit.value} className="mt-1 w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" />
                     </div>
                   ))}
                 </div>
@@ -317,12 +317,12 @@ export default function Settings() {
           {/* Notifications */}
           {activeTab === 'notifications' && (
             <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-gray-900">Notifications & Communication</h2>
-              <div className="rounded-lg border border-gray-200 bg-white p-6">
-                <h3 className="mb-4 font-semibold text-gray-900">Notification Channels</h3>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Notifications & Communication</h2>
+              <div className="rounded-lg border border-border dark:border-border bg-card dark:bg-card p-6">
+                <h3 className="mb-4 font-semibold text-gray-900 dark:text-gray-100">Notification Channels</h3>
                 {['Email', 'Slack', 'PagerDuty', 'Webhook'].map(channel => (
-                  <div key={channel} className="flex items-center justify-between rounded-lg bg-gray-50 p-3 mb-2">
-                    <span className="text-sm font-semibold text-gray-700">{channel}</span>
+                  <div key={channel} className="flex items-center justify-between rounded-lg bg-gray-50 dark:bg-gray-800 p-3 mb-2">
+                    <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">{channel}</span>
                     <label className="relative inline-flex cursor-pointer items-center">
                       <input type="checkbox" defaultChecked className="sr-only peer" />
                       <div className="peer h-6 w-11 rounded-full bg-gray-300 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all peer-checked:bg-blue-600 peer-checked:after:translate-x-full"></div>
@@ -336,8 +336,8 @@ export default function Settings() {
           {/* Automation Guardrails */}
           {activeTab === 'automation' && (
             <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-gray-900">Automation Guardrails</h2>
-              <div className="rounded-lg border border-gray-200 bg-white p-6">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Automation Guardrails</h2>
+              <div className="rounded-lg border border-border dark:border-border bg-card dark:bg-card p-6">
                 <div className="space-y-3">
                   {[
                     'Max Concurrent Automations',
@@ -348,7 +348,7 @@ export default function Settings() {
                   ].map(guardrail => (
                     <label key={guardrail} className="flex items-center gap-2">
                       <input type="checkbox" defaultChecked className="h-4 w-4" />
-                      <span className="text-sm font-semibold text-gray-700">{guardrail}</span>
+                      <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">{guardrail}</span>
                     </label>
                   ))}
                 </div>
@@ -359,14 +359,14 @@ export default function Settings() {
           {/* Environment & Deployment */}
           {activeTab === 'environment' && (
             <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-gray-900">Environment & Deployment</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Environment & Deployment</h2>
               {['Production', 'Staging', 'Lab'].map(env => (
-                <div key={env} className="rounded-lg border border-gray-200 bg-white p-6">
-                  <h3 className="mb-4 font-semibold text-gray-900">{env} Environment</h3>
+                <div key={env} className="rounded-lg border border-border dark:border-border bg-card dark:bg-card p-6">
+                  <h3 className="mb-4 font-semibold text-gray-900 dark:text-gray-100">{env} Environment</h3>
                   <div className="space-y-3">
                     <div>
-                      <label className="text-sm font-semibold text-gray-700">Log Level</label>
-                      <select className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2">
+                      <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Log Level</label>
+                      <select className="mt-1 w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
                         <option>Info</option>
                         <option>Debug</option>
                         <option>Error</option>
@@ -374,7 +374,7 @@ export default function Settings() {
                     </div>
                     <label className="flex items-center gap-2">
                       <input type="checkbox" className="h-4 w-4" />
-                      <span className="text-sm text-gray-700">Enable Auto-scaling</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-300">Enable Auto-scaling</span>
                     </label>
                   </div>
                 </div>
@@ -385,14 +385,14 @@ export default function Settings() {
           {/* Backup & Recovery */}
           {activeTab === 'backup' && (
             <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-gray-900">Backup & Recovery</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Backup & Recovery</h2>
               {['Full Daily', 'Incremental Hourly', 'Database Snapshots'].map(policy => (
-                <div key={policy} className="rounded-lg border border-gray-200 bg-white p-6">
-                  <h3 className="mb-4 font-semibold text-gray-900">{policy} Backup</h3>
+                <div key={policy} className="rounded-lg border border-border dark:border-border bg-card dark:bg-card p-6">
+                  <h3 className="mb-4 font-semibold text-gray-900 dark:text-gray-100">{policy} Backup</h3>
                   <div className="space-y-3">
                     <div>
-                      <label className="text-sm font-semibold text-gray-700">Retention (days)</label>
-                      <input type="number" defaultValue={30} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" />
+                      <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Retention (days)</label>
+                      <input type="number" defaultValue={30} className="mt-1 w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" />
                     </div>
                     <button className="w-full rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
                       Run Now
@@ -406,24 +406,24 @@ export default function Settings() {
           {/* Branding & UI */}
           {activeTab === 'branding' && (
             <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-gray-900">Branding & UI Configuration</h2>
-              <div className="rounded-lg border border-gray-200 bg-white p-6">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Branding & UI Configuration</h2>
+              <div className="rounded-lg border border-border dark:border-border bg-card dark:bg-card p-6">
                 <div className="space-y-4">
                   <div>
-                    <label className="text-sm font-semibold text-gray-700">Platform Name</label>
-                    <input type="text" defaultValue="OSS Platform" className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" />
+                    <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Platform Name</label>
+                    <input type="text" defaultValue="OSS Platform" className="mt-1 w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" />
                   </div>
                   <div>
-                    <label className="text-sm font-semibold text-gray-700">Primary Color</label>
+                    <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Primary Color</label>
                     <div className="mt-1 flex gap-2">
                       <input type="color" defaultValue="#2563eb" className="h-10 w-20 rounded-lg" />
-                      <input type="text" defaultValue="#2563eb" className="flex-1 rounded-lg border border-gray-300 px-3 py-2 font-mono text-sm" />
+                      <input type="text" defaultValue="#2563eb" className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 font-mono text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" />
                     </div>
                   </div>
                   <div>
                     <label className="flex items-center gap-2">
                       <input type="checkbox" defaultChecked className="h-4 w-4" />
-                      <span className="text-sm text-gray-700">Dark Mode</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-300">Dark Mode</span>
                     </label>
                   </div>
                 </div>
@@ -434,19 +434,19 @@ export default function Settings() {
           {/* Audit & Change Control */}
           {activeTab === 'audit' && (
             <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-gray-900">Audit & Change Control</h2>
-              <div className="rounded-lg border border-gray-200 bg-white p-6">
-                <h3 className="mb-4 font-semibold text-gray-900">Recent Changes</h3>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Audit & Change Control</h2>
+              <div className="rounded-lg border border-border dark:border-border bg-card dark:bg-card p-6">
+                <h3 className="mb-4 font-semibold text-gray-900 dark:text-gray-100">Recent Changes</h3>
                 <div className="space-y-2">
                   {[
                     { user: 'Admin User', action: 'Modified Kill Switch', time: '2 hours ago', status: 'approved' },
                     { user: 'Integration Admin', action: 'Added Integration', time: '4 hours ago', status: 'approved' },
                     { user: 'Security Admin', action: 'Updated Rate Limit', time: '1 day ago', status: 'pending' }
                   ].map((entry, idx) => (
-                    <div key={idx} className="flex items-center justify-between rounded-lg bg-gray-50 p-3">
+                    <div key={idx} className="flex items-center justify-between rounded-lg bg-gray-50 dark:bg-gray-800 p-3">
                       <div className="text-sm">
-                        <p className="font-semibold text-gray-900">{entry.action}</p>
-                        <p className="text-xs text-gray-500">{entry.user} • {entry.time}</p>
+                        <p className="font-semibold text-gray-900 dark:text-gray-100">{entry.action}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-500">{entry.user} • {entry.time}</p>
                       </div>
                       <span className={`text-xs font-semibold px-2 py-1 rounded ${
                         entry.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
@@ -463,15 +463,15 @@ export default function Settings() {
           {/* Permissions & Access */}
           {activeTab === 'permissions' && (
             <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-gray-900">Permissions & Access Control</h2>
-              <div className="rounded-lg border border-gray-200 bg-white overflow-x-auto">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Permissions & Access Control</h2>
+              <div className="rounded-lg border border-border dark:border-border bg-card dark:bg-card overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-gray-200 bg-gray-50">
-                      <th className="px-6 py-3 text-left font-semibold text-gray-700">Role</th>
-                      <th className="px-6 py-3 text-center font-semibold text-gray-700">View</th>
-                      <th className="px-6 py-3 text-center font-semibold text-gray-700">Edit</th>
-                      <th className="px-6 py-3 text-center font-semibold text-gray-700">Approve</th>
+                    <tr className="border-b border-border dark:border-border bg-gray-50 dark:bg-gray-800">
+                      <th className="px-6 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Role</th>
+                      <th className="px-6 py-3 text-center font-semibold text-gray-700 dark:text-gray-300">View</th>
+                      <th className="px-6 py-3 text-center font-semibold text-gray-700 dark:text-gray-300">Edit</th>
+                      <th className="px-6 py-3 text-center font-semibold text-gray-700 dark:text-gray-300">Approve</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -482,8 +482,8 @@ export default function Settings() {
                       { role: 'Performance Admin', view: true, edit: true, approve: false },
                       { role: 'Settings Viewer', view: true, edit: false, approve: false }
                     ].map(row => (
-                      <tr key={row.role} className="border-b border-gray-200">
-                        <td className="px-6 py-3 font-semibold text-gray-900">{row.role}</td>
+                      <tr key={row.role} className="border-b border-border dark:border-border">
+                        <td className="px-6 py-3 font-semibold text-gray-900 dark:text-gray-100">{row.role}</td>
                         <td className="px-6 py-3 text-center">
                           {row.view ? <CheckCircle className="w-4 h-4 text-green-600 mx-auto" /> : <XCircle className="w-4 h-4 text-gray-400 mx-auto" />}
                         </td>
@@ -502,7 +502,7 @@ export default function Settings() {
           )}
 
           {/* Footer */}
-          <div className="mt-8 flex gap-3 border-t border-gray-200 pt-6">
+          <div className="mt-8 flex gap-3 border-t border-border dark:border-border pt-6">
             <button
               onClick={handleSave}
               className="flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-2 text-white hover:bg-blue-700"
@@ -517,7 +517,7 @@ export default function Settings() {
           </div>
 
           {savedStatus && (
-            <div className="mt-4 rounded-lg bg-green-50 border border-green-200 p-4 text-green-700">
+            <div className="mt-4 rounded-lg bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 p-4 text-green-700 dark:text-green-300">
               ✓ {savedStatus}
             </div>
           )}

@@ -75,16 +75,16 @@ const TopologyManagementContent: React.FC = () => {
   };
 
   const renderMapView = () => (
-    <div className="w-full h-full flex flex-col gap-4 p-4 bg-gray-50 overflow-y-auto">
+    <div className="w-full h-full flex flex-col gap-4 p-4 bg-background dark:bg-background overflow-y-auto">
       <div className="flex items-center justify-between mb-2">
-        <h2 className="text-lg font-bold text-gray-900">Global Geospatial Map - MENA Network</h2>
+        <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Global Geospatial Map - MENA Network</h2>
         <div className="flex gap-2">
           <button
             onClick={() => setShowLayerPanel(!showLayerPanel)}
             className={`px-3 py-1 rounded text-xs font-semibold transition ${
               showLayerPanel
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'bg-blue-600 text-white dark:bg-blue-700'
+                : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
             }`}
             title="Toggle layer controls"
           >
@@ -95,8 +95,8 @@ const TopologyManagementContent: React.FC = () => {
             onClick={() => setShowTenantPanel(!showTenantPanel)}
             className={`px-3 py-1 rounded text-xs font-semibold transition ${
               showTenantPanel
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'bg-blue-600 text-white dark:bg-blue-700'
+                : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
             }`}
             title="Toggle tenant/country controls"
           >
@@ -106,14 +106,14 @@ const TopologyManagementContent: React.FC = () => {
             onClick={() => setShowExportPanel(!showExportPanel)}
             className={`px-3 py-1 rounded text-xs font-semibold transition ${
               showExportPanel
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'bg-blue-600 text-white dark:bg-blue-700'
+                : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
             }`}
             title="Export options"
           >
             Export
           </button>
-          <label className="flex items-center gap-2 text-xs cursor-pointer px-3 py-1 bg-gray-100 rounded hover:bg-gray-200 transition">
+          <label className="flex items-center gap-2 text-xs cursor-pointer px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition">
             <input
               type="checkbox"
               checked={showPredictiveRisks}
@@ -187,20 +187,20 @@ const TopologyManagementContent: React.FC = () => {
             }
             selectNode(obj.id);
           }}
-          className="w-full text-left px-2 py-1.5 rounded hover:bg-gray-100 transition flex items-center gap-2 text-sm"
+          className="w-full text-left px-2 py-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition flex items-center gap-2 text-sm"
         >
           <span className={expandedNodes.has(obj.id) && obj.childrenIds.length > 0 ? 'rotate-90' : ''}>
             {obj.childrenIds.length > 0 ? '▶' : '•'}
           </span>
           <span className={`px-1.5 py-0.5 rounded text-xs font-semibold ${
-            obj.healthState === 'healthy' ? 'bg-green-100 text-green-800' :
-            obj.healthState === 'degraded' ? 'bg-yellow-100 text-yellow-800' :
-            'bg-red-100 text-red-800'
+            obj.healthState === 'healthy' ? 'bg-green-100 dark:bg-green-950 text-green-800 dark:text-green-300' :
+            obj.healthState === 'degraded' ? 'bg-yellow-100 dark:bg-yellow-950 text-yellow-800 dark:text-yellow-300' :
+            'bg-red-100 dark:bg-red-950 text-red-800 dark:text-red-300'
           }`}>
             {obj.type}
           </span>
-          <span className="font-medium text-gray-900">{obj.name}</span>
-          <span className="ml-auto text-xs text-gray-500">{obj.alarmSummary.critical + obj.alarmSummary.major} alarms</span>
+          <span className="font-medium text-gray-900 dark:text-gray-100">{obj.name}</span>
+          <span className="ml-auto text-xs text-gray-500 dark:text-gray-500">{obj.alarmSummary.critical + obj.alarmSummary.major} alarms</span>
         </button>
         {expandedNodes.has(obj.id) && obj.childrenIds.length > 0 && (
           <div>
@@ -215,9 +215,9 @@ const TopologyManagementContent: React.FC = () => {
 
     const roots = visibleNodes.filter(o => !o.parentId);
     return (
-      <div className="w-full flex flex-col h-full gap-4 p-4 bg-gray-50 overflow-y-auto">
-        <h2 className="text-lg font-bold text-gray-900">Hierarchical Tree View</h2>
-        <div className="flex-1 bg-white rounded-lg border border-gray-200 p-4 overflow-y-auto">
+      <div className="w-full flex flex-col h-full gap-4 p-4 bg-background dark:bg-background overflow-y-auto">
+        <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Hierarchical Tree View</h2>
+        <div className="flex-1 bg-card dark:bg-card rounded-lg border border-border dark:border-border p-4 overflow-y-auto">
           {roots.length > 0 ? roots.map(root => renderNode(root, 0)) : (
             <p className="text-sm text-gray-600">No nodes visible with current filters</p>
           )}
@@ -227,19 +227,19 @@ const TopologyManagementContent: React.FC = () => {
   };
 
   const renderDependencyView = () => (
-    <div className="w-full h-full flex flex-col gap-4 p-4 bg-gray-50 overflow-y-auto">
-      <h2 className="text-lg font-bold text-gray-900">Logical Dependency Graph</h2>
-      <div className="flex-1 bg-white rounded-lg border border-gray-200 p-4 flex items-center justify-center">
+    <div className="w-full h-full flex flex-col gap-4 p-4 bg-background dark:bg-background overflow-y-auto">
+      <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Logical Dependency Graph</h2>
+      <div className="flex-1 bg-card dark:bg-card rounded-lg border border-border dark:border-border p-4 flex items-center justify-center">
         <div className="text-center max-w-md">
-          <Network className="w-16 h-16 text-gray-400 mx-auto mb-3 opacity-50" />
-          <p className="text-sm font-semibold text-gray-600 mb-2">Dependency Relationships</p>
-          <p className="text-xs text-gray-500 mb-4">
+          <Network className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-3 opacity-50" />
+          <p className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">Dependency Relationships</p>
+          <p className="text-xs text-gray-500 dark:text-gray-500 mb-4">
             Visualizes upstream/downstream dependencies. Click a node to see its impact chain.
           </p>
           {selectedNode && (
-            <div className="text-left bg-gray-50 rounded p-3 mt-4">
-              <p className="text-xs font-semibold text-gray-700 mb-2">Selected: {selectedNode.name}</p>
-              <p className="text-xs text-gray-600">
+            <div className="text-left bg-gray-50 dark:bg-gray-800 rounded p-3 mt-4">
+              <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">Selected: {selectedNode.name}</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
                 {selectedNode.childrenIds.length} downstream dependencies
               </p>
             </div>
@@ -267,15 +267,15 @@ const TopologyManagementContent: React.FC = () => {
                       renderMapView();
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <div className="flex flex-col h-screen bg-background dark:bg-background">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <h1 className="text-2xl font-bold text-gray-900">Topology & Network Visualization</h1>
-        <p className="text-sm text-gray-600 mt-1">Single source of structural truth for network topology</p>
+      <div className="bg-card dark:bg-card border-b border-border dark:border-border px-6 py-4">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Topology & Network Visualization</h1>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Single source of structural truth for network topology</p>
       </div>
 
       {/* View Selector */}
-      <div className="bg-white border-b border-gray-200 px-6 py-3">
+      <div className="bg-card dark:bg-card border-b border-border dark:border-border px-6 py-3">
         <div className="flex gap-2">
           {VIEWS.map(view => {
             const Icon = view.icon;
@@ -285,8 +285,8 @@ const TopologyManagementContent: React.FC = () => {
                 onClick={() => setActiveView(view.id)}
                 className={`px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-2 ${
                   activeView === view.id
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-blue-600 text-white dark:bg-blue-700'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                 }`}
                 title={view.description}
               >
@@ -304,14 +304,14 @@ const TopologyManagementContent: React.FC = () => {
       </div>
 
       {/* Footer Info & Stats */}
-      <div className="bg-white border-t border-gray-200 px-6 py-2">
+      <div className="bg-card dark:bg-card border-t border-border dark:border-border px-6 py-2">
         <div className="flex items-center justify-between text-xs">
           {selectedNode ? (
             <>
               <div>
-                <span className="font-semibold text-gray-900">{selectedNode.name}</span>
-                <span className="text-gray-600 ml-2">({selectedNode.type})</span>
-                {selectedNode.vendor && <span className="text-gray-600 ml-2">• {selectedNode.vendor}</span>}
+                <span className="font-semibold text-gray-900 dark:text-gray-100">{selectedNode.name}</span>
+                <span className="text-gray-600 dark:text-gray-400 ml-2">({selectedNode.type})</span>
+                {selectedNode.vendor && <span className="text-gray-600 dark:text-gray-400 ml-2">• {selectedNode.vendor}</span>}
               </div>
               <div className="flex gap-4">
                 <span>Health: <strong>{selectedNode.healthState}</strong></span>
@@ -321,8 +321,8 @@ const TopologyManagementContent: React.FC = () => {
             </>
           ) : (
             <div className="w-full flex items-center justify-between">
-              <p className="text-gray-600">Visible: <strong>{stats.totalVisible}</strong> | Alarms: <strong>{stats.totalAlarms}</strong></p>
-              <div className="text-xs text-gray-500">
+              <p className="text-gray-600 dark:text-gray-400">Visible: <strong>{stats.totalVisible}</strong> | Alarms: <strong>{stats.totalAlarms}</strong></p>
+              <div className="text-xs text-gray-500 dark:text-gray-500">
                 {performance.lastRegionLoadTime < 2000 && performance.lastZoomTime < 300 && performance.lastExpandTime < 200 ? (
                   <span className="text-green-600">✓ Performance optimal</span>
                 ) : (
