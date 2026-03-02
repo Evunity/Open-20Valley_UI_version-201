@@ -274,6 +274,18 @@ export default function AnalyticsManagement() {
 
         {/* Main Content Area */}
         <div className="flex-1 space-y-6">
+          {/* Regenerate Button - Always visible after Generate */}
+          {isGenerated && (
+            <div className="flex justify-end">
+              <button
+                onClick={handleRegenerate}
+                className="px-3 py-2 rounded-lg border border-border bg-background hover:bg-muted transition-colors text-sm font-medium"
+              >
+                ↻ Regenerate
+              </button>
+            </div>
+          )}
+
           {/* Analysis Scope Selection */}
           {isGenerated && (
             <div className="bg-card border border-border rounded-lg p-4 space-y-4">
@@ -379,22 +391,12 @@ export default function AnalyticsManagement() {
           {/* Analytics Dashboard */}
           {selectedKPIs.length > 0 && isGenerated ? (
             <div className="space-y-6">
-              {/* Header with Regenerate Button */}
-              <div className="flex items-center justify-between">
-                <div>
-                  {generatedTime && (
-                    <p className="text-xs text-muted-foreground">
-                      Generated: {generatedTime.toLocaleString()}
-                    </p>
-                  )}
-                </div>
-                <button
-                  onClick={handleRegenerate}
-                  className="px-3 py-2 rounded-lg border border-border bg-background hover:bg-muted transition-colors text-sm font-medium"
-                >
-                  ↻ Regenerate
-                </button>
-              </div>
+              {/* Generated Time Display */}
+              {generatedTime && (
+                <p className="text-xs text-muted-foreground">
+                  Generated: {generatedTime.toLocaleString()}
+                </p>
+              )}
               {selectedKPIs.map((kpi, idx) => (
                 <TrendChartContainer
                   key={kpi.id}
