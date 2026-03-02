@@ -135,8 +135,8 @@ export const AutomationManagement: React.FC = () => {
           <div className="flex-1 flex flex-col items-center justify-center p-4 bg-background dark:bg-background">
             <div className="text-center max-w-md">
               <Settings className="w-16 h-16 text-purple-400 dark:text-purple-600 mx-auto mb-4 opacity-50" />
-              <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">Runbook Designer</h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+              <h2 className="text-lg font-bold text-foreground mb-2">Runbook Designer</h2>
+              <p className="text-sm text-muted-foreground mb-6">
                 Build complex workflows with parallel branches, conditionals, and retries
               </p>
               <button
@@ -155,7 +155,7 @@ export const AutomationManagement: React.FC = () => {
           <div className="flex-1 overflow-y-auto p-4">
             <div className="max-w-4xl mx-auto">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Automation Policies</h2>
+                <h2 className="text-lg font-bold text-foreground">Automation Policies</h2>
                 <button className="px-3 py-1.5 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 transition flex items-center gap-1">
                   <Plus className="w-4 h-4" /> New Policy
                 </button>
@@ -165,12 +165,12 @@ export const AutomationManagement: React.FC = () => {
                 {policies.map(policy => (
                   <div
                     key={policy.id}
-                    className="bg-card dark:bg-card rounded-lg border border-border dark:border-border p-4 hover:border-gray-300 dark:hover:border-gray-600 transition"
+                    className="bg-card rounded-lg border border-border p-4 hover:border-gray-300 dark:hover:border-gray-600 transition"
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div>
-                        <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100">{policy.name}</h3>
-                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{policy.description}</p>
+                        <h3 className="text-sm font-bold text-foreground">{policy.name}</h3>
+                        <p className="text-xs text-muted-foreground mt-1">{policy.description}</p>
                       </div>
                       <span
                         className={`px-2 py-1 text-xs font-semibold rounded-full ${
@@ -223,13 +223,13 @@ export const AutomationManagement: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-background dark:bg-background">
+    <div className="flex flex-col h-screen bg-background">
       {/* Header */}
-      <div className="bg-card dark:bg-card border-b border-border dark:border-border px-6 py-4">
+      <div className="bg-card border-b border-border px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Automation & AI Management</h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">The autonomous network control plane</p>
+            <h1 className="text-2xl font-bold text-foreground">Automation & AI Management</h1>
+            <p className="text-sm text-muted-foreground mt-1">The autonomous network control plane</p>
           </div>
           <div className="flex items-center gap-4 text-xs text-gray-600">
             <span>👁️ Awareness Layer: <strong>Read-only intelligence</strong></span>
@@ -240,7 +240,7 @@ export const AutomationManagement: React.FC = () => {
       </div>
 
       {/* Domain Navigation */}
-      <div className="bg-card dark:bg-card border-b border-border dark:border-border px-6 py-3 flex gap-2">
+      <div className="bg-card border-b border-border px-6 py-3 flex gap-2">
         {DOMAINS.map(domain => {
           const Icon = domain.icon;
           return (
@@ -264,7 +264,7 @@ export const AutomationManagement: React.FC = () => {
       </div>
 
       {/* Workspace Tabs */}
-      <div className="bg-gray-100 dark:bg-gray-800 border-b border-border dark:border-border px-6 overflow-x-auto">
+      <div className="bg-gray-100 dark:bg-gray-800 border-b border-border px-6 overflow-x-auto">
         <div className="flex gap-1">
           {domainWorkspaces.map(workspace => (
             <button
@@ -272,7 +272,7 @@ export const AutomationManagement: React.FC = () => {
               onClick={() => setActiveWorkspace(workspace.id)}
               className={`px-4 py-3 text-sm font-medium transition border-b-2 ${
                 activeWorkspace === workspace.id
-                  ? 'bg-card dark:bg-card text-blue-600 dark:text-blue-400 border-b-blue-600 dark:border-b-blue-400'
+                  ? 'bg-card text-blue-600 dark:text-blue-400 border-b-blue-600 dark:border-b-blue-400'
                   : 'text-gray-700 dark:text-gray-300 border-b-transparent hover:bg-white/50 dark:hover:bg-gray-700/50'
               }`}
             >

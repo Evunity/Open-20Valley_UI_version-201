@@ -47,15 +47,15 @@ export default function Settings2() {
   ];
 
   return (
-    <div className="flex h-full flex-col bg-background dark:bg-background">
+    <div className="flex h-full flex-col bg-background">
       {/* Header */}
-      <div className="border-b border-border dark:border-border bg-card dark:bg-card px-8 py-8">
-        <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">Settings Module</h1>
-        <p className="mt-2 text-gray-600 dark:text-gray-400 dark:text-gray-400">OSS-Level Master Specification - Platform Configuration, System Controls & Operational Guardrails</p>
+      <div className="border-b border-border bg-card px-8 py-8">
+        <h1 className="text-4xl font-bold text-foreground">Settings Module</h1>
+        <p className="mt-2 text-gray-600 dark:text-gray-400">OSS-Level Master Specification - Platform Configuration, System Controls & Operational Guardrails</p>
       </div>
 
       {/* Tab Navigation - Horizontal Scrollable */}
-      <div className="border-b border-border dark:border-border bg-card dark:bg-card overflow-x-auto">
+      <div className="border-b border-border bg-card overflow-x-auto">
         <div className="flex px-8 min-w-max gap-1">
           {tabs.map(tab => {
             const Icon = tab.icon;
@@ -66,7 +66,7 @@ export default function Settings2() {
                 className={`flex items-center gap-2 border-b-2 px-4 py-4 text-sm font-medium transition-colors whitespace-nowrap ${
                   activeTab === tab.id
                     ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                    : 'border-transparent text-gray-600 dark:text-gray-400 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+                    : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -84,21 +84,21 @@ export default function Settings2() {
           {/* 1. System Configuration */}
           {activeTab === 'system-config' && (
             <div className="space-y-6">
-              <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">1. System Configuration</h2>
-              <p className="text-gray-600 dark:text-gray-400 dark:text-gray-400">Controls system-wide behavior and emergency controls</p>
+              <h2 className="text-3xl font-bold text-foreground">1. System Configuration</h2>
+              <p className="text-gray-600 dark:text-gray-400">Controls system-wide behavior and emergency controls</p>
 
               <div className="space-y-6">
                 {/* General Platform Settings */}
-                <div className="rounded-lg border border-border dark:border-border bg-card dark:bg-card p-6">
-                  <h3 className="mb-4 text-xl font-semibold text-gray-900 dark:text-gray-100">4.1 General Platform Settings</h3>
+                <div className="rounded-lg border border-border bg-card p-6">
+                  <h3 className="mb-4 text-xl font-semibold text-foreground">4.1 General Platform Settings</h3>
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 dark:text-gray-300 mb-2">System Name</label>
-                      <input type="text" defaultValue="OSS Platform" className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" />
+                      <input type="text" defaultValue="OSS Platform" className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-foreground" />
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 dark:text-gray-300 mb-2">Default Timezone</label>
-                      <select className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                      <select className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-foreground">
                         <option>UTC</option>
                         <option>America/New_York</option>
                         <option>Europe/London</option>
@@ -107,7 +107,7 @@ export default function Settings2() {
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 dark:text-gray-300 mb-2">System-wide Date/Time Format</label>
-                      <select className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                      <select className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-foreground">
                         <option>YYYY-MM-DD HH:mm:ss</option>
                         <option>DD/MM/YYYY HH:mm:ss</option>
                         <option>MM/DD/YYYY HH:mm:ss</option>
@@ -115,14 +115,14 @@ export default function Settings2() {
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 dark:text-gray-300 mb-2">Default Language</label>
-                      <select className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                      <select className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-foreground">
                         <option>English</option>
                         <option>Spanish</option>
                         <option>French</option>
                         <option>German</option>
                       </select>
                     </div>
-                    <div className="border-t border-border dark:border-border pt-4">
+                    <div className="border-t border-border pt-4">
                       <label className="flex items-center gap-3 p-4 rounded-lg bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 cursor-pointer">
                         <input type="checkbox" className="h-4 w-4" />
                         <div>
@@ -135,7 +135,7 @@ export default function Settings2() {
                 </div>
 
                 {/* Global Kill Switches */}
-                <div className="rounded-lg border border-border dark:border-border bg-card dark:bg-card p-6">
+                <div className="rounded-lg border border-border bg-card p-6">
                   <h3 className="mb-4 text-xl font-semibold text-gray-900 flex items-center gap-2">
                     <AlertTriangle className="w-5 h-5 text-red-600" />
                     4.2 Global Kill Switches (Emergency Controls)
@@ -150,7 +150,7 @@ export default function Settings2() {
                     ].map(sw => (
                       <div key={sw.name} className="flex items-center justify-between rounded-lg bg-gray-50 dark:bg-gray-800 dark:bg-gray-800 p-4">
                         <div>
-                          <p className="font-semibold text-gray-900 dark:text-gray-100">{sw.name}</p>
+                          <p className="font-semibold text-foreground">{sw.name}</p>
                           <p className={`text-xs font-semibold mt-1 ${sw.risk === 'critical' ? 'text-red-600' : 'text-orange-600'}`}>
                             Risk Level: {sw.risk.toUpperCase()}
                           </p>
@@ -170,12 +170,12 @@ export default function Settings2() {
           {/* 2. Module Configuration */}
           {activeTab === 'module-config' && (
             <div className="space-y-6">
-              <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">2. Module Configuration</h2>
+              <h2 className="text-3xl font-bold text-foreground">2. Module Configuration</h2>
               <p className="text-gray-600 dark:text-gray-400">Configure behavior for each platform module</p>
 
               {/* Alarm Module */}
-              <div className="rounded-lg border border-border dark:border-border bg-card dark:bg-card p-6">
-                <h3 className="mb-4 text-xl font-semibold text-gray-900 dark:text-gray-100">5.1 Alarm Module Settings</h3>
+              <div className="rounded-lg border border-border bg-card p-6">
+                <h3 className="mb-4 text-xl font-semibold text-foreground">5.1 Alarm Module Settings</h3>
                 <div className="space-y-4">
                   <label className="flex items-center gap-2">
                     <input type="checkbox" defaultChecked className="h-4 w-4" />
@@ -193,12 +193,12 @@ export default function Settings2() {
               </div>
 
               {/* Analytics Module */}
-              <div className="rounded-lg border border-border dark:border-border bg-card dark:bg-card p-6">
-                <h3 className="mb-4 text-xl font-semibold text-gray-900 dark:text-gray-100">5.2 Analytics Module Settings</h3>
+              <div className="rounded-lg border border-border bg-card p-6">
+                <h3 className="mb-4 text-xl font-semibold text-foreground">5.2 Analytics Module Settings</h3>
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Default KPI aggregation window</label>
-                    <select className="mt-1 w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                    <select className="mt-1 w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 bg-white dark:bg-gray-800 text-foreground">
                       <option>1m</option>
                       <option>5m</option>
                       <option>15m</option>
@@ -211,7 +211,7 @@ export default function Settings2() {
                   </div>
                   <div>
                     <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Anomaly detection sensitivity</label>
-                    <select className="mt-1 w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                    <select className="mt-1 w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 bg-white dark:bg-gray-800 text-foreground">
                       <option>Low</option>
                       <option>Medium</option>
                       <option>High</option>
@@ -221,8 +221,8 @@ export default function Settings2() {
               </div>
 
               {/* Automation Module */}
-              <div className="rounded-lg border border-border dark:border-border bg-card dark:bg-card p-6">
-                <h3 className="mb-4 text-xl font-semibold text-gray-900 dark:text-gray-100">5.3 Automation & AI Settings</h3>
+              <div className="rounded-lg border border-border bg-card p-6">
+                <h3 className="mb-4 text-xl font-semibold text-foreground">5.3 Automation & AI Settings</h3>
                 <div className="space-y-4">
                   <label className="flex items-center gap-2">
                     <input type="checkbox" className="h-4 w-4" />
@@ -244,12 +244,12 @@ export default function Settings2() {
               </div>
 
               {/* Topology Settings */}
-              <div className="rounded-lg border border-border dark:border-border bg-card dark:bg-card p-6">
-                <h3 className="mb-4 text-xl font-semibold text-gray-900 dark:text-gray-100">5.4 Topology Settings</h3>
+              <div className="rounded-lg border border-border bg-card p-6">
+                <h3 className="mb-4 text-xl font-semibold text-foreground">5.4 Topology Settings</h3>
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Default map view</label>
-                    <select className="mt-1 w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                    <select className="mt-1 w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 bg-white dark:bg-gray-800 text-foreground">
                       <option>Map</option>
                       <option>Tree</option>
                       <option>Logical</option>
@@ -267,12 +267,12 @@ export default function Settings2() {
               </div>
 
               {/* Reports Settings */}
-              <div className="rounded-lg border border-border dark:border-border bg-card dark:bg-card p-6">
-                <h3 className="mb-4 text-xl font-semibold text-gray-900 dark:text-gray-100">5.5 Reports Settings</h3>
+              <div className="rounded-lg border border-border bg-card p-6">
+                <h3 className="mb-4 text-xl font-semibold text-foreground">5.5 Reports Settings</h3>
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Default export format</label>
-                    <select className="mt-1 w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                    <select className="mt-1 w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 bg-white dark:bg-gray-800 text-foreground">
                       <option>PDF</option>
                       <option>Excel</option>
                       <option>CSV</option>
@@ -286,8 +286,8 @@ export default function Settings2() {
               </div>
 
               {/* Command Center Settings */}
-              <div className="rounded-lg border border-border dark:border-border bg-card dark:bg-card p-6">
-                <h3 className="mb-4 text-xl font-semibold text-gray-900 dark:text-gray-100">5.6 Command Center Settings</h3>
+              <div className="rounded-lg border border-border bg-card p-6">
+                <h3 className="mb-4 text-xl font-semibold text-foreground">5.6 Command Center Settings</h3>
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Max bulk execution size</label>
@@ -316,8 +316,8 @@ export default function Settings2() {
               <h2 className="text-3xl font-bold text-gray-900">3. Integration Settings</h2>
               <p className="text-gray-600 dark:text-gray-400">Configure external system connections</p>
 
-              <div className="rounded-lg border border-border dark:border-border bg-card dark:bg-card p-6">
-                <h3 className="mb-4 text-xl font-semibold text-gray-900 dark:text-gray-100">6.1 Northbound Integrations</h3>
+              <div className="rounded-lg border border-border bg-card p-6">
+                <h3 className="mb-4 text-xl font-semibold text-foreground">6.1 Northbound Integrations</h3>
                 <div className="mb-6 space-y-3">
                   {['ServiceNow ITSM', 'Splunk SIEM', 'Email Server', 'Webhook Endpoint'].map(int => (
                     <div key={int} className="flex items-center justify-between rounded-lg bg-gray-50 dark:bg-gray-800 p-4">
@@ -331,8 +331,8 @@ export default function Settings2() {
                 </div>
               </div>
 
-              <div className="rounded-lg border border-border dark:border-border bg-card dark:bg-card p-6">
-                <h3 className="mb-4 text-xl font-semibold text-gray-900 dark:text-gray-100">6.2 Southbound Integrations (Network)</h3>
+              <div className="rounded-lg border border-border bg-card p-6">
+                <h3 className="mb-4 text-xl font-semibold text-foreground">6.2 Southbound Integrations (Network)</h3>
                 <div className="space-y-3">
                   {['SNMP', 'NETCONF', 'SSH', 'REST'].map(proto => (
                     <div key={proto} className="flex items-center justify-between rounded-lg bg-gray-50 dark:bg-gray-800 p-4">
@@ -354,8 +354,8 @@ export default function Settings2() {
               <h2 className="text-3xl font-bold text-gray-900">4. Data & Retention Policies</h2>
               <p className="text-gray-600 dark:text-gray-400">Control how long data is stored</p>
 
-              <div className="rounded-lg border border-border dark:border-border bg-card dark:bg-card p-6">
-                <h3 className="mb-4 text-xl font-semibold text-gray-900 dark:text-gray-100">7.1 Data Retention</h3>
+              <div className="rounded-lg border border-border bg-card p-6">
+                <h3 className="mb-4 text-xl font-semibold text-foreground">7.1 Data Retention</h3>
                 <div className="space-y-4">
                   {['Alarms', 'KPIs', 'Logs', 'Audit Records', 'Automation History', 'Command Execution Logs', 'Report Snapshots'].map(dataType => (
                     <div key={dataType} className="grid grid-cols-3 gap-4 rounded-lg bg-gray-50 dark:bg-gray-800 p-4">
@@ -364,11 +364,11 @@ export default function Settings2() {
                       </div>
                       <div>
                         <label className="text-xs text-gray-600 dark:text-gray-400">Retention (days)</label>
-                        <input type="number" defaultValue={90} className="mt-1 w-full rounded border border-gray-300 dark:border-gray-600 px-3 py-1 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" />
+                        <input type="number" defaultValue={90} className="mt-1 w-full rounded border border-gray-300 dark:border-gray-600 px-3 py-1 text-sm bg-white dark:bg-gray-800 text-foreground" />
                       </div>
                       <div>
                         <label className="text-xs text-gray-600 dark:text-gray-400">Storage Tier</label>
-                        <select className="mt-1 w-full rounded border border-gray-300 dark:border-gray-600 px-3 py-1 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                        <select className="mt-1 w-full rounded border border-gray-300 dark:border-gray-600 px-3 py-1 text-sm bg-white dark:bg-gray-800 text-foreground">
                           <option>Hot</option>
                           <option>Warm</option>
                           <option>Cold</option>
@@ -379,12 +379,12 @@ export default function Settings2() {
                 </div>
               </div>
 
-              <div className="rounded-lg border border-border dark:border-border bg-card dark:bg-card p-6">
-                <h3 className="mb-4 text-xl font-semibold text-gray-900 dark:text-gray-100">7.2 Data Archiving</h3>
+              <div className="rounded-lg border border-border bg-card p-6">
+                <h3 className="mb-4 text-xl font-semibold text-foreground">7.2 Data Archiving</h3>
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Archive frequency</label>
-                    <select className="mt-1 w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                    <select className="mt-1 w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 bg-white dark:bg-gray-800 text-foreground">
                       <option>Daily</option>
                       <option>Weekly</option>
                       <option>Monthly</option>
@@ -392,7 +392,7 @@ export default function Settings2() {
                   </div>
                   <div>
                     <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Archive storage location</label>
-                    <input type="text" defaultValue="s3://backups/archive" className="mt-1 w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" />
+                    <input type="text" defaultValue="s3://backups/archive" className="mt-1 w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 bg-white dark:bg-gray-800 text-foreground" />
                   </div>
                   <label className="flex items-center gap-2">
                     <input type="checkbox" defaultChecked className="h-4 w-4" />
@@ -409,8 +409,8 @@ export default function Settings2() {
               <h2 className="text-3xl font-bold text-gray-900">5. Performance & System Limits</h2>
               <p className="text-gray-600 dark:text-gray-400">Prevent abuse or overload</p>
 
-              <div className="rounded-lg border border-border dark:border-border bg-card dark:bg-card p-6">
-                <h3 className="mb-4 text-xl font-semibold text-gray-900 dark:text-gray-100">8.1 Resource Limits</h3>
+              <div className="rounded-lg border border-border bg-card p-6">
+                <h3 className="mb-4 text-xl font-semibold text-foreground">8.1 Resource Limits</h3>
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Max concurrent automations</label>
@@ -435,8 +435,8 @@ export default function Settings2() {
                 </div>
               </div>
 
-              <div className="rounded-lg border border-border dark:border-border bg-card dark:bg-card p-6">
-                <h3 className="mb-4 text-xl font-semibold text-gray-900 dark:text-gray-100">8.2 Load Protection</h3>
+              <div className="rounded-lg border border-border bg-card p-6">
+                <h3 className="mb-4 text-xl font-semibold text-foreground">8.2 Load Protection</h3>
                 <div className="space-y-4">
                   <label className="flex items-center gap-2">
                     <input type="checkbox" defaultChecked className="h-4 w-4" />
@@ -462,11 +462,11 @@ export default function Settings2() {
           {/* 6. Notifications */}
           {activeTab === 'notifications' && (
             <div className="space-y-6">
-              <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">6. Notifications & Communication Settings</h2>
+              <h2 className="text-3xl font-bold text-foreground">6. Notifications & Communication Settings</h2>
               <p className="text-gray-600 dark:text-gray-400">Define how the system communicates</p>
 
-              <div className="rounded-lg border border-border dark:border-border bg-card dark:bg-card p-6">
-                <h3 className="mb-4 text-xl font-semibold text-gray-900 dark:text-gray-100">9.1 Notification Channels</h3>
+              <div className="rounded-lg border border-border bg-card p-6">
+                <h3 className="mb-4 text-xl font-semibold text-foreground">9.1 Notification Channels</h3>
                 <div className="space-y-3">
                   {['Email', 'SMS', 'In-app Notification', 'Webhook', 'Push'].map(channel => (
                     <div key={channel} className="flex items-center justify-between rounded-lg bg-gray-50 dark:bg-gray-800 p-4">
@@ -480,8 +480,8 @@ export default function Settings2() {
                 </div>
               </div>
 
-              <div className="rounded-lg border border-border dark:border-border bg-card dark:bg-card p-6">
-                <h3 className="mb-4 text-xl font-semibold text-gray-900 dark:text-gray-100">9.2 Alert/Notification Routing Defaults</h3>
+              <div className="rounded-lg border border-border bg-card p-6">
+                <h3 className="mb-4 text-xl font-semibold text-foreground">9.2 Alert/Notification Routing Defaults</h3>
                 <div className="space-y-3">
                   {[
                     { alert: 'Critical alarms', route: 'NOC Team' },
@@ -511,7 +511,7 @@ export default function Settings2() {
               <h2 className="text-3xl font-bold text-gray-900">7. Automation Guardrails</h2>
               <p className="text-gray-600 dark:text-gray-400">System-wide safety rules stronger than tenant-level rules</p>
 
-              <div className="rounded-lg border border-border dark:border-border bg-card dark:bg-card p-6">
+              <div className="rounded-lg border border-border bg-card p-6">
                 <div className="space-y-4">
                   <label className="flex items-center gap-3 p-4 rounded-lg bg-gray-50 dark:bg-gray-800">
                     <input type="checkbox" defaultChecked className="h-4 w-4" />
@@ -540,8 +540,8 @@ export default function Settings2() {
               <h2 className="text-3xl font-bold text-gray-900">8. Environment & Deployment Settings</h2>
               <p className="text-gray-600 dark:text-gray-400">Control deployment modes and feature flags</p>
 
-              <div className="rounded-lg border border-border dark:border-border bg-card dark:bg-card p-6">
-                <h3 className="mb-4 text-xl font-semibold text-gray-900 dark:text-gray-100">11.1 Feature Flags</h3>
+              <div className="rounded-lg border border-border bg-card p-6">
+                <h3 className="mb-4 text-xl font-semibold text-foreground">11.1 Feature Flags</h3>
                 <div className="space-y-3">
                   {['AI experimental features', 'New topology rendering engine', 'Beta report builder', 'Advanced scripting mode'].map(flag => (
                     <div key={flag} className="flex items-center justify-between rounded-lg bg-gray-50 dark:bg-gray-800 p-4">
@@ -563,12 +563,12 @@ export default function Settings2() {
               <h2 className="text-3xl font-bold text-gray-900">9. Backup & Recovery Settings</h2>
               <p className="text-gray-600 dark:text-gray-400">Define recovery behavior and backup policies</p>
 
-              <div className="rounded-lg border border-border dark:border-border bg-card dark:bg-card p-6">
-                <h3 className="mb-4 text-xl font-semibold text-gray-900 dark:text-gray-100">12.1 Backup Configuration</h3>
+              <div className="rounded-lg border border-border bg-card p-6">
+                <h3 className="mb-4 text-xl font-semibold text-foreground">12.1 Backup Configuration</h3>
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Backup frequency</label>
-                    <select className="mt-1 w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                    <select className="mt-1 w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 bg-white dark:bg-gray-800 text-foreground">
                       <option>Hourly</option>
                       <option>Daily</option>
                       <option>Weekly</option>
@@ -593,8 +593,8 @@ export default function Settings2() {
                 </div>
               </div>
 
-              <div className="rounded-lg border border-border dark:border-border bg-card dark:bg-card p-6">
-                <h3 className="mb-4 text-xl font-semibold text-gray-900 dark:text-gray-100">12.2 Disaster Recovery Mode</h3>
+              <div className="rounded-lg border border-border bg-card p-6">
+                <h3 className="mb-4 text-xl font-semibold text-foreground">12.2 Disaster Recovery Mode</h3>
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Secondary site configuration</label>
@@ -616,8 +616,8 @@ export default function Settings2() {
               <h2 className="text-3xl font-bold text-gray-900">10. Branding & UI Customization</h2>
               <p className="text-gray-600 dark:text-gray-400">Configure platform branding and UI settings</p>
 
-              <div className="rounded-lg border border-border dark:border-border bg-card dark:bg-card p-6">
-                <h3 className="mb-4 text-xl font-semibold text-gray-900 dark:text-gray-100">13. Branding & UI Customization</h3>
+              <div className="rounded-lg border border-border bg-card p-6">
+                <h3 className="mb-4 text-xl font-semibold text-foreground">13. Branding & UI Customization</h3>
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Logo</label>
@@ -649,8 +649,8 @@ export default function Settings2() {
               <h2 className="text-3xl font-bold text-gray-900">11. Audit & Change Control</h2>
               <p className="text-gray-600 dark:text-gray-400">Track all setting changes with full audit trail</p>
 
-              <div className="rounded-lg border border-border dark:border-border bg-card dark:bg-card p-6">
-                <h3 className="mb-4 text-xl font-semibold text-gray-900 dark:text-gray-100">14. Settings Audit & Change Control</h3>
+              <div className="rounded-lg border border-border bg-card p-6">
+                <h3 className="mb-4 text-xl font-semibold text-foreground">14. Settings Audit & Change Control</h3>
                 <div className="mb-6 space-y-3">
                   <p className="text-sm text-gray-600 dark:text-gray-400">Every setting change logs:</p>
                   <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300 list-disc list-inside">
@@ -672,7 +672,7 @@ export default function Settings2() {
                   ].map((entry, idx) => (
                     <div key={idx} className="flex items-center justify-between rounded-lg bg-gray-50 dark:bg-gray-800 p-3">
                       <div className="text-sm">
-                        <p className="font-semibold text-gray-900 dark:text-gray-100">{entry.action}</p>
+                        <p className="font-semibold text-foreground">{entry.action}</p>
                         <p className="text-xs text-gray-500 dark:text-gray-500">{entry.user} • {entry.time}</p>
                       </div>
                       <span className={`text-xs font-semibold px-2 py-1 rounded ${
@@ -690,13 +690,13 @@ export default function Settings2() {
           {/* 12. Permissions & Access */}
           {activeTab === 'permissions' && (
             <div className="space-y-6">
-              <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">12. Permissions & Access Control</h2>
+              <h2 className="text-3xl font-bold text-foreground">12. Permissions & Access Control</h2>
               <p className="text-gray-600 dark:text-gray-400">Granular admin role permissions for settings</p>
 
-              <div className="rounded-lg border border-border dark:border-border bg-card dark:bg-card overflow-x-auto">
+              <div className="rounded-lg border border-border bg-card overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-border dark:border-border bg-gray-50 dark:bg-gray-800">
+                    <tr className="border-b border-border bg-gray-50 dark:bg-gray-800">
                       <th className="px-6 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Role</th>
                       <th className="px-6 py-3 text-center font-semibold text-gray-700 dark:text-gray-300">View</th>
                       <th className="px-6 py-3 text-center font-semibold text-gray-700 dark:text-gray-300">Edit</th>
@@ -711,8 +711,8 @@ export default function Settings2() {
                       { role: 'Performance Admin', view: true, edit: true, approve: false },
                       { role: 'Read-Only Settings Viewer', view: true, edit: false, approve: false }
                     ].map(row => (
-                      <tr key={row.role} className="border-b border-border dark:border-border">
-                        <td className="px-6 py-3 font-semibold text-gray-900 dark:text-gray-100">{row.role}</td>
+                      <tr key={row.role} className="border-b border-border">
+                        <td className="px-6 py-3 font-semibold text-foreground">{row.role}</td>
                         <td className="px-6 py-3 text-center">
                           {row.view ? <CheckCircle className="w-4 h-4 text-green-600 mx-auto" /> : <XCircle className="w-4 h-4 text-gray-400 mx-auto" />}
                         </td>
@@ -731,7 +731,7 @@ export default function Settings2() {
           )}
 
           {/* Footer */}
-          <div className="mt-12 flex gap-3 border-t border-border dark:border-border pt-6">
+          <div className="mt-12 flex gap-3 border-t border-border pt-6">
             <button
               onClick={handleSave}
               className="flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-2 text-white hover:bg-blue-700"

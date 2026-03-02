@@ -303,10 +303,10 @@ export const AlarmManagement: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-50">
+      <div className="flex items-center justify-center h-screen bg-background">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 font-medium">Loading alarms...</p>
+          <p className="text-muted-foreground font-medium">Loading alarms...</p>
         </div>
       </div>
     );
@@ -325,7 +325,7 @@ export const AlarmManagement: React.FC = () => {
   const incidentRegion = filteredAlarms.length > 0 ? filteredAlarms[0].hierarchy.region : null;
 
   return (
-    <div className="flex flex-col h-screen bg-background dark:bg-background">
+    <div className="flex flex-col h-screen bg-background">
       {/* Top banner with mode indicator */}
       <div className={`${
         timeMode === 'snapshot' ? 'bg-blue-100 dark:bg-blue-950 border-b-2 border-blue-500' :
@@ -333,7 +333,7 @@ export const AlarmManagement: React.FC = () => {
         'bg-green-100 dark:bg-green-950 border-b-2 border-green-500'
       } px-4 py-2`}>
         <div className="flex items-center justify-between max-w-full gap-4">
-          <h1 className="text-xs font-bold text-gray-900 dark:text-gray-100 whitespace-nowrap">
+          <h1 className="text-xs font-bold text-foreground whitespace-nowrap">
             {getModeBannerText({ mode: timeMode, lastRefresh, isRefreshing, isPaused } as any)}
           </h1>
           <div className="text-xs font-semibold whitespace-nowrap overflow-x-auto flex gap-4">
@@ -395,9 +395,9 @@ export const AlarmManagement: React.FC = () => {
       )}
 
       {/* Main layout */}
-      <div className="flex flex-1 overflow-hidden gap-3 p-3 bg-background dark:bg-background">
+      <div className="flex flex-1 overflow-hidden gap-3 p-3 bg-background">
         {/* Sidebar */}
-        <div className="w-72 flex flex-col gap-3 overflow-y-auto bg-card dark:bg-card rounded-lg">
+        <div className="w-72 flex flex-col gap-3 overflow-y-auto bg-card rounded-lg">
           {/* Time mode switcher */}
           <TimeModeSwitcher
             currentMode={timeMode}
@@ -444,14 +444,14 @@ export const AlarmManagement: React.FC = () => {
           )}
 
           {filteredAlarms.length === 0 ? (
-            <div className="flex items-center justify-center flex-1 bg-card dark:bg-card rounded-lg border border-border dark:border-border">
+            <div className="flex items-center justify-center flex-1 bg-card rounded-lg border border-border">
               <div className="text-center">
                 <p className="text-foreground dark:text-foreground font-medium mb-2">No alarms found</p>
                 <p className="text-muted-foreground dark:text-muted-foreground text-sm">Try adjusting your filters</p>
               </div>
             </div>
           ) : (
-            <div className="bg-card dark:bg-card rounded-lg border border-border dark:border-border overflow-hidden flex flex-col">
+            <div className="bg-card rounded-lg border border-border overflow-hidden flex flex-col">
               <AlarmTable
                 alarms={filteredAlarms}
                 expertMode={expertMode}
@@ -472,7 +472,7 @@ export const AlarmManagement: React.FC = () => {
 
       {/* Show full details page if requested */}
       {viewFullDetails && inspectionAlarm && (
-        <div className="fixed inset-0 bg-background dark:bg-background z-50 overflow-auto">
+        <div className="fixed inset-0 bg-background z-50 overflow-auto">
           <AlarmDetailsPage alarm={inspectionAlarm} />
           <button
             onClick={() => setViewFullDetails(false)}
