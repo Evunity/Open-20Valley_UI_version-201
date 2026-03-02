@@ -29,6 +29,8 @@ interface AnalyticsFilterPanelProps {
   onFiltersChange: (filters: AnalyticsFilters) => void;
 }
 
+type TimeRangeMode = "preset" | "manual";
+
 export default function AnalyticsFilterPanel({
   filters,
   onFiltersChange,
@@ -41,6 +43,7 @@ export default function AnalyticsFilterPanel({
     scope: false,
     time: false,
   });
+  const [timeRangeMode, setTimeRangeMode] = useState<TimeRangeMode>("preset");
 
   // Get available options based on current selections (hierarchical dependencies)
   const availableOptions = useMemo(() => {
@@ -116,7 +119,7 @@ export default function AnalyticsFilterPanel({
     "Quality",
     "Traffic",
   ];
-  const allScopes: KPIScope[] = ["Network", "Region", "Cluster", "Site", "Node", "Cell", "Interface"];
+  const allScopes: KPIScope[] = ["Network", "Region", "Cluster", "Site", "Cell"];
 
   const hasActiveFilters =
     filters.technologies.length > 0 ||
@@ -128,7 +131,7 @@ export default function AnalyticsFilterPanel({
   return (
     <div className="bg-card border border-border rounded-lg p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-bold text-foreground">Global Filters</h3>
+        <h3 className="text-lg font-bold text-foreground">Create KPI</h3>
         {hasActiveFilters && (
           <button
             onClick={handleClearAll}
@@ -298,38 +301,101 @@ export default function AnalyticsFilterPanel({
         onToggle={toggleSection}
       >
         <div className="space-y-3">
-          <div>
-            <label className="text-xs font-semibold text-muted-foreground block mb-1">
-              From
-            </label>
-            <input
-              type="date"
-              value={filters.timeRange.from}
-              onChange={(e) =>
-                onFiltersChange({
-                  ...filters,
-                  timeRange: { ...filters.timeRange, from: e.target.value },
-                })
-              }
-              className="w-full px-2 py-1 rounded border border-border text-sm text-foreground"
-            />
+          {/* Time Range Mode Toggle */}
+          <div className="flex gap-2 mb-3">
+            <button
+              onClick={() => setTimeRangeMode("preset")}
+              className={cn(
+                "flex-1 px-3 py-2 rounded text-sm font-medium transition-colors",
+                timeRangeMode === "preset"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-foreground hover:bg-muted/80"
+              )}
+            >
+              Preset
+            </button>
+            <button
+              onClick={() => setTimeRangeMode("manual")}
+              className={cn(
+                "flex-1 px-3 py-2 rounded text-sm font-medium transition-colors",
+                timeRangeMode === "manual"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-foreground hover:bg-muted/80"
+              )}
+            >
+              Manual
+            </button>
           </div>
-          <div>
-            <label className="text-xs font-semibold text-muted-foreground block mb-1">
-              To
-            </label>
-            <input
-              type="date"
-              value={filters.timeRange.to}
-              onChange={(e) =>
-                onFiltersChange({
-                  ...filters,
-                  timeRange: { ...filters.timeRange, to: e.target.value },
-                })
-              }
-              className="w-full px-2 py-1 rounded border border-border text-sm text-foreground"
-            />
-          </div>
+
+          {/* Preset Range Options */}
+          {timeRangeMode === "preset" && (
+            <div className="space-y-2">
+              {[
+                { label: "Last Day", days: 1 },
+                { label: "Last 7 Days", days: 7 },
+                { label: "Last 30 Days", days: 30 },
+                { label: "Last 3 Months", days: 90 },
+                { label: "Last 6 Months", days: 180 },
+              ].map(({ label, days }) => (
+                <button
+                  key={days}
+                  onClick={() => {
+                    const to = new Date().toISOString().split("T")[0];
+                    const from = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
+                      .toISOString()
+                      .split("T")[0];
+                    onFiltersChange({
+                      ...filters,
+                      timeRange: { from, to },
+                    });
+                  }}
+                  className="w-full px-3 py-2 rounded border border-border text-sm font-medium text-foreground hover:bg-muted/50 transition-colors text-left"
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Manual Range Options */}
+          {timeRangeMode === "manual" && (
+            <>
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground block mb-1">
+                  From
+                </label>
+                <input
+                  type="date"
+                  value={filters.timeRange.from}
+                  onChange={(e) =>
+                    onFiltersChange({
+                      ...filters,
+                      timeRange: { ...filters.timeRange, from: e.target.value },
+                    })
+                  }
+                  className="w-full px-2 py-1 rounded border border-border text-sm text-foreground"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground block mb-1">
+                  To
+                </label>
+                <input
+                  type="date"
+                  value={filters.timeRange.to}
+                  onChange={(e) =>
+                    onFiltersChange({
+                      ...filters,
+                      timeRange: { ...filters.timeRange, to: e.target.value },
+                    })
+                  }
+                  className="w-full px-2 py-1 rounded border border-border text-sm text-foreground"
+                />
+              </div>
+            </>
+          )}
+
+          {/* Granularity - Only Hourly and Daily */}
           <div>
             <label className="text-xs font-semibold text-muted-foreground block mb-1">
               Granularity
@@ -346,8 +412,6 @@ export default function AnalyticsFilterPanel({
             >
               <option value="1H">Hourly</option>
               <option value="1D">Daily</option>
-              <option value="1W">Weekly</option>
-              <option value="1M">Monthly</option>
             </select>
           </div>
         </div>

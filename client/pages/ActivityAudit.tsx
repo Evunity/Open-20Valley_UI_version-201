@@ -125,12 +125,7 @@ export default function ActivityAudit() {
       <div className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-40">
         <div className="px-8 py-6">
           <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">Activity & Audit</h1>
-              <p className="text-muted-foreground">
-                Forensic Traceability | Security Visibility | Compliance Intelligence
-              </p>
-            </div>
+            <div></div>
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-background">
                 <span className="text-xs font-semibold text-muted-foreground">MODE:</span>

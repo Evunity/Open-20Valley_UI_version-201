@@ -22,6 +22,7 @@ export default function KPISelector({
 }: KPISelectorProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [showSelector, setShowSelector] = useState(false);
+  const [isGenerated, setIsGenerated] = useState(false);
 
   // Filter KPIs based on current filters
   const availableKPIs = useMemo(() => {
@@ -51,72 +52,87 @@ export default function KPISelector({
   };
 
   return (
-    <div className="bg-card border border-border rounded-lg p-6 space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-bold text-foreground">Selected KPIs</h3>
-        {selectedKPIs.length > 0 && (
-          <button
-            onClick={handleClearAll}
-            className="text-xs px-2 py-1 rounded bg-red-100 text-red-700 hover:bg-red-200 transition-colors"
-          >
-            Clear All
-          </button>
-        )}
-      </div>
-
-      {/* Selected KPIs */}
-      {selectedKPIs.length > 0 ? (
-        <div className="space-y-2">
-          {selectedKPIs.map((kpi) => (
-            <div
-              key={kpi.id}
-              className="flex items-center justify-between p-3 rounded border border-border/50 bg-muted/30 hover:bg-muted/50 transition-colors"
-            >
-              <div className="flex-1 min-w-0">
-                <h4 className="font-medium text-foreground text-sm">{kpi.name}</h4>
-                <div className="flex gap-2 mt-1 flex-wrap">
-                  <span className="text-xs px-2 py-0.5 rounded bg-primary/10 text-primary">
-                    {kpi.category}
-                  </span>
-                  <span className="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700">
-                    {kpi.technology}
-                  </span>
-                  <span className="text-xs px-2 py-0.5 rounded bg-purple-100 text-purple-700">
-                    {kpi.domain}
-                  </span>
-                  <span className="text-xs px-2 py-0.5 rounded bg-amber-100 text-amber-700">
-                    {kpi.vendor}
-                  </span>
-                  <span className="text-xs text-muted-foreground">{kpi.unit}</span>
-                </div>
-              </div>
-              <button
-                onClick={() => handleRemoveKPI(kpi.id)}
-                className="ml-2 p-1 rounded hover:bg-red-100 text-red-600 transition-colors"
-                title="Remove KPI"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <p className="text-sm text-muted-foreground text-center py-4">
-          No KPIs selected. Click below to add KPIs.
-        </p>
+    <div className="space-y-4">
+      {/* Generate Button */}
+      {!isGenerated && (
+        <button
+          onClick={() => setIsGenerated(true)}
+          className="w-full px-4 py-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-semibold"
+        >
+          Generate Selected KPIs
+        </button>
       )}
 
-      {/* Add KPI Button */}
-      <button
-        onClick={() => setShowSelector(!showSelector)}
-        className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-dashed border-primary bg-primary/5 hover:bg-primary/10 transition-colors text-primary font-medium"
-      >
-        <Plus className="w-4 h-4" />
-        Add KPIs
-      </button>
+      {/* Selected KPIs Panel - Only show after Generate */}
+      {isGenerated && (
+        <div className="bg-card border border-border rounded-lg p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-bold text-foreground">Selected KPIs</h3>
+            {selectedKPIs.length > 0 && (
+              <button
+                onClick={handleClearAll}
+                className="text-xs px-2 py-1 rounded bg-red-100 text-red-700 hover:bg-red-200 transition-colors"
+              >
+                Clear All
+              </button>
+            )}
+          </div>
 
-      {/* KPI Selector Modal */}
-      {showSelector && (
+          {/* Selected KPIs */}
+          {selectedKPIs.length > 0 ? (
+            <div className="space-y-2">
+              {selectedKPIs.map((kpi) => (
+                <div
+                  key={kpi.id}
+                  className="flex items-center justify-between p-3 rounded border border-border/50 bg-muted/30 hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium text-foreground text-sm">{kpi.name}</h4>
+                    <div className="flex gap-2 mt-1 flex-wrap">
+                      <span className="text-xs px-2 py-0.5 rounded bg-primary/10 text-primary">
+                        {kpi.category}
+                      </span>
+                      <span className="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700">
+                        {kpi.technology}
+                      </span>
+                      <span className="text-xs px-2 py-0.5 rounded bg-purple-100 text-purple-700">
+                        {kpi.domain}
+                      </span>
+                      <span className="text-xs px-2 py-0.5 rounded bg-amber-100 text-amber-700">
+                        {kpi.vendor}
+                      </span>
+                      <span className="text-xs text-muted-foreground">{kpi.unit}</span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleRemoveKPI(kpi.id)}
+                    className="ml-2 p-1 rounded hover:bg-red-100 text-red-600 transition-colors"
+                    title="Remove KPI"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-4">
+              No KPIs selected. Click below to add KPIs.
+            </p>
+          )}
+
+          {/* Add KPI Button */}
+          <button
+            onClick={() => setShowSelector(!showSelector)}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-dashed border-primary bg-primary/5 hover:bg-primary/10 transition-colors text-primary font-medium"
+          >
+            <Plus className="w-4 h-4" />
+            Add KPIs
+          </button>
+        </div>
+      )}
+
+      {/* KPI Selector Modal - Only show after Generate */}
+      {isGenerated && showSelector && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-card rounded-lg border border-border max-w-2xl w-full max-h-[80vh] overflow-auto">
             <div className="sticky top-0 bg-card border-b border-border p-4 space-y-4">

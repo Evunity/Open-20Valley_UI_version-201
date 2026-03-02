@@ -110,14 +110,9 @@ export default function AnalyticsManagement() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Header Buttons */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Analytics Management</h1>
-          <p className="text-muted-foreground mt-1">
-            Analyze performance trends, detect degradation, and compare across regions and vendors
-          </p>
-        </div>
+        <div />
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowSavedViews(!showSavedViews)}
@@ -241,9 +236,9 @@ export default function AnalyticsManagement() {
       )}
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="flex gap-6">
         {/* Left Sidebar - Filters and KPIs */}
-        <div className="lg:col-span-1 space-y-6">
+        <div className="w-64 flex-shrink-0 space-y-6">
           <AnalyticsFilterPanel filters={filters} onFiltersChange={setFilters} />
           <KPISelector
             selectedKPIs={selectedKPIs}
@@ -258,7 +253,7 @@ export default function AnalyticsManagement() {
         </div>
 
         {/* Main Content Area */}
-        <div className="lg:col-span-3 space-y-6">
+        <div className="flex-1 space-y-6">
           {/* Scope Navigation */}
           <div className="bg-card border border-border rounded-lg p-4">
             <h3 className="text-sm font-semibold text-muted-foreground mb-3">Analysis Scope</h3>

@@ -245,12 +245,7 @@ export default function ReportsModule() {
       <div className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-40">
         <div className="px-8 py-6">
           <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">Reports Module</h1>
-              <p className="text-muted-foreground">
-                Enterprise Reporting | Regulatory Intelligence | Decision Acceleration | Strategic Visibility
-              </p>
-            </div>
+            <div></div>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setViewMode(viewMode === 'grid' ? 'details' : 'grid')}

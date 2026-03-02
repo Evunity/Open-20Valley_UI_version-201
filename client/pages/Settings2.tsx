@@ -49,9 +49,7 @@ export default function Settings2() {
   return (
     <div className="flex h-full flex-col bg-background">
       {/* Header */}
-      <div className="border-b border-border bg-card px-8 py-8">
-        <h1 className="text-4xl font-bold text-foreground">Settings Module</h1>
-        <p className="mt-2 text-gray-600 dark:text-gray-400">OSS-Level Master Specification - Platform Configuration, System Controls & Operational Guardrails</p>
+      <div className="border-b border-border bg-card px-8 py-4">
       </div>
 
       {/* Tab Navigation - Horizontal Scrollable */}

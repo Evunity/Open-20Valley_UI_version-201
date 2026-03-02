@@ -190,11 +190,7 @@ export default function AccessControl() {
             <div>
               <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
                 <Lock className="w-8 h-8 text-primary" />
-                Access Control
               </h1>
-              <p className="text-muted-foreground">
-                Multi-Tenant Governance | Identity Control | Zero-Trust Security
-              </p>
             </div>
             <div className="flex items-center gap-2">
               <button
