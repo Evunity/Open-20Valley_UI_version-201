@@ -20,6 +20,7 @@ import { AlarmStormProtection, detectAlarmStorm, useAlarmStormView } from '../co
 import { AlarmBulkOperations } from '../components/AlarmBulkOperations';
 import { AlarmSideInspectionPanel } from '../components/AlarmSideInspectionPanel';
 import { AlarmDetailsPage } from './AlarmDetailsPage';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export const AlarmManagement: React.FC = () => {
   // State management
@@ -28,6 +29,7 @@ export const AlarmManagement: React.FC = () => {
   const [selectedAlarm, setSelectedAlarm] = useState<Alarm | null>(null);
   const [expertMode, setExpertMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Time mode state
   const [timeMode, setTimeMode] = useState<TimeMode>('live');
@@ -61,7 +63,7 @@ export const AlarmManagement: React.FC = () => {
   // Alarm storm state
   const { view: stormView, setView: setStormView } = useAlarmStormView();
   const [dismissStormBanner, setDismissStormBanner] = useState(false);
-  const isStormActive = detectAlarmStorm(allAlarms.length, 3, 50); // threshold: 50 for demo
+  const isStormActive = detectAlarmStorm(allAlarms.length, 3, 50);
 
   // Bulk operations state
   const [selectedAlarmIds, setSelectedAlarmIds] = useState<Set<string>>(new Set());
@@ -81,34 +83,28 @@ export const AlarmManagement: React.FC = () => {
   useEffect(() => {
     let filtered = [...allAlarms];
 
-    // Apply severity filter
     if (filters.severity.length > 0) {
       filtered = filtered.filter(alarm => filters.severity.includes(alarm.severity));
     }
 
-    // Apply alarm type filter
     if (filters.alarmType.length > 0) {
       filtered = filtered.filter(alarm => filters.alarmType.includes(alarm.alarmType));
     }
 
-    // Apply category filter
     if (filters.category.length > 0) {
       filtered = filtered.filter(alarm => filters.category.includes(alarm.category));
     }
 
-    // Apply technology filter
     if (filters.technologies.length > 0) {
       filtered = filtered.filter(alarm =>
         alarm.technologies.some(tech => filters.technologies.includes(tech))
       );
     }
 
-    // Apply source system filter
     if (filters.sourceSystem.length > 0) {
       filtered = filtered.filter(alarm => filters.sourceSystem.includes(alarm.sourceSystem));
     }
 
-    // Apply search filter
     if (filters.searchText) {
       const searchLower = filters.searchText.toLowerCase();
       filtered = filtered.filter(alarm =>
@@ -119,7 +115,6 @@ export const AlarmManagement: React.FC = () => {
       );
     }
 
-    // Apply acknowledgment filters
     if (filters.showAcknowledgedOnly) {
       filtered = filtered.filter(alarm => alarm.acknowledged);
     }
@@ -127,7 +122,6 @@ export const AlarmManagement: React.FC = () => {
       filtered = filtered.filter(alarm => !alarm.acknowledged);
     }
 
-    // Apply hierarchy filters
     if (hierarchyFilters.region) {
       filtered = filtered.filter(alarm => alarm.hierarchy.region === hierarchyFilters.region);
     }
@@ -143,7 +137,6 @@ export const AlarmManagement: React.FC = () => {
 
     setFilteredAlarms(filtered);
     
-    // Deselect alarm if it's filtered out
     if (selectedAlarm && !filtered.find(a => a.globalAlarmId === selectedAlarm.globalAlarmId)) {
       setSelectedAlarm(null);
     }
@@ -156,7 +149,6 @@ export const AlarmManagement: React.FC = () => {
     setIsPaused(false);
     setLastRefresh(getCurrentTimeFormatted());
     
-    // Stop current refresh if any
     if (refreshIntervalRef.current) {
       clearInterval(refreshIntervalRef.current);
       refreshIntervalRef.current = null;
@@ -168,12 +160,10 @@ export const AlarmManagement: React.FC = () => {
     if (timeMode !== 'live' || isPaused) return;
     
     setIsRefreshing(true);
-    // Simulate API call
     setTimeout(() => {
       setLastRefresh(getCurrentTimeFormatted());
       setIsRefreshing(false);
       
-      // Update alarm durations
       setAllAlarms(alarms =>
         alarms.map(alarm => ({
           ...alarm,
@@ -183,7 +173,7 @@ export const AlarmManagement: React.FC = () => {
     }, 500);
   }, [timeMode, isPaused]);
 
-  // Set up auto-refresh for live mode
+  // Set up auto-refresh
   useEffect(() => {
     if (timeMode !== 'live') {
       if (refreshIntervalRef.current) {
@@ -193,13 +183,10 @@ export const AlarmManagement: React.FC = () => {
       return;
     }
 
-    // Initial refresh
     refreshData();
-
-    // Set up interval
     refreshIntervalRef.current = setInterval(() => {
       refreshData();
-    }, 5000); // 5 seconds
+    }, 5000);
 
     return () => {
       if (refreshIntervalRef.current) {
@@ -305,7 +292,7 @@ export const AlarmManagement: React.FC = () => {
     return (
       <div className="flex items-center justify-center h-screen bg-background">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-muted-foreground font-medium">Loading alarms...</p>
         </div>
       </div>
@@ -316,72 +303,73 @@ export const AlarmManagement: React.FC = () => {
   const summaryStats = {
     critical: filteredAlarms.filter(a => a.severity === 'critical').length,
     major: filteredAlarms.filter(a => a.severity === 'major').length,
+    minor: filteredAlarms.filter(a => a.severity === 'minor').length,
     unacknowledged: filteredAlarms.filter(a => !a.acknowledged).length,
     total: filteredAlarms.length
   };
 
-  // Incident mode state
   const isIncidentMode = summaryStats.critical >= 5 || summaryStats.major >= 10;
   const incidentRegion = filteredAlarms.length > 0 ? filteredAlarms[0].hierarchy.region : null;
 
   return (
     <div className="flex flex-col h-screen bg-background">
-      {/* Top banner with mode indicator */}
-      <div className={`${
-        timeMode === 'snapshot' ? 'bg-blue-100 dark:bg-blue-950 border-b-2 border-blue-500' :
-        timeMode === 'historical' ? 'bg-purple-100 dark:bg-purple-950 border-b-2 border-purple-500' :
-        'bg-green-100 dark:bg-green-950 border-b-2 border-green-500'
-      } px-4 py-2`}>
-        <div className="flex items-center justify-between max-w-full gap-4">
-          <h1 className="text-xs font-bold text-foreground whitespace-nowrap">
-            {getModeBannerText({ mode: timeMode, lastRefresh, isRefreshing, isPaused } as any)}
-          </h1>
-          <div className="text-xs font-semibold whitespace-nowrap overflow-x-auto flex gap-4">
+      {/* Compact Top Bar */}
+      <div className="border-b border-border bg-card">
+        <div className="flex items-center justify-between px-4 py-3 gap-4">
+          {/* Mode and Status */}
+          <div className="flex items-center gap-3 flex-1">
+            <div className={`flex items-center gap-2 px-3 py-1.5 rounded text-xs font-semibold ${
+              timeMode === 'snapshot' ? 'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300' :
+              timeMode === 'historical' ? 'bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300' :
+              'bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300'
+            }`}>
+              <span className={`w-2 h-2 rounded-full ${
+                timeMode === 'live' ? 'bg-green-600' : 'bg-gray-600'
+              }`}></span>
+              {timeMode.toUpperCase()}
+            </div>
+            <span className="text-xs text-muted-foreground">{lastRefresh}</span>
+          </div>
+
+          {/* Alarm Counts */}
+          <div className="flex items-center gap-4 text-sm">
             {summaryStats.critical > 0 && (
-              <span className="text-red-700 dark:text-red-400">
-                🔴 {summaryStats.critical}
-              </span>
+              <div className="flex items-center gap-1">
+                <span className="w-2.5 h-2.5 rounded-full bg-red-600"></span>
+                <span className="font-semibold text-red-700 dark:text-red-400">{summaryStats.critical}</span>
+              </div>
             )}
             {summaryStats.major > 0 && (
-              <span className="text-orange-700 dark:text-orange-400">
-                🟠 {summaryStats.major}
-              </span>
+              <div className="flex items-center gap-1">
+                <span className="w-2.5 h-2.5 rounded-full bg-orange-600"></span>
+                <span className="font-semibold text-orange-700 dark:text-orange-400">{summaryStats.major}</span>
+              </div>
             )}
-            <span className="text-gray-700 dark:text-gray-300">
-              {summaryStats.total}
-            </span>
+            {summaryStats.minor > 0 && (
+              <div className="flex items-center gap-1">
+                <span className="w-2.5 h-2.5 rounded-full bg-yellow-600"></span>
+                <span className="font-semibold text-yellow-700 dark:text-yellow-400">{summaryStats.minor}</span>
+              </div>
+            )}
+            <div className="border-l border-border pl-4">
+              <span className="text-foreground font-medium">{summaryStats.total} Total</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Alarm Overview Widgets */}
-      <div className="px-4 pt-3">
-        <AlarmOverviewWidgets
-          faultIndex={Math.round((summaryStats.critical / Math.max(summaryStats.total, 1)) * 100)}
-          sitesImpacted={Math.floor(Math.random() * 20 + 5)}
-          cellsImpacted={Math.floor(Math.random() * 50 + 10)}
-          estimatedSubscribers={Math.floor(Math.random() * 5000 + 100)}
-          technologiesAffected={['4G', '5G', '3G']}
-          clearRate={Math.floor(Math.random() * 40 + 60)}
-          clearRateTrend={Math.random() > 0.5 ? 'improving' : 'worsening'}
-          onWidgetClick={(widget) => console.log(`Widget clicked: ${widget}`)}
-        />
-      </div>
-
-      {/* Incident Mode Banner */}
-      {isIncidentMode && (
-        <div className="relative z-10 bg-red-600 text-white px-4 py-2 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-lg">🚨</span>
-            <h2 className="text-sm font-bold">MAJOR INCIDENT ACTIVE — {incidentRegion || 'Network'}</h2>
+        {/* Incident Banner */}
+        {isIncidentMode && (
+          <div className="bg-gradient-to-r from-red-600 to-red-700 text-white px-4 py-2 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">🚨</span>
+              <span className="font-bold">MAJOR INCIDENT — {incidentRegion || 'Network'}</span>
+            </div>
+            <span className="text-xs font-semibold">Critical: {summaryStats.critical} | Major: {summaryStats.major}</span>
           </div>
-          <p className="text-xs opacity-90">
-            Critical: {summaryStats.critical} | Major: {summaryStats.major}
-          </p>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* Alarm Storm Protection */}
+      {/* Alarm Storm Banner */}
       {isStormActive && !dismissStormBanner && (
         <AlarmStormProtection
           isStormDetected={true}
@@ -394,64 +382,76 @@ export const AlarmManagement: React.FC = () => {
         />
       )}
 
-      {/* Main layout */}
-      <div className="flex flex-1 overflow-hidden gap-3 p-3 bg-background">
-        {/* Sidebar */}
-        <div className="w-72 flex flex-col gap-3 overflow-y-auto bg-card rounded-lg">
-          {/* Time mode switcher */}
-          <TimeModeSwitcher
-            currentMode={timeMode}
-            isRefreshing={isRefreshing}
-            isPaused={isPaused}
-            lastRefresh={lastRefresh}
-            onModeChange={handleModeChange}
-            onPauseToggle={() => setIsPaused(!isPaused)}
-          />
-
-          {/* Expert mode toggle */}
-          <ExpertModeToggle
-            enabled={expertMode}
-            onToggle={setExpertMode}
-          />
-
-          {/* Object hierarchy */}
-          {filteredAlarms.length > 0 && (
-            <ObjectHierarchy
-              hierarchy={filteredAlarms[0].hierarchy}
-              onHierarchyFilter={handleHierarchyFilter}
-              currentFilters={hierarchyFilters}
+      {/* Main Layout */}
+      <div className="flex flex-1 overflow-hidden gap-0 bg-background">
+        {/* Left Sidebar - Collapsible */}
+        <div className={`transition-all duration-200 flex flex-col bg-card border-r border-border overflow-hidden ${
+          sidebarCollapsed ? 'w-0' : 'w-80'
+        }`}>
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <TimeModeSwitcher
+              currentMode={timeMode}
+              isRefreshing={isRefreshing}
+              isPaused={isPaused}
+              lastRefresh={lastRefresh}
+              onModeChange={handleModeChange}
+              onPauseToggle={() => setIsPaused(!isPaused)}
             />
-          )}
 
-          {/* Filter panel */}
-          <AlarmFilterPanel
-            onFiltersChange={setFilters}
-          />
+            <ExpertModeToggle
+              enabled={expertMode}
+              onToggle={setExpertMode}
+            />
+
+            {filteredAlarms.length > 0 && (
+              <ObjectHierarchy
+                hierarchy={filteredAlarms[0].hierarchy}
+                onHierarchyFilter={handleHierarchyFilter}
+                currentFilters={hierarchyFilters}
+              />
+            )}
+
+            <AlarmFilterPanel
+              onFiltersChange={setFilters}
+            />
+          </div>
         </div>
 
-        {/* Main content - Alarm table */}
-        <div className="flex-1 flex flex-col min-w-0">
-          {/* Bulk operations bar */}
+        {/* Sidebar Toggle Button */}
+        <button
+          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+          className="w-8 flex items-center justify-center hover:bg-muted transition-colors border-r border-border"
+          title={sidebarCollapsed ? "Show filters" : "Hide filters"}
+        >
+          {sidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+        </button>
+
+        {/* Main Alarm List Area */}
+        <div className="flex-1 flex flex-col overflow-hidden p-4 gap-4">
+          {/* Bulk Operations Bar */}
           {selectedAlarmIds.size > 0 && (
-            <AlarmBulkOperations
-              selectedAlarms={filteredAlarms.filter(a => selectedAlarmIds.has(a.globalAlarmId))}
-              onAcknowledge={handleBulkAcknowledge}
-              onAssign={handleBulkAssign}
-              onAddComment={handleBulkAddComment}
-              onExport={handleBulkExport}
-              onCancel={() => setSelectedAlarmIds(new Set())}
-            />
+            <div className="bg-primary/10 border border-primary/20 rounded-lg">
+              <AlarmBulkOperations
+                selectedAlarms={filteredAlarms.filter(a => selectedAlarmIds.has(a.globalAlarmId))}
+                onAcknowledge={handleBulkAcknowledge}
+                onAssign={handleBulkAssign}
+                onAddComment={handleBulkAddComment}
+                onExport={handleBulkExport}
+                onCancel={() => setSelectedAlarmIds(new Set())}
+              />
+            </div>
           )}
 
+          {/* Alarm Table */}
           {filteredAlarms.length === 0 ? (
-            <div className="flex items-center justify-center flex-1 bg-card rounded-lg border border-border">
+            <div className="flex-1 flex items-center justify-center bg-card rounded-lg border border-dashed border-border">
               <div className="text-center">
-                <p className="text-foreground dark:text-foreground font-medium mb-2">No alarms found</p>
-                <p className="text-muted-foreground dark:text-muted-foreground text-sm">Try adjusting your filters</p>
+                <p className="text-foreground font-semibold mb-1">No alarms found</p>
+                <p className="text-muted-foreground text-sm">Try adjusting your filters</p>
               </div>
             </div>
           ) : (
-            <div className="bg-card rounded-lg border border-border overflow-hidden flex flex-col">
+            <div className="flex-1 bg-card rounded-lg border border-border overflow-hidden flex flex-col">
               <AlarmTable
                 alarms={filteredAlarms}
                 expertMode={expertMode}
@@ -470,7 +470,7 @@ export const AlarmManagement: React.FC = () => {
         </div>
       </div>
 
-      {/* Show full details page if requested */}
+      {/* Full Details Page */}
       {viewFullDetails && inspectionAlarm && (
         <div className="fixed inset-0 bg-background z-50 overflow-auto">
           <AlarmDetailsPage alarm={inspectionAlarm} />
@@ -492,7 +492,7 @@ export const AlarmManagement: React.FC = () => {
         />
       )}
 
-      {/* Original alarm details side panel (kept for backwards compatibility) */}
+      {/* Original Alarm Details Side Panel */}
       {selectedAlarm && (
         <AlarmDetailsSidePanel
           alarm={selectedAlarm}
