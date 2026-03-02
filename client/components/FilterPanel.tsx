@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { X } from "lucide-react";
+import { useState, useEffect } from "react";
+import { X, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGlobalFilters, type GlobalFilterState } from "@/hooks/useGlobalFilters";
 import { useToast } from "@/hooks/use-toast";
@@ -17,43 +18,62 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
   const { toast } = useToast();
   const [showCalendarDropdown, setShowCalendarDropdown] = useState(false);
 
-  const handleFilterChange = (newFilters: GlobalFilterState) => {
-    setFilters(newFilters);
-    onFiltersChange?.(newFilters);
+  // Staged filters - changes are made here until Apply is clicked
+  const [stagedFilters, setStagedFilters] = useState<GlobalFilterState>(filters);
+
+  // Check if there are unsaved changes
+  const hasChanges = JSON.stringify(stagedFilters) !== JSON.stringify(filters);
+
+  // Sync staged filters when external filters change
+  useEffect(() => {
+    setStagedFilters(filters);
+  }, [filters]);
+
+  const handleStagedFilterChange = (newFilters: GlobalFilterState) => {
+    setStagedFilters(newFilters);
+  };
+
+  const handleApplyFilters = () => {
+    setFilters(stagedFilters);
+    onFiltersChange?.(stagedFilters);
+  };
+
+  const handleResetChanges = () => {
+    setStagedFilters(filters);
   };
 
   // Determine if hourly is allowed based on date range
-  const daysDiff = getDaysDifference(filters.dateRange);
+  const daysDiff = getDaysDifference(stagedFilters.dateRange);
   const allowHourly = daysDiff <= 3;
   const shouldForceDaily = daysDiff > 3;
 
   // Auto-adjust granularity if needed
-  if (shouldForceDaily && filters.timeGranularity === "hours") {
-    handleFilterChange({
-      ...filters,
+  if (shouldForceDaily && stagedFilters.timeGranularity === "hours") {
+    handleStagedFilterChange({
+      ...stagedFilters,
       timeGranularity: "days",
     });
   }
 
   const activeFilterCount =
-    filters.vendors.length +
-    filters.technologies.length +
-    filters.regions.length +
-    filters.clusters.length +
-    filters.countries.length +
-    (filters.dateRange.from ? 1 : 0) +
-    (filters.dateRange.to ? 1 : 0);
+    stagedFilters.vendors.length +
+    stagedFilters.technologies.length +
+    stagedFilters.regions.length +
+    stagedFilters.clusters.length +
+    stagedFilters.countries.length +
+    (stagedFilters.dateRange.from ? 1 : 0) +
+    (stagedFilters.dateRange.to ? 1 : 0);
 
   const formatDateRange = () => {
-    if (!filters.dateRange.from && !filters.dateRange.to) return null;
-    const from = filters.dateRange.from
-      ? new Date(filters.dateRange.from).toLocaleDateString("en-US", {
+    if (!stagedFilters.dateRange.from && !stagedFilters.dateRange.to) return null;
+    const from = stagedFilters.dateRange.from
+      ? new Date(stagedFilters.dateRange.from).toLocaleDateString("en-US", {
           month: "short",
           day: "numeric",
         })
       : null;
-    const to = filters.dateRange.to
-      ? new Date(filters.dateRange.to).toLocaleDateString("en-US", {
+    const to = stagedFilters.dateRange.to
+      ? new Date(stagedFilters.dateRange.to).toLocaleDateString("en-US", {
           month: "short",
           day: "numeric",
         })
@@ -78,9 +98,9 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
               {v}
               <button
                 onClick={() =>
-                  handleFilterChange({
-                    ...filters,
-                    vendors: filters.vendors.filter((x) => x !== v),
+                  handleStagedFilterChange({
+                    ...stagedFilters,
+                    vendors: stagedFilters.vendors.filter((x) => x !== v),
                   })
                 }
                 className="hover:opacity-70 transition-opacity"
@@ -99,9 +119,9 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
               {t}
               <button
                 onClick={() =>
-                  handleFilterChange({
-                    ...filters,
-                    technologies: filters.technologies.filter((x) => x !== t),
+                  handleStagedFilterChange({
+                    ...stagedFilters,
+                    technologies: stagedFilters.technologies.filter((x) => x !== t),
                   })
                 }
                 className="hover:opacity-70 transition-opacity"
@@ -119,9 +139,9 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
               {r}
               <button
                 onClick={() =>
-                  handleFilterChange({
+                  handleStagedFilterChange({
                     ...filters,
-                    regions: filters.regions.filter((x) => x !== r),
+                    regions: stagedFilters.regions.filter((x) => x !== r),
                   })
                 }
                 className="hover:opacity-70 transition-opacity"
@@ -139,9 +159,9 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
               {c}
               <button
                 onClick={() =>
-                  handleFilterChange({
+                  handleStagedFilterChange({
                     ...filters,
-                    clusters: filters.clusters.filter((x) => x !== c),
+                    clusters: stagedFilters.clusters.filter((x) => x !== c),
                   })
                 }
                 className="hover:opacity-70 transition-opacity"
@@ -159,9 +179,9 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
               {country}
               <button
                 onClick={() =>
-                  handleFilterChange({
+                  handleStagedFilterChange({
                     ...filters,
-                    countries: filters.countries.filter((x) => x !== country),
+                    countries: stagedFilters.countries.filter((x) => x !== country),
                   })
                 }
                 className="hover:opacity-70 transition-opacity"
@@ -176,7 +196,7 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
               📅 {formatDateRange()}
               <button
                 onClick={() =>
-                  handleFilterChange({
+                  handleStagedFilterChange({
                     ...filters,
                     dateRange: { from: null, to: null },
                   })
@@ -213,8 +233,8 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
             "Bahrain",
             "Morocco",
           ]}
-          selected={filters.countries}
-          onChange={(selected) => handleFilterChange({ ...filters, countries: selected })}
+          selected={stagedFilters.countries}
+          onChange={(selected) => handleStagedFilterChange({ ...stagedFilters, countries: selected })}
           placeholder="Search countries..."
         />
 
@@ -222,8 +242,8 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
         <SearchableDropdown
           label="Region"
           options={["North", "South", "East", "West", "Central"]}
-          selected={filters.regions}
-          onChange={(selected) => handleFilterChange({ ...filters, regions: selected })}
+          selected={stagedFilters.regions}
+          onChange={(selected) => handleStagedFilterChange({ ...stagedFilters, regions: selected })}
           placeholder="Search regions..."
         />
 
@@ -231,8 +251,8 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
         <SearchableDropdown
           label="Cluster"
           options={availableClusters.map((cluster) => cluster.name)}
-          selected={filters.clusters}
-          onChange={(selected) => handleFilterChange({ ...filters, clusters: selected })}
+          selected={stagedFilters.clusters}
+          onChange={(selected) => handleStagedFilterChange({ ...stagedFilters, clusters: selected })}
           placeholder="Search clusters..."
         />
 
@@ -240,8 +260,8 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
         <SearchableDropdown
           label="Vendor"
           options={["Ericsson", "Huawei", "Nokia", "Samsung", "Cisco"]}
-          selected={filters.vendors}
-          onChange={(selected) => handleFilterChange({ ...filters, vendors: selected })}
+          selected={stagedFilters.vendors}
+          onChange={(selected) => handleStagedFilterChange({ ...stagedFilters, vendors: selected })}
           placeholder="Search vendors..."
         />
 
@@ -249,8 +269,8 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
         <SearchableDropdown
           label="Technology"
           options={["2G", "3G", "4G", "5G", "O-RAN"]}
-          selected={filters.technologies}
-          onChange={(selected) => handleFilterChange({ ...filters, technologies: selected })}
+          selected={stagedFilters.technologies}
+          onChange={(selected) => handleStagedFilterChange({ ...stagedFilters, technologies: selected })}
           placeholder="Search technologies..."
         />
 
@@ -261,7 +281,7 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
           </label>
           <select
             className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-            value={filters.timeGranularity}
+            value={stagedFilters.timeGranularity}
             onChange={(e) => {
               const granularity = e.target.value as "hours" | "days";
               // Only allow hourly if date range is 3 days or less
@@ -272,12 +292,12 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
                 });
                 return;
               }
-              handleFilterChange({
-                ...filters,
+              handleStagedFilterChange({
+                ...stagedFilters,
                 timeGranularity: granularity,
               });
             }}
-            disabled={!allowHourly && filters.timeGranularity === "hours"}
+            disabled={!allowHourly && stagedFilters.timeGranularity === "hours"}
           >
             <option value="hours" disabled={!allowHourly}>
               Hours {!allowHourly ? "(not available)" : ""}
@@ -295,14 +315,14 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide block">
               Choose Dates
             </span>
-            {filters.dateRange.from && filters.dateRange.to ? (
+            {stagedFilters.dateRange.from && stagedFilters.dateRange.to ? (
               <span className="text-xs text-foreground font-medium">
-                {new Date(filters.dateRange.from).toLocaleDateString("en-US", {
+                {new Date(stagedFilters.dateRange.from).toLocaleDateString("en-US", {
                   month: "short",
                   day: "numeric",
                 })}{" "}
                 -{" "}
-                {new Date(filters.dateRange.to).toLocaleDateString("en-US", {
+                {new Date(stagedFilters.dateRange.to).toLocaleDateString("en-US", {
                   month: "short",
                   day: "numeric",
                 })}
@@ -369,30 +389,30 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
                 </button>
               </div>
               <DualMonthCalendar
-                startDate={filters.dateRange.from}
-                endDate={filters.dateRange.to}
+                startDate={stagedFilters.dateRange.from}
+                endDate={stagedFilters.dateRange.to}
                 onDateSelect={(date, isStart) => {
                   if (isStart) {
-                    handleFilterChange({
-                      ...filters,
+                    handleStagedFilterChange({
+                      ...stagedFilters,
                       dateRange: {
                         from: date,
                         to: null,
                       },
                     });
                   } else {
-                    handleFilterChange({
-                      ...filters,
+                    handleStagedFilterChange({
+                      ...stagedFilters,
                       dateRange: {
-                        from: filters.dateRange.from,
+                        from: stagedFilters.dateRange.from,
                         to: date,
                       },
                     });
                   }
                 }}
                 onRangeComplete={(start, end) => {
-                  handleFilterChange({
-                    ...filters,
+                  handleStagedFilterChange({
+                    ...stagedFilters,
                     dateRange: {
                       from: start,
                       to: end,
@@ -402,16 +422,16 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
               />
 
               {/* Date Range Summary */}
-              {filters.dateRange.from && filters.dateRange.to && (
+              {stagedFilters.dateRange.from && stagedFilters.dateRange.to && (
                 <div className="pt-2 border-t border-border/50 space-y-2">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-xs text-muted-foreground truncate">
-                      <strong>Selected:</strong> {new Date(filters.dateRange.from).toLocaleDateString()}
+                      <strong>Selected:</strong> {new Date(stagedFilters.dateRange.from).toLocaleDateString()}
                     </span>
                     <button
                       onClick={() => {
-                        handleFilterChange({
-                          ...filters,
+                        handleStagedFilterChange({
+                          ...stagedFilters,
                           dateRange: { from: null, to: null },
                         });
                       }}
@@ -421,7 +441,7 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
                     </button>
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    to {new Date(filters.dateRange.to).toLocaleDateString()} ({daysDiff} day{daysDiff !== 1 ? "s" : ""})
+                    to {new Date(stagedFilters.dateRange.to).toLocaleDateString()} ({daysDiff} day{daysDiff !== 1 ? "s" : ""})
                   </div>
                 </div>
               )}
@@ -431,6 +451,32 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
       )}
 
       {/* Create Cluster Location Dialog removed - moved to Settings page */}
+
+      {/* Apply Filter Button */}
+      <div className="border-t border-border/50 pt-4 mt-4 flex gap-2">
+        <button
+          onClick={handleApplyFilters}
+          disabled={!hasChanges}
+          className={cn(
+            "flex-1 px-4 py-2 rounded font-medium transition-colors text-sm flex items-center justify-center gap-2",
+            hasChanges
+              ? "bg-primary text-primary-foreground hover:bg-primary/90"
+              : "bg-muted text-muted-foreground cursor-not-allowed opacity-50"
+          )}
+        >
+          <Check className="w-4 h-4" />
+          Apply Filter
+        </button>
+        {hasChanges && (
+          <button
+            onClick={handleResetChanges}
+            className="px-4 py-2 rounded border border-border text-foreground hover:bg-muted/50 transition-colors text-sm"
+            title="Discard changes"
+          >
+            Cancel
+          </button>
+        )}
+      </div>
     </div>
   );
 }
