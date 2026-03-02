@@ -44,6 +44,13 @@ export default function AnalyticsManagement() {
   const [generatedTime, setGeneratedTime] = useState<Date | null>(null);
   const [isGenerated, setIsGenerated] = useState(false);
 
+  // Track selected instances for Analysis Scope
+  const [selectedNetwork, setSelectedNetwork] = useState<string | null>(null);
+  const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
+  const [selectedCluster, setSelectedCluster] = useState<string | null>(null);
+  const [selectedSite, setSelectedSite] = useState<string | null>(null);
+  const [selectedCell, setSelectedCell] = useState<string | null>(null);
+
   const handleGenerate = () => {
     setGeneratedTime(new Date());
     setIsGenerated(true);
@@ -53,6 +60,11 @@ export default function AnalyticsManagement() {
     setIsGenerated(false);
     setGeneratedTime(null);
     setSelectedKPIs([]);
+    setSelectedNetwork(null);
+    setSelectedRegion(null);
+    setSelectedCluster(null);
+    setSelectedSite(null);
+    setSelectedCell(null);
   };
 
   // Filter KPIs based on current filters
@@ -66,17 +78,31 @@ export default function AnalyticsManagement() {
     });
   }, [filters]);
 
-  // Generate chart data for selected KPIs
-  const chartData = useMemo(() => {
-    if (selectedKPIs.length === 0) return [];
+  // Generate chart data for all selected KPIs
+  const chartDataMap = useMemo(() => {
+    if (selectedKPIs.length === 0) return {};
 
-    // Generate mock data for the first selected KPI
-    const kpi = selectedKPIs[0];
-    const scopeLabels = SCOPE_OPTIONS[currentScope] || ["Network"];
-    const label = scopeLabels[0];
+    const dataMap: Record<string, any[]> = {};
 
-    return generateKPIValues(kpi, currentScope, label);
-  }, [selectedKPIs, currentScope]);
+    selectedKPIs.forEach((kpi) => {
+      // Determine the label based on selected instance
+      let label = "All";
+
+      if (selectedNetwork) label = selectedNetwork;
+      else if (selectedRegion) label = selectedRegion;
+      else if (selectedCluster) label = selectedCluster;
+      else if (selectedSite) label = selectedSite;
+      else if (selectedCell) label = selectedCell;
+      else {
+        const scopeLabels = SCOPE_OPTIONS[currentScope] || ["Network"];
+        label = scopeLabels[0];
+      }
+
+      dataMap[kpi.id] = generateKPIValues(kpi, currentScope, label);
+    });
+
+    return dataMap;
+  }, [selectedKPIs, currentScope, selectedNetwork, selectedRegion, selectedCluster, selectedSite, selectedCell]);
 
   // Handle save view
   const handleSaveView = () => {
@@ -299,7 +325,19 @@ export default function AnalyticsManagement() {
                     {filters.networks.map((network) => (
                       <button
                         key={network}
-                        className="px-3 py-2 rounded text-sm font-medium bg-muted text-foreground hover:bg-muted/80 transition-all"
+                        onClick={() => {
+                          setSelectedNetwork(selectedNetwork === network ? null : network);
+                          setSelectedRegion(null);
+                          setSelectedCluster(null);
+                          setSelectedSite(null);
+                          setSelectedCell(null);
+                        }}
+                        className={cn(
+                          "px-3 py-2 rounded text-sm font-medium transition-all",
+                          selectedNetwork === network
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted text-foreground hover:bg-muted/80"
+                        )}
                       >
                         {network}
                       </button>
@@ -316,7 +354,19 @@ export default function AnalyticsManagement() {
                     {filters.regions.map((region) => (
                       <button
                         key={region}
-                        className="px-3 py-2 rounded text-sm font-medium bg-muted text-foreground hover:bg-muted/80 transition-all"
+                        onClick={() => {
+                          setSelectedRegion(selectedRegion === region ? null : region);
+                          setSelectedNetwork(null);
+                          setSelectedCluster(null);
+                          setSelectedSite(null);
+                          setSelectedCell(null);
+                        }}
+                        className={cn(
+                          "px-3 py-2 rounded text-sm font-medium transition-all",
+                          selectedRegion === region
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted text-foreground hover:bg-muted/80"
+                        )}
                       >
                         {region}
                       </button>
@@ -333,7 +383,19 @@ export default function AnalyticsManagement() {
                     {filters.clusters.map((cluster) => (
                       <button
                         key={cluster}
-                        className="px-3 py-2 rounded text-sm font-medium bg-muted text-foreground hover:bg-muted/80 transition-all"
+                        onClick={() => {
+                          setSelectedCluster(selectedCluster === cluster ? null : cluster);
+                          setSelectedNetwork(null);
+                          setSelectedRegion(null);
+                          setSelectedSite(null);
+                          setSelectedCell(null);
+                        }}
+                        className={cn(
+                          "px-3 py-2 rounded text-sm font-medium transition-all",
+                          selectedCluster === cluster
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted text-foreground hover:bg-muted/80"
+                        )}
                       >
                         {cluster}
                       </button>
@@ -350,7 +412,19 @@ export default function AnalyticsManagement() {
                     {filters.sites.map((site) => (
                       <button
                         key={site}
-                        className="px-3 py-2 rounded text-sm font-medium bg-muted text-foreground hover:bg-muted/80 transition-all"
+                        onClick={() => {
+                          setSelectedSite(selectedSite === site ? null : site);
+                          setSelectedNetwork(null);
+                          setSelectedRegion(null);
+                          setSelectedCluster(null);
+                          setSelectedCell(null);
+                        }}
+                        className={cn(
+                          "px-3 py-2 rounded text-sm font-medium transition-all",
+                          selectedSite === site
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted text-foreground hover:bg-muted/80"
+                        )}
                       >
                         {site}
                       </button>
@@ -367,7 +441,19 @@ export default function AnalyticsManagement() {
                     {filters.cells.map((cell) => (
                       <button
                         key={cell}
-                        className="px-3 py-2 rounded text-sm font-medium bg-muted text-foreground hover:bg-muted/80 transition-all"
+                        onClick={() => {
+                          setSelectedCell(selectedCell === cell ? null : cell);
+                          setSelectedNetwork(null);
+                          setSelectedRegion(null);
+                          setSelectedCluster(null);
+                          setSelectedSite(null);
+                        }}
+                        className={cn(
+                          "px-3 py-2 rounded text-sm font-medium transition-all",
+                          selectedCell === cell
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted text-foreground hover:bg-muted/80"
+                        )}
                       >
                         {cell}
                       </button>
@@ -397,17 +483,20 @@ export default function AnalyticsManagement() {
                   Generated: {generatedTime.toLocaleString()}
                 </p>
               )}
-              {selectedKPIs.map((kpi, idx) => (
-                <TrendChartContainer
-                  key={kpi.id}
-                  title={`${kpi.name} (${currentScope})`}
-                  data={idx === 0 ? chartData : []} // Only show chart for first KPI
-                  dataKeys={["value"]}
-                  exportable
-                  zoomable
-                  defaultChartType="line"
-                />
-              ))}
+              {selectedKPIs.map((kpi) => {
+                const selectedLabel = selectedNetwork || selectedRegion || selectedCluster || selectedSite || selectedCell || "All";
+                return (
+                  <TrendChartContainer
+                    key={kpi.id}
+                    title={`${kpi.name} (${selectedLabel})`}
+                    data={chartDataMap[kpi.id] || []}
+                    dataKeys={["value"]}
+                    exportable
+                    zoomable
+                    defaultChartType="line"
+                  />
+                );
+              })}
 
               {/* KPI Details Grid with Hover Tooltip */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
