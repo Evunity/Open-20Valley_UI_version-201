@@ -383,7 +383,13 @@ export default function AnalyticsManagement() {
       <div className="flex gap-6">
         {/* Left Sidebar - Filters and KPIs */}
         <div className="w-64 flex-shrink-0 space-y-6">
-          <AnalyticsFilterPanel filters={filters} onFiltersChange={setFilters} />
+          <AnalyticsFilterPanel
+            filters={filters}
+            onFiltersChange={setFilters}
+            onGenerate={handleGenerate}
+            isGenerated={isGenerated}
+            onRegenerate={handleRegenerate}
+          />
           <KPISelector
             selectedKPIs={selectedKPIs}
             onKPIsChange={setSelectedKPIs}
