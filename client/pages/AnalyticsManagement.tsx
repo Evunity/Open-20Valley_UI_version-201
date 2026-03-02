@@ -485,11 +485,13 @@ export default function AnalyticsManagement() {
               )}
               {selectedKPIs.map((kpi) => {
                 const selectedLabel = selectedNetwork || selectedRegion || selectedCluster || selectedSite || selectedCell || "All";
+                const kpiChartData = chartDataMap[kpi.id] || [];
+                
                 return (
                   <TrendChartContainer
                     key={kpi.id}
                     title={`${kpi.name} (${selectedLabel})`}
-                    data={chartDataMap[kpi.id] || []}
+                    data={kpiChartData}
                     dataKeys={["value"]}
                     exportable
                     zoomable
