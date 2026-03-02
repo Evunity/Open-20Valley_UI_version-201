@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, LayoutDashboard, Settings, Moon, Sun, Gauge, Bell, Zap, History, FileText, Lock, AlertTriangle, Map, Terminal, BarChart3, Shield } from "lucide-react";
+import { Menu, X, LayoutDashboard, Settings, Moon, Sun, Gauge, Bell, Zap, History, FileText, Lock, AlertTriangle, Map, Terminal, BarChart3, Shield, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface LayoutProps {
@@ -199,22 +199,11 @@ export default function Layout({ children }: LayoutProps) {
             title={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
           >
             <div className="flex-shrink-0">
-              <svg
-                className={cn(
-                  "w-5 h-5 transition-transform",
-                  sidebarOpen ? "rotate-90" : "-rotate-90"
-                )}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
+              {sidebarOpen ? (
+                <ChevronsLeft className="w-5 h-5" />
+              ) : (
+                <ChevronsRight className="w-5 h-5" />
+              )}
             </div>
             {sidebarOpen && <span className="text-sm">Collapse</span>}
           </button>
