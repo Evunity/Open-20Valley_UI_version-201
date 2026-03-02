@@ -13,7 +13,13 @@ export default function Layout({ children }: LayoutProps) {
   const [darkMode, setDarkMode] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [emergencyKillActive, setEmergencyKillActive] = useState(false);
+  const [sidebarWidth, setSidebarWidth] = useState(256); // 64 * 4 = 256px (w-64)
+  const [isDragging, setIsDragging] = useState(false);
   const location = useLocation();
+
+  const MIN_WIDTH = 50; // Minimum width before collapse
+  const MAX_WIDTH = 400; // Maximum width
+  const COLLAPSE_THRESHOLD = 80; // Width threshold to trigger collapse
 
   // Handle responsive behavior
   useEffect(() => {
@@ -41,6 +47,41 @@ export default function Layout({ children }: LayoutProps) {
       document.documentElement.classList.remove("dark");
     }
   }, [darkMode]);
+
+  // Handle sidebar dragging
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging || isMobile) return;
+
+      const newWidth = Math.max(MIN_WIDTH, Math.min(e.clientX, MAX_WIDTH));
+      setSidebarWidth(newWidth);
+
+      // Auto-collapse if dragged too far left
+      if (newWidth <= COLLAPSE_THRESHOLD) {
+        setSidebarOpen(false);
+      } else if (!sidebarOpen && newWidth > COLLAPSE_THRESHOLD) {
+        setSidebarOpen(true);
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    if (isDragging) {
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isDragging, isMobile, sidebarOpen]);
+
+  const handleDragStart = () => {
+    setIsDragging(true);
+  };
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
@@ -215,14 +256,26 @@ export default function Layout({ children }: LayoutProps) {
   return (
     <div className="flex h-screen bg-background text-foreground overflow-hidden">
       {/* Desktop Sidebar */}
-      <aside
-        className={cn(
-          "hidden md:flex md:flex-col bg-sidebar border-r border-sidebar-border transition-all duration-300 flex-shrink-0",
-          sidebarOpen ? "md:w-64" : "md:w-20"
+      <div className="hidden md:flex md:flex-col relative group">
+        <aside
+          className={cn(
+            "flex flex-col bg-sidebar border-r border-sidebar-border flex-shrink-0 transition-all duration-200 overflow-hidden",
+            "relative h-screen"
+          )}
+          style={{ width: sidebarOpen ? `${sidebarWidth}px` : "80px" }}
+        >
+          <SidebarContent />
+        </aside>
+
+        {/* Draggable Handle */}
+        {sidebarOpen && (
+          <div
+            onMouseDown={handleDragStart}
+            className="hidden md:block absolute right-0 top-0 h-full w-1 bg-transparent hover:bg-primary/50 cursor-col-resize transition-colors opacity-0 group-hover:opacity-100 z-40"
+            title="Drag to resize sidebar"
+          />
         )}
-      >
-        <SidebarContent />
-      </aside>
+      </div>
 
       {/* Mobile Overlay & Drawer */}
       {isMobile && mobileMenuOpen && (
