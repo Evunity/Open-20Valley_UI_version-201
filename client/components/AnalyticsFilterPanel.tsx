@@ -272,7 +272,7 @@ export default function AnalyticsFilterPanel({
 
       {/* Scope Filter */}
       <FilterSection
-        title="Analysis Scope"
+        title="Scope Level"
         sectionKey="scope"
         isExpanded={expandedSections.scope}
         onToggle={toggleSection}

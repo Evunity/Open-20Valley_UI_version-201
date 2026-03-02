@@ -36,6 +36,19 @@ export default function AnalyticsManagement() {
   const [saveViewName, setSaveViewName] = useState("");
   const [saveViewDescription, setSaveViewDescription] = useState("");
   const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [generatedTime, setGeneratedTime] = useState<Date | null>(null);
+  const [isGenerated, setIsGenerated] = useState(false);
+
+  const handleGenerate = () => {
+    setGeneratedTime(new Date());
+    setIsGenerated(true);
+  };
+
+  const handleRegenerate = () => {
+    setIsGenerated(false);
+    setGeneratedTime(null);
+    setSelectedKPIs([]);
+  };
 
   // Filter KPIs based on current filters
   const filteredKPIs = useMemo(() => {
@@ -243,6 +256,8 @@ export default function AnalyticsManagement() {
           <KPISelector
             selectedKPIs={selectedKPIs}
             onKPIsChange={setSelectedKPIs}
+            onGenerate={handleGenerate}
+            isGenerated={isGenerated}
             filters={{
               technologies: filters.technologies,
               vendors: filters.vendors,
@@ -279,8 +294,24 @@ export default function AnalyticsManagement() {
           </div>
 
           {/* Analytics Dashboard */}
-          {selectedKPIs.length > 0 ? (
+          {selectedKPIs.length > 0 && isGenerated ? (
             <div className="space-y-6">
+              {/* Header with Regenerate Button */}
+              <div className="flex items-center justify-between">
+                <div>
+                  {generatedTime && (
+                    <p className="text-xs text-muted-foreground">
+                      Generated: {generatedTime.toLocaleString()}
+                    </p>
+                  )}
+                </div>
+                <button
+                  onClick={handleRegenerate}
+                  className="px-3 py-2 rounded-lg border border-border bg-background hover:bg-muted transition-colors text-sm font-medium"
+                >
+                  ↻ Regenerate
+                </button>
+              </div>
               {selectedKPIs.map((kpi, idx) => (
                 <TrendChartContainer
                   key={kpi.id}
@@ -319,22 +350,45 @@ export default function AnalyticsManagement() {
                         <span className="text-muted-foreground">Vendor:</span>
                         <p className="font-medium text-foreground">{kpi.vendor}</p>
                       </div>
+                      <div>
+                        <span className="text-muted-foreground">Scope:</span>
+                        <p className="font-medium text-foreground">{kpi.scope}</p>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Unit:</span>
+                        <p className="font-medium text-foreground">{kpi.unit}</p>
+                      </div>
                       <div className="col-span-2">
                         <span className="text-muted-foreground">Direction:</span>
                         <p className="font-medium text-foreground">
                           {kpi.direction === "higher-is-better" ? "↑ Higher is Better" : "↓ Lower is Better"}
                         </p>
                       </div>
+                      {generatedTime && (
+                        <div className="col-span-2">
+                          <span className="text-muted-foreground">Generated:</span>
+                          <p className="font-medium text-foreground">
+                            {generatedTime.toLocaleString()}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
               </div>
             </div>
+          ) : !isGenerated ? (
+            <div className="bg-card border border-dashed border-border rounded-lg p-12 text-center">
+              <h3 className="text-lg font-semibold text-foreground mb-2">Ready to Create KPI</h3>
+              <p className="text-muted-foreground">
+                Use the filters on the left to set your KPI criteria, then click "Generate Selected KPIs" to proceed.
+              </p>
+            </div>
           ) : (
             <div className="bg-card border border-dashed border-border rounded-lg p-12 text-center">
               <h3 className="text-lg font-semibold text-foreground mb-2">No KPIs Selected</h3>
               <p className="text-muted-foreground">
-                Select one or more KPIs from the left panel to begin your analysis.
+                Click "Add KPIs" in the left panel to select KPIs for your analysis.
               </p>
             </div>
           )}

@@ -270,8 +270,8 @@ export const generateKPIValues = (
   scope: KPIScope,
   scopeLabel: string,
   count: number = 30
-): KPIValue[] => {
-  const values: KPIValue[] = [];
+): (KPIValue & { time: string })[] => {
+  const values: (KPIValue & { time: string })[] = [];
   const baseValue = kpi.direction === "higher-is-better" ? 95 + Math.random() * 5 : 5 + Math.random() * 5;
 
   for (let i = 0; i < count; i++) {
@@ -279,6 +279,7 @@ export const generateKPIValues = (
     date.setDate(date.getDate() - (count - i));
     const variation = (Math.random() - 0.5) * 10;
     const value = baseValue + variation;
+    const dateString = date.toISOString().split("T")[0];
 
     values.push({
       kpiId: kpi.id,
@@ -286,7 +287,8 @@ export const generateKPIValues = (
       scopeLabel,
       value: Math.max(0, Math.min(100, value)),
       unit: kpi.unit,
-      timestamp: date.toISOString().split("T")[0],
+      timestamp: dateString,
+      time: dateString,
       change: variation,
       status:
         value > 90 ? "healthy" : value > 70 ? "degraded" : "critical",
