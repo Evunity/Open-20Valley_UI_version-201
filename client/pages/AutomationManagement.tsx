@@ -224,21 +224,6 @@ export const AutomationManagement: React.FC = () => {
 
   return (
     <div className="flex flex-col h-screen bg-background">
-      {/* Header */}
-      <div className="bg-card border-b border-border px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Automation & AI Management</h1>
-            <p className="text-sm text-muted-foreground mt-1">The autonomous network control plane</p>
-          </div>
-          <div className="flex items-center gap-4 text-xs text-gray-600">
-            <span>👁️ Awareness Layer: <strong>Read-only intelligence</strong></span>
-            <span>🔨 Design Layer: <strong>Build safely</strong></span>
-            <span>🔒 Execution Layer: <strong>Runtime control</strong></span>
-          </div>
-        </div>
-      </div>
-
       {/* Domain Navigation */}
       <div className="bg-card border-b border-border px-6 py-3 flex gap-2">
         {DOMAINS.map(domain => {

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Terminal, Code, Settings2, Zap, FileText, Eye, RotateCcw, Package, AlertTriangle, GitCompare, Clock } from 'lucide-react';
+import { Terminal, Code, Settings2, Zap, FileText, Eye, RotateCcw, Package, GitCompare, Clock } from 'lucide-react';
 import { CommandConsole } from '../components/CommandConsole';
 import { ParameterExplorer } from '../components/ParameterExplorer';
 import { ModifyChangeEngine } from '../components/ModifyChangeEngine';
@@ -145,21 +145,9 @@ export const CommandCenter: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full gap-4 bg-background">
-      {/* Header */}
-      <div className="bg-card border-b border-border rounded-lg p-6">
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Command Center</h1>
-            <p className="text-sm text-muted-foreground mt-1">OSS-Level Network Control & Parameter Governance</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-amber-600" />
-            <span className="text-sm font-semibold text-amber-700 dark:text-amber-300">Permission-Gated • Fully Audited • Transactional</span>
-          </div>
-        </div>
-
-        {/* Target Selection Context */}
-        {(selectedTarget.country || selectedTarget.region || selectedTarget.site || selectedTarget.node) && (
+      {/* Target Selection Context */}
+      {(selectedTarget.country || selectedTarget.region || selectedTarget.site || selectedTarget.node) && (
+        <div className="bg-card border-b border-border rounded-lg p-4">
           <div className="p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
             <p className="text-xs font-semibold text-blue-900 dark:text-blue-300 mb-1">Target Context</p>
             <p className="text-sm text-blue-800 dark:text-blue-300 font-mono">
@@ -169,8 +157,8 @@ export const CommandCenter: React.FC = () => {
               {selectedTarget.node && ` → ${selectedTarget.node}`}
             </p>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Module Selector */}
       <div className="bg-card border-b border-border rounded-lg p-4">

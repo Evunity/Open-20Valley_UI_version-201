@@ -268,12 +268,6 @@ const TopologyManagementContent: React.FC = () => {
 
   return (
     <div className="flex flex-col h-screen bg-background">
-      {/* Header */}
-      <div className="bg-card border-b border-border px-6 py-4">
-        <h1 className="text-2xl font-bold text-foreground">Topology & Network Visualization</h1>
-        <p className="text-sm text-muted-foreground mt-1">Single source of structural truth for network topology</p>
-      </div>
-
       {/* View Selector */}
       <div className="bg-card border-b border-border px-6 py-3">
         <div className="flex gap-2">
