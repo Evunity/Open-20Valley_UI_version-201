@@ -409,16 +409,20 @@ export default function AnalyticsManagement() {
                 />
               ))}
 
-              {/* KPI Details Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* KPI Details Grid with Hover Tooltip */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {selectedKPIs.map((kpi) => (
                   <div
                     key={kpi.id}
-                    className="bg-card border border-border rounded-lg p-4 space-y-2"
+                    className="group relative bg-card border border-border rounded-lg p-4 cursor-help hover:border-primary/50 transition-colors"
                   >
-                    <h4 className="font-semibold text-foreground">{kpi.name}</h4>
-                    <p className="text-sm text-muted-foreground">{kpi.description}</p>
-                    <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-border/50">
+                    <div className="relative">
+                      <h4 className="font-semibold text-foreground">{kpi.name}</h4>
+                      <p className="text-sm text-muted-foreground mt-1">{kpi.description}</p>
+                    </div>
+
+                    {/* Hover Tooltip */}
+                    <div className="absolute left-0 top-full mt-2 hidden group-hover:block bg-background border border-border rounded-lg p-3 shadow-lg z-10 w-64 text-xs space-y-2">
                       <div>
                         <span className="text-muted-foreground">Category:</span>
                         <p className="font-medium text-foreground">{kpi.category}</p>
@@ -443,14 +447,14 @@ export default function AnalyticsManagement() {
                         <span className="text-muted-foreground">Unit:</span>
                         <p className="font-medium text-foreground">{kpi.unit}</p>
                       </div>
-                      <div className="col-span-2">
+                      <div>
                         <span className="text-muted-foreground">Direction:</span>
                         <p className="font-medium text-foreground">
                           {kpi.direction === "higher-is-better" ? "↑ Higher is Better" : "↓ Lower is Better"}
                         </p>
                       </div>
                       {generatedTime && (
-                        <div className="col-span-2">
+                        <div>
                           <span className="text-muted-foreground">Generated:</span>
                           <p className="font-medium text-foreground">
                             {generatedTime.toLocaleString()}
