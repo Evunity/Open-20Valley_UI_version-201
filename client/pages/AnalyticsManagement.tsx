@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { Save, Trash2, Download, Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
+import * as XLSX from "xlsx";
 import AnalyticsFilterPanel, { type AnalyticsFilters } from "@/components/AnalyticsFilterPanel";
 import KPISelector from "@/components/KPISelector";
 import TrendChartContainer from "@/components/TrendChartContainer";
@@ -145,6 +146,109 @@ export default function AnalyticsManagement() {
       deleteView(viewId);
       setSavedViews(getSavedViews());
     }
+  };
+
+  // Export individual KPI data
+  const handleExportKPI = (kpi: KPI) => {
+    const kpiData = chartDataMap[kpi.id] || [];
+
+    if (kpiData.length === 0) {
+      alert("No data available to export for this KPI");
+      return;
+    }
+
+    // Prepare data for Excel
+    const worksheetData = kpiData.map((item) => ({
+      "Date": item.timestamp,
+      "Value": item.value,
+      "Unit": item.unit,
+      "Status": item.status,
+      "Change %": item.change?.toFixed(2) || "N/A",
+      "Scope": item.scopeLabel,
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, kpi.name);
+
+    // Style the header row
+    const range = XLSX.utils.decode_range(worksheet["!ref"] || "A1");
+    for (let C = range.s.c; C <= range.e.c; ++C) {
+      const address = XLSX.utils.encode_col(C) + "1";
+      if (!worksheet[address]) continue;
+      worksheet[address].s = {
+        font: { bold: true, color: { rgb: "FFFFFF" } },
+        fill: { fgColor: { rgb: "4F46E5" } },
+        alignment: { horizontal: "center" },
+      };
+    }
+
+    // Set column widths
+    worksheet["!cols"] = [
+      { wch: 15 },
+      { wch: 12 },
+      { wch: 10 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 15 },
+    ];
+
+    XLSX.writeFile(workbook, `${kpi.name.replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.xlsx`);
+  };
+
+  // Export all KPIs combined
+  const handleExportAll = () => {
+    if (selectedKPIs.length === 0) {
+      alert("No KPIs selected to export");
+      return;
+    }
+
+    const workbook = XLSX.utils.book_new();
+
+    selectedKPIs.forEach((kpi) => {
+      const kpiData = chartDataMap[kpi.id] || [];
+
+      if (kpiData.length > 0) {
+        const worksheetData = kpiData.map((item) => ({
+          "KPI": kpi.name,
+          "Date": item.timestamp,
+          "Value": item.value,
+          "Unit": item.unit,
+          "Status": item.status,
+          "Change %": item.change?.toFixed(2) || "N/A",
+          "Scope": item.scopeLabel,
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+
+        // Style the header row
+        const range = XLSX.utils.decode_range(worksheet["!ref"] || "A1");
+        for (let C = range.s.c; C <= range.e.c; ++C) {
+          const address = XLSX.utils.encode_col(C) + "1";
+          if (!worksheet[address]) continue;
+          worksheet[address].s = {
+            font: { bold: true, color: { rgb: "FFFFFF" } },
+            fill: { fgColor: { rgb: "4F46E5" } },
+            alignment: { horizontal: "center" },
+          };
+        }
+
+        // Set column widths
+        worksheet["!cols"] = [
+          { wch: 25 },
+          { wch: 15 },
+          { wch: 12 },
+          { wch: 10 },
+          { wch: 12 },
+          { wch: 12 },
+          { wch: 15 },
+        ];
+
+        XLSX.utils.book_append_sheet(workbook, worksheet, kpi.name.substring(0, 31));
+      }
+    });
+
+    XLSX.writeFile(workbook, `KPI_Export_${new Date().toISOString().split("T")[0]}.xlsx`);
   };
 
   return (
@@ -477,12 +581,24 @@ export default function AnalyticsManagement() {
           {/* Analytics Dashboard */}
           {selectedKPIs.length > 0 && isGenerated ? (
             <div className="space-y-6">
-              {/* Generated Time Display */}
-              {generatedTime && (
-                <p className="text-xs text-muted-foreground">
-                  Generated: {generatedTime.toLocaleString()}
-                </p>
-              )}
+              {/* Header with Export All Button */}
+              <div className="flex items-center justify-between">
+                <div>
+                  {generatedTime && (
+                    <p className="text-xs text-muted-foreground">
+                      Generated: {generatedTime.toLocaleString()}
+                    </p>
+                  )}
+                </div>
+                <button
+                  onClick={handleExportAll}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-background hover:bg-muted transition-colors text-sm font-medium"
+                  title="Export all KPIs to Excel"
+                >
+                  <Download className="w-4 h-4" />
+                  Export All
+                </button>
+              </div>
               {selectedKPIs.map((kpi) => {
                 const selectedLabel = selectedNetwork || selectedRegion || selectedCluster || selectedSite || selectedCell || "All";
                 const kpiChartData = chartDataMap[kpi.id] || [];
@@ -507,9 +623,18 @@ export default function AnalyticsManagement() {
                     key={kpi.id}
                     className="group relative bg-card border border-border rounded-lg p-4 cursor-help hover:border-primary/50 transition-colors"
                   >
-                    <div className="relative">
-                      <h4 className="font-semibold text-foreground">{kpi.name}</h4>
-                      <p className="text-sm text-muted-foreground mt-1">{kpi.description}</p>
+                    <div className="relative flex items-start justify-between gap-2">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-foreground">{kpi.name}</h4>
+                        <p className="text-sm text-muted-foreground mt-1">{kpi.description}</p>
+                      </div>
+                      <button
+                        onClick={() => handleExportKPI(kpi)}
+                        className="flex-shrink-0 p-2 rounded hover:bg-muted transition-colors"
+                        title="Export this KPI data to Excel"
+                      >
+                        <Download className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+                      </button>
                     </div>
 
                     {/* Hover Tooltip */}
