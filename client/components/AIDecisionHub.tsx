@@ -136,28 +136,22 @@ export const AIDecisionHub: React.FC<AIDecisionHubProps> = ({
 
   return (
     <div className="w-full flex flex-col h-full gap-4 p-4 bg-background overflow-y-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Brain className="w-5 h-5 text-primary" />
-          <h2 className="text-lg font-bold text-foreground">AI Decision Hub</h2>
-        </div>
-        <div className="flex gap-2">
+      {/* Action Buttons */}
+      <div className="flex gap-2 justify-end">
+        <button
+          onClick={() => setShowHistory(true)}
+          className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-card text-foreground border border-border hover:bg-muted transition"
+        >
+          📋 History
+        </button>
+        {pendingDecisions.length > 3 && (
           <button
-            onClick={() => setShowHistory(true)}
+            onClick={() => setShowAllDecisions(true)}
             className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-card text-foreground border border-border hover:bg-muted transition"
           >
-            📋 History
+            Show All ({pendingDecisions.length})
           </button>
-          {pendingDecisions.length > 3 && (
-            <button
-              onClick={() => setShowAllDecisions(true)}
-              className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-card text-foreground border border-border hover:bg-muted transition"
-            >
-              Show All ({pendingDecisions.length})
-            </button>
-          )}
-        </div>
+        )}
       </div>
 
       {/* No Decisions Message */}

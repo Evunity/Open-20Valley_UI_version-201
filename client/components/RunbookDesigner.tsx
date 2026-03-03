@@ -1,286 +1,433 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, Settings, AlertCircle, CheckCircle, Clock, RefreshCw } from 'lucide-react';
-import { RunbookNode, Runbook } from '../utils/automationData';
+import {
+  Plus, Trash2, Copy, Save, ArrowRight, Play, Pause, AlertCircle,
+  CheckCircle, Clock, RefreshCw, Settings, ChevronDown, Code, Eye
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-interface RunbookDesignerProps {
-  onSave?: (runbook: Runbook) => void;
-  onCancel?: () => void;
+type StepType = 'trigger' | 'action' | 'validation' | 'rollback' | 'notification' | 'decision' | 'wait';
+
+interface RunbookStep {
+  id: string;
+  type: StepType;
+  title: string;
+  description: string;
+  config: Record<string, any>;
+  rollbackAvailable: boolean;
+  expectedRuntime: number; // in seconds
+  onFailure?: 'rollback' | 'continue' | 'stop';
+  timeout?: number;
 }
 
-export const RunbookDesigner: React.FC<RunbookDesignerProps> = ({ onSave, onCancel }) => {
-  const [selectedNode, setSelectedNode] = useState<string | null>(null);
-  const [nodes, setNodes] = useState<RunbookNode[]>([
-    {
-      id: 'trigger_1',
-      type: 'trigger',
-      label: 'Alarm Detected',
-      config: { severity: 'critical' },
-      expectedRuntime: 0
-    },
-    {
-      id: 'action_1',
-      type: 'action',
-      label: 'Ping Node',
-      config: { timeout: 30 },
-      expectedRuntime: 5
-    },
-    {
-      id: 'decision_1',
-      type: 'decision',
-      label: 'Node Reachable?',
-      config: {},
-      expectedRuntime: 0
-    },
-    {
-      id: 'action_2',
-      type: 'action',
-      label: 'Restart DU',
-      config: { timeout: 60 },
-      expectedRuntime: 45,
-      rollbackAvailable: true
-    },
-    {
-      id: 'action_3',
-      type: 'action',
-      label: 'Failover Transport',
-      config: { timeout: 120 },
-      expectedRuntime: 90,
-      rollbackAvailable: true
-    },
-    {
-      id: 'validation_1',
-      type: 'validation',
-      label: 'Validate Recovery',
-      config: { checkInterval: 10 },
-      expectedRuntime: 20
-    }
-  ]);
+interface Runbook {
+  id: string;
+  name: string;
+  description: string;
+  steps: RunbookStep[];
+  active: boolean;
+  createdAt: string;
+  lastModified: string;
+}
 
-  const getNodeIcon = (type: RunbookNode['type']) => {
-    const icons = {
-      trigger: '🔔',
-      action: '⚙️',
-      decision: '❓',
-      wait: '⏱️',
-      validation: '✓'
-    };
-    return icons[type];
-  };
+const STEP_TYPES: Record<StepType, { icon: string; color: string; description: string }> = {
+  trigger: { icon: '🔔', color: 'bg-blue-100 dark:bg-blue-950 border-blue-300 dark:border-blue-700', description: 'Trigger event' },
+  action: { icon: '⚙️', color: 'bg-purple-100 dark:bg-purple-950 border-purple-300 dark:border-purple-700', description: 'Execute action' },
+  validation: { icon: '✓', color: 'bg-green-100 dark:bg-green-950 border-green-300 dark:border-green-700', description: 'Validate result' },
+  rollback: { icon: '↩️', color: 'bg-orange-100 dark:bg-orange-950 border-orange-300 dark:border-orange-700', description: 'Undo action' },
+  notification: { icon: '📢', color: 'bg-pink-100 dark:bg-pink-950 border-pink-300 dark:border-pink-700', description: 'Send notification' },
+  decision: { icon: '❓', color: 'bg-amber-100 dark:bg-amber-950 border-amber-300 dark:border-amber-700', description: 'Decision point' },
+  wait: { icon: '⏱️', color: 'bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600', description: 'Wait period' }
+};
 
-  const getNodeColor = (type: RunbookNode['type']) => {
-    const colors = {
-      trigger: 'bg-blue-100 border-blue-300 text-blue-800',
-      action: 'bg-purple-100 border-purple-300 text-purple-800',
-      decision: 'bg-amber-100 border-amber-300 text-amber-800',
-      wait: 'bg-gray-100 border-gray-300 text-gray-800',
-      validation: 'bg-green-100 border-green-300 text-green-800'
-    };
-    return colors[type];
-  };
+export const RunbookDesigner: React.FC<{
+  onSave?: (runbook: Runbook) => void;
+  onCancel?: () => void;
+}> = ({ onSave, onCancel }) => {
+  const [runbook, setRunbook] = useState<Runbook>({
+    id: `runbook_${Date.now()}`,
+    name: 'New Runbook',
+    description: 'Automated response playbook',
+    steps: [
+      {
+        id: 'step_1',
+        type: 'trigger',
+        title: 'Alarm Detected',
+        description: 'Listen for critical network alarm',
+        config: { severity: 'critical' },
+        rollbackAvailable: false,
+        expectedRuntime: 0
+      }
+    ],
+    active: false,
+    createdAt: new Date().toLocaleString(),
+    lastModified: new Date().toLocaleString()
+  });
 
-  const handleAddNode = (type: RunbookNode['type']) => {
-    const newNode: RunbookNode = {
-      id: `${type}_${Date.now()}`,
+  const [selectedStepId, setSelectedStepId] = useState<string | null>('step_1');
+  const [showStepPalette, setShowStepPalette] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+
+  const selectedStep = runbook.steps.find(s => s.id === selectedStepId);
+
+  const addStep = (type: StepType) => {
+    const newStep: RunbookStep = {
+      id: `step_${Date.now()}`,
       type,
-      label: `New ${type}`,
+      title: `New ${type}`,
+      description: '',
       config: {},
-      expectedRuntime: 10
+      rollbackAvailable: type === 'action',
+      expectedRuntime: type === 'wait' ? 30 : type === 'trigger' ? 0 : 10,
+      onFailure: type === 'action' ? 'rollback' : 'stop'
     };
-    setNodes([...nodes, newNode]);
+    setRunbook(prev => ({
+      ...prev,
+      steps: [...prev.steps, newStep],
+      lastModified: new Date().toLocaleString()
+    }));
+    setShowStepPalette(false);
   };
 
-  const handleDeleteNode = (id: string) => {
-    setNodes(nodes.filter(n => n.id !== id));
-    setSelectedNode(null);
+  const deleteStep = (id: string) => {
+    setRunbook(prev => ({
+      ...prev,
+      steps: prev.steps.filter(s => s.id !== id),
+      lastModified: new Date().toLocaleString()
+    }));
+    if (selectedStepId === id) setSelectedStepId(null);
   };
 
-  const handleNodeUpdate = (id: string, updates: Partial<RunbookNode>) => {
-    setNodes(nodes.map(n => (n.id === id ? { ...n, ...updates } : n)));
+  const duplicateStep = (id: string) => {
+    const step = runbook.steps.find(s => s.id === id);
+    if (!step) return;
+
+    const newStep = {
+      ...step,
+      id: `step_${Date.now()}`
+    };
+    setRunbook(prev => ({
+      ...prev,
+      steps: [...prev.steps, newStep],
+      lastModified: new Date().toLocaleString()
+    }));
+  };
+
+  const moveStep = (id: string, direction: 'up' | 'down') => {
+    const index = runbook.steps.findIndex(s => s.id === id);
+    if ((direction === 'up' && index === 0) || (direction === 'down' && index === runbook.steps.length - 1)) {
+      return;
+    }
+
+    const newSteps = [...runbook.steps];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    [newSteps[index], newSteps[targetIndex]] = [newSteps[targetIndex], newSteps[index]];
+
+    setRunbook(prev => ({
+      ...prev,
+      steps: newSteps,
+      lastModified: new Date().toLocaleString()
+    }));
   };
 
   const calculateTotalRuntime = () => {
-    return nodes.reduce((sum, node) => sum + (node.expectedRuntime || 0), 0);
+    return runbook.steps.reduce((total, step) => total + step.expectedRuntime, 0);
   };
 
-  const currentNode = nodes.find(n => n.id === selectedNode);
+  const isValidRunbook = runbook.steps.length > 1 && runbook.steps[0].type === 'trigger';
 
   return (
-    <div className="flex h-full gap-4 p-4 bg-gray-50">
-      {/* Left: Node Palette */}
-      <div className="w-48 bg-white rounded-lg border border-gray-200 p-3 flex flex-col overflow-y-auto">
-        <h3 className="text-xs font-bold text-gray-900 mb-3 px-2">Node Types</h3>
-        <div className="space-y-2">
-          {(['trigger', 'action', 'decision', 'wait', 'validation'] as const).map(type => (
-            <button
-              key={type}
-              onClick={() => handleAddNode(type)}
-              className="w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded-lg bg-gray-50 hover:bg-gray-100 border border-gray-200 transition"
-            >
-              <Plus className="w-3 h-3" />
-              <span className="capitalize">{type}</span>
-            </button>
-          ))}
+    <div className="flex h-full bg-background gap-4 p-4">
+      {/* Steps List */}
+      <div className="w-80 flex flex-col border border-border rounded-lg bg-card overflow-hidden">
+        <div className="p-3 border-b border-border">
+          <p className="text-sm font-bold text-foreground mb-2">Runbook Steps</p>
+          <button
+            onClick={() => setShowStepPalette(!showStepPalette)}
+            className="w-full px-3 py-2 text-xs font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition flex items-center justify-center gap-2"
+          >
+            <Plus className="w-3 h-3" /> Add Step
+          </button>
         </div>
 
-        <div className="mt-4 pt-3 border-t border-gray-200">
-          <p className="text-xs font-semibold text-gray-700 px-2 mb-2">Features</p>
-          <ul className="text-xs text-gray-600 space-y-1 px-2">
-            <li>✓ Parallel branches</li>
-            <li>✓ Conditional loops</li>
-            <li>✓ Retry logic</li>
-            <li>✓ Timeouts</li>
-            <li>✓ Fallback paths</li>
-          </ul>
-        </div>
-      </div>
-
-      {/* Center: Graph Canvas */}
-      <div className="flex-1 bg-white rounded-lg border border-gray-200 p-4 overflow-y-auto">
-        <h3 className="text-xs font-bold text-gray-900 mb-4">Runbook Graph</h3>
-        <div className="flex flex-col gap-2">
-          {nodes.map((node, idx) => (
-            <div key={node.id}>
+        {showStepPalette && (
+          <div className="p-2 space-y-2 border-b border-border max-h-48 overflow-y-auto">
+            {Object.entries(STEP_TYPES).map(([type, config]) => (
               <button
-                onClick={() => setSelectedNode(node.id)}
-                className={`w-full p-3 rounded-lg border-2 text-left transition ${
-                  selectedNode === node.id
-                    ? 'border-blue-600 bg-blue-50 shadow-md'
-                    : 'border-gray-200 hover:border-gray-300'
-                } ${getNodeColor(node.type)}`}
+                key={type}
+                onClick={() => addStep(type as StepType)}
+                className={`w-full p-2 rounded-lg border-2 transition text-left text-xs ${config.color} hover:shadow-md`}
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-lg flex-shrink-0">{getNodeIcon(node.type)}</span>
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold">{node.label}</p>
-                      {node.expectedRuntime && (
-                        <p className="text-xs opacity-75 mt-0.5">
-                          Runtime: {node.expectedRuntime}s
-                          {node.rollbackAvailable && ' • Rollback: ✓'}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteNode(node.id);
-                    }}
-                    className="p-1 text-red-600 hover:bg-red-100 rounded transition flex-shrink-0"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
+                <div className="font-semibold">{config.icon} {type.charAt(0).toUpperCase() + type.slice(1)}</div>
+                <div className="text-[11px] opacity-75">{config.description}</div>
               </button>
-              {idx < nodes.length - 1 && (
-                <div className="flex justify-center py-1">
-                  <div className="text-gray-400">↓</div>
+            ))}
+          </div>
+        )}
+
+        {/* Steps Flow */}
+        <div className="flex-1 overflow-y-auto p-3 space-y-1">
+          {runbook.steps.map((step, idx) => (
+            <div key={step.id} className="space-y-1">
+              <button
+                onClick={() => setSelectedStepId(step.id)}
+                className={cn(
+                  'w-full p-2 rounded-lg border-2 transition text-left',
+                  selectedStepId === step.id
+                    ? 'bg-primary/20 border-primary'
+                    : `border-border ${STEP_TYPES[step.type].color}`
+                )}
+              >
+                <div className="font-bold text-xs flex items-center gap-2">
+                  {STEP_TYPES[step.type].icon} <span>{step.title}</span>
+                </div>
+                <div className="text-[11px] text-muted-foreground mt-0.5 truncate">{step.description}</div>
+                {step.expectedRuntime > 0 && (
+                  <div className="text-[10px] text-muted-foreground mt-1">⏱️ {step.expectedRuntime}s</div>
+                )}
+              </button>
+
+              {/* Arrow between steps */}
+              {idx < runbook.steps.length - 1 && (
+                <div className="flex items-center justify-center py-1 text-muted-foreground text-xs">
+                  <ArrowRight className="w-3 h-3 rotate-90" />
                 </div>
               )}
             </div>
           ))}
         </div>
+
+        {/* Step Actions - Bottom */}
+        {selectedStep && (
+          <div className="border-t border-border p-3 space-y-2">
+            <button
+              onClick={() => duplicateStep(selectedStepId!)}
+              className="w-full px-2 py-1.5 text-xs font-semibold rounded-lg bg-muted text-foreground hover:bg-muted/80 transition flex items-center justify-center gap-1"
+            >
+              <Copy className="w-3 h-3" /> Duplicate
+            </button>
+            <button
+              onClick={() => deleteStep(selectedStepId!)}
+              className="w-full px-2 py-1.5 text-xs font-semibold rounded-lg bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900 transition flex items-center justify-center gap-1"
+            >
+              <Trash2 className="w-3 h-3" /> Delete
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Right: Inspector Panel */}
-      <div className="w-64 bg-white rounded-lg border border-gray-200 p-4 flex flex-col overflow-y-auto">
-        {currentNode ? (
-          <>
-            <h3 className="text-xs font-bold text-gray-900 mb-3 flex items-center gap-2">
-              <Settings className="w-4 h-4" />
-              Node Inspector
-            </h3>
+      {/* Main Editor */}
+      <div className="flex-1 flex flex-col gap-4">
+        {/* Header */}
+        <div className="bg-card border border-border rounded-lg p-4">
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="text-xs font-bold text-foreground block mb-1">Runbook Name</label>
+              <input
+                type="text"
+                value={runbook.name}
+                onChange={(e) => setRunbook(prev => ({ ...prev, name: e.target.value }))}
+                className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-foreground block mb-1">Status</label>
+              <button
+                onClick={() => setRunbook(prev => ({ ...prev, active: !prev.active }))}
+                className={cn(
+                  'w-full px-3 py-2 text-xs font-bold rounded-lg transition flex items-center justify-center gap-2',
+                  runbook.active
+                    ? 'bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300'
+                    : 'bg-muted text-muted-foreground'
+                )}
+              >
+                {runbook.active ? <Play className="w-3 h-3" /> : <Pause className="w-3 h-3" />}
+                {runbook.active ? 'Active' : 'Inactive'}
+              </button>
+            </div>
+          </div>
 
-            <div className="space-y-3 text-sm">
+          <div>
+            <label className="text-xs font-bold text-foreground block mb-1">Description</label>
+            <textarea
+              value={runbook.description}
+              onChange={(e) => setRunbook(prev => ({ ...prev, description: e.target.value }))}
+              className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+              rows={2}
+            />
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-3">
+          <div className="bg-card border border-border rounded-lg p-3 text-center">
+            <p className="text-xs text-muted-foreground font-semibold">Total Steps</p>
+            <p className="text-2xl font-bold text-primary mt-1">{runbook.steps.length}</p>
+          </div>
+          <div className="bg-card border border-border rounded-lg p-3 text-center">
+            <p className="text-xs text-muted-foreground font-semibold">Est. Runtime</p>
+            <p className="text-2xl font-bold text-primary mt-1">{calculateTotalRuntime()}s</p>
+          </div>
+          <div className="bg-card border border-border rounded-lg p-3 text-center">
+            <p className="text-xs text-muted-foreground font-semibold">Rollback Steps</p>
+            <p className="text-2xl font-bold text-primary mt-1">{runbook.steps.filter(s => s.rollbackAvailable).length}</p>
+          </div>
+        </div>
+
+        {/* Step Config */}
+        {selectedStep && (
+          <div className="bg-card border border-border rounded-lg p-4 flex-1 overflow-y-auto">
+            <p className="text-sm font-bold text-foreground mb-4">Step Configuration</p>
+
+            <div className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  Label
-                </label>
+                <label className="text-xs font-bold text-foreground block mb-1">Title</label>
                 <input
                   type="text"
-                  value={currentNode.label}
-                  onChange={(e) =>
-                    handleNodeUpdate(currentNode.id, { label: e.target.value })
-                  }
-                  className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={selectedStep.title}
+                  onChange={(e) => {
+                    setRunbook(prev => ({
+                      ...prev,
+                      steps: prev.steps.map(s =>
+                        s.id === selectedStepId ? { ...s, title: e.target.value } : s
+                      )
+                    }));
+                  }}
+                  className="w-full px-3 py-2 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  Type
-                </label>
-                <p className="text-xs text-gray-600 capitalize bg-gray-50 px-2 py-1.5 rounded border border-gray-200">
-                  {currentNode.type}
-                </p>
+                <label className="text-xs font-bold text-foreground block mb-1">Description</label>
+                <textarea
+                  value={selectedStep.description}
+                  onChange={(e) => {
+                    setRunbook(prev => ({
+                      ...prev,
+                      steps: prev.steps.map(s =>
+                        s.id === selectedStepId ? { ...s, description: e.target.value } : s
+                      )
+                    }));
+                  }}
+                  className="w-full px-3 py-2 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  rows={2}
+                />
               </div>
 
-              {currentNode.expectedRuntime !== undefined && (
+              {selectedStep.type === 'wait' && (
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    Expected Runtime (seconds)
-                  </label>
+                  <label className="text-xs font-bold text-foreground block mb-1">Duration (seconds)</label>
                   <input
                     type="number"
-                    value={currentNode.expectedRuntime}
-                    onChange={(e) =>
-                      handleNodeUpdate(currentNode.id, {
-                        expectedRuntime: parseInt(e.target.value)
-                      })
-                    }
-                    className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    value={selectedStep.expectedRuntime}
+                    onChange={(e) => {
+                      setRunbook(prev => ({
+                        ...prev,
+                        steps: prev.steps.map(s =>
+                          s.id === selectedStepId ? { ...s, expectedRuntime: parseInt(e.target.value) || 0 } : s
+                        )
+                      }));
+                    }}
+                    className="w-full px-3 py-2 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                   />
                 </div>
               )}
 
-              {currentNode.rollbackAvailable !== undefined && (
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="rollback"
-                    checked={currentNode.rollbackAvailable}
-                    onChange={(e) =>
-                      handleNodeUpdate(currentNode.id, {
-                        rollbackAvailable: e.target.checked
-                      })
-                    }
-                    className="w-3 h-3 rounded"
-                  />
-                  <label htmlFor="rollback" className="text-xs text-gray-700">
-                    Rollback available
-                  </label>
-                </div>
-              )}
+              {selectedStep.type !== 'trigger' && (
+                <>
+                  <div>
+                    <label className="text-xs font-bold text-foreground block mb-1">Timeout (seconds)</label>
+                    <input
+                      type="number"
+                      value={selectedStep.timeout || 120}
+                      onChange={(e) => {
+                        setRunbook(prev => ({
+                          ...prev,
+                          steps: prev.steps.map(s =>
+                            s.id === selectedStepId ? { ...s, timeout: parseInt(e.target.value) || 120 } : s
+                          )
+                        }));
+                      }}
+                      className="w-full px-3 py-2 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    />
+                  </div>
 
-              <div className="pt-3 border-t border-gray-200 space-y-2">
-                <p className="text-xs font-semibold text-gray-700">Policy Constraints</p>
-                <div className="text-xs text-gray-600 space-y-1">
-                  <p>✓ Max timeout: 300s</p>
-                  <p>✓ Requires approval</p>
-                  <p>✓ Rollback mandated</p>
-                </div>
-              </div>
+                  {selectedStep.type === 'action' && (
+                    <div>
+                      <label className="text-xs font-bold text-foreground block mb-1">On Failure</label>
+                      <select
+                        value={selectedStep.onFailure || 'rollback'}
+                        onChange={(e) => {
+                          setRunbook(prev => ({
+                            ...prev,
+                            steps: prev.steps.map(s =>
+                              s.id === selectedStepId ? { ...s, onFailure: e.target.value as any } : s
+                            )
+                          }));
+                        }}
+                        className="w-full px-3 py-2 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      >
+                        <option value="rollback">Rollback all changes</option>
+                        <option value="continue">Continue to next step</option>
+                        <option value="stop">Stop execution</option>
+                      </select>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
-          </>
-        ) : (
-          <div className="flex flex-col items-center justify-center h-full text-center">
-            <AlertCircle className="w-6 h-6 text-gray-400 mb-2" />
-            <p className="text-xs text-gray-600">Select a node to inspect</p>
           </div>
         )}
 
-        {/* Summary */}
-        <div className="mt-auto pt-4 border-t border-gray-200 space-y-2">
-          <p className="text-xs font-semibold text-gray-700">Summary</p>
-          <div className="text-xs text-gray-600 space-y-1">
-            <p>Total nodes: {nodes.length}</p>
-            <p>Total runtime: {calculateTotalRuntime()}s</p>
-            <p>
-              Rollback: {nodes.filter(n => n.rollbackAvailable).length}/{nodes.length}
-            </p>
-          </div>
+        {/* Actions */}
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowPreview(!showPreview)}
+            className="px-4 py-2 text-xs font-semibold rounded-lg bg-muted text-foreground hover:bg-muted/80 transition flex items-center gap-2"
+          >
+            <Eye className="w-3 h-3" /> {showPreview ? 'Hide' : 'Preview'}
+          </button>
+          <button
+            onClick={() => {
+              if (isValidRunbook) {
+                onSave?.(runbook);
+              }
+            }}
+            disabled={!isValidRunbook}
+            className={cn(
+              'px-4 py-2 text-xs font-semibold rounded-lg transition flex items-center gap-2 flex-1',
+              isValidRunbook
+                ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                : 'bg-muted text-muted-foreground cursor-not-allowed'
+            )}
+          >
+            <Save className="w-3 h-3" /> Save Runbook
+          </button>
+          <button
+            onClick={onCancel}
+            className="px-4 py-2 text-xs font-semibold rounded-lg border border-border text-foreground hover:bg-muted transition"
+          >
+            Cancel
+          </button>
         </div>
       </div>
+
+      {/* Preview Modal */}
+      {showPreview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-card border border-border rounded-lg w-3/4 max-h-96 p-6 overflow-y-auto">
+            <p className="text-sm font-bold text-foreground mb-4">Runbook Preview</p>
+            <pre className="text-xs text-muted-foreground bg-muted/30 p-3 rounded-lg overflow-x-auto">
+              {JSON.stringify(runbook, null, 2)}
+            </pre>
+            <button
+              onClick={() => setShowPreview(false)}
+              className="mt-4 px-4 py-2 text-xs font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

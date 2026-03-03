@@ -9,6 +9,9 @@ interface LearningEngineProps {
 export const LearningEngine: React.FC<LearningEngineProps> = ({ onRecommendationApply }) => {
   const [learnings] = useState<AutomationLearning[]>(generateMockLearningData());
   const [selectedAutomation, setSelectedAutomation] = useState<string>(learnings[0].automationId);
+  const [appliedRecommendations, setAppliedRecommendations] = useState<Array<{ automationId: string; rec: string; timestamp: string }>>([]);
+  const [showHistory, setShowHistory] = useState(false);
+  const [rejectedRecommendations, setRejectedRecommendations] = useState<Set<string>>(new Set());
 
   const selectedData = learnings.find(l => l.automationId === selectedAutomation);
 
@@ -30,51 +33,83 @@ export const LearningEngine: React.FC<LearningEngineProps> = ({ onRecommendation
     return 'text-gray-700';
   };
 
-  return (
-    <div className="w-full flex flex-col h-full gap-4 p-4 bg-gray-50 overflow-y-auto">
-      {/* Header */}
-      <div className="flex items-center gap-2">
-        <Lightbulb className="w-5 h-5 text-yellow-500" />
-        <h2 className="text-lg font-bold text-gray-900">Learning Engine</h2>
-      </div>
+  const handleApplyRecommendation = (automationId: string, rec: string) => {
+    const newRec = { automationId, rec, timestamp: new Date().toLocaleTimeString() };
+    setAppliedRecommendations([newRec, ...appliedRecommendations]);
+    setRejectedRecommendations(prev => {
+      const next = new Set(prev);
+      next.delete(`${automationId}-${rec}`);
+      return next;
+    });
+    onRecommendationApply?.(automationId, rec);
+  };
 
-      {/* Automation Selector */}
-      <div className="bg-white rounded-lg border border-gray-200 p-3">
-        <p className="text-xs font-semibold text-gray-700 mb-2">Select Automation</p>
-        <div className="space-y-2">
-          {learnings.map(learning => (
-            <button
-              key={learning.automationId}
-              onClick={() => setSelectedAutomation(learning.automationId)}
-              className={`w-full text-left px-3 py-2 rounded-lg border-2 transition ${
-                selectedAutomation === learning.automationId
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-200 hover:border-gray-300 bg-white'
-              }`}
-            >
-              <p className="text-sm font-semibold text-gray-900">{learning.name}</p>
-              <div className="flex items-center gap-2 mt-1">
-                {getTrendIcon(learning.trend)}
-                <span className={`text-xs font-semibold ${getTrendTextColor(learning.trend)}`}>
-                  {learning.trend.charAt(0).toUpperCase() + learning.trend.slice(1)}{' '}
-                  {learning.trendValue > 0 ? '+' : ''}{learning.trendValue}%
-                </span>
-              </div>
-            </button>
-          ))}
+  const handleRejectRecommendation = (automationId: string, rec: string) => {
+    setRejectedRecommendations(prev => new Set(prev).add(`${automationId}-${rec}`));
+  };
+
+  return (
+    <div className="w-full flex flex-col h-full gap-4 p-4 bg-background overflow-y-auto">
+      {/* History Button - Top Right */}
+      {appliedRecommendations.length > 0 && (
+        <div className="flex justify-end">
+          <button
+            onClick={() => setShowHistory(!showHistory)}
+            className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition"
+          >
+            History ({appliedRecommendations.length})
+          </button>
         </div>
+      )}
+
+      {/* History Panel */}
+      {showHistory && appliedRecommendations.length > 0 && (
+        <div className="bg-card border border-border rounded-lg p-4 space-y-2">
+          <p className="text-xs font-semibold text-foreground mb-3">Applied Recommendations</p>
+          {appliedRecommendations.map((item, idx) => {
+            const automation = learnings.find(l => l.automationId === item.automationId);
+            return (
+              <div key={idx} className="p-2 bg-green-50/50 border border-green-200/50 rounded text-xs">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="font-semibold text-green-900">{automation?.name}</p>
+                    <p className="text-green-800 mt-0.5">{item.rec}</p>
+                    <p className="text-green-700 text-[11px] mt-1">Applied at {item.timestamp}</p>
+                  </div>
+                  <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Automation Selector - Improved with many models */}
+      <div className="bg-card rounded-lg border border-border p-3">
+        <label className="text-xs font-semibold text-muted-foreground mb-2 block">Select Automation Model</label>
+        <select
+          value={selectedAutomation}
+          onChange={(e) => setSelectedAutomation(e.target.value)}
+          className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/50"
+        >
+          {learnings.map(learning => (
+            <option key={learning.automationId} value={learning.automationId}>
+              {learning.name} — {learning.trend.charAt(0).toUpperCase() + learning.trend.slice(1)} {learning.trendValue > 0 ? '+' : ''}{learning.trendValue}%
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* Details */}
       {selectedData && (
         <>
           {/* Trend Card */}
-          <div className={`rounded-lg border-2 p-4 ${getTrendColor(selectedData.trend)}`}>
+          <div className={`rounded-lg border p-4 bg-card`}>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-bold text-gray-900">{selectedData.name}</h3>
+              <h3 className="text-sm font-bold text-foreground">{selectedData.name}</h3>
               <span className="flex items-center gap-1">
                 {getTrendIcon(selectedData.trend)}
-                <span className={`text-sm font-bold ${getTrendTextColor(selectedData.trend)}`}>
+                <span className={`text-sm font-bold`}>
                   {selectedData.trend === 'improving'
                     ? '📈 Improving'
                     : selectedData.trend === 'degrading'
@@ -118,21 +153,31 @@ export const LearningEngine: React.FC<LearningEngineProps> = ({ onRecommendation
 
           {/* Recommendations */}
           {selectedData.recommendations.length > 0 && (
-            <div className="bg-white rounded-lg border border-gray-200 p-4">
+            <div className="bg-card rounded-lg border border-border p-4">
               <div className="flex items-center gap-2 mb-3">
-                <Lightbulb className="w-4 h-4 text-yellow-500" />
-                <h3 className="text-sm font-bold text-gray-900">Tuning Recommendations</h3>
+                <Lightbulb className="w-4 h-4 text-amber-500" />
+                <h3 className="text-sm font-bold text-foreground">Tuning Recommendations</h3>
               </div>
               <div className="space-y-2">
-                {selectedData.recommendations.map((rec, idx) => (
-                  <div key={idx} className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                    <p className="text-sm text-gray-900 font-medium">{rec}</p>
-                    <button
-                      onClick={() => onRecommendationApply?.(selectedData.automationId, rec)}
-                      className="mt-2 px-3 py-1 text-xs font-semibold bg-yellow-600 text-white rounded hover:bg-yellow-700 transition"
-                    >
-                      Apply Recommendation
-                    </button>
+                {selectedData.recommendations
+                  .filter(rec => !rejectedRecommendations.has(`${selectedData.automationId}-${rec}`))
+                  .map((rec, idx) => (
+                  <div key={idx} className="p-3 bg-amber-50/50 dark:bg-amber-950/30 rounded-lg border border-amber-200/50 dark:border-amber-800/50">
+                    <p className="text-sm text-foreground font-medium">{rec}</p>
+                    <div className="flex gap-2 mt-2">
+                      <button
+                        onClick={() => handleApplyRecommendation(selectedData.automationId, rec)}
+                        className="flex-1 px-3 py-1 text-xs font-semibold bg-primary text-primary-foreground rounded hover:bg-primary/90 transition"
+                      >
+                        Apply
+                      </button>
+                      <button
+                        onClick={() => handleRejectRecommendation(selectedData.automationId, rec)}
+                        className="flex-1 px-3 py-1 text-xs font-semibold bg-muted text-muted-foreground rounded hover:bg-muted/80 transition"
+                      >
+                        Reject
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -140,13 +185,13 @@ export const LearningEngine: React.FC<LearningEngineProps> = ({ onRecommendation
           )}
 
           {/* No Recommendations */}
-          {selectedData.recommendations.length === 0 && (
-            <div className="bg-green-50 rounded-lg border border-green-200 p-4">
+          {selectedData.recommendations.filter(rec => !rejectedRecommendations.has(`${selectedData.automationId}-${rec}`)).length === 0 && (
+            <div className="bg-status-healthy/10 rounded-lg border border-status-healthy/30 p-4">
               <div className="flex items-start gap-2">
-                <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                <CheckCircle className="w-4 h-4 text-status-healthy mt-0.5 flex-shrink-0" />
                 <div>
-                  <p className="text-sm font-bold text-green-900">No Tuning Needed</p>
-                  <p className="text-xs text-green-800 mt-1">
+                  <p className="text-sm font-bold text-foreground">No Tuning Needed</p>
+                  <p className="text-xs text-muted-foreground mt-1">
                     This automation is performing optimally. No immediate changes recommended.
                   </p>
                 </div>
@@ -156,15 +201,15 @@ export const LearningEngine: React.FC<LearningEngineProps> = ({ onRecommendation
 
           {/* Statistics */}
           <div className="grid grid-cols-2 gap-2">
-            <div className="bg-white rounded-lg border border-gray-200 p-3">
-              <p className="text-xs text-gray-600 font-semibold">Executions (Last 24h)</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">
+            <div className="bg-card rounded-lg border border-border p-3">
+              <p className="text-xs text-muted-foreground font-semibold">Executions (Last 24h)</p>
+              <p className="text-2xl font-bold text-foreground mt-1">
                 {Math.floor(Math.random() * 500 + 100)}
               </p>
             </div>
-            <div className="bg-white rounded-lg border border-gray-200 p-3">
-              <p className="text-xs text-gray-600 font-semibold">Avg Runtime</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">
+            <div className="bg-card rounded-lg border border-border p-3">
+              <p className="text-xs text-muted-foreground font-semibold">Avg Runtime</p>
+              <p className="text-2xl font-bold text-foreground mt-1">
                 {Math.floor(Math.random() * 50 + 15)}ms
               </p>
             </div>
@@ -173,9 +218,9 @@ export const LearningEngine: React.FC<LearningEngineProps> = ({ onRecommendation
       )}
 
       {/* Info */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-        <p className="text-xs font-semibold text-blue-900 mb-1">💡 How This Works</p>
-        <p className="text-xs text-blue-800">
+      <div className="bg-primary/10 border border-primary/30 rounded-lg p-3">
+        <p className="text-xs font-semibold text-foreground mb-1">💡 How This Works</p>
+        <p className="text-xs text-muted-foreground">
           The Learning Engine monitors automation performance over time, detecting improvements and
           degradation. It recommends configuration tuning to optimize success rates and efficiency.
         </p>
