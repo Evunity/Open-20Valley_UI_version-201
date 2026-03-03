@@ -59,13 +59,36 @@ const DOMAINS = [
   { id: 'execution', icon: Lock, label: 'Execution', color: 'text-emerald-600', bgColor: 'bg-emerald-50' }
 ];
 
+interface PolicyForm {
+  name: string;
+  description: string;
+  approvalRequired: boolean;
+  constraints: string[];
+}
+
+interface SavedRunbook {
+  id: string;
+  name: string;
+  description: string;
+  createdAt: string;
+}
+
 export const AutomationManagement: React.FC = () => {
   const [activeDomain, setActiveDomain] = useState<SuperDomain>('awareness');
   const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceType>('command_center');
   const [showBuilder, setShowBuilder] = useState(false);
   const [showRunbook, setShowRunbook] = useState(false);
   const [showApprovalDialog, setShowApprovalDialog] = useState(false);
-  const [policies] = useState(generateMockPolicies());
+  const [showPolicyDialog, setShowPolicyDialog] = useState(false);
+  const [policies, setPolicies] = useState(generateMockPolicies());
+  const [runbooks, setRunbooks] = useState<SavedRunbook[]>([]);
+  const [policyForm, setPolicyForm] = useState<PolicyForm>({
+    name: '',
+    description: '',
+    approvalRequired: false,
+    constraints: []
+  });
+  const [currentConstraint, setCurrentConstraint] = useState('');
 
   const domainWorkspaces = WORKSPACES.filter(w => w.domain === activeDomain);
   const currentDomain = DOMAINS.find(d => d.id === activeDomain);
@@ -112,27 +135,59 @@ export const AutomationManagement: React.FC = () => {
       case 'runbook':
         return showRunbook ? (
           <RunbookDesigner
-            onSave={() => {
+            onSave={(runbook) => {
+              setRunbooks(prev => [...prev, {
+                id: runbook.id,
+                name: runbook.name,
+                description: runbook.description,
+                createdAt: runbook.createdAt
+              }]);
               setShowRunbook(false);
-              alert('Runbook saved successfully!');
+              alert('✓ Runbook saved successfully!');
             }}
             onCancel={() => setShowRunbook(false)}
           />
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center p-4 bg-background dark:bg-background">
-            <div className="text-center max-w-md">
-              <Settings className="w-16 h-16 text-purple-400 dark:text-purple-600 mx-auto mb-4 opacity-50" />
-              <h2 className="text-lg font-bold text-foreground mb-2">Runbook Designer</h2>
-              <p className="text-sm text-muted-foreground mb-6">
-                Build complex workflows with parallel branches, conditionals, and retries
-              </p>
-              <button
-                onClick={() => setShowRunbook(true)}
-                className="px-6 py-2.5 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-700 transition flex items-center gap-2 mx-auto"
-              >
-                <Plus className="w-4 h-4" />
-                New Runbook
-              </button>
+          <div className="flex-1 overflow-y-auto p-4 bg-background dark:bg-background">
+            <div className="max-w-5xl mx-auto">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-lg font-bold text-foreground">Runbook Designer</h2>
+                <button
+                  onClick={() => setShowRunbook(true)}
+                  className="px-6 py-2.5 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-700 transition flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  New Runbook
+                </button>
+              </div>
+
+              {runbooks.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center max-w-md mx-auto">
+                  <Settings className="w-16 h-16 text-purple-400 dark:text-purple-600 mx-auto mb-4 opacity-50" />
+                  <p className="text-sm text-muted-foreground">
+                    Build complex workflows with parallel branches, conditionals, and retries
+                  </p>
+                </div>
+              ) : (
+                <div className="grid gap-3">
+                  {runbooks.map(runbook => (
+                    <div
+                      key={runbook.id}
+                      className="bg-card rounded-lg border border-border p-4 hover:border-gray-300 dark:hover:border-gray-600 transition"
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <h3 className="text-sm font-bold text-foreground">{runbook.name}</h3>
+                          <p className="text-xs text-muted-foreground mt-1">{runbook.description}</p>
+                        </div>
+                        <span className="text-xs text-muted-foreground whitespace-nowrap ml-4">
+                          {new Date(runbook.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         );
@@ -143,7 +198,14 @@ export const AutomationManagement: React.FC = () => {
             <div className="max-w-4xl mx-auto">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-bold text-foreground">Automation Policies</h2>
-                <button className="px-3 py-1.5 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 transition flex items-center gap-1">
+                <button
+                  onClick={() => {
+                    setShowPolicyDialog(true);
+                    setPolicyForm({ name: '', description: '', approvalRequired: false, constraints: [] });
+                    setCurrentConstraint('');
+                  }}
+                  className="px-3 py-1.5 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 transition flex items-center gap-1"
+                >
                   <Plus className="w-4 h-4" /> New Policy
                 </button>
               </div>
@@ -278,6 +340,144 @@ export const AutomationManagement: React.FC = () => {
         }}
         onClose={() => setShowApprovalDialog(false)}
       />
+
+      {/* New Policy Dialog */}
+      {showPolicyDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-card border border-border rounded-lg w-full max-w-md p-6 space-y-4 shadow-lg">
+            <div>
+              <h2 className="text-lg font-bold text-foreground">Create New Policy</h2>
+              <p className="text-xs text-muted-foreground mt-1">Define automation constraints and approvals</p>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-bold text-foreground block mb-1">Policy Name</label>
+                <input
+                  type="text"
+                  value={policyForm.name}
+                  onChange={(e) => setPolicyForm(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="e.g., Production Restrictions"
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-foreground block mb-1">Description</label>
+                <textarea
+                  value={policyForm.description}
+                  onChange={(e) => setPolicyForm(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Describe this policy..."
+                  rows={2}
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                />
+              </div>
+
+              <div>
+                <label className="flex items-center gap-2 text-xs font-bold text-foreground cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={policyForm.approvalRequired}
+                    onChange={(e) => setPolicyForm(prev => ({ ...prev, approvalRequired: e.target.checked }))}
+                    className="rounded border-border"
+                  />
+                  Require Approval for Execution
+                </label>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-foreground block mb-2">Constraints</label>
+                <div className="flex gap-2 mb-2">
+                  <input
+                    type="text"
+                    value={currentConstraint}
+                    onChange={(e) => setCurrentConstraint(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter' && currentConstraint.trim()) {
+                        setPolicyForm(prev => ({
+                          ...prev,
+                          constraints: [...prev.constraints, currentConstraint]
+                        }));
+                        setCurrentConstraint('');
+                      }
+                    }}
+                    placeholder="Add constraint (press Enter)..."
+                    className="flex-1 px-3 py-2 text-sm rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  />
+                  <button
+                    onClick={() => {
+                      if (currentConstraint.trim()) {
+                        setPolicyForm(prev => ({
+                          ...prev,
+                          constraints: [...prev.constraints, currentConstraint]
+                        }));
+                        setCurrentConstraint('');
+                      }
+                    }}
+                    className="px-3 py-2 bg-primary text-primary-foreground text-sm font-bold rounded-lg hover:bg-primary/90 transition"
+                  >
+                    Add
+                  </button>
+                </div>
+
+                {policyForm.constraints.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {policyForm.constraints.map((constraint, idx) => (
+                      <span
+                        key={idx}
+                        className="text-xs bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-2 py-1 rounded flex items-center gap-1"
+                      >
+                        {constraint}
+                        <button
+                          onClick={() => {
+                            setPolicyForm(prev => ({
+                              ...prev,
+                              constraints: prev.constraints.filter((_, i) => i !== idx)
+                            }));
+                          }}
+                          className="hover:text-gray-900 dark:hover:text-gray-100 font-bold"
+                        >
+                          ✕
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex gap-2 justify-end pt-2">
+              <button
+                onClick={() => setShowPolicyDialog(false)}
+                className="px-4 py-2 text-xs font-bold rounded-lg border border-border text-foreground hover:bg-muted transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (policyForm.name.trim()) {
+                    const newPolicy = {
+                      id: `policy_${Date.now()}`,
+                      name: policyForm.name,
+                      description: policyForm.description,
+                      approvalRequired: policyForm.approvalRequired,
+                      constraints: policyForm.constraints
+                    };
+                    setPolicies(prev => [...prev, newPolicy]);
+                    setShowPolicyDialog(false);
+                    alert('✓ Policy created successfully!');
+                  } else {
+                    alert('Please enter a policy name');
+                  }
+                }}
+                className="px-4 py-2 bg-primary text-primary-foreground text-xs font-bold rounded-lg hover:bg-primary/90 transition"
+              >
+                Create Policy
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

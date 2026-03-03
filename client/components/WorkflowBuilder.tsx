@@ -250,7 +250,7 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
               <Plus className="w-3 h-3" /> Add Node
             </button>
             <div className="text-xs text-muted-foreground px-2 py-1.5">
-              💡 Drag to move • Click "Connect" on a node, then click target node
+              💡 Drag to move • Click "+" button on a node to connect, then click target node
             </div>
           </div>
 
@@ -334,22 +334,22 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
                       </div>
                     </div>
 
-                    {/* Connect Button (on right side) */}
+                    {/* Connect Button (bottom right) */}
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleConnectClick(node.id);
                       }}
-                      title="Click to connect to another node"
+                      title={connectingMode === node.id ? 'Click another node to complete connection' : 'Click to connect to another node'}
                       className={cn(
-                        'absolute right-0 top-1/2 -translate-y-1/2 translate-x-8 px-2 py-1 text-xs font-bold rounded-lg transition shadow-md hover:scale-105',
+                        'absolute -bottom-2 -right-2 px-2 py-1 text-xs font-bold rounded-full transition shadow-md hover:scale-110',
                         connectingMode === node.id
-                          ? 'bg-blue-500 text-white'
+                          ? 'bg-blue-500 text-white ring-2 ring-blue-300'
                           : 'bg-primary text-primary-foreground hover:bg-primary/90'
                       )}
                       style={{ zIndex: 10 }}
                     >
-                      {connectingMode === node.id ? '✓' : '→'}
+                      {connectingMode === node.id ? '✓' : '+'}
                     </button>
                   </div>
                 );
