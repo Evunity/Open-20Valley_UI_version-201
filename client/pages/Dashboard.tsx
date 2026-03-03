@@ -463,83 +463,87 @@ export default function Dashboard() {
 
           {/* Filters Panel */}
           {showFilters && (
-            <div className="border-t border-border pt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4 animate-in fade-in slide-in-from-top-2 duration-200">
-              <div>
-                <label className="text-xs font-semibold text-muted-foreground block mb-2 uppercase tracking-wide">
-                  Technology
-                </label>
-                <select
-                  multiple
-                  className="w-full px-2.5 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                  value={filters.technologies}
-                  onChange={(e) => {
-                    const selected = Array.from(e.target.selectedOptions, (option) => option.value as Technology);
-                    setFilters((prev) => ({ ...prev, technologies: selected }));
-                  }}
-                >
-                  <option value="2G">2G</option>
-                  <option value="3G">3G</option>
-                  <option value="4G">4G</option>
-                  <option value="5G">5G</option>
-                  <option value="ORAN">O-RAN</option>
-                </select>
+            <div className="border-t border-border pt-3 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2">
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground block mb-1 uppercase tracking-wide">
+                    Technology
+                  </label>
+                  <select
+                    multiple
+                    className="w-full px-2 py-1 rounded-lg border border-border bg-background text-xs focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                    value={filters.technologies}
+                    onChange={(e) => {
+                      const selected = Array.from(e.target.selectedOptions, (option) => option.value as Technology);
+                      setFilters((prev) => ({ ...prev, technologies: selected }));
+                    }}
+                  >
+                    <option value="2G">2G</option>
+                    <option value="3G">3G</option>
+                    <option value="4G">4G</option>
+                    <option value="5G">5G</option>
+                    <option value="ORAN">O-RAN</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground block mb-1 uppercase tracking-wide">
+                    Region
+                  </label>
+                  <select
+                    multiple
+                    className="w-full px-2 py-1 rounded-lg border border-border bg-background text-xs focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                    value={filters.regions}
+                    onChange={(e) => {
+                      const selected = Array.from(e.target.selectedOptions, (option) => option.value as Region);
+                      setFilters((prev) => ({ ...prev, regions: selected }));
+                    }}
+                  >
+                    <option value="North">North</option>
+                    <option value="South">South</option>
+                    <option value="East">East</option>
+                    <option value="West">West</option>
+                    <option value="Central">Central</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground block mb-1 uppercase tracking-wide">
+                    Vendor
+                  </label>
+                  <select
+                    multiple
+                    className="w-full px-2 py-1 rounded-lg border border-border bg-background text-xs focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                    value={filters.vendors}
+                    onChange={(e) => {
+                      const selected = Array.from(e.target.selectedOptions, (option) => option.value);
+                      setFilters((prev) => ({ ...prev, vendors: selected }));
+                    }}
+                  >
+                    <option value="Ericsson">Ericsson</option>
+                    <option value="Huawei">Huawei</option>
+                    <option value="Nokia">Nokia</option>
+                    <option value="Samsung">Samsung</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground block mb-1 uppercase tracking-wide">
+                    Time Range
+                  </label>
+                  <select
+                    className="w-full px-2 py-1 rounded-lg border border-border bg-background text-xs focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                    value={filters.timeRange}
+                    onChange={(e) =>
+                      setFilters((prev) => ({ ...prev, timeRange: e.target.value as any }))
+                    }
+                  >
+                    <option value="24h">Last 24h</option>
+                    <option value="7d">Last 7 days</option>
+                    <option value="30d">Last 30 days</option>
+                  </select>
+                </div>
               </div>
-              <div>
-                <label className="text-xs font-semibold text-muted-foreground block mb-2 uppercase tracking-wide">
-                  Region
-                </label>
-                <select
-                  multiple
-                  className="w-full px-2.5 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                  value={filters.regions}
-                  onChange={(e) => {
-                    const selected = Array.from(e.target.selectedOptions, (option) => option.value as Region);
-                    setFilters((prev) => ({ ...prev, regions: selected }));
-                  }}
-                >
-                  <option value="North">North</option>
-                  <option value="South">South</option>
-                  <option value="East">East</option>
-                  <option value="West">West</option>
-                  <option value="Central">Central</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-muted-foreground block mb-2 uppercase tracking-wide">
-                  Vendor
-                </label>
-                <select
-                  multiple
-                  className="w-full px-2.5 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                  value={filters.vendors}
-                  onChange={(e) => {
-                    const selected = Array.from(e.target.selectedOptions, (option) => option.value);
-                    setFilters((prev) => ({ ...prev, vendors: selected }));
-                  }}
-                >
-                  <option value="Ericsson">Ericsson</option>
-                  <option value="Huawei">Huawei</option>
-                  <option value="Nokia">Nokia</option>
-                  <option value="Samsung">Samsung</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-muted-foreground block mb-2 uppercase tracking-wide">
-                  Time Range
-                </label>
-                <select
-                  className="w-full px-2.5 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                  value={filters.timeRange}
-                  onChange={(e) =>
-                    setFilters((prev) => ({ ...prev, timeRange: e.target.value as any }))
-                  }
-                >
-                  <option value="24h">Last 24h</option>
-                  <option value="7d">Last 7 days</option>
-                  <option value="30d">Last 30 days</option>
-                </select>
-              </div>
-              <div className="flex items-end gap-2">
+
+              {/* Action Buttons - INSIDE the filter box */}
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
                 <button
                   onClick={() =>
                     setFilters({
@@ -549,9 +553,15 @@ export default function Dashboard() {
                       timeRange: "24h",
                     })
                   }
-                  className="flex-1 px-3 py-2 rounded-lg bg-muted hover:bg-muted/70 active:scale-95 transition-all duration-200 text-xs font-medium"
+                  className="px-2.5 py-1 rounded-lg bg-muted text-muted-foreground hover:bg-red-100 hover:text-red-700 transition-all duration-200 text-xs font-medium active:scale-95"
                 >
-                  Reset
+                  Reset All
+                </button>
+                <button
+                  onClick={() => setShowFilters(false)}
+                  className="px-2.5 py-1 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 text-xs font-medium active:scale-95"
+                >
+                  Apply Filter
                 </button>
               </div>
             </div>
