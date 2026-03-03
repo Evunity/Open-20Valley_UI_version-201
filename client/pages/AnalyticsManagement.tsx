@@ -430,10 +430,7 @@ export default function AnalyticsManagement() {
     <div className="space-y-1">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-0.5">
-        <div>
-          <h1 className="text-xs font-bold text-foreground">Analytics Management</h1>
-          <p className="text-[10px] text-muted-foreground">Create and analyze custom KPIs</p>
-        </div>
+        <div></div>
         <div className="flex items-center gap-1.5">
           <button
             onClick={() => setShowSavedViews(!showSavedViews)}
@@ -790,15 +787,15 @@ export default function AnalyticsManagement() {
           {renderDropdown("Vendor", "vendor", allVendors, filters.vendors, "vendors")}
           {renderDropdown("Technology", "technology", allTechnologies, filters.technologies, "technologies")}
           {renderDropdown("Granularity", "granularity", ["Hourly", "Daily", "Weekly", "Monthly"], filters.granularityValues, "granularityValues")}
+          {renderDropdown("Network", "network", allNetworks, filters.networks, "networks")}
+          {renderDropdown("Site", "site", allSites, filters.sites, "sites")}
+          {renderDropdown("Cell", "cell", allCells, filters.cells, "cells")}
         </div>
 
         {/* Additional Filters */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-0.5">
           {renderDropdown("Domain", "domain", allDomains, filters.domains, "domains")}
           {renderDropdown("Category", "category", allCategories, filters.categories, "categories")}
-          {renderDropdown("Scope", "scope", allScopes, filters.scopes, "scopes")}
-          {renderDropdown("Network", "network", allNetworks, filters.networks, "networks")}
-          {renderDropdown("Site", "site", allSites, filters.sites, "sites")}
         </div>
 
         {/* Action Buttons - INSIDE the filter box */}

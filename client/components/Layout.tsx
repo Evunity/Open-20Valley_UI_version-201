@@ -112,7 +112,7 @@ export default function Layout({ children }: LayoutProps) {
   const SidebarContent = () => (
     <>
       {/* Logo & Header */}
-      <div className="p-1 border-b border-sidebar-border flex items-center justify-between gap-1 flex-shrink-0">
+      <div className="p-2 border-b border-sidebar-border flex items-center justify-between gap-1.5 flex-shrink-0">
         {sidebarOpen && (
           <Link to="/" className="flex items-center gap-2 flex-1 min-w-0">
             <svg
@@ -195,8 +195,8 @@ export default function Layout({ children }: LayoutProps) {
       </div>
 
       {/* Main Navigation */}
-      <nav className="flex-1 overflow-y-auto py-1 px-0">
-        <div className="space-y-0.5">
+      <nav className="flex-1 overflow-y-auto py-2 px-0">
+        <div className="space-y-1">
           {mainNavItems.map(({ path, label, icon: Icon }) => (
             <Link
               key={path}
@@ -205,7 +205,7 @@ export default function Layout({ children }: LayoutProps) {
                 if (isMobile) setMobileMenuOpen(false);
               }}
               className={cn(
-                "mx-0.5 flex items-center gap-1.5 px-1.5 py-1 rounded-lg transition-all duration-200 whitespace-nowrap cursor-pointer text-xs",
+                "mx-1 flex items-center gap-2 px-2 py-1.5 rounded-lg transition-all duration-200 whitespace-nowrap cursor-pointer text-xs",
                 isActive(path)
                   ? "bg-primary/20 text-primary font-medium border-l-2 border-primary"
                   : "text-sidebar-foreground hover:bg-sidebar-accent/50"
@@ -222,11 +222,11 @@ export default function Layout({ children }: LayoutProps) {
       </nav>
 
       {/* Bottom Actions */}
-      <div className="p-1 border-t border-sidebar-border space-y-0.5 flex-shrink-0">
+      <div className="p-2 border-t border-sidebar-border space-y-1 flex-shrink-0">
         <button
           onClick={toggleDarkMode}
           className={cn(
-            "w-full flex items-center justify-center md:justify-start gap-1.5 px-1.5 py-1 rounded-lg transition-colors text-xs",
+            "w-full flex items-center justify-center md:justify-start gap-2 px-2 py-1.5 rounded-lg transition-colors text-xs",
             "text-sidebar-foreground hover:bg-sidebar-accent/50"
           )}
           title="Toggle dark mode"
@@ -241,7 +241,7 @@ export default function Layout({ children }: LayoutProps) {
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className={cn(
-              "w-full flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors text-xs",
+              "w-full flex items-center gap-1.5 px-2 py-1 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors text-xs",
               sidebarOpen ? "justify-start" : "justify-center"
             )}
             title={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}

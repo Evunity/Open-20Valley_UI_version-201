@@ -708,7 +708,7 @@ export default function DashboardNew() {
               <div
                 key={kpi.id}
                 className={cn(
-                  "p-2 rounded-lg border transition-all duration-300 hover:shadow-lg hover:border-primary/50",
+                  "p-3 rounded-lg border transition-all duration-300 hover:shadow-lg hover:border-primary/50",
                   kpiValue.status === "healthy"
                     ? "border-status-healthy/20 bg-status-healthy/5"
                     : kpiValue.status === "critical"
@@ -791,8 +791,8 @@ export default function DashboardNew() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
           {/* LEFT: Chart Visualization */}
-          <div className="rounded-lg border border-border/50 bg-background p-2">
-            <ResponsiveContainer width="100%" height={200}>
+          <div className="rounded-lg border border-border/50 bg-background p-3">
+            <ResponsiveContainer width="100%" height={250}>
               {renderChart(aiChartType, aiActionsData, ["successful", "failed"])}
             </ResponsiveContainer>
           </div>
@@ -819,7 +819,7 @@ export default function DashboardNew() {
             {/* Actions List */}
             <div
               className="rounded-lg border border-border/50 bg-background p-2 overflow-y-auto space-y-1"
-              style={{ maxHeight: "200px" }}
+              style={{ maxHeight: "240px" }}
             >
               {aiActionsDetailList
                 .sort((a, b) => {
@@ -930,8 +930,8 @@ export default function DashboardNew() {
               </div>
 
               {/* Chart Visualization */}
-              <div className="rounded-lg border border-border/50 bg-background p-2">
-                <ResponsiveContainer width="100%" height={180}>
+              <div className="rounded-lg border border-border/50 bg-background p-3">
+                <ResponsiveContainer width="100%" height={220}>
                   {card.selectedKPIs.length > 0 ? (
                     renderChart(card.chartType, trafficData, card.selectedKPIs)
                   ) : (
@@ -964,7 +964,7 @@ export default function DashboardNew() {
             </select>
           </div>
         </div>
-        <ResponsiveContainer width="100%" height={180}>
+        <ResponsiveContainer width="100%" height={250}>
           {renderChart(regionChartType, regionData, ["sites"])}
         </ResponsiveContainer>
       </div>
@@ -989,7 +989,7 @@ export default function DashboardNew() {
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className={vendorChartType === "pie" ? "lg:col-span-2" : "lg:col-span-3"}>
-            <ResponsiveContainer width="100%" height={180}>
+            <ResponsiveContainer width="100%" height={250}>
               {renderChart(vendorChartType, vendorData, ["sites"])}
             </ResponsiveContainer>
           </div>
