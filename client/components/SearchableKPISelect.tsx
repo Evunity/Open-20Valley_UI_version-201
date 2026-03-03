@@ -62,10 +62,10 @@ export default function SearchableKPISelect({
       {/* Selected Tags & Input */}
       <div
         className={cn(
-          "w-full px-4 py-3 rounded-lg border bg-background text-sm transition-all flex items-center gap-2 flex-wrap cursor-text",
+          "w-full px-3 py-2 rounded-lg border bg-background text-xs transition-all flex items-center gap-2 flex-wrap cursor-text shadow-sm",
           isOpen
-            ? "border-primary ring-2 ring-primary/20 shadow-md"
-            : "border-border hover:border-primary/30 focus-within:ring-2 focus-within:ring-primary/50 focus-within:border-primary"
+            ? "border-primary ring-2 ring-primary/20 shadow-lg"
+            : "border-border hover:border-primary/40 focus-within:ring-2 focus-within:ring-primary/40 focus-within:border-primary"
         )}
         onClick={() => setIsOpen(true)}
       >
@@ -74,7 +74,7 @@ export default function SearchableKPISelect({
           return (
             <div
               key={label}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-primary/10 text-primary text-xs font-medium hover:bg-primary/15 transition-colors"
+              className="flex items-center gap-1 px-2 py-1 rounded-md bg-primary/15 text-primary text-xs font-semibold hover:bg-primary/25 transition-colors border border-primary/20"
             >
               {label}
               <button
@@ -95,16 +95,16 @@ export default function SearchableKPISelect({
           <span className="text-muted-foreground flex-1">{placeholder}</span>
         )}
 
-        <div className="flex items-center gap-2 flex-1 min-w-0">
+        <div className="flex items-center gap-1.5 flex-1 min-w-0">
           <Search
             className={cn(
-              "w-4 h-4 transition-colors flex-shrink-0",
-              isOpen ? "text-primary" : "text-muted-foreground"
+              "w-4 h-4 transition-colors flex-shrink-0 stroke-2",
+              isOpen ? "text-primary" : "text-muted-foreground/70"
             )}
           />
           <input
             type="text"
-            className="flex-1 bg-transparent outline-none text-foreground placeholder-muted-foreground text-sm min-w-0"
+            className="flex-1 bg-transparent outline-none text-foreground placeholder-muted-foreground text-xs min-w-0 font-medium"
             placeholder="Search KPIs..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}

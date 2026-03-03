@@ -659,8 +659,8 @@ export default function DashboardNew() {
       <div className="space-y-3">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div className="space-y-0.5">
-            <h1 className="text-3xl font-bold text-foreground">Network Operations Dashboard</h1>
-            <p className="text-xs text-muted-foreground">
+            <h1 className="text-2xl font-bold text-foreground">Network Operations Dashboard</h1>
+            <p className="text-xs text-muted-foreground text-[11px]">
               Real-time monitoring and AI-driven insights across your infrastructure
             </p>
           </div>
