@@ -1,7 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import {
-  Plus, Trash2, Copy, Save, ZoomIn, ZoomOut, Play, Download,
-  ChevronRight, Settings, X, MoreVertical, Eye, Code, Grid3x3
+  Plus, Trash2, Save, ZoomIn, ZoomOut, X, Code
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -52,16 +51,14 @@ const NODE_TYPES = {
 
 const getNodeHandles = (nodeType: WorkflowNode['type']): Handle[] => {
   const baseHandles: Handle[] = [];
-
+  
   if (nodeType === 'trigger') {
-    // Trigger nodes only have output
     baseHandles.push({
       id: 'output_main',
       type: 'output',
       label: 'Start'
     });
   } else if (nodeType === 'condition') {
-    // Condition nodes have input and two outputs
     baseHandles.push({
       id: 'input_main',
       type: 'input',
@@ -78,7 +75,6 @@ const getNodeHandles = (nodeType: WorkflowNode['type']): Handle[] => {
       label: 'False'
     });
   } else {
-    // All other nodes (action, api-call, notification, loop, delay) have input and output
     baseHandles.push({
       id: 'input_main',
       type: 'input',
@@ -90,7 +86,7 @@ const getNodeHandles = (nodeType: WorkflowNode['type']): Handle[] => {
       label: 'Output'
     });
   }
-
+  
   return baseHandles;
 };
 
@@ -139,7 +135,6 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
 
     const nodeWidth = 160;
     const nodeHeight = 64;
-    const handleRadius = 6;
 
     const inputHandles = node.handles.filter(h => h.type === 'input');
     const outputHandles = node.handles.filter(h => h.type === 'output');
@@ -162,7 +157,6 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
   };
 
   const canConnectNodes = (sourceNodeId: string, sourceHandleId: string, targetNodeId: string, targetHandleId: string): boolean => {
-    // Can't connect to itself
     if (sourceNodeId === targetNodeId) return false;
 
     const sourceNode = workflow.nodes.find(n => n.id === sourceNodeId);
@@ -173,29 +167,25 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
     const targetHandle = targetNode.handles.find(h => h.id === targetHandleId);
     if (!sourceHandle || !targetHandle) return false;
 
-    // Can't connect output to output or input to input
     if (sourceHandle.type !== 'output' || targetHandle.type !== 'input') return false;
 
-    // Can't connect if edge already exists
     const edgeExists = workflow.edges.some(
-      e => e.sourceNodeId === sourceNodeId && e.targetNodeId === targetNodeId &&
+      e => e.sourceNodeId === sourceNodeId && e.targetNodeId === targetNodeId && 
            e.sourceHandleId === sourceHandleId && e.targetHandleId === targetHandleId
     );
     if (edgeExists) return false;
 
-    // Trigger nodes can't have inputs
     if (targetNode.type === 'trigger') return false;
 
-    // Prevent cycles (simple check: can't connect to an ancestor)
     const checkCycle = (nodeId: string, targetId: string, visited = new Set<string>()): boolean => {
       if (nodeId === targetId) return true;
       if (visited.has(nodeId)) return false;
       visited.add(nodeId);
-
+      
       const predecessors = workflow.edges
         .filter(e => e.targetNodeId === nodeId)
         .map(e => e.sourceNodeId);
-
+      
       return predecessors.some(pred => checkCycle(pred, targetId, visited));
     };
 
@@ -308,26 +298,16 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
   };
 
   const isValidWorkflow = (() => {
-    // Must have a name
     if (!workflow.name.trim()) return false;
-
-    // Must have at least one node
     if (workflow.nodes.length === 0) return false;
-
-    // Must have a trigger node
+    
     const hasTrigger = workflow.nodes.some(n => n.type === 'trigger');
     if (!hasTrigger) return false;
-
-    // If there are multiple nodes, they must be connected
+    
     if (workflow.nodes.length > 1) {
-      // Check if all non-trigger nodes have input connections
-      const nonTriggers = workflow.nodes.filter(n => n.type !== 'trigger');
       const connectedNodes = new Set<string>();
-
-      // Trigger node should be in the graph
       connectedNodes.add(workflow.nodes.find(n => n.type === 'trigger')!.id);
-
-      // Find all nodes reachable from trigger
+      
       const traverse = (nodeId: string) => {
         const outgoing = workflow.edges.filter(e => e.sourceNodeId === nodeId);
         outgoing.forEach(edge => {
@@ -337,13 +317,12 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
           }
         });
       };
-
+      
       traverse(workflow.nodes.find(n => n.type === 'trigger')!.id);
-
-      // All nodes should be reachable from trigger
+      
       return workflow.nodes.every(n => connectedNodes.has(n.id));
     }
-
+    
     return true;
   })();
 
@@ -621,19 +600,18 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
                             ? { ...n, type: newType, handles: getNodeHandles(newType) }
                             : n
                         ),
-                        // Remove edges that are incompatible with new node type
                         edges: prev.edges.filter(edge => {
                           if (edge.sourceNodeId === selectedNodeId || edge.targetNodeId === selectedNodeId) {
                             const sourceNode = prev.nodes.find(n => n.id === edge.sourceNodeId);
                             const targetNode = prev.nodes.find(n => n.id === edge.targetNodeId);
                             if (!sourceNode || !targetNode) return false;
-
+                            
                             const srcNode = sourceNode.id === selectedNodeId ? { ...sourceNode, type: newType, handles: getNodeHandles(newType) } : sourceNode;
                             const tgtNode = targetNode.id === selectedNodeId ? { ...targetNode, type: newType, handles: getNodeHandles(newType) } : targetNode;
-
+                            
                             const sourceHandle = srcNode.handles.find(h => h.id === edge.sourceHandleId);
                             const targetHandle = tgtNode.handles.find(h => h.id === edge.targetHandleId);
-
+                            
                             return sourceHandle && targetHandle;
                           }
                           return true;
