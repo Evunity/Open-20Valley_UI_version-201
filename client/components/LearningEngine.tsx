@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { TrendingUp, TrendingDown, AlertCircle, CheckCircle, Lightbulb } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { TrendingUp, TrendingDown, AlertCircle, CheckCircle, Lightbulb, Search } from 'lucide-react';
 import { generateMockLearningData, AutomationLearning } from '../utils/automationData';
+import { cn } from '@/lib/utils';
 
 interface LearningEngineProps {
   onRecommendationApply?: (automationId: string, recommendation: string) => void;
@@ -12,8 +13,18 @@ export const LearningEngine: React.FC<LearningEngineProps> = ({ onRecommendation
   const [appliedRecommendations, setAppliedRecommendations] = useState<Array<{ automationId: string; rec: string; timestamp: string }>>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [rejectedRecommendations, setRejectedRecommendations] = useState<Set<string>>(new Set());
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   const selectedData = learnings.find(l => l.automationId === selectedAutomation);
+
+  const filteredLearnings = useMemo(() => {
+    if (!searchQuery) return learnings;
+    const query = searchQuery.toLowerCase();
+    return learnings.filter(l =>
+      l.name.toLowerCase().includes(query) ||
+      l.automationId.toLowerCase().includes(query)
+    );
+  }, [learnings, searchQuery]);
 
   const getTrendIcon = (trend: string) => {
     if (trend === 'improving') return <TrendingUp className="w-4 h-4 text-green-600" />;
@@ -84,20 +95,58 @@ export const LearningEngine: React.FC<LearningEngineProps> = ({ onRecommendation
         </div>
       )}
 
-      {/* Automation Selector - Improved with many models */}
-      <div className="bg-card rounded-lg border border-border p-3">
-        <label className="text-xs font-semibold text-muted-foreground mb-2 block">Select Automation Model</label>
-        <select
-          value={selectedAutomation}
-          onChange={(e) => setSelectedAutomation(e.target.value)}
-          className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/50"
-        >
-          {learnings.map(learning => (
-            <option key={learning.automationId} value={learning.automationId}>
-              {learning.name} — {learning.trend.charAt(0).toUpperCase() + learning.trend.slice(1)} {learning.trendValue > 0 ? '+' : ''}{learning.trendValue}%
-            </option>
-          ))}
-        </select>
+      {/* Automation Selector - Search & Grid */}
+      <div className="bg-card rounded-lg border border-border p-4">
+        <label className="text-xs font-semibold text-muted-foreground mb-3 block">Select Automation to Analyze</label>
+
+        {/* Search */}
+        <div className="relative mb-3">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search automations..."
+            className="w-full pl-9 pr-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+          />
+        </div>
+
+        {/* Automations Grid */}
+        <div className="space-y-2 max-h-48 overflow-y-auto">
+          {filteredLearnings.length === 0 ? (
+            <p className="text-xs text-muted-foreground text-center py-4">No automations found</p>
+          ) : (
+            filteredLearnings.map(learning => (
+              <button
+                key={learning.automationId}
+                onClick={() => setSelectedAutomation(learning.automationId)}
+                className={cn(
+                  'w-full p-3 rounded-lg border-2 transition text-left',
+                  selectedAutomation === learning.automationId
+                    ? 'border-primary bg-primary/10'
+                    : 'border-border bg-muted/30 hover:border-border/80'
+                )}
+              >
+                <div className="flex items-start justify-between gap-2 mb-1">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-foreground truncate">{learning.name}</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">Success: {learning.successRate}%</p>
+                  </div>
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    {learning.trend === 'improving' && <TrendingUp className="w-3 h-3 text-green-600" />}
+                    {learning.trend === 'degrading' && <TrendingDown className="w-3 h-3 text-red-600" />}
+                    <span className={cn(
+                      'text-[10px] font-bold',
+                      learning.trend === 'improving' ? 'text-green-600' : learning.trend === 'degrading' ? 'text-red-600' : 'text-gray-600'
+                    )}>
+                      {learning.trendValue > 0 ? '+' : ''}{learning.trendValue}%
+                    </span>
+                  </div>
+                </div>
+              </button>
+            ))
+          )}
+        </div>
       </div>
 
       {/* Details */}

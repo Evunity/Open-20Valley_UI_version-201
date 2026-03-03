@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Eye, Hammer, Lock, Plus, Settings, Brain, Lightbulb, Shield, Map, TrendingUp } from 'lucide-react';
 import { AutomationCommandCenter } from '../components/AutomationCommandCenter';
 import { AutomationBuilder } from '../components/AutomationBuilder';
+import { WorkflowBuilder } from '../components/WorkflowBuilder';
 import { RunbookDesigner } from '../components/RunbookDesigner';
 import { TriggerEngine } from '../components/TriggerEngine';
 import { PreExecutionSimulation } from '../components/PreExecutionSimulation';
@@ -13,7 +14,6 @@ import { LearningEngine } from '../components/LearningEngine';
 import { TrustScoring } from '../components/TrustScoring';
 import { HumanInLoopDialog } from '../components/HumanInLoopDialog';
 import { AutonomyHeatmap } from '../components/AutonomyHeatmap';
-import { AutomationROI } from '../components/AutomationROI';
 import { generateMockPolicies } from '../utils/automationData';
 
 type SuperDomain = 'awareness' | 'design' | 'execution';
@@ -28,8 +28,7 @@ type WorkspaceType =
   | 'policy'
   | 'orchestrator'
   | 'governance'
-  | 'heatmap'
-  | 'roi';
+  | 'heatmap';
 
 interface WorkspaceTab {
   id: WorkspaceType;
@@ -51,8 +50,7 @@ const WORKSPACES: WorkspaceTab[] = [
   // Execution Layer
   { id: 'orchestrator', label: 'Orchestrator', domain: 'execution' },
   { id: 'governance', label: 'Model Governance', domain: 'execution' },
-  { id: 'heatmap', label: 'Autonomy Heatmap', domain: 'execution' },
-  { id: 'roi', label: 'ROI Panel', domain: 'execution' }
+  { id: 'heatmap', label: 'Autonomy Heatmap', domain: 'execution' }
 ];
 
 const DOMAINS = [
@@ -84,40 +82,29 @@ export const AutomationManagement: React.FC = () => {
         return <ClosedLoopValidation />;
 
       case 'builder':
-        return (
-          <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-            {/* Trigger Engine on left */}
-            <div className="w-full lg:w-1/3 border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-card overflow-y-auto lg:overflow-y-auto">
-              <TriggerEngine />
-            </div>
-            {/* Pre-Execution Simulation and Builder on right */}
-            <div className="w-full lg:w-2/3 flex flex-col overflow-hidden">
-              {!showBuilder && (
-                <div className="flex-1 border-b border-gray-200">
-                  <PreExecutionSimulation />
-                </div>
-              )}
-              {showBuilder ? (
-                <div className="flex-1 overflow-hidden">
-                  <AutomationBuilder
-                    onSave={() => {
-                      setShowBuilder(false);
-                      alert('Automation saved successfully!');
-                    }}
-                    onCancel={() => setShowBuilder(false)}
-                  />
-                </div>
-              ) : (
-                <div className="flex-1 flex items-center justify-center p-4 bg-gray-50">
-                  <button
-                    onClick={() => setShowBuilder(true)}
-                    className="px-6 py-2.5 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-700 transition flex items-center gap-2"
-                  >
-                    <Plus className="w-4 h-4" />
-                    New Automation
-                  </button>
-                </div>
-              )}
+        return showBuilder ? (
+          <WorkflowBuilder
+            onSave={() => {
+              setShowBuilder(false);
+              alert('✓ Automation workflow saved successfully!');
+            }}
+            onCancel={() => setShowBuilder(false)}
+          />
+        ) : (
+          <div className="flex-1 flex flex-col items-center justify-center p-4 bg-background">
+            <div className="text-center max-w-md">
+              <div className="text-5xl mb-4">🔧</div>
+              <h2 className="text-lg font-bold text-foreground mb-2">Workflow Builder</h2>
+              <p className="text-sm text-muted-foreground mb-6">
+                Create visual automation workflows with drag-and-drop nodes, connections, and configurations.
+              </p>
+              <button
+                onClick={() => setShowBuilder(true)}
+                className="px-6 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:bg-primary/90 transition flex items-center gap-2 mx-auto"
+              >
+                <Plus className="w-4 h-4" />
+                Create Workflow
+              </button>
             </div>
           </div>
         );
@@ -213,9 +200,6 @@ export const AutomationManagement: React.FC = () => {
 
       case 'heatmap':
         return <AutonomyHeatmap />;
-
-      case 'roi':
-        return <AutomationROI />;
 
       default:
         return null;

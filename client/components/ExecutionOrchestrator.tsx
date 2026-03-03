@@ -1,257 +1,492 @@
-import React, { useState, useEffect } from 'react';
-import { Play, Pause, RotateCcw, AlertCircle, CheckCircle } from 'lucide-react';
-import { generateMockExecutionWaves, ExecutionWave } from '../utils/automationData';
+import React, { useState } from 'react';
+import {
+  Plus, Trash2, Clock, Power, PlayCircle, PauseCircle, Calendar,
+  Edit2, AlertCircle, CheckCircle, MoreVertical, Zap, Repeat
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-interface ExecutionOrchestratorProps {
-  onExecute?: () => void;
-  onPause?: () => void;
-  onRollback?: () => void;
+interface AutomationSchedule {
+  id: string;
+  name: string;
+  type: 'automation' | 'ai-model';
+  status: 'active' | 'inactive' | 'paused';
+  schedule: string; // cron expression or human readable
+  frequency: 'once' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'custom';
+  nextRun: string;
+  lastRun: string | null;
+  enabled: boolean;
+  relatedModels?: string[];
+  description: string;
 }
 
-export const ExecutionOrchestrator: React.FC<ExecutionOrchestratorProps> = ({
-  onExecute,
-  onPause,
-  onRollback
-}) => {
-  const [waves, setWaves] = useState<ExecutionWave[]>(generateMockExecutionWaves());
-  const [isRunning, setIsRunning] = useState(true);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [activeWave, setActiveWave] = useState(1);
+interface AIModel {
+  id: string;
+  name: string;
+  status: 'running' | 'stopped' | 'paused';
+  automationsCount: number;
+  lastActivity: string;
+  uptime: number; // percentage
+}
 
-  // Simulate execution progress
-  useEffect(() => {
-    if (!isRunning) return;
+const mockAutomations: AutomationSchedule[] = [
+  {
+    id: 'auto_1',
+    name: 'Cell Outage Recovery',
+    type: 'automation',
+    status: 'active',
+    schedule: 'Every 5 minutes',
+    frequency: 'custom',
+    nextRun: '2 minutes',
+    lastRun: '2 minutes ago',
+    enabled: true,
+    relatedModels: ['model_1'],
+    description: 'Automatically detect and recover cell outages'
+  },
+  {
+    id: 'auto_2',
+    name: 'Network Optimization',
+    type: 'automation',
+    status: 'active',
+    schedule: 'Every 15 minutes',
+    frequency: 'custom',
+    nextRun: '8 minutes',
+    lastRun: '7 minutes ago',
+    enabled: true,
+    relatedModels: ['model_2', 'model_3'],
+    description: 'Optimize network performance'
+  },
+  {
+    id: 'auto_3',
+    name: 'Capacity Planning Check',
+    type: 'automation',
+    status: 'inactive',
+    schedule: 'Daily at 2:00 AM',
+    frequency: 'daily',
+    nextRun: '5 hours',
+    lastRun: 'Yesterday at 2:04 AM',
+    enabled: false,
+    relatedModels: ['model_2'],
+    description: 'Review and plan capacity for next week'
+  },
+  {
+    id: 'auto_4',
+    name: 'Security Audit',
+    type: 'automation',
+    status: 'paused',
+    schedule: 'Weekly on Monday',
+    frequency: 'weekly',
+    nextRun: '2 days 4 hours',
+    lastRun: 'Last Monday',
+    enabled: false,
+    relatedModels: [],
+    description: 'Run security compliance checks'
+  }
+];
 
-    const interval = setInterval(() => {
-      setCurrentTime(t => {
-        const newTime = t + 1;
-        if (newTime > 120) {
-          setIsRunning(false);
-          return t;
-        }
+const mockModels: AIModel[] = [
+  {
+    id: 'model_1',
+    name: 'Network Optimization AI',
+    status: 'running',
+    automationsCount: 2,
+    lastActivity: '30 seconds ago',
+    uptime: 99.8
+  },
+  {
+    id: 'model_2',
+    name: 'Predictive Maintenance Engine',
+    status: 'running',
+    automationsCount: 3,
+    lastActivity: '1 minute ago',
+    uptime: 99.5
+  },
+  {
+    id: 'model_3',
+    name: 'Anomaly Detection System',
+    status: 'paused',
+    automationsCount: 1,
+    lastActivity: '2 hours ago',
+    uptime: 98.2
+  },
+  {
+    id: 'model_4',
+    name: 'Capacity Planning AI',
+    status: 'stopped',
+    automationsCount: 0,
+    lastActivity: '1 day ago',
+    uptime: 0
+  }
+];
 
-        // Update waves based on time
-        setWaves(prev =>
-          prev.map((wave, idx) => {
-            if (idx === 0) {
-              return { ...wave, status: 'completed', progress: 100 };
-            } else if (idx === 1) {
-              const progress = Math.min(100, (newTime - 20) / 1.2);
-              if (progress >= 100) {
-                return { ...wave, status: 'completed', progress: 100 };
-              }
-              return { ...wave, status: 'running', progress };
+export const ExecutionOrchestrator: React.FC = () => {
+  const [automations, setAutomations] = useState<AutomationSchedule[]>(mockAutomations);
+  const [models, setModels] = useState<AIModel[]>(mockModels);
+  const [activeTab, setActiveTab] = useState<'automations' | 'models'>('automations');
+  const [selectedAutomation, setSelectedAutomation] = useState<string | null>(null);
+  const [selectedModel, setSelectedModel] = useState<string | null>(null);
+  const [showScheduleDialog, setShowScheduleDialog] = useState(false);
+
+  const toggleAutomation = (id: string) => {
+    setAutomations(prev =>
+      prev.map(a =>
+        a.id === id
+          ? {
+              ...a,
+              enabled: !a.enabled,
+              status: !a.enabled ? 'active' : 'inactive'
             }
-            return wave;
-          })
-        );
+          : a
+      )
+    );
+  };
 
-        return newTime;
-      });
-    }, 100);
+  const toggleModel = (id: string) => {
+    setModels(prev =>
+      prev.map(m =>
+        m.id === id
+          ? {
+              ...m,
+              status: m.status === 'running' ? 'stopped' : 'running'
+            }
+          : m
+      )
+    );
+  };
 
-    return () => clearInterval(interval);
-  }, [isRunning]);
+  const deleteAutomation = (id: string) => {
+    setAutomations(prev => prev.filter(a => a.id !== id));
+    if (selectedAutomation === id) setSelectedAutomation(null);
+  };
 
-  const handlePauseResume = () => {
-    setIsRunning(!isRunning);
-    if (!isRunning) {
-      onExecute?.();
-    } else {
-      onPause?.();
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active':
+      case 'running':
+        return 'bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300 border-green-300 dark:border-green-700';
+      case 'inactive':
+      case 'stopped':
+        return 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700';
+      case 'paused':
+        return 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-700';
+      default:
+        return 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300';
     }
   };
 
-  const getPipelineStageIcon = (stage: string) => {
-    const icons = {
-      queued: '⏳',
-      running: '▶️',
-      validating: '✓',
-      completed: '✅',
-      failed: '❌',
-      locked: '🔒'
-    };
-    return icons[stage as keyof typeof icons] || '❓';
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'active':
+      case 'running':
+        return <PlayCircle className="w-4 h-4 text-green-600" />;
+      case 'paused':
+        return <PauseCircle className="w-4 h-4 text-amber-600" />;
+      default:
+        return <Power className="w-4 h-4 text-gray-600" />;
+    }
   };
-
-  const getWaveStatusColor = (status: ExecutionWave['status']) => {
-    const colors = {
-      queued: 'bg-gray-100 text-gray-800 border-gray-300',
-      running: 'bg-blue-100 text-blue-800 border-blue-300',
-      completed: 'bg-green-100 text-green-800 border-green-300',
-      failed: 'bg-red-100 text-red-800 border-red-300',
-      locked: 'bg-amber-100 text-amber-800 border-amber-300'
-    };
-    return colors[status];
-  };
-
-  const pipelineStages = ['Queued', 'Running', 'Validating', 'Completed'];
 
   return (
-    <div className="w-full flex flex-col h-full gap-4 p-4 bg-gray-50 overflow-y-auto">
-      {/* Control Bar */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4 flex items-center justify-between">
+    <div className="w-full flex flex-col h-full gap-4 p-4 bg-background overflow-y-auto">
+      {/* Header */}
+      <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-bold text-gray-900">Execution Pipeline</h2>
-          <p className="text-sm text-gray-600 mt-1">
-            Current: <strong>Wave {activeWave}</strong> • Time: {currentTime}s
-          </p>
+          <h2 className="text-lg font-bold text-foreground">Execution Orchestrator</h2>
+          <p className="text-xs text-muted-foreground mt-1">Schedule and manage automations and AI models</p>
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={handlePauseResume}
-            className={`px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-2 ${
-              isRunning
-                ? 'bg-amber-600 text-white hover:bg-amber-700'
-                : 'bg-green-600 text-white hover:bg-green-700'
-            }`}
-          >
-            {isRunning ? (
-              <>
-                <Pause className="w-4 h-4" /> Pause
-              </>
+        <button
+          onClick={() => setShowScheduleDialog(true)}
+          className="px-4 py-2 text-sm font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition flex items-center gap-2"
+        >
+          <Plus className="w-4 h-4" /> Schedule
+        </button>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-2 border-b border-border">
+        <button
+          onClick={() => setActiveTab('automations')}
+          className={cn(
+            'px-4 py-2 text-sm font-semibold border-b-2 transition',
+            activeTab === 'automations'
+              ? 'text-primary border-b-primary'
+              : 'text-muted-foreground border-b-transparent hover:text-foreground'
+          )}
+        >
+          Automations ({automations.filter(a => a.enabled).length} active)
+        </button>
+        <button
+          onClick={() => setActiveTab('models')}
+          className={cn(
+            'px-4 py-2 text-sm font-semibold border-b-2 transition',
+            activeTab === 'models'
+              ? 'text-primary border-b-primary'
+              : 'text-muted-foreground border-b-transparent hover:text-foreground'
+          )}
+        >
+          AI Models ({models.filter(m => m.status === 'running').length} running)
+        </button>
+      </div>
+
+      {/* Automations Tab */}
+      {activeTab === 'automations' && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1">
+          {/* List */}
+          <div className="lg:col-span-2 space-y-2 overflow-y-auto max-h-96">
+            {automations.length === 0 ? (
+              <div className="p-8 text-center text-muted-foreground">
+                <p>No automations scheduled yet</p>
+              </div>
             ) : (
-              <>
-                <Play className="w-4 h-4" /> Resume
-              </>
+              automations.map(automation => (
+                <button
+                  key={automation.id}
+                  onClick={() => setSelectedAutomation(automation.id)}
+                  className={cn(
+                    'w-full p-4 rounded-lg border-2 transition text-left hover:shadow-sm',
+                    selectedAutomation === automation.id
+                      ? 'border-primary bg-primary/10'
+                      : 'border-border bg-card hover:border-border/80'
+                  )}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="text-sm font-bold text-foreground truncate">{automation.name}</h3>
+                        <span
+                          className={cn(
+                            'px-2 py-1 text-xs font-bold rounded-full whitespace-nowrap',
+                            getStatusColor(automation.status)
+                          )}
+                        >
+                          {getStatusIcon(automation.status)}
+                          <span className="ml-1">{automation.status.toUpperCase()}</span>
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground truncate">{automation.description}</p>
+                      <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {automation.schedule}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Repeat className="w-3 h-3" />
+                          Next: {automation.nextRun}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleAutomation(automation.id);
+                      }}
+                      className={cn(
+                        'px-3 py-1.5 text-xs font-bold rounded-lg transition flex-shrink-0',
+                        automation.enabled
+                          ? 'bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-900'
+                          : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                      )}
+                    >
+                      {automation.enabled ? 'ON' : 'OFF'}
+                    </button>
+                  </div>
+                </button>
+              ))
             )}
-          </button>
-          <button
-            onClick={() => {
-              onRollback?.();
-              setWaves(generateMockExecutionWaves());
-              setCurrentTime(0);
-              setIsRunning(false);
-            }}
-            className="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-red-600 hover:bg-red-700 transition flex items-center gap-2"
-          >
-            <RotateCcw className="w-4 h-4" /> Rollback
-          </button>
-        </div>
-      </div>
+          </div>
 
-      {/* Pipeline Stages */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4">
-        <p className="text-xs font-semibold text-gray-700 mb-3">Execution Pipeline Stages</p>
-        <div className="flex gap-2">
-          {pipelineStages.map((stage, idx) => (
-            <div key={stage} className="flex-1">
+          {/* Details */}
+          {selectedAutomation && (
+            <div className="bg-card border border-border rounded-lg p-4 flex flex-col gap-4 max-h-96 overflow-y-auto">
+              {(() => {
+                const auto = automations.find(a => a.id === selectedAutomation);
+                if (!auto) return null;
+                return (
+                  <>
+                    <div>
+                      <p className="text-xs font-bold text-foreground mb-1">Schedule Details</p>
+                      <div className="space-y-2 text-xs text-muted-foreground">
+                        <div className="flex justify-between">
+                          <span>Frequency:</span>
+                          <span className="font-semibold text-foreground">{auto.frequency}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Next Run:</span>
+                          <span className="font-semibold text-foreground">{auto.nextRun}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Last Run:</span>
+                          <span className="font-semibold text-foreground">{auto.lastRun || 'Never'}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {auto.relatedModels && auto.relatedModels.length > 0 && (
+                      <div>
+                        <p className="text-xs font-bold text-foreground mb-2">Related AI Models</p>
+                        <div className="space-y-1">
+                          {auto.relatedModels.map(modelId => {
+                            const model = models.find(m => m.id === modelId);
+                            return (
+                              <div key={modelId} className="flex items-center gap-2 text-xs">
+                                <div
+                                  className={cn(
+                                    'w-2 h-2 rounded-full',
+                                    model?.status === 'running' ? 'bg-green-500' : 'bg-gray-400'
+                                  )}
+                                />
+                                <span className="text-foreground">{model?.name}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="border-t border-border pt-3">
+                      <button
+                        onClick={() => deleteAutomation(auto.id)}
+                        className="w-full px-3 py-2 text-xs font-bold rounded-lg bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900 transition flex items-center justify-center gap-1"
+                      >
+                        <Trash2 className="w-3 h-3" /> Delete Schedule
+                      </button>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* AI Models Tab */}
+      {activeTab === 'models' && (
+        <div className="space-y-3 flex-1 overflow-y-auto">
+          {models.length === 0 ? (
+            <div className="p-8 text-center text-muted-foreground">
+              <p>No AI models configured</p>
+            </div>
+          ) : (
+            models.map(model => (
               <div
-                className={`px-3 py-2 rounded-lg text-xs font-semibold text-center border-2 transition ${
-                  currentTime > idx * 30
-                    ? 'bg-green-100 text-green-800 border-green-300'
-                    : currentTime > (idx - 1) * 30
-                    ? 'bg-blue-100 text-blue-800 border-blue-300 animate-pulse'
-                    : 'bg-gray-100 text-gray-600 border-gray-300'
-                }`}
+                key={model.id}
+                className={cn(
+                  'p-4 rounded-lg border-2 bg-card',
+                  model.status === 'running' ? 'border-green-300 dark:border-green-700' : 'border-border'
+                )}
               >
-                {getPipelineStageIcon(stage.toLowerCase())} {stage}
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="text-sm font-bold text-foreground truncate">{model.name}</h3>
+                      <span
+                        className={cn(
+                          'px-2 py-1 text-xs font-bold rounded-full whitespace-nowrap',
+                          getStatusColor(model.status)
+                        )}
+                      >
+                        {getStatusIcon(model.status)}
+                        <span className="ml-1">{model.status.toUpperCase()}</span>
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2 mb-3 text-xs text-muted-foreground">
+                      <div>
+                        <p className="text-[11px] font-semibold">Automations</p>
+                        <p className="font-bold text-foreground">{model.automationsCount}</p>
+                      </div>
+                      <div>
+                        <p className="text-[11px] font-semibold">Last Activity</p>
+                        <p className="font-bold text-foreground">{model.lastActivity}</p>
+                      </div>
+                      <div>
+                        <p className="text-[11px] font-semibold">Uptime</p>
+                        <p className="font-bold text-foreground">{model.uptime}%</p>
+                      </div>
+                    </div>
+
+                    {/* Uptime Progress */}
+                    <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                      <div
+                        className={cn(
+                          'h-full rounded-full transition',
+                          model.uptime >= 99 ? 'bg-green-500' : model.uptime >= 98 ? 'bg-amber-500' : 'bg-red-500'
+                        )}
+                        style={{ width: `${model.uptime}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => toggleModel(model.id)}
+                    className={cn(
+                      'px-3 py-2 text-xs font-bold rounded-lg transition flex items-center gap-1 flex-shrink-0',
+                      model.status === 'running'
+                        ? 'bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-900'
+                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                    )}
+                  >
+                    {model.status === 'running' ? (
+                      <>
+                        <Power className="w-3 h-3" /> ON
+                      </>
+                    ) : (
+                      <>
+                        <Power className="w-3 h-3" /> OFF
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* Info Box */}
+      <div className="bg-primary/10 border border-primary/30 rounded-lg p-3 mt-auto">
+        <p className="text-xs font-semibold text-foreground mb-1">📅 About Orchestration</p>
+        <p className="text-xs text-muted-foreground">
+          Use the Orchestrator to schedule when automations run and control which AI models are active.
+          Toggling a model off pauses all dependent automations.
+        </p>
+      </div>
+
+      {/* Schedule Dialog */}
+      {showScheduleDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-card border border-border rounded-lg w-full max-w-md p-6">
+            <p className="text-sm font-bold text-foreground mb-4">Schedule New Automation</p>
+            <div className="space-y-3">
+              <input
+                type="text"
+                placeholder="Automation name"
+                className="w-full px-3 py-2 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+              />
+              <select className="w-full px-3 py-2 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50">
+                <option>Select frequency...</option>
+                <option>Hourly</option>
+                <option>Daily</option>
+                <option>Weekly</option>
+                <option>Monthly</option>
+              </select>
+              <div className="flex gap-2 pt-2">
+                <button
+                  onClick={() => setShowScheduleDialog(false)}
+                  className="flex-1 px-3 py-2 text-xs font-bold rounded-lg border border-border text-foreground hover:bg-muted transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => setShowScheduleDialog(false)}
+                  className="flex-1 px-3 py-2 text-xs font-bold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition"
+                >
+                  Create
+                </button>
               </div>
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Progressive Rollout Waves */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-3">
-        <p className="text-xs font-semibold text-gray-700">Progressive Rollout</p>
-
-        {waves.map((wave, idx) => (
-          <div key={wave.id} className="space-y-2">
-            {/* Wave Header */}
-            <div
-              className={`p-3 rounded-lg border-2 ${getWaveStatusColor(wave.status)} cursor-pointer transition hover:shadow-md`}
-              onClick={() => setActiveWave(wave.wave)}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">{getPipelineStageIcon(wave.status)}</span>
-                  <div>
-                    <p className="text-sm font-bold">Wave {wave.wave}</p>
-                    <p className="text-xs opacity-75">{wave.nodeCount} nodes</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-xs font-semibold">{wave.progress}%</p>
-                  <p className="text-xs opacity-75">{wave.status}</p>
-                </div>
-              </div>
-
-              {/* Progress bar */}
-              <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all duration-300 ${
-                    wave.status === 'completed'
-                      ? 'bg-green-500'
-                      : wave.status === 'running'
-                      ? 'bg-blue-500'
-                      : wave.status === 'failed'
-                      ? 'bg-red-500'
-                      : 'bg-gray-400'
-                  }`}
-                  style={{ width: `${wave.progress}%` }}
-                />
-              </div>
-            </div>
-
-            {/* Wave Details */}
-            {activeWave === wave.wave && wave.status !== 'locked' && (
-              <div className="bg-gray-50 rounded-lg p-3 space-y-2 text-xs">
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <p className="text-gray-600 font-semibold">Nodes Affected</p>
-                    <p className="text-lg font-bold text-gray-900">{wave.nodeCount}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-600 font-semibold">Status</p>
-                    <p className="text-lg font-bold text-gray-900 capitalize">{wave.status}</p>
-                  </div>
-                </div>
-
-                {wave.status === 'running' && (
-                  <div className="mt-2 p-2 bg-blue-50 rounded border border-blue-200">
-                    <p className="text-blue-900">
-                      {Math.round(wave.progress)}% complete • Estimated time remaining: ~
-                      {Math.round((100 - wave.progress) / 2)}s
-                    </p>
-                  </div>
-                )}
-
-                {wave.status === 'completed' && (
-                  <div className="mt-2 p-2 bg-green-50 rounded border border-green-200">
-                    <p className="text-green-900">✓ All {wave.nodeCount} nodes updated successfully</p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {wave.status === 'locked' && (
-              <div className="bg-amber-50 rounded-lg p-3 border border-amber-200 text-xs text-amber-900">
-                🔒 Wave {wave.wave} is locked pending validation of Wave {wave.wave - 1}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* Execution Log */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4 flex-1 flex flex-col">
-        <p className="text-xs font-semibold text-gray-700 mb-3">Execution Log</p>
-        <div className="flex-1 overflow-y-auto space-y-2 min-h-0 text-xs">
-          <div className="p-2 bg-green-50 rounded border-l-4 border-l-green-500 text-green-800">
-            ✓ Wave 1 execution completed (5 nodes)
-          </div>
-          <div className="p-2 bg-blue-50 rounded border-l-4 border-l-blue-500 text-blue-800 animate-pulse">
-            ▶ Wave 2 executing... (13/20 nodes complete)
-          </div>
-          <div className="p-2 bg-gray-50 rounded border-l-4 border-l-gray-400 text-gray-800">
-            ⏳ Wave 3 queued (pending validation)
-          </div>
-          <div className="p-2 bg-amber-50 rounded border-l-4 border-l-amber-500 text-amber-800">
-            ⚠ Safe rollback available until Wave 3 completes
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

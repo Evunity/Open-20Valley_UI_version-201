@@ -1,217 +1,427 @@
 import React, { useState } from 'react';
-import { GitBranch, CheckCircle, AlertCircle, RotateCcw } from 'lucide-react';
-import { generateMockModelVersions, getModelStageColor, ModelVersion } from '../utils/automationData';
+import { GitBranch, CheckCircle, AlertCircle, RotateCcw, TrendingUp, TrendingDown, Zap, Settings } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+interface ModelMetrics {
+  accuracy: number;
+  precision: number;
+  recall: number;
+  f1Score: number;
+}
+
+interface AIModelVersion {
+  id: string;
+  name: string;
+  currentVersion: string;
+  status: 'active' | 'staged' | 'idle' | 'deprecated';
+  accuracy: number;
+  uptime: number;
+  executionsLastDay: number;
+  successRate: number;
+  lastUpdated: string;
+  deployedAt: string | null;
+  previousVersion: string | null;
+  metrics: ModelMetrics;
+  automationsCount: number;
+  failureCount: number;
+  trend: 'improving' | 'stable' | 'degrading';
+  trendValue: number;
+}
 
 interface ModelGovernanceProps {
-  onModelDeploy?: (version: string) => void;
-  onModelRollback?: (version: string) => void;
+  onModelDeploy?: (modelId: string, version: string) => void;
+  onModelRollback?: (modelId: string) => void;
 }
+
+const mockModels: AIModelVersion[] = [
+  {
+    id: 'model_1',
+    name: 'Network Optimization AI',
+    currentVersion: 'v2.4.1',
+    status: 'active',
+    accuracy: 94.2,
+    uptime: 99.8,
+    executionsLastDay: 2847,
+    successRate: 92.1,
+    lastUpdated: '3 days ago',
+    deployedAt: '2025-02-28',
+    previousVersion: 'v2.3.0',
+    metrics: { accuracy: 94.2, precision: 95.1, recall: 93.2, f1Score: 94.1 },
+    automationsCount: 5,
+    failureCount: 45,
+    trend: 'improving',
+    trendValue: 2.3
+  },
+  {
+    id: 'model_2',
+    name: 'Predictive Maintenance Engine',
+    currentVersion: 'v3.1.0',
+    status: 'active',
+    accuracy: 89.5,
+    uptime: 99.2,
+    executionsLastDay: 1943,
+    successRate: 87.3,
+    lastUpdated: '1 week ago',
+    deployedAt: '2025-02-22',
+    previousVersion: 'v3.0.2',
+    metrics: { accuracy: 89.5, precision: 91.2, recall: 87.8, f1Score: 89.4 },
+    automationsCount: 3,
+    failureCount: 89,
+    trend: 'stable',
+    trendValue: 0.1
+  },
+  {
+    id: 'model_3',
+    name: 'Anomaly Detection System',
+    currentVersion: 'v1.8.2',
+    status: 'staged',
+    accuracy: 91.8,
+    uptime: 98.5,
+    executionsLastDay: 0,
+    successRate: 0,
+    lastUpdated: '2 days ago',
+    deployedAt: null,
+    previousVersion: 'v1.7.5',
+    metrics: { accuracy: 91.8, precision: 93.4, recall: 90.2, f1Score: 91.8 },
+    automationsCount: 0,
+    failureCount: 0,
+    trend: 'improving',
+    trendValue: 3.2
+  },
+  {
+    id: 'model_4',
+    name: 'Capacity Planning AI',
+    currentVersion: 'v2.0.0',
+    status: 'idle',
+    accuracy: 93.1,
+    uptime: 0,
+    executionsLastDay: 0,
+    successRate: 0,
+    lastUpdated: '1 month ago',
+    deployedAt: null,
+    previousVersion: 'v1.9.8',
+    metrics: { accuracy: 93.1, precision: 94.5, recall: 91.7, f1Score: 93.1 },
+    automationsCount: 0,
+    failureCount: 0,
+    trend: 'stable',
+    trendValue: 0
+  },
+  {
+    id: 'model_5',
+    name: 'Customer Churn Predictor',
+    currentVersion: 'v1.5.3',
+    status: 'deprecated',
+    accuracy: 85.2,
+    uptime: 0,
+    executionsLastDay: 0,
+    successRate: 0,
+    lastUpdated: '3 months ago',
+    deployedAt: null,
+    previousVersion: null,
+    metrics: { accuracy: 85.2, precision: 87.1, recall: 83.3, f1Score: 85.2 },
+    automationsCount: 0,
+    failureCount: 0,
+    trend: 'degrading',
+    trendValue: -5.2
+  }
+];
 
 export const ModelGovernance: React.FC<ModelGovernanceProps> = ({
   onModelDeploy,
   onModelRollback
 }) => {
-  const [models, setModels] = useState<ModelVersion[]>(generateMockModelVersions());
-  const [selectedVersion, setSelectedVersion] = useState<string>(models[0].version);
-  const [expandedVersion, setExpandedVersion] = useState<string | null>(models[0].version);
+  const [models, setModels] = useState<AIModelVersion[]>(mockModels);
+  const [selectedModelId, setSelectedModelId] = useState<string>(models[0].id);
+  const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'staged' | 'idle' | 'deprecated'>('all');
 
-  const selectedModel = models.find(m => m.version === selectedVersion);
-  const activeModel = models.find(m => m.stage === 'active');
+  const filteredModels = filterStatus === 'all'
+    ? models
+    : models.filter(m => m.status === filterStatus);
 
-  const stages = [
-    { id: 'training', label: 'Training', icon: '📚', description: 'Model training in progress' },
-    { id: 'testing', label: 'Testing', icon: '🧪', description: 'QA and validation' },
-    { id: 'shadow', label: 'Shadow', icon: '👁️', description: 'Running in shadow mode' },
-    { id: 'approved', label: 'Approved', icon: '✅', description: 'Ready for production' },
-    { id: 'active', label: 'Active', icon: '🚀', description: 'Currently in production' }
-  ];
+  const selectedModel = models.find(m => m.id === selectedModelId);
 
-  const getStageIndex = (stage: string) => stages.findIndex(s => s.id === stage);
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active':
+        return 'bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300 border-green-300 dark:border-green-700';
+      case 'staged':
+        return 'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700';
+      case 'idle':
+        return 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700';
+      case 'deprecated':
+        return 'bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300 border-red-300 dark:border-red-700';
+      default:
+        return 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300';
+    }
+  };
 
-  const handleRollback = (version: string) => {
-    onModelRollback?.(version);
-    alert(`Rolled back to model ${version}`);
+  const getTrendIcon = (trend: string) => {
+    if (trend === 'improving') return <TrendingUp className="w-4 h-4 text-green-600" />;
+    if (trend === 'degrading') return <TrendingDown className="w-4 h-4 text-red-600" />;
+    return <TrendingUp className="w-4 h-4 text-gray-600" />;
+  };
+
+  const getAccuracyColor = (accuracy: number) => {
+    if (accuracy >= 93) return 'text-green-600';
+    if (accuracy >= 88) return 'text-amber-600';
+    return 'text-red-600';
   };
 
   return (
-    <div className="w-full flex flex-col h-full gap-4 p-4 bg-gray-50 overflow-y-auto">
+    <div className="w-full flex flex-col h-full gap-4 p-4 bg-background overflow-y-auto">
       {/* Header */}
-      <div className="flex items-center gap-2">
-        <GitBranch className="w-5 h-5 text-blue-600" />
-        <h2 className="text-lg font-bold text-gray-900">Model Governance</h2>
-      </div>
-
-      {/* Lifecycle Timeline */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4">
-        <p className="text-xs font-semibold text-gray-700 mb-4">Model Lifecycle</p>
-        <div className="flex gap-2">
-          {stages.map((stage, idx) => {
-            const stageIndex = getStageIndex(stage.id);
-            const modelStageIndex = selectedModel ? getStageIndex(selectedModel.stage) : -1;
-            const isCompleted = modelStageIndex > stageIndex;
-            const isCurrent = modelStageIndex === stageIndex;
-
-            return (
-              <div key={stage.id} className="flex-1">
-                <button
-                  onClick={() => {
-                    const versionAtStage = models.find(m => m.stage === stage.id);
-                    if (versionAtStage) {
-                      setSelectedVersion(versionAtStage.version);
-                      setExpandedVersion(versionAtStage.version);
-                    }
-                  }}
-                  className={`w-full text-center px-2 py-2 rounded-lg transition border-2 text-xs font-semibold ${
-                    isCompleted || isCurrent
-                      ? isCurrent
-                        ? 'bg-blue-100 border-blue-500 text-blue-800'
-                        : 'bg-green-100 border-green-500 text-green-800'
-                      : 'bg-gray-100 border-gray-300 text-gray-600'
-                  }`}
-                >
-                  <div className="text-lg mb-0.5">{stage.icon}</div>
-                  <p>{stage.label}</p>
-                </button>
-              </div>
-            );
-          })}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <GitBranch className="w-5 h-5 text-primary" />
+          <h2 className="text-lg font-bold text-foreground">Model Governance</h2>
         </div>
-        <p className="text-xs text-gray-600 mt-3">
-          Click a stage to see models at that lifecycle stage
-        </p>
+        <div className="text-xs text-muted-foreground">
+          <span className="font-semibold">{models.filter(m => m.status === 'active').length}</span> Active Models
+        </div>
       </div>
 
-      {/* Model Versions */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4 flex-1 flex flex-col">
-        <p className="text-xs font-semibold text-gray-700 mb-3">Model Versions</p>
-        <div className="flex-1 overflow-y-auto space-y-2 min-h-0">
-          {models.map(model => {
-            const isActive = model.stage === 'active';
-            const isSelected = model.version === selectedVersion;
-            const isExpanded = model.version === expandedVersion;
+      {/* Status Filters */}
+      <div className="flex gap-2 flex-wrap">
+        {['all', 'active', 'staged', 'idle', 'deprecated'].map(status => (
+          <button
+            key={status}
+            onClick={() => setFilterStatus(status as any)}
+            className={cn(
+              'px-3 py-1 text-xs font-bold rounded-lg transition',
+              filterStatus === status
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-muted text-muted-foreground hover:bg-muted/80'
+            )}
+          >
+            {status.charAt(0).toUpperCase() + status.slice(1)}
+          </button>
+        ))}
+      </div>
 
-            return (
-              <div
-                key={model.version}
-                className={`rounded-lg border-2 transition ${
-                  isSelected
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300 bg-white'
-                }`}
+      {/* Models Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1 overflow-hidden">
+        {/* Models List */}
+        <div className="lg:col-span-2 space-y-2 overflow-y-auto">
+          {filteredModels.length === 0 ? (
+            <div className="p-8 text-center text-muted-foreground">
+              <p>No models found with selected status</p>
+            </div>
+          ) : (
+            filteredModels.map(model => (
+              <button
+                key={model.id}
+                onClick={() => setSelectedModelId(model.id)}
+                className={cn(
+                  'w-full p-4 rounded-lg border-2 transition text-left hover:shadow-sm',
+                  selectedModelId === model.id
+                    ? 'border-primary bg-primary/10'
+                    : 'border-border bg-card hover:border-border/80'
+                )}
               >
-                {/* Header */}
-                <button
-                  onClick={() => {
-                    setSelectedVersion(model.version);
-                    setExpandedVersion(
-                      isExpanded ? null : model.version
-                    );
-                  }}
-                  className="w-full px-3 py-2 flex items-center justify-between hover:bg-white/50 transition"
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className={`px-2 py-1 text-xs font-bold rounded ${getModelStageColor(model.stage)}`}>
-                      {model.stage.toUpperCase()}
+                <div className="space-y-3">
+                  {/* Header */}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-sm font-bold text-foreground truncate">{model.name}</h3>
+                      <p className="text-xs text-muted-foreground mt-0.5">Version {model.currentVersion}</p>
+                    </div>
+                    <span
+                      className={cn(
+                        'px-2 py-1 text-xs font-bold rounded whitespace-nowrap flex-shrink-0',
+                        getStatusColor(model.status)
+                      )}
+                    >
+                      {model.status.toUpperCase()}
                     </span>
-                    <div className="text-left min-w-0">
-                      <p className="text-sm font-bold text-gray-900">v{model.version}</p>
-                      <p className="text-xs text-gray-600">
-                        {new Date(model.createdAt).toLocaleDateString()}
+                  </div>
+
+                  {/* Metrics Grid */}
+                  <div className="grid grid-cols-4 gap-2 text-xs">
+                    <div>
+                      <p className="text-muted-foreground font-semibold">Accuracy</p>
+                      <p className={cn('font-bold mt-0.5', getAccuracyColor(model.accuracy))}>
+                        {model.accuracy}%
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground font-semibold">Uptime</p>
+                      <p className="font-bold text-green-600 mt-0.5">{model.uptime}%</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground font-semibold">Executions</p>
+                      <p className="font-bold text-foreground mt-0.5">{model.executionsLastDay}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground font-semibold">Trend</p>
+                      <p className="font-bold text-foreground mt-0.5 flex items-center gap-1">
+                        {getTrendIcon(model.trend)}
+                        {model.trendValue > 0 ? '+' : ''}{model.trendValue}%
                       </p>
                     </div>
                   </div>
-                  {isActive && (
-                    <span className="text-xs font-bold text-green-600 flex-shrink-0">● LIVE</span>
-                  )}
-                </button>
+                </div>
+              </button>
+            ))
+          )}
+        </div>
 
-                {/* Expanded Details */}
-                {isExpanded && (
-                  <div className="border-t border-gray-200 px-3 py-3 bg-gray-50 space-y-3 text-xs">
-                    {/* Metrics */}
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <p className="text-gray-600 font-semibold">Accuracy</p>
-                        <p className="text-lg font-bold text-gray-900">{model.accuracy}%</p>
-                        <div className="w-full bg-gray-200 rounded h-1.5 mt-1">
-                          <div
-                            className={`h-full rounded ${
-                              model.accuracy >= 93 ? 'bg-green-500' : 'bg-amber-500'
-                            }`}
-                            style={{ width: `${model.accuracy}%` }}
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <p className="text-gray-600 font-semibold">Training Data</p>
-                        <p className="text-lg font-bold text-gray-900">
-                          {(model.trainingDataPoints / 1000).toFixed(0)}K
-                        </p>
-                        <p className="text-gray-600 mt-1">data points</p>
-                      </div>
-                    </div>
+        {/* Model Details */}
+        {selectedModel && (
+          <div className="bg-card border border-border rounded-lg p-4 flex flex-col gap-4 max-h-screen overflow-y-auto">
+            <div>
+              <p className="text-sm font-bold text-foreground mb-3">{selectedModel.name}</p>
 
-                    {/* Detailed Metrics */}
-                    {model.metrics && (
-                      <div className="bg-white rounded p-2 border border-gray-200 space-y-1">
-                        <p className="font-semibold text-gray-700">Performance Metrics</p>
-                        {Object.entries(model.metrics).map(([key, value]) => (
-                          <div key={key} className="flex justify-between">
-                            <span className="text-gray-600 capitalize">{key}:</span>
-                            <span className="font-semibold text-gray-900">
-                              {(value as number * 100).toFixed(1)}%
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Actions */}
-                    <div className="flex gap-2 pt-2">
-                      {model.stage === 'approved' && (
-                        <button
-                          onClick={() => onModelDeploy?.(model.version)}
-                          className="flex-1 px-3 py-1.5 bg-green-600 text-white rounded text-xs font-semibold hover:bg-green-700 transition"
-                        >
-                          Deploy to Production
-                        </button>
-                      )}
-                      {isActive && (
-                        <button
-                          onClick={() => handleRollback(model.version)}
-                          className="flex-1 px-3 py-1.5 bg-amber-600 text-white rounded text-xs font-semibold hover:bg-amber-700 transition flex items-center justify-center gap-1"
-                        >
-                          <RotateCcw className="w-3 h-3" /> Rollback
-                        </button>
-                      )}
-                    </div>
+              {/* Status & Version */}
+              <div className="space-y-2 text-xs mb-4 pb-4 border-b border-border">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Status</span>
+                  <span className={cn('font-bold px-2 py-0.5 rounded', getStatusColor(selectedModel.status))}>
+                    {selectedModel.status.toUpperCase()}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Current Version</span>
+                  <span className="font-bold text-foreground">{selectedModel.currentVersion}</span>
+                </div>
+                {selectedModel.previousVersion && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Previous Version</span>
+                    <span className="font-bold text-foreground">{selectedModel.previousVersion}</span>
                   </div>
                 )}
               </div>
-            );
-          })}
-        </div>
+
+              {/* Performance Metrics */}
+              <div>
+                <p className="text-xs font-bold text-foreground mb-2">Performance Metrics</p>
+                <div className="space-y-2 mb-4 pb-4 border-b border-border">
+                  <div>
+                    <div className="flex justify-between mb-1">
+                      <span className="text-xs text-muted-foreground">Accuracy</span>
+                      <span className="text-xs font-bold text-foreground">{selectedModel.accuracy}%</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                      <div
+                        className={cn(
+                          'h-full rounded-full',
+                          selectedModel.accuracy >= 93 ? 'bg-green-500' : 'bg-amber-500'
+                        )}
+                        style={{ width: `${selectedModel.accuracy}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between mb-1">
+                      <span className="text-xs text-muted-foreground">Precision</span>
+                      <span className="text-xs font-bold text-foreground">{selectedModel.metrics.precision}%</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                      <div
+                        className="h-full bg-blue-500 rounded-full"
+                        style={{ width: `${selectedModel.metrics.precision}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between mb-1">
+                      <span className="text-xs text-muted-foreground">Recall</span>
+                      <span className="text-xs font-bold text-foreground">{selectedModel.metrics.recall}%</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                      <div
+                        className="h-full bg-purple-500 rounded-full"
+                        style={{ width: `${selectedModel.metrics.recall}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between mb-1">
+                      <span className="text-xs text-muted-foreground">F1 Score</span>
+                      <span className="text-xs font-bold text-foreground">{selectedModel.metrics.f1Score}</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                      <div
+                        className="h-full bg-indigo-500 rounded-full"
+                        style={{ width: `${selectedModel.metrics.f1Score}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Deployment Info */}
+              <div className="text-xs space-y-2 mb-4 pb-4 border-b border-border">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Automations Using</span>
+                  <span className="font-bold text-foreground">{selectedModel.automationsCount}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Success Rate</span>
+                  <span className="font-bold text-foreground">{selectedModel.successRate}%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Failures (24h)</span>
+                  <span className="font-bold text-foreground">{selectedModel.failureCount}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Last Updated</span>
+                  <span className="font-bold text-foreground">{selectedModel.lastUpdated}</span>
+                </div>
+              </div>
+
+              {/* Trend */}
+              <div className="bg-muted/50 rounded-lg p-2 mb-4 text-xs">
+                <div className="flex items-center gap-2">
+                  {getTrendIcon(selectedModel.trend)}
+                  <span className="text-muted-foreground">
+                    Performance is <strong>{selectedModel.trend}</strong>
+                  </span>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="space-y-2">
+                {selectedModel.status === 'staged' && (
+                  <button
+                    onClick={() => onModelDeploy?.(selectedModel.id, selectedModel.currentVersion)}
+                    className="w-full px-3 py-2 text-xs font-bold rounded-lg bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-900 transition flex items-center justify-center gap-1"
+                  >
+                    <Zap className="w-3 h-3" /> Deploy to Production
+                  </button>
+                )}
+                {selectedModel.status === 'active' && selectedModel.previousVersion && (
+                  <button
+                    onClick={() => onModelRollback?.(selectedModel.id)}
+                    className="w-full px-3 py-2 text-xs font-bold rounded-lg bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 hover:bg-amber-200 dark:hover:bg-amber-900 transition flex items-center justify-center gap-1"
+                  >
+                    <RotateCcw className="w-3 h-3" /> Rollback to {selectedModel.previousVersion}
+                  </button>
+                )}
+                {selectedModel.status === 'idle' && (
+                  <button
+                    className="w-full px-3 py-2 text-xs font-bold rounded-lg bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900 transition flex items-center justify-center gap-1"
+                  >
+                    <Settings className="w-3 h-3" /> Configure
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* CI/CD Pipeline Info */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-        <p className="text-xs font-semibold text-blue-900 mb-1">🔄 Model Lifecycle</p>
-        <div className="text-xs text-blue-800 space-y-1">
-          <p>✓ <strong>Training:</strong> Initial model development</p>
-          <p>✓ <strong>Testing:</strong> Validation and QA</p>
-          <p>✓ <strong>Shadow:</strong> Running alongside production (no execution)</p>
-          <p>✓ <strong>Approved:</strong> Ready for production deployment</p>
-          <p>✓ <strong>Active:</strong> Currently making decisions</p>
+      {/* Info */}
+      <div className="bg-primary/10 border border-primary/30 rounded-lg p-3 mt-auto">
+        <p className="text-xs font-semibold text-foreground mb-1">📊 Model Status Legend</p>
+        <div className="text-xs text-muted-foreground space-y-1">
+          <p>• <strong>Active:</strong> Currently in production, serving automations</p>
+          <p>• <strong>Staged:</strong> Ready for deployment, undergoing final validation</p>
+          <p>• <strong>Idle:</strong> Configured but not deployed</p>
+          <p>• <strong>Deprecated:</strong> No longer used, kept for reference</p>
         </div>
-      </div>
-
-      {/* Rollback Info */}
-      <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-        <p className="text-xs font-semibold text-amber-900 mb-1">⚠️ Rollback Policy</p>
-        <p className="text-xs text-amber-800">
-          One-click rollback to any previous approved model. All model versions retain 30 days of
-          decision history.
-        </p>
       </div>
     </div>
   );
