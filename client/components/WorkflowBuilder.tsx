@@ -481,6 +481,10 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
 
                 const pathData = `M ${x1} ${y1} L ${(x1 + x2) / 2} ${y1} L ${(x1 + x2) / 2} ${y2} L ${x2} ${y2}`;
 
+                // Calculate midpoint for delete button
+                const midX = (x1 + x2) / 2;
+                const midY = (y1 + y2) / 2;
+
                 return (
                   <g key={edge.id} onClick={() => { setSelectedEdgeId(edge.id); setSelectedNodeId(''); }} style={{ cursor: 'pointer' }}>
                     {/* Invisible wider path for better click area */}
@@ -500,6 +504,37 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
                       markerEnd={isSelected ? "url(#arrowhead-selected)" : "url(#arrowhead)"}
                       pointerEvents="none"
                     />
+                    {/* Delete button on edge */}
+                    {isSelected && (
+                      <g>
+                        {/* Background circle for delete button */}
+                        <circle
+                          cx={midX}
+                          cy={midY}
+                          r="12"
+                          fill="#EF4444"
+                          opacity="0.9"
+                          style={{ cursor: 'pointer', pointerEvents: 'auto' }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteEdge(edge.id);
+                          }}
+                        />
+                        {/* X icon */}
+                        <text
+                          x={midX}
+                          y={midY}
+                          textAnchor="middle"
+                          dominantBaseline="middle"
+                          fill="white"
+                          fontSize="16"
+                          fontWeight="bold"
+                          style={{ cursor: 'pointer', pointerEvents: 'none', userSelect: 'none' }}
+                        >
+                          ✕
+                        </text>
+                      </g>
+                    )}
                   </g>
                 );
               })}
