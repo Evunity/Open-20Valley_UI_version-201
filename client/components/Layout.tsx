@@ -312,7 +312,7 @@ export default function Layout({ children }: LayoutProps) {
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="h-14 border-b border-border bg-card flex items-center px-3 md:px-4 shadow-sm">
+        <header className="h-12 border-b border-border bg-card flex items-center px-2 md:px-3 shadow-sm">
           <div className="flex items-center justify-between w-full gap-3">
             {isMobile && (
               <button
@@ -368,7 +368,7 @@ export default function Layout({ children }: LayoutProps) {
 
         {/* Content Area */}
         <div className="flex-1 overflow-auto">
-          <div className="p-3 md:p-4">{children}</div>
+          <div className="p-2 md:p-3">{children}</div>
         </div>
       </main>
     </div>

@@ -654,13 +654,13 @@ export default function DashboardNew() {
   };
 
   return (
-    <div className="space-y-8 pb-6">
+    <div className="space-y-4 pb-4">
       {/* ===== HEADER SECTION ===== */}
-      <div className="space-y-6">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div className="space-y-1">
-            <h1 className="text-4xl font-bold text-foreground">Network Operations Dashboard</h1>
-            <p className="text-muted-foreground">
+      <div className="space-y-3">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className="space-y-0.5">
+            <h1 className="text-3xl font-bold text-foreground">Network Operations Dashboard</h1>
+            <p className="text-xs text-muted-foreground">
               Real-time monitoring and AI-driven insights across your infrastructure
             </p>
           </div>
@@ -679,24 +679,22 @@ export default function DashboardNew() {
 
       {/* ===== KPI SECTION ===== */}
       <div>
-        <div className="space-y-4 mb-6">
-          <div className="space-y-1">
-            <h2 className="text-2xl font-bold text-foreground">Key Performance Indicators</h2>
-            <p className="text-sm text-muted-foreground">
+        <div className="space-y-2 mb-4">
+          <div className="space-y-0.5">
+            <h2 className="text-xl font-bold text-foreground">Key Performance Indicators</h2>
+            <p className="text-xs text-muted-foreground">
               Real-time metrics reflecting current filters ({selectedKPIIds.length} of{" "}
               {AVAILABLE_KPIS.length} displayed)
             </p>
           </div>
 
           {/* Searchable KPI Dropdown */}
-          <div className="max-w-2xl">
-            <SearchableKPISelect
-              value={selectedKPIIds}
-              onChange={setSelectedKPIIds}
-              placeholder="Search and select KPIs (max 6)..."
-              maxItems={6}
-            />
-          </div>
+          <SearchableKPISelect
+            value={selectedKPIIds}
+            onChange={setSelectedKPIIds}
+            placeholder="Search and select KPIs (max 6)..."
+            maxItems={6}
+          />
         </div>
 
         {/* KPI Grid */}
@@ -710,7 +708,7 @@ export default function DashboardNew() {
               <div
                 key={kpi.id}
                 className={cn(
-                  "p-6 rounded-xl border transition-all duration-300 hover:shadow-lg hover:border-primary/50",
+                  "p-4 rounded-lg border transition-all duration-300 hover:shadow-lg hover:border-primary/50",
                   kpiValue.status === "healthy"
                     ? "border-status-healthy/20 bg-status-healthy/5"
                     : kpiValue.status === "critical"
@@ -718,10 +716,10 @@ export default function DashboardNew() {
                       : "border-border bg-card"
                 )}
               >
-                <div className="flex items-start justify-between gap-4 mb-4">
+                <div className="flex items-start justify-between gap-3 mb-3">
                   <div
                     className={cn(
-                      "p-2.5 rounded-lg w-fit",
+                      "p-2 rounded-lg w-fit",
                       kpiValue.status === "healthy"
                         ? "bg-status-healthy/10"
                         : kpiValue.status === "critical"
@@ -731,7 +729,7 @@ export default function DashboardNew() {
                   >
                     <IconComponent
                       className={cn(
-                        "w-5 h-5",
+                        "w-4 h-4",
                         kpiValue.status === "healthy"
                           ? "text-status-healthy"
                           : kpiValue.status === "critical"

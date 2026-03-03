@@ -95,16 +95,16 @@ export default function SearchableKPISelect({
           <span className="text-muted-foreground flex-1">{placeholder}</span>
         )}
 
-        <div className="ml-auto flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-2 flex-1 min-w-0">
           <Search
             className={cn(
-              "w-4 h-4 transition-colors",
+              "w-4 h-4 transition-colors flex-shrink-0",
               isOpen ? "text-primary" : "text-muted-foreground"
             )}
           />
           <input
             type="text"
-            className="w-32 bg-transparent outline-none text-foreground placeholder-muted-foreground text-sm"
+            className="flex-1 bg-transparent outline-none text-foreground placeholder-muted-foreground text-sm min-w-0"
             placeholder="Search KPIs..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -115,7 +115,7 @@ export default function SearchableKPISelect({
           />
           <ChevronDown
             className={cn(
-              "w-4 h-4 text-muted-foreground transition-transform duration-200",
+              "w-4 h-4 text-muted-foreground transition-transform duration-200 flex-shrink-0",
               isOpen ? "rotate-180 text-primary" : ""
             )}
           />
