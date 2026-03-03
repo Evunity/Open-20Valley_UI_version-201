@@ -77,17 +77,17 @@
     --popover: 270 20% 16%;
     --popover-foreground: 210 10% 98%;
 
-    /* Primary - Purple - Brighter for visibility */
+    /* Primary - Purple - Brighter for visibility with WHITE foreground text */
     --primary: 270 80% 60%;
-    --primary-foreground: 270 20% 10%;
+    --primary-foreground: 0 0% 100%;
 
     /* Secondary - Light Purple with better contrast */
     --secondary: 270 50% 50%;
     --secondary-foreground: 210 10% 98%;
 
-    /* Accent - Purple Bright */
+    /* Accent - Purple Bright with WHITE text */
     --accent: 270 75% 65%;
-    --accent-foreground: 270 20% 10%;
+    --accent-foreground: 0 0% 100%;
 
     /* Destructive */
     --destructive: 0 84.2% 65%;
@@ -108,13 +108,13 @@
     --status-critical: 0 84.2% 65%;
     --status-pending: 270 75% 65%;
 
-    /* Sidebar - More visible */
+    /* Sidebar - More visible with WHITE text */
     --sidebar-background: 270 25% 12%;
     --sidebar-foreground: 210 10% 95%;
     --sidebar-primary: 270 80% 60%;
-    --sidebar-primary-foreground: 270 20% 10%;
+    --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 270 75% 65%;
-    --sidebar-accent-foreground: 270 20% 10%;
+    --sidebar-accent-foreground: 0 0% 100%;
     --sidebar-border: 270 20% 30%;
     --sidebar-ring: 270 80% 60%;
   }
