@@ -117,6 +117,7 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
   });
 
   const [selectedNodeId, setSelectedNodeId] = useState<string>('node_1');
+  const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [draggingNode, setDraggingNode] = useState<string | null>(null);
@@ -272,7 +273,11 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
     }
   };
 
-  const handleCanvasMouseUp = () => {
+  const handleCanvasMouseUp = (e: React.MouseEvent) => {
+    // Only deselect if clicking on the canvas background (not on edges or nodes)
+    if (e.target === canvasRef.current) {
+      setSelectedEdgeId(null);
+    }
     setDraggingNode(null);
     setDraggingEdge(null);
   };
@@ -295,6 +300,16 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
 
   const handleNodeClick = (nodeId: string) => {
     setSelectedNodeId(nodeId);
+    setSelectedEdgeId(null);
+  };
+
+  const handleDeleteEdge = (edgeId: string) => {
+    setWorkflow(prev => ({
+      ...prev,
+      edges: prev.edges.filter(e => e.id !== edgeId),
+      updatedAt: new Date().toLocaleString()
+    }));
+    setSelectedEdgeId(null);
   };
 
   const isValidWorkflow = (() => {
@@ -435,9 +450,22 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
           >
             {/* SVG Connections */}
             <svg
-              className="absolute inset-0 w-full h-full pointer-events-none"
-              style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})` }}
+              className="absolute inset-0 w-full h-full"
+              style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, pointerEvents: 'auto' }}
             >
+              {/* Arrow markers */}
+              <defs>
+                <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                  <polygon points="0 0, 10 3, 0 6" fill="#3B82F6" />
+                </marker>
+                <marker id="arrowhead-selected" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                  <polygon points="0 0, 10 3, 0 6" fill="#EF4444" />
+                </marker>
+                <marker id="arrowhead-preview" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                  <polygon points="0 0, 10 3, 0 6" fill="#9CA3AF" />
+                </marker>
+              </defs>
+
               {/* Edges */}
               {workflow.edges.map(edge => {
                 const sourcePos = getHandlePosition(edge.sourceNodeId, edge.sourceHandleId);
@@ -449,14 +477,28 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
                 const x2 = targetPos.x;
                 const y2 = targetPos.y;
 
+                const isSelected = selectedEdgeId === edge.id;
+
+                const pathData = `M ${x1} ${y1} L ${(x1 + x2) / 2} ${y1} L ${(x1 + x2) / 2} ${y2} L ${x2} ${y2}`;
+
                 return (
-                  <g key={edge.id}>
+                  <g key={edge.id} onClick={() => { setSelectedEdgeId(edge.id); setSelectedNodeId(''); }} style={{ cursor: 'pointer' }}>
+                    {/* Invisible wider path for better click area */}
                     <path
-                      d={`M ${x1} ${y1} L ${(x1 + x2) / 2} ${y1} L ${(x1 + x2) / 2} ${y2} L ${x2} ${y2}`}
-                      stroke="#3B82F6"
-                      strokeWidth="2"
+                      d={pathData}
+                      stroke="transparent"
+                      strokeWidth="12"
                       fill="none"
-                      markerEnd="url(#arrowhead)"
+                      pointerEvents="auto"
+                    />
+                    {/* Visible edge */}
+                    <path
+                      d={pathData}
+                      stroke={isSelected ? '#EF4444' : '#3B82F6'}
+                      strokeWidth={isSelected ? 3 : 2}
+                      fill="none"
+                      markerEnd={isSelected ? "url(#arrowhead-selected)" : "url(#arrowhead)"}
+                      pointerEvents="none"
                     />
                   </g>
                 );
@@ -464,9 +506,9 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
 
               {/* Dragging edge preview */}
               {draggingEdge && (
-                <g>
+                <g pointerEvents="none">
                   <path
-                    d={`M ${draggingEdge.x} ${draggingEdge.y} L ${draggingEdge.x + 50} ${draggingEdge.y} L ${draggingEdge.x + 50} ${draggingEdge.y} L ${draggingEdge.x + 50} ${draggingEdge.y}`}
+                    d={`M ${draggingEdge.x} ${draggingEdge.y} L ${(draggingEdge.x * 2 + draggingEdge.x) / 2} ${draggingEdge.y} L ${(draggingEdge.x * 2 + draggingEdge.x) / 2} ${draggingEdge.y} L ${draggingEdge.x * 2} ${draggingEdge.y}`}
                     stroke="#9CA3AF"
                     strokeWidth="2"
                     fill="none"
@@ -475,16 +517,6 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
                   />
                 </g>
               )}
-
-              {/* Arrow markers */}
-              <defs>
-                <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-                  <polygon points="0 0, 10 3, 0 6" fill="#3B82F6" />
-                </marker>
-                <marker id="arrowhead-preview" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-                  <polygon points="0 0, 10 3, 0 6" fill="#9CA3AF" />
-                </marker>
-              </defs>
             </svg>
 
             {/* Nodes Container */}
@@ -667,6 +699,53 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
               >
                 <Trash2 className="w-3 h-3" /> Delete Node
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* Right Panel - Edge Config */}
+        {selectedEdgeId && !selectedNode && (
+          <div className="w-80 bg-card border border-border rounded-lg p-4 flex flex-col gap-4 overflow-y-auto max-h-[calc(100vh-200px)]">
+            <div>
+              <p className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
+                🔗 Connection
+              </p>
+
+              {(() => {
+                const edge = workflow.edges.find(e => e.id === selectedEdgeId);
+                if (!edge) return null;
+
+                const sourceNode = workflow.nodes.find(n => n.id === edge.sourceNodeId);
+                const targetNode = workflow.nodes.find(n => n.id === edge.targetNodeId);
+                const sourceHandle = sourceNode?.handles.find(h => h.id === edge.sourceHandleId);
+                const targetHandle = targetNode?.handles.find(h => h.id === edge.targetHandleId);
+
+                return (
+                  <div className="space-y-3">
+                    <div className="bg-muted/50 p-3 rounded-lg">
+                      <p className="text-xs font-bold text-foreground mb-2">Source Node</p>
+                      <p className="text-xs text-muted-foreground">{sourceNode?.label}</p>
+                      <p className="text-xs text-muted-foreground">Output: {sourceHandle?.label}</p>
+                    </div>
+
+                    <div className="text-center text-muted-foreground">↓</div>
+
+                    <div className="bg-muted/50 p-3 rounded-lg">
+                      <p className="text-xs font-bold text-foreground mb-2">Target Node</p>
+                      <p className="text-xs text-muted-foreground">{targetNode?.label}</p>
+                      <p className="text-xs text-muted-foreground">Input: {targetHandle?.label}</p>
+                    </div>
+
+                    {/* Delete Button */}
+                    <button
+                      onClick={() => handleDeleteEdge(selectedEdgeId)}
+                      className="w-full mt-4 px-3 py-2 text-xs font-bold rounded-lg bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900 transition flex items-center justify-center gap-1"
+                    >
+                      <Trash2 className="w-3 h-3" /> Delete Connection
+                    </button>
+                  </div>
+                );
+              })()}
             </div>
           </div>
         )}
