@@ -1,15 +1,13 @@
 import { useState, useMemo } from "react";
-import { Save, Trash2, Download, Eye, EyeOff, ChevronDown, Search, Filter, X } from "lucide-react";
+import { Save, Trash2, Download, Eye, EyeOff, ChevronDown, Search, X, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import * as XLSX from "xlsx";
-import KPISelector from "@/components/KPISelector";
 import TrendChartContainer from "@/components/TrendChartContainer";
 import type { KPI } from "@/utils/kpiData";
 import { KPI_CATALOG, filterKPIs, generateKPIValues, SCOPE_OPTIONS } from "@/utils/kpiData";
 import {
   getSavedViews,
   saveView,
-  updateView,
   deleteView,
   type SavedView,
 } from "@/utils/savedViews";
@@ -32,8 +30,9 @@ export interface AnalyticsFilters {
   granularity: "1H" | "1D" | "1W" | "1M";
 }
 
+type TimeRangeType = "predefined" | "manual";
+
 export default function AnalyticsManagement() {
-  // State management
   const [filters, setFilters] = useState<AnalyticsFilters>({
     technologies: [],
     vendors: [],
@@ -53,7 +52,6 @@ export default function AnalyticsManagement() {
   });
 
   const [kpiSearch, setKpiSearch] = useState("");
-  const [showFilters, setShowFilters] = useState(false);
   const [selectedKPIs, setSelectedKPIs] = useState<KPI[]>([]);
   const [currentScope, setCurrentScope] = useState<SavedView["scope"]>("Network");
   const [savedViews, setSavedViews] = useState(getSavedViews());
@@ -63,6 +61,12 @@ export default function AnalyticsManagement() {
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [generatedTime, setGeneratedTime] = useState<Date | null>(null);
   const [isGenerated, setIsGenerated] = useState(false);
+  const [showFilters, setShowFilters] = useState(true);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+
+  // Time range mode
+  const [timeRangeMode, setTimeRangeMode] = useState<TimeRangeType>("predefined");
+  const [predefinedRange, setPredefinedRange] = useState("30d");
 
   // Track selected instances for Analysis Scope
   const [selectedNetwork, setSelectedNetwork] = useState<string | null>(null);
@@ -73,23 +77,16 @@ export default function AnalyticsManagement() {
   const [openScopeDropdown, setOpenScopeDropdown] = useState<string | null>(null);
 
   // Available filter options
-  const allTechnologies: string[] = ["2G", "3G", "4G", "5G", "O-RAN"];
-  const allVendors: string[] = ["Huawei", "Ericsson", "Nokia", "ZTE", "O-RAN"];
-  const allDomains: string[] = ["RAN", "O-RAN", "Transport", "Core"];
-  const allCategories: string[] = [
-    "Accessibility",
-    "Throughput",
-    "Latency",
-    "Reliability",
-    "Quality",
-    "Traffic",
-  ];
-  const allScopes: string[] = ["Network", "Region", "Cluster", "Site", "Cell"];
-  const allNetworks: string[] = ["Network 1", "Network 2", "Network 3"];
-  const allRegions: string[] = ["North", "South", "East", "West", "Central"];
-  const allClusters: string[] = ["Cluster A", "Cluster B", "Cluster C", "Cluster D"];
-  const allSites: string[] = ["Site-01", "Site-02", "Site-03", "Site-04", "Site-05"];
-  const allCells: string[] = ["Cell-001", "Cell-002", "Cell-003", "Cell-004", "Cell-005"];
+  const allTechnologies = ["2G", "3G", "4G", "5G", "O-RAN"];
+  const allVendors = ["Huawei", "Ericsson", "Nokia", "ZTE", "O-RAN"];
+  const allDomains = ["RAN", "O-RAN", "Transport", "Core"];
+  const allCategories = ["Accessibility", "Throughput", "Latency", "Reliability", "Quality", "Traffic"];
+  const allScopes = ["Network", "Region", "Cluster", "Site", "Cell"];
+  const allNetworks = ["Network 1", "Network 2", "Network 3"];
+  const allRegions = ["North", "South", "East", "West", "Central"];
+  const allClusters = ["Cluster A", "Cluster B", "Cluster C", "Cluster D"];
+  const allSites = ["Site-01", "Site-02", "Site-03", "Site-04", "Site-05"];
+  const allCells = ["Cell-001", "Cell-002", "Cell-003", "Cell-004", "Cell-005"];
 
   const hasActiveFilters =
     filters.technologies.length > 0 ||
@@ -103,7 +100,40 @@ export default function AnalyticsManagement() {
     filters.sites.length > 0 ||
     filters.cells.length > 0;
 
-  const handleGenerate = () => {
+  // Update time range based on predefined range
+  const handlePredefinedRange = (range: string) => {
+    const now = new Date();
+    let from = new Date();
+
+    switch (range) {
+      case "1d":
+        from.setDate(now.getDate() - 1);
+        break;
+      case "7d":
+        from.setDate(now.getDate() - 7);
+        break;
+      case "14d":
+        from.setDate(now.getDate() - 14);
+        break;
+      case "30d":
+        from.setDate(now.getDate() - 30);
+        break;
+      case "90d":
+        from.setDate(now.getDate() - 90);
+        break;
+    }
+
+    setPredefinedRange(range);
+    setFilters({
+      ...filters,
+      timeRange: {
+        from: from.toISOString().split("T")[0],
+        to: now.toISOString().split("T")[0],
+      },
+    });
+  };
+
+  const handleApplyFilter = () => {
     setGeneratedTime(new Date());
     setIsGenerated(true);
   };
@@ -132,31 +162,41 @@ export default function AnalyticsManagement() {
       sites: [],
       cells: [],
       timeRange: filters.timeRange,
-      granularity: filters.granularity,
+      granularity: "1D",
     });
   };
 
   const toggleFilterItem = (filterType: keyof AnalyticsFilters, item: any) => {
-    if (filterType === 'timeRange' || filterType === 'granularity') return;
-    
     const current = filters[filterType] as any[];
     const updated = current.includes(item)
       ? current.filter((x) => x !== item)
       : [...current, item];
-    
+
     setFilters({ ...filters, [filterType]: updated });
   };
 
   // Filter KPIs based on current filters
   const filteredKPIs = useMemo(() => {
-    return filterKPIs(KPI_CATALOG, {
+    let kpis = filterKPIs(KPI_CATALOG, {
       technologies: filters.technologies,
       vendors: filters.vendors,
       domains: filters.domains,
       categories: filters.categories,
       scopes: filters.scopes,
     });
-  }, [filters]);
+
+    if (kpiSearch.trim()) {
+      const search = kpiSearch.toLowerCase();
+      kpis = kpis.filter(
+        (kpi) =>
+          kpi.name.toLowerCase().includes(search) ||
+          kpi.category.toLowerCase().includes(search) ||
+          kpi.description.toLowerCase().includes(search)
+      );
+    }
+
+    return kpis;
+  }, [filters, kpiSearch]);
 
   // Generate chart data for all selected KPIs
   const chartDataMap = useMemo(() => {
@@ -203,7 +243,6 @@ export default function AnalyticsManagement() {
     alert(`View "${newView.name}" saved successfully!`);
   };
 
-  // Handle load view
   const handleLoadView = (view: SavedView) => {
     setFilters(view.filters as AnalyticsFilters);
     setCurrentScope(view.scope);
@@ -216,7 +255,6 @@ export default function AnalyticsManagement() {
     setShowSavedViews(false);
   };
 
-  // Handle delete view
   const handleDeleteView = (viewId: string) => {
     if (window.confirm("Are you sure you want to delete this view?")) {
       deleteView(viewId);
@@ -224,7 +262,6 @@ export default function AnalyticsManagement() {
     }
   };
 
-  // Export individual KPI data
   const handleExportKPI = (kpi: KPI) => {
     const kpiData = chartDataMap[kpi.id] || [];
 
@@ -269,7 +306,6 @@ export default function AnalyticsManagement() {
     XLSX.writeFile(workbook, `${kpi.name.replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.xlsx`);
   };
 
-  // Export all KPIs combined
   const handleExportAll = () => {
     if (selectedKPIs.length === 0) {
       alert("No KPIs selected to export");
@@ -322,449 +358,325 @@ export default function AnalyticsManagement() {
     XLSX.writeFile(workbook, `KPI_Export_${new Date().toISOString().split("T")[0]}.xlsx`);
   };
 
+  const renderDropdown = (
+    title: string,
+    dropdownKey: string,
+    items: string[],
+    selectedItems: string[],
+    filterType: keyof AnalyticsFilters
+  ) => (
+    <div className="relative">
+      <button
+        onClick={() => setOpenDropdown(openDropdown === dropdownKey ? null : dropdownKey)}
+        className="w-full flex items-center justify-between px-2 py-1.5 rounded border border-border bg-background hover:bg-muted/50 text-xs font-medium text-foreground transition-colors"
+      >
+        <div className="flex items-center gap-1.5 truncate">
+          <span className="truncate">{title}</span>
+          {selectedItems.length > 0 && (
+            <span className="text-xs px-1.5 py-0.5 rounded-full bg-primary/10 text-primary flex-shrink-0">
+              {selectedItems.length}
+            </span>
+          )}
+        </div>
+        <ChevronDown className={cn("w-3 h-3 transition-transform flex-shrink-0", openDropdown === dropdownKey && "rotate-180")} />
+      </button>
+
+      {openDropdown === dropdownKey && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded shadow-lg z-20 max-h-40 overflow-y-auto">
+          {items.map((item) => (
+            <label key={item} className="flex items-center gap-2 px-2 py-1.5 border-b border-border/50 last:border-b-0 cursor-pointer hover:bg-muted/30 transition-colors text-xs">
+              <input
+                type="checkbox"
+                checked={selectedItems.includes(item)}
+                onChange={() => toggleFilterItem(filterType, item)}
+                className="w-3 h-3 rounded border border-border"
+              />
+              <span className="truncate">{item}</span>
+            </label>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
   return (
-    <div className="space-y-4 p-6">
-      {/* ===== GLOBAL HEADER ===== */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between flex-wrap gap-4">
+    <div className="space-y-3">
+      {/* Header */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground">Analytics Management</h1>
-            <p className="text-muted-foreground text-xs md:text-sm mt-1">Create and analyze custom KPIs</p>
+            <h1 className="text-xl md:text-2xl font-bold text-foreground">Analytics Management</h1>
+            <p className="text-xs md:text-sm text-muted-foreground mt-0.5">Create and analyze custom KPIs</p>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowSavedViews(!showSavedViews)}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-background hover:bg-muted/50 transition-colors text-sm font-medium"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-border bg-background hover:bg-muted/50 transition-colors text-xs font-medium"
               title="Manage saved views"
             >
-              {showSavedViews ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              Saved Views ({savedViews.length})
+              {showSavedViews ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+              Views ({savedViews.length})
             </button>
             <button
               onClick={() => setShowSaveDialog(true)}
               disabled={selectedKPIs.length === 0}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg border border-primary bg-primary/10 hover:bg-primary/20 transition-colors text-primary text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-primary bg-primary/10 hover:bg-primary/20 transition-colors text-primary text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               title="Save current view"
             >
-              <Save className="w-4 h-4" />
-              Save View
+              <Save className="w-3.5 h-3.5" />
+              Save
             </button>
           </div>
         </div>
       </div>
 
-      {/* ===== SAVED VIEWS PANEL ===== */}
+      {/* Saved Views Panel */}
       {showSavedViews && (
-        <div className="bg-card border border-border rounded-lg p-6 space-y-4">
-          <h3 className="text-lg font-bold text-foreground">Saved Views</h3>
+        <div className="bg-card border border-border rounded-lg p-4 space-y-3">
+          <h3 className="text-sm font-bold text-foreground">Saved Views</h3>
           {savedViews.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {savedViews.map((view) => (
-                <div
-                  key={view.id}
-                  className="border border-border/50 rounded-lg p-4 hover:bg-muted/50 transition-colors"
-                >
-                  <div className="flex items-start justify-between mb-2">
+                <div key={view.id} className="border border-border/50 rounded-lg p-3 hover:bg-muted/50 transition-colors">
+                  <div className="flex items-start justify-between mb-1.5">
                     <div className="flex-1">
-                      <h4 className="font-semibold text-foreground">{view.name}</h4>
+                      <h4 className="font-semibold text-sm text-foreground">{view.name}</h4>
                       {view.description && (
-                        <p className="text-sm text-muted-foreground mt-1">{view.description}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{view.description}</p>
                       )}
                     </div>
                     <button
                       onClick={() => handleDeleteView(view.id)}
-                      className="p-1 rounded hover:bg-red-100 text-red-600 transition-colors"
+                      className="p-1 rounded hover:bg-red-100 text-red-600 transition-colors flex-shrink-0"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3 h-3" />
                     </button>
                   </div>
-                  <div className="text-xs text-muted-foreground mb-3">
-                    {view.kpis.length} KPI{view.kpis.length !== 1 ? "s" : ""} • Scope:{" "}
-                    {view.scope}
+                  <div className="text-xs text-muted-foreground mb-2">
+                    {view.kpis.length} KPI{view.kpis.length !== 1 ? "s" : ""} • {view.scope}
                   </div>
                   <button
                     onClick={() => handleLoadView(view)}
-                    className="w-full px-2 py-1 rounded text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium"
+                    className="w-full px-2 py-1 rounded text-xs bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium"
                   >
-                    Load View
+                    Load
                   </button>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground text-center py-8">
-              No saved views yet. Create one using the "Save View" button.
-            </p>
+            <p className="text-xs text-muted-foreground text-center py-4">No saved views yet</p>
           )}
         </div>
       )}
 
-      {/* ===== SAVE VIEW DIALOG ===== */}
+      {/* Save View Dialog */}
       {showSaveDialog && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-card rounded-lg border border-border p-6 max-w-md w-full">
-            <h3 className="text-lg font-bold text-foreground mb-4">Save View</h3>
-            <div className="space-y-4">
+          <div className="bg-card rounded-lg border border-border p-4 max-w-sm w-full">
+            <h3 className="text-sm font-bold text-foreground mb-3">Save View</h3>
+            <div className="space-y-3">
               <div>
-                <label className="text-sm font-semibold text-muted-foreground block mb-2">
-                  View Name *
+                <label className="text-xs font-semibold text-muted-foreground block mb-1">
+                  Name *
                 </label>
                 <input
                   type="text"
                   value={saveViewName}
                   onChange={(e) => setSaveViewName(e.target.value)}
-                  placeholder="e.g., 5G Performance Analysis"
-                  className="w-full px-3 py-2 rounded border border-border text-foreground placeholder-muted-foreground"
+                  placeholder="e.g., 5G Analysis"
+                  className="w-full px-2 py-1.5 rounded border border-border text-xs text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-primary/50"
                   autoFocus
                 />
               </div>
               <div>
-                <label className="text-sm font-semibold text-muted-foreground block mb-2">
-                  Description (Optional)
+                <label className="text-xs font-semibold text-muted-foreground block mb-1">
+                  Description
                 </label>
                 <textarea
                   value={saveViewDescription}
                   onChange={(e) => setSaveViewDescription(e.target.value)}
-                  placeholder="Add notes about this view..."
-                  rows={3}
-                  className="w-full px-3 py-2 rounded border border-border text-foreground placeholder-muted-foreground resize-none"
+                  placeholder="Add notes..."
+                  rows={2}
+                  className="w-full px-2 py-1.5 rounded border border-border text-xs text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-primary/50 resize-none"
                 />
               </div>
             </div>
-            <div className="flex gap-2 justify-end mt-6">
+            <div className="flex gap-2 justify-end mt-4">
               <button
                 onClick={() => {
                   setShowSaveDialog(false);
                   setSaveViewName("");
                   setSaveViewDescription("");
                 }}
-                className="px-3 py-2 rounded border border-border hover:bg-muted transition-colors text-sm font-medium"
+                className="px-2.5 py-1.5 rounded border border-border hover:bg-muted transition-colors text-xs font-medium"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveView}
                 disabled={!saveViewName.trim()}
-                className="px-3 py-2 rounded bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-2.5 py-1.5 rounded bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-xs font-medium disabled:opacity-50"
               >
-                Save View
+                Save
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ===== KPI SEARCH BAR ===== */}
-      <div className="card-elevated bg-card border border-border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
-        <div className="flex items-center gap-3">
-          <Search className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+      {/* KPI Search Bar - Full Width */}
+      <div className="bg-card border border-border rounded-lg p-3">
+        <div className="flex items-center gap-2">
+          <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
           <input
             type="text"
             placeholder="Search KPIs by name, category, or description..."
             value={kpiSearch}
             onChange={(e) => setKpiSearch(e.target.value)}
-            className="flex-1 bg-transparent border-0 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-0"
+            className="flex-1 bg-transparent border-0 text-sm text-foreground placeholder-muted-foreground focus:outline-none"
           />
           {kpiSearch && (
             <button
               onClick={() => setKpiSearch("")}
-              className="p-1 text-muted-foreground hover:text-foreground transition-colors"
+              className="p-1 text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
             >
-              <X className="w-4 h-4" />
+              <X className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
       </div>
 
-      {/* ===== GLOBAL FILTER BAR ===== */}
-      <div className="card-elevated bg-card border border-border rounded-lg p-4 space-y-4 shadow-sm hover:shadow-md transition-shadow">
-        <div className="flex items-center justify-between flex-wrap gap-3">
+      {/* Global Filter Bar */}
+      <div className="bg-card border border-border rounded-lg p-3 space-y-3">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
           <button
             onClick={() => setShowFilters(!showFilters)}
             className={cn(
-              "flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 text-sm font-medium active:scale-95",
+              "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-all text-xs font-medium",
               showFilters
-                ? "bg-primary text-primary-foreground shadow-md"
+                ? "bg-primary text-primary-foreground"
                 : "bg-muted hover:bg-muted/70"
             )}
           >
-            <Filter className="w-4 h-4" />
-            <span>
-              Filters {hasActiveFilters && `(${filters.technologies.length + filters.vendors.length + filters.domains.length + filters.categories.length + filters.scopes.length + filters.networks.length + filters.regions.length + filters.clusters.length + filters.sites.length + filters.cells.length})`}
-            </span>
+            Filters {hasActiveFilters && `(${filters.technologies.length + filters.vendors.length + filters.domains.length + filters.categories.length + filters.scopes.length + filters.networks.length + filters.regions.length + filters.clusters.length + filters.sites.length + filters.cells.length})`}
           </button>
 
           {hasActiveFilters && (
             <button
               onClick={handleClearAllFilters}
-              className="flex items-center gap-1 px-3 py-2 rounded-lg bg-red-100 text-red-700 hover:bg-red-200 transition-colors text-sm font-medium active:scale-95"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-red-100 text-red-700 hover:bg-red-200 transition-colors text-xs font-medium"
             >
-              <X className="w-4 h-4" />
-              Clear All
+              <RotateCcw className="w-3 h-3" />
+              Reset
             </button>
           )}
 
           <button
-            onClick={handleGenerate}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium active:scale-95 ml-auto"
+            onClick={handleApplyFilter}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-xs font-medium ml-auto"
           >
-            Generate KPIs
+            Apply Filter
           </button>
 
           {isGenerated && (
             <button
               onClick={handleRegenerate}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg border border-border bg-background hover:bg-muted transition-colors text-sm font-medium active:scale-95"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-border bg-background hover:bg-muted transition-colors text-xs font-medium"
             >
               ↻ Regenerate
             </button>
           )}
         </div>
 
-        {/* Horizontal Filters Grid */}
+        {/* Filters Grid */}
         {showFilters && (
-          <div className="border-t border-border pt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 animate-in fade-in slide-in-from-top-2 duration-200">
-            {/* Technology */}
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground block mb-2 uppercase tracking-wide">
-                Technology
-              </label>
-              <select
-                multiple
-                className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                value={filters.technologies}
-                onChange={(e) => {
-                  const selected = Array.from(e.target.selectedOptions, (option) => option.value);
-                  setFilters({ ...filters, technologies: selected });
-                }}
-              >
-                {allTechnologies.map((tech) => (
-                  <option key={tech} value={tech}>{tech}</option>
+          <div className="border-t border-border pt-3 space-y-3">
+            {/* Time Range Mode Selection */}
+            <div className="space-y-2">
+              <div className="text-xs font-semibold text-muted-foreground uppercase">Choose Dates</div>
+              <div className="flex gap-2">
+                <label className="flex items-center gap-1.5 cursor-pointer text-xs">
+                  <input
+                    type="radio"
+                    checked={timeRangeMode === "predefined"}
+                    onChange={() => setTimeRangeMode("predefined")}
+                    className="w-3 h-3"
+                  />
+                  <span>Presets</span>
+                </label>
+                <label className="flex items-center gap-1.5 cursor-pointer text-xs">
+                  <input
+                    type="radio"
+                    checked={timeRangeMode === "manual"}
+                    onChange={() => setTimeRangeMode("manual")}
+                    className="w-3 h-3"
+                  />
+                  <span>Custom</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Predefined or Manual Time Range */}
+            {timeRangeMode === "predefined" ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {[
+                  { label: "Last Day", value: "1d" },
+                  { label: "Last 7 Days", value: "7d" },
+                  { label: "Last 2 Weeks", value: "14d" },
+                  { label: "Last Month", value: "30d" },
+                  { label: "Last 3 Months", value: "90d" },
+                ].map(({ label, value }) => (
+                  <button
+                    key={value}
+                    onClick={() => handlePredefinedRange(value)}
+                    className={cn(
+                      "px-2 py-1.5 rounded text-xs font-medium transition-all",
+                      predefinedRange === value
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground hover:bg-muted/70"
+                    )}
+                  >
+                    {label}
+                  </button>
                 ))}
-              </select>
-            </div>
-
-            {/* Vendor */}
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground block mb-2 uppercase tracking-wide">
-                Vendor
-              </label>
-              <select
-                multiple
-                className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                value={filters.vendors}
-                onChange={(e) => {
-                  const selected = Array.from(e.target.selectedOptions, (option) => option.value);
-                  setFilters({ ...filters, vendors: selected });
-                }}
-              >
-                {allVendors.map((vendor) => (
-                  <option key={vendor} value={vendor}>{vendor}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Domain */}
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground block mb-2 uppercase tracking-wide">
-                Domain
-              </label>
-              <select
-                multiple
-                className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                value={filters.domains}
-                onChange={(e) => {
-                  const selected = Array.from(e.target.selectedOptions, (option) => option.value);
-                  setFilters({ ...filters, domains: selected });
-                }}
-              >
-                {allDomains.map((domain) => (
-                  <option key={domain} value={domain}>{domain}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Category */}
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground block mb-2 uppercase tracking-wide">
-                Category
-              </label>
-              <select
-                multiple
-                className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                value={filters.categories}
-                onChange={(e) => {
-                  const selected = Array.from(e.target.selectedOptions, (option) => option.value);
-                  setFilters({ ...filters, categories: selected });
-                }}
-              >
-                {allCategories.map((cat) => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Scope */}
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground block mb-2 uppercase tracking-wide">
-                Scope
-              </label>
-              <select
-                multiple
-                className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                value={filters.scopes}
-                onChange={(e) => {
-                  const selected = Array.from(e.target.selectedOptions, (option) => option.value);
-                  setFilters({ ...filters, scopes: selected });
-                }}
-              >
-                {allScopes.map((scope) => (
-                  <option key={scope} value={scope}>{scope}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Network */}
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground block mb-2 uppercase tracking-wide">
-                Network
-              </label>
-              <select
-                multiple
-                className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                value={filters.networks}
-                onChange={(e) => {
-                  const selected = Array.from(e.target.selectedOptions, (option) => option.value);
-                  setFilters({ ...filters, networks: selected });
-                }}
-              >
-                {allNetworks.map((network) => (
-                  <option key={network} value={network}>{network}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Region */}
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground block mb-2 uppercase tracking-wide">
-                Region
-              </label>
-              <select
-                multiple
-                className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                value={filters.regions}
-                onChange={(e) => {
-                  const selected = Array.from(e.target.selectedOptions, (option) => option.value);
-                  setFilters({ ...filters, regions: selected });
-                }}
-              >
-                {allRegions.map((region) => (
-                  <option key={region} value={region}>{region}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Cluster */}
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground block mb-2 uppercase tracking-wide">
-                Cluster
-              </label>
-              <select
-                multiple
-                className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                value={filters.clusters}
-                onChange={(e) => {
-                  const selected = Array.from(e.target.selectedOptions, (option) => option.value);
-                  setFilters({ ...filters, clusters: selected });
-                }}
-              >
-                {allClusters.map((cluster) => (
-                  <option key={cluster} value={cluster}>{cluster}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Site */}
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground block mb-2 uppercase tracking-wide">
-                Site
-              </label>
-              <select
-                multiple
-                className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                value={filters.sites}
-                onChange={(e) => {
-                  const selected = Array.from(e.target.selectedOptions, (option) => option.value);
-                  setFilters({ ...filters, sites: selected });
-                }}
-              >
-                {allSites.map((site) => (
-                  <option key={site} value={site}>{site}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Cell */}
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground block mb-2 uppercase tracking-wide">
-                Cell
-              </label>
-              <select
-                multiple
-                className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                value={filters.cells}
-                onChange={(e) => {
-                  const selected = Array.from(e.target.selectedOptions, (option) => option.value);
-                  setFilters({ ...filters, cells: selected });
-                }}
-              >
-                {allCells.map((cell) => (
-                  <option key={cell} value={cell}>{cell}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Time Range */}
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground block mb-2 uppercase tracking-wide">
-                From Date
-              </label>
-              <input
-                type="date"
-                value={filters.timeRange.from}
-                onChange={(e) =>
-                  setFilters({
-                    ...filters,
-                    timeRange: { ...filters.timeRange, from: e.target.value },
-                  })
-                }
-                className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-              />
-            </div>
-
-            {/* Time Range To */}
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground block mb-2 uppercase tracking-wide">
-                To Date
-              </label>
-              <input
-                type="date"
-                value={filters.timeRange.to}
-                onChange={(e) =>
-                  setFilters({
-                    ...filters,
-                    timeRange: { ...filters.timeRange, to: e.target.value },
-                  })
-                }
-                className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-              />
-            </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground block mb-1">From</label>
+                  <input
+                    type="date"
+                    value={filters.timeRange.from}
+                    onChange={(e) =>
+                      setFilters({
+                        ...filters,
+                        timeRange: { ...filters.timeRange, from: e.target.value },
+                      })
+                    }
+                    className="w-full px-2 py-1.5 rounded border border-border text-xs text-foreground focus:ring-2 focus:ring-primary/50"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground block mb-1">To</label>
+                  <input
+                    type="date"
+                    value={filters.timeRange.to}
+                    onChange={(e) =>
+                      setFilters({
+                        ...filters,
+                        timeRange: { ...filters.timeRange, to: e.target.value },
+                      })
+                    }
+                    className="w-full px-2 py-1.5 rounded border border-border text-xs text-foreground focus:ring-2 focus:ring-primary/50"
+                  />
+                </div>
+              </div>
+            )}
 
             {/* Granularity */}
             <div>
-              <label className="text-xs font-semibold text-muted-foreground block mb-2 uppercase tracking-wide">
-                Granularity
-              </label>
+              <label className="text-xs font-semibold text-muted-foreground block mb-1">Granularity</label>
               <select
                 value={filters.granularity}
                 onChange={(e) =>
@@ -773,7 +685,7 @@ export default function AnalyticsManagement() {
                     granularity: e.target.value as any,
                   })
                 }
-                className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                className="w-full px-2 py-1.5 rounded border border-border text-xs text-foreground focus:ring-2 focus:ring-primary/50"
               >
                 <option value="1H">Hourly</option>
                 <option value="1D">Daily</option>
@@ -781,50 +693,55 @@ export default function AnalyticsManagement() {
                 <option value="1M">Monthly</option>
               </select>
             </div>
+
+            {/* Filter Dropdowns Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+              {renderDropdown("Technology", "tech", allTechnologies, filters.technologies, "technologies")}
+              {renderDropdown("Vendor", "vendor", allVendors, filters.vendors, "vendors")}
+              {renderDropdown("Domain", "domain", allDomains, filters.domains, "domains")}
+              {renderDropdown("Category", "category", allCategories, filters.categories, "categories")}
+              {renderDropdown("Scope", "scope", allScopes, filters.scopes, "scopes")}
+              {renderDropdown("Network", "network", allNetworks, filters.networks, "networks")}
+              {renderDropdown("Region", "region", allRegions, filters.regions, "regions")}
+              {renderDropdown("Cluster", "cluster", allClusters, filters.clusters, "clusters")}
+              {renderDropdown("Site", "site", allSites, filters.sites, "sites")}
+              {renderDropdown("Cell", "cell", allCells, filters.cells, "cells")}
+            </div>
           </div>
         )}
       </div>
 
-      {/* ===== ANALYSIS SCOPE SELECTION ===== */}
-      {isGenerated && (
-        <div className="bg-card border border-border rounded-lg p-4 space-y-4">
-          <h3 className="text-sm font-semibold text-muted-foreground">Analysis Scope - Select Instance</h3>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
-            {/* Networks Dropdown */}
+      {/* Analysis Scope - Only after generation */}
+      {isGenerated && (filters.networks.length > 0 || filters.regions.length > 0 || filters.clusters.length > 0 || filters.sites.length > 0 || filters.cells.length > 0) && (
+        <div className="bg-card border border-border rounded-lg p-3">
+          <h3 className="text-xs font-semibold text-muted-foreground mb-2">Select Instance</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
             {filters.networks.length > 0 && (
               <div className="relative">
                 <button
                   onClick={() => setOpenScopeDropdown(openScopeDropdown === "networks" ? null : "networks")}
-                  className="w-full flex items-center justify-between px-3 py-2 rounded border border-border bg-muted/50 hover:bg-muted text-sm font-medium text-foreground transition-colors"
+                  className="w-full flex items-center justify-between px-2 py-1.5 rounded border border-border bg-muted/50 hover:bg-muted text-xs font-medium text-foreground transition-colors"
                 >
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-blue-500" title="Network shape" />
-                    <span>{selectedNetwork ? selectedNetwork : "Networks"}</span>
+                  <div className="flex items-center gap-1 truncate">
+                    <div className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" />
+                    <span className="truncate">{selectedNetwork || "Networks"}</span>
                   </div>
-                  <ChevronDown className={cn("w-4 h-4 transition-transform", openScopeDropdown === "networks" && "rotate-180")} />
+                  <ChevronDown className={cn("w-3 h-3 flex-shrink-0", openScopeDropdown === "networks" && "rotate-180")} />
                 </button>
                 {openScopeDropdown === "networks" && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded shadow-lg z-10">
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded shadow-lg z-10 max-h-32 overflow-y-auto">
                     {filters.networks.map((network) => (
                       <button
                         key={network}
                         onClick={() => {
                           setSelectedNetwork(selectedNetwork === network ? null : network);
-                          setSelectedRegion(null);
-                          setSelectedCluster(null);
-                          setSelectedSite(null);
-                          setSelectedCell(null);
                           setOpenScopeDropdown(null);
                         }}
-                        className={cn(
-                          "w-full flex items-center gap-2 px-3 py-2 text-sm text-left border-b border-border/50 last:border-b-0 hover:bg-muted/50 transition-colors",
-                          selectedNetwork === network && "bg-primary/10"
-                        )}
+                        className="w-full flex items-center gap-1.5 px-2 py-1.5 text-xs text-left border-b border-border/50 last:border-b-0 hover:bg-muted/50 transition-colors"
                       >
-                        <div className="w-2 h-2 rounded-full bg-blue-500" />
-                        <span>{network}</span>
-                        {selectedNetwork === network && <span className="ml-auto text-primary">✓</span>}
+                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />
+                        <span className="truncate flex-1">{network}</span>
+                        {selectedNetwork === network && <span className="text-primary">✓</span>}
                       </button>
                     ))}
                   </div>
@@ -832,40 +749,32 @@ export default function AnalyticsManagement() {
               </div>
             )}
 
-            {/* Regions Dropdown */}
             {filters.regions.length > 0 && (
               <div className="relative">
                 <button
                   onClick={() => setOpenScopeDropdown(openScopeDropdown === "regions" ? null : "regions")}
-                  className="w-full flex items-center justify-between px-3 py-2 rounded border border-border bg-muted/50 hover:bg-muted text-sm font-medium text-foreground transition-colors"
+                  className="w-full flex items-center justify-between px-2 py-1.5 rounded border border-border bg-muted/50 hover:bg-muted text-xs font-medium text-foreground transition-colors"
                 >
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-green-500" title="Region shape (square)" />
-                    <span>{selectedRegion ? selectedRegion : "Regions"}</span>
+                  <div className="flex items-center gap-1 truncate">
+                    <div className="w-2 h-2 bg-green-500 flex-shrink-0" />
+                    <span className="truncate">{selectedRegion || "Regions"}</span>
                   </div>
-                  <ChevronDown className={cn("w-4 h-4 transition-transform", openScopeDropdown === "regions" && "rotate-180")} />
+                  <ChevronDown className={cn("w-3 h-3 flex-shrink-0", openScopeDropdown === "regions" && "rotate-180")} />
                 </button>
                 {openScopeDropdown === "regions" && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded shadow-lg z-10">
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded shadow-lg z-10 max-h-32 overflow-y-auto">
                     {filters.regions.map((region) => (
                       <button
                         key={region}
                         onClick={() => {
                           setSelectedRegion(selectedRegion === region ? null : region);
-                          setSelectedNetwork(null);
-                          setSelectedCluster(null);
-                          setSelectedSite(null);
-                          setSelectedCell(null);
                           setOpenScopeDropdown(null);
                         }}
-                        className={cn(
-                          "w-full flex items-center gap-2 px-3 py-2 text-sm text-left border-b border-border/50 last:border-b-0 hover:bg-muted/50 transition-colors",
-                          selectedRegion === region && "bg-primary/10"
-                        )}
+                        className="w-full flex items-center gap-1.5 px-2 py-1.5 text-xs text-left border-b border-border/50 last:border-b-0 hover:bg-muted/50 transition-colors"
                       >
-                        <div className="w-2 h-2 bg-green-500" />
-                        <span>{region}</span>
-                        {selectedRegion === region && <span className="ml-auto text-primary">✓</span>}
+                        <div className="w-1.5 h-1.5 bg-green-500 flex-shrink-0" />
+                        <span className="truncate flex-1">{region}</span>
+                        {selectedRegion === region && <span className="text-primary">✓</span>}
                       </button>
                     ))}
                   </div>
@@ -873,40 +782,32 @@ export default function AnalyticsManagement() {
               </div>
             )}
 
-            {/* Clusters Dropdown */}
             {filters.clusters.length > 0 && (
               <div className="relative">
                 <button
                   onClick={() => setOpenScopeDropdown(openScopeDropdown === "clusters" ? null : "clusters")}
-                  className="w-full flex items-center justify-between px-3 py-2 rounded border border-border bg-muted/50 hover:bg-muted text-sm font-medium text-foreground transition-colors"
+                  className="w-full flex items-center justify-between px-2 py-1.5 rounded border border-border bg-muted/50 hover:bg-muted text-xs font-medium text-foreground transition-colors"
                 >
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 border-2 border-purple-500 transform rotate-45" title="Cluster shape (diamond)" />
-                    <span>{selectedCluster ? selectedCluster : "Clusters"}</span>
+                  <div className="flex items-center gap-1 truncate">
+                    <div className="w-1.5 h-1.5 border border-purple-500 rotate-45 flex-shrink-0" />
+                    <span className="truncate">{selectedCluster || "Clusters"}</span>
                   </div>
-                  <ChevronDown className={cn("w-4 h-4 transition-transform", openScopeDropdown === "clusters" && "rotate-180")} />
+                  <ChevronDown className={cn("w-3 h-3 flex-shrink-0", openScopeDropdown === "clusters" && "rotate-180")} />
                 </button>
                 {openScopeDropdown === "clusters" && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded shadow-lg z-10">
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded shadow-lg z-10 max-h-32 overflow-y-auto">
                     {filters.clusters.map((cluster) => (
                       <button
                         key={cluster}
                         onClick={() => {
                           setSelectedCluster(selectedCluster === cluster ? null : cluster);
-                          setSelectedNetwork(null);
-                          setSelectedRegion(null);
-                          setSelectedSite(null);
-                          setSelectedCell(null);
                           setOpenScopeDropdown(null);
                         }}
-                        className={cn(
-                          "w-full flex items-center gap-2 px-3 py-2 text-sm text-left border-b border-border/50 last:border-b-0 hover:bg-muted/50 transition-colors",
-                          selectedCluster === cluster && "bg-primary/10"
-                        )}
+                        className="w-full flex items-center gap-1.5 px-2 py-1.5 text-xs text-left border-b border-border/50 last:border-b-0 hover:bg-muted/50 transition-colors"
                       >
-                        <div className="w-2 h-2 border border-purple-500 transform rotate-45" />
-                        <span>{cluster}</span>
-                        {selectedCluster === cluster && <span className="ml-auto text-primary">✓</span>}
+                        <div className="w-1.5 h-1.5 border border-purple-500 rotate-45 flex-shrink-0" />
+                        <span className="truncate flex-1">{cluster}</span>
+                        {selectedCluster === cluster && <span className="text-primary">✓</span>}
                       </button>
                     ))}
                   </div>
@@ -914,40 +815,32 @@ export default function AnalyticsManagement() {
               </div>
             )}
 
-            {/* Sites Dropdown */}
             {filters.sites.length > 0 && (
               <div className="relative">
                 <button
                   onClick={() => setOpenScopeDropdown(openScopeDropdown === "sites" ? null : "sites")}
-                  className="w-full flex items-center justify-between px-3 py-2 rounded border border-border bg-muted/50 hover:bg-muted text-sm font-medium text-foreground transition-colors"
+                  className="w-full flex items-center justify-between px-2 py-1.5 rounded border border-border bg-muted/50 hover:bg-muted text-xs font-medium text-foreground transition-colors"
                 >
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 border-2 border-orange-500 rounded-full" title="Site shape (ring)" />
-                    <span>{selectedSite ? selectedSite : "Sites"}</span>
+                  <div className="flex items-center gap-1 truncate">
+                    <div className="w-1.5 h-1.5 border border-orange-500 rounded-full flex-shrink-0" />
+                    <span className="truncate">{selectedSite || "Sites"}</span>
                   </div>
-                  <ChevronDown className={cn("w-4 h-4 transition-transform", openScopeDropdown === "sites" && "rotate-180")} />
+                  <ChevronDown className={cn("w-3 h-3 flex-shrink-0", openScopeDropdown === "sites" && "rotate-180")} />
                 </button>
                 {openScopeDropdown === "sites" && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded shadow-lg z-10">
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded shadow-lg z-10 max-h-32 overflow-y-auto">
                     {filters.sites.map((site) => (
                       <button
                         key={site}
                         onClick={() => {
                           setSelectedSite(selectedSite === site ? null : site);
-                          setSelectedNetwork(null);
-                          setSelectedRegion(null);
-                          setSelectedCluster(null);
-                          setSelectedCell(null);
                           setOpenScopeDropdown(null);
                         }}
-                        className={cn(
-                          "w-full flex items-center gap-2 px-3 py-2 text-sm text-left border-b border-border/50 last:border-b-0 hover:bg-muted/50 transition-colors",
-                          selectedSite === site && "bg-primary/10"
-                        )}
+                        className="w-full flex items-center gap-1.5 px-2 py-1.5 text-xs text-left border-b border-border/50 last:border-b-0 hover:bg-muted/50 transition-colors"
                       >
-                        <div className="w-2 h-2 border border-orange-500 rounded-full" />
-                        <span>{site}</span>
-                        {selectedSite === site && <span className="ml-auto text-primary">✓</span>}
+                        <div className="w-1.5 h-1.5 border border-orange-500 rounded-full flex-shrink-0" />
+                        <span className="truncate flex-1">{site}</span>
+                        {selectedSite === site && <span className="text-primary">✓</span>}
                       </button>
                     ))}
                   </div>
@@ -955,40 +848,32 @@ export default function AnalyticsManagement() {
               </div>
             )}
 
-            {/* Cells Dropdown */}
             {filters.cells.length > 0 && (
               <div className="relative">
                 <button
                   onClick={() => setOpenScopeDropdown(openScopeDropdown === "cells" ? null : "cells")}
-                  className="w-full flex items-center justify-between px-3 py-2 rounded border border-border bg-muted/50 hover:bg-muted text-sm font-medium text-foreground transition-colors"
+                  className="w-full flex items-center justify-between px-2 py-1.5 rounded border border-border bg-muted/50 hover:bg-muted text-xs font-medium text-foreground transition-colors"
                 >
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-red-500 transform -rotate-45" title="Cell shape (triangle)" style={{clipPath: "polygon(50% 0%, 100% 100%, 0% 100%)"}} />
-                    <span>{selectedCell ? selectedCell : "Cells"}</span>
+                  <div className="flex items-center gap-1 truncate">
+                    <div className="w-1.5 h-1.5 bg-red-500 flex-shrink-0" style={{clipPath: "polygon(50% 0%, 100% 100%, 0% 100%)"}} />
+                    <span className="truncate">{selectedCell || "Cells"}</span>
                   </div>
-                  <ChevronDown className={cn("w-4 h-4 transition-transform", openScopeDropdown === "cells" && "rotate-180")} />
+                  <ChevronDown className={cn("w-3 h-3 flex-shrink-0", openScopeDropdown === "cells" && "rotate-180")} />
                 </button>
                 {openScopeDropdown === "cells" && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded shadow-lg z-10">
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded shadow-lg z-10 max-h-32 overflow-y-auto">
                     {filters.cells.map((cell) => (
                       <button
                         key={cell}
                         onClick={() => {
                           setSelectedCell(selectedCell === cell ? null : cell);
-                          setSelectedNetwork(null);
-                          setSelectedRegion(null);
-                          setSelectedCluster(null);
-                          setSelectedSite(null);
                           setOpenScopeDropdown(null);
                         }}
-                        className={cn(
-                          "w-full flex items-center gap-2 px-3 py-2 text-sm text-left border-b border-border/50 last:border-b-0 hover:bg-muted/50 transition-colors",
-                          selectedCell === cell && "bg-primary/10"
-                        )}
+                        className="w-full flex items-center gap-1.5 px-2 py-1.5 text-xs text-left border-b border-border/50 last:border-b-0 hover:bg-muted/50 transition-colors"
                       >
-                        <div className="w-2 h-2 bg-red-500 transform -rotate-45" style={{clipPath: "polygon(50% 0%, 100% 100%, 0% 100%)"}} />
-                        <span>{cell}</span>
-                        {selectedCell === cell && <span className="ml-auto text-primary">✓</span>}
+                        <div className="w-1.5 h-1.5 bg-red-500 flex-shrink-0" style={{clipPath: "polygon(50% 0%, 100% 100%, 0% 100%)"}} />
+                        <span className="truncate flex-1">{cell}</span>
+                        {selectedCell === cell && <span className="text-primary">✓</span>}
                       </button>
                     ))}
                   </div>
@@ -996,42 +881,48 @@ export default function AnalyticsManagement() {
               </div>
             )}
           </div>
+        </div>
+      )}
 
-          {filters.networks.length === 0 &&
-           filters.regions.length === 0 &&
-           filters.clusters.length === 0 &&
-           filters.sites.length === 0 &&
-           filters.cells.length === 0 && (
-            <p className="text-xs text-muted-foreground">
-              Select Network, Region, Cluster, Site, or Cell in the filters to view instances here.
-            </p>
+      {/* KPI Selection Panel */}
+      {!isGenerated && (
+        <div className="bg-card border border-dashed border-border rounded-lg p-6 text-center">
+          <h3 className="text-sm font-semibold text-foreground mb-1">Ready to Analyze</h3>
+          <p className="text-xs text-muted-foreground mb-4">
+            Search and select KPIs above, then click "Apply Filter" to generate analysis
+          </p>
+          {filteredKPIs.length > 0 && (
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {filteredKPIs.slice(0, 10).map((kpi) => (
+                <button
+                  key={kpi.id}
+                  onClick={() => {
+                    if (!selectedKPIs.find((k) => k.id === kpi.id)) {
+                      setSelectedKPIs([...selectedKPIs, kpi]);
+                    }
+                  }}
+                  className={cn(
+                    "w-full text-left px-3 py-2 rounded text-xs border transition-all",
+                    selectedKPIs.find((k) => k.id === kpi.id)
+                      ? "border-primary bg-primary/10"
+                      : "border-border/50 bg-muted/30 hover:bg-muted/50"
+                  )}
+                >
+                  <div className="font-medium text-foreground">{kpi.name}</div>
+                  <div className="text-muted-foreground">{kpi.category} • {kpi.technology}</div>
+                </button>
+              ))}
+              {filteredKPIs.length > 10 && (
+                <p className="text-xs text-muted-foreground pt-2">+ {filteredKPIs.length - 10} more KPIs</p>
+              )}
+            </div>
           )}
         </div>
       )}
 
-      {/* ===== KPI SELECTOR & ANALYTICS ===== */}
-      <KPISelector
-        selectedKPIs={selectedKPIs}
-        onKPIsChange={setSelectedKPIs}
-        onGenerate={handleGenerate}
-        isGenerated={isGenerated}
-        filters={{
-          technologies: filters.technologies,
-          vendors: filters.vendors,
-          domains: filters.domains,
-          categories: filters.categories,
-          networks: filters.networks,
-          regions: filters.regions,
-          clusters: filters.clusters,
-          sites: filters.sites,
-          cells: filters.cells,
-        }}
-      />
-
-      {/* Analytics Dashboard */}
-      {selectedKPIs.length > 0 && isGenerated ? (
-        <div className="space-y-6">
-          {/* Header with Export All Button */}
+      {/* Charts and Details - Only after generation */}
+      {isGenerated && selectedKPIs.length > 0 && (
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
               {generatedTime && (
@@ -1042,10 +933,9 @@ export default function AnalyticsManagement() {
             </div>
             <button
               onClick={handleExportAll}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-background hover:bg-muted transition-colors text-sm font-medium"
-              title="Export all KPIs to Excel"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-border bg-background hover:bg-muted transition-colors text-xs font-medium"
             >
-              <Download className="w-4 h-4" />
+              <Download className="w-3.5 h-3.5" />
               Export All
             </button>
           </div>
@@ -1053,7 +943,7 @@ export default function AnalyticsManagement() {
           {selectedKPIs.map((kpi) => {
             const selectedLabel = selectedNetwork || selectedRegion || selectedCluster || selectedSite || selectedCell || "All";
             const kpiChartData = chartDataMap[kpi.id] || [];
-            
+
             return (
               <TrendChartContainer
                 key={kpi.id}
@@ -1067,29 +957,29 @@ export default function AnalyticsManagement() {
             );
           })}
 
-          {/* KPI Details Grid with Hover Tooltip */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* KPI Details Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {selectedKPIs.map((kpi) => (
               <div
                 key={kpi.id}
-                className="group relative bg-card border border-border rounded-lg p-4 cursor-help hover:border-primary/50 transition-colors"
+                className="group relative bg-card border border-border rounded-lg p-3 cursor-help hover:border-primary/50 transition-colors"
               >
-                <div className="relative flex items-start justify-between gap-2">
+                <div className="flex items-start justify-between gap-2">
                   <div className="flex-1">
-                    <h4 className="font-semibold text-foreground">{kpi.name}</h4>
-                    <p className="text-sm text-muted-foreground mt-1">{kpi.description}</p>
+                    <h4 className="font-semibold text-sm text-foreground">{kpi.name}</h4>
+                    <p className="text-xs text-muted-foreground mt-0.5">{kpi.description}</p>
                   </div>
                   <button
                     onClick={() => handleExportKPI(kpi)}
-                    className="flex-shrink-0 p-2 rounded hover:bg-muted transition-colors"
-                    title="Export this KPI data to Excel"
+                    className="flex-shrink-0 p-1.5 rounded hover:bg-muted transition-colors"
+                    title="Export KPI"
                   >
-                    <Download className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+                    <Download className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
                   </button>
                 </div>
 
-                {/* Hover Tooltip */}
-                <div className="absolute left-0 top-full mt-2 hidden group-hover:block bg-background border border-border rounded-lg p-3 shadow-lg z-10 w-64 text-xs space-y-2">
+                {/* Tooltip */}
+                <div className="absolute left-0 top-full mt-2 hidden group-hover:block bg-background border border-border rounded-lg p-2 shadow-lg z-10 w-56 text-xs space-y-1">
                   <div>
                     <span className="text-muted-foreground">Category:</span>
                     <p className="font-medium text-foreground">{kpi.category}</p>
@@ -1107,45 +997,20 @@ export default function AnalyticsManagement() {
                     <p className="font-medium text-foreground">{kpi.vendor}</p>
                   </div>
                   <div>
-                    <span className="text-muted-foreground">Scope:</span>
-                    <p className="font-medium text-foreground">{kpi.scope}</p>
-                  </div>
-                  <div>
                     <span className="text-muted-foreground">Unit:</span>
                     <p className="font-medium text-foreground">{kpi.unit}</p>
                   </div>
-                  <div>
-                    <span className="text-muted-foreground">Direction:</span>
-                    <p className="font-medium text-foreground">
-                      {kpi.direction === "higher-is-better" ? "↑ Higher is Better" : "↓ Lower is Better"}
-                    </p>
-                  </div>
-                  {generatedTime && (
-                    <div>
-                      <span className="text-muted-foreground">Generated:</span>
-                      <p className="font-medium text-foreground">
-                        {generatedTime.toLocaleString()}
-                      </p>
-                    </div>
-                  )}
                 </div>
               </div>
             ))}
           </div>
         </div>
-      ) : !isGenerated ? (
-        <div className="bg-card border border-dashed border-border rounded-lg p-12 text-center">
-          <h3 className="text-lg font-semibold text-foreground mb-2">Ready to Create KPI</h3>
-          <p className="text-muted-foreground">
-            Use the search bar and filters above to configure your KPI criteria, then click "Generate KPIs" to proceed.
-          </p>
-        </div>
-      ) : (
-        <div className="bg-card border border-dashed border-border rounded-lg p-12 text-center">
-          <h3 className="text-lg font-semibold text-foreground mb-2">No KPIs Selected</h3>
-          <p className="text-muted-foreground">
-            Click "Add KPIs" in the panel below to select KPIs for your analysis.
-          </p>
+      )}
+
+      {isGenerated && selectedKPIs.length === 0 && (
+        <div className="bg-card border border-dashed border-border rounded-lg p-6 text-center">
+          <h3 className="text-sm font-semibold text-foreground mb-1">No KPIs Selected</h3>
+          <p className="text-xs text-muted-foreground">Click "Regenerate" to modify filters and select KPIs</p>
         </div>
       )}
     </div>

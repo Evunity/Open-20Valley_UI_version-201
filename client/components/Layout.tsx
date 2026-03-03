@@ -14,13 +14,13 @@ export default function Layout({ children }: LayoutProps) {
   const [isMobile, setIsMobile] = useState(false);
   const [emergencyKillActive, setEmergencyKillActive] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(256); // 64 * 4 = 256px (w-64)
-  const [savedSidebarWidth, setSavedSidebarWidth] = useState(256); // Save width for toggle
   const [isDragging, setIsDragging] = useState(false);
   const location = useLocation();
 
-  const MIN_WIDTH = 50; // Minimum width before collapse
+  const COLLAPSED_WIDTH = 80; // Width when collapsed
+  const MIN_WIDTH = 150; // Minimum width before collapse when dragging
   const MAX_WIDTH = 400; // Maximum width
-  const COLLAPSE_THRESHOLD = 80; // Width threshold to trigger collapse
+  const DEFAULT_WIDTH = 256; // Default expanded width
 
   // Handle responsive behavior
   useEffect(() => {
@@ -59,19 +59,10 @@ export default function Layout({ children }: LayoutProps) {
 
       const deltaX = e.clientX - dragStartXRef.current;
       const newWidth = Math.max(MIN_WIDTH, Math.min(dragStartWidthRef.current + deltaX, MAX_WIDTH));
+
       setSidebarWidth(newWidth);
-
-      // Save width when dragging to a normal size (above collapse threshold)
-      if (newWidth > COLLAPSE_THRESHOLD) {
-        setSavedSidebarWidth(newWidth);
-      }
-
-      // Auto-collapse if dragged too far left
-      if (newWidth <= COLLAPSE_THRESHOLD) {
-        setSidebarOpen(false);
-      } else if (!sidebarOpen && newWidth > COLLAPSE_THRESHOLD) {
-        setSidebarOpen(true);
-      }
+      // Always keep sidebar open while dragging at expanded width
+      setSidebarOpen(true);
     };
 
     const handleMouseUp = () => {
@@ -91,7 +82,7 @@ export default function Layout({ children }: LayoutProps) {
       document.body.style.cursor = "default";
       document.body.style.userSelect = "auto";
     };
-  }, [isDragging, isMobile, sidebarOpen]);
+  }, [isDragging, isMobile]);
 
   const handleDragStart = (e: React.MouseEvent) => {
     dragStartXRef.current = e.clientX;
@@ -121,11 +112,11 @@ export default function Layout({ children }: LayoutProps) {
   const SidebarContent = () => (
     <>
       {/* Logo & Header */}
-      <div className="p-4 border-b border-sidebar-border flex items-center justify-between gap-2 flex-shrink-0">
+      <div className="p-3 border-b border-sidebar-border flex items-center justify-between gap-2 flex-shrink-0">
         {sidebarOpen && (
-          <Link to="/" className="flex items-center gap-3 flex-1 min-w-0">
+          <Link to="/" className="flex items-center gap-2 flex-1 min-w-0">
             <svg
-              className="w-10 h-10 flex-shrink-0 text-primary"
+              className="w-9 h-9 flex-shrink-0 text-primary"
               viewBox="0 0 100 100"
               xmlns="http://www.w3.org/2000/svg"
             >
@@ -154,15 +145,15 @@ export default function Layout({ children }: LayoutProps) {
               />
             </svg>
             <div className="flex flex-col min-w-0">
-              <span className="font-bold text-sm text-foreground">Open Valley</span>
-              <span className="text-xs text-muted-foreground">Network Ops</span>
+              <span className="font-bold text-xs text-foreground">Open Valley</span>
+              <span className="text-xs text-muted-foreground leading-tight">Network Ops</span>
             </div>
           </Link>
         )}
         {!sidebarOpen && (
           <Link to="/" className="flex items-center justify-center flex-1" title="Open Valley">
             <svg
-              className="w-10 h-10 flex-shrink-0 text-primary"
+              className="w-9 h-9 flex-shrink-0 text-primary"
               viewBox="0 0 100 100"
               xmlns="http://www.w3.org/2000/svg"
             >
@@ -195,17 +186,17 @@ export default function Layout({ children }: LayoutProps) {
         {isMobile && (
           <button
             onClick={() => setMobileMenuOpen(false)}
-            className="p-1.5 hover:bg-sidebar-accent rounded-md transition-colors flex-shrink-0"
+            className="p-1 hover:bg-sidebar-accent rounded-md transition-colors flex-shrink-0"
             aria-label="Close menu"
           >
-            <X className="w-4 h-4" />
+            <X className="w-3.5 h-3.5" />
           </button>
         )}
       </div>
 
       {/* Main Navigation */}
-      <nav className="flex-1 overflow-y-auto py-6 px-0">
-        <div className="space-y-1">
+      <nav className="flex-1 overflow-y-auto py-4 px-0">
+        <div className="space-y-0.5">
           {mainNavItems.map(({ path, label, icon: Icon }) => (
             <Link
               key={path}
@@ -214,7 +205,7 @@ export default function Layout({ children }: LayoutProps) {
                 if (isMobile) setMobileMenuOpen(false);
               }}
               className={cn(
-                "mx-2 flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 whitespace-nowrap cursor-pointer",
+                "mx-1.5 flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-all duration-200 whitespace-nowrap cursor-pointer text-sm",
                 isActive(path)
                   ? "bg-primary/20 text-primary font-medium border-l-2 border-primary"
                   : "text-sidebar-foreground hover:bg-sidebar-accent/50"
@@ -222,57 +213,47 @@ export default function Layout({ children }: LayoutProps) {
               title={!sidebarOpen ? label : undefined}
             >
               <div className="flex-shrink-0 flex items-center justify-center">
-                <Icon className="w-5 h-5" />
+                <Icon className="w-4 h-4" />
               </div>
-              {sidebarOpen && <span className="text-sm truncate">{label}</span>}
+              {sidebarOpen && <span className="text-xs truncate">{label}</span>}
             </Link>
           ))}
         </div>
       </nav>
 
       {/* Bottom Actions */}
-      <div className="p-4 border-t border-sidebar-border space-y-2 flex-shrink-0">
+      <div className="p-3 border-t border-sidebar-border space-y-1.5 flex-shrink-0">
         <button
           onClick={toggleDarkMode}
           className={cn(
-            "w-full flex items-center justify-center md:justify-start gap-3 px-3 py-2.5 rounded-lg transition-colors",
+            "w-full flex items-center justify-center md:justify-start gap-2.5 px-2.5 py-2 rounded-lg transition-colors text-sm",
             "text-sidebar-foreground hover:bg-sidebar-accent/50"
           )}
           title="Toggle dark mode"
         >
           <div className="flex-shrink-0">
-            {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </div>
-          {sidebarOpen && <span className="text-sm">{darkMode ? "Light" : "Dark"}</span>}
+          {sidebarOpen && <span className="text-xs">{darkMode ? "Light" : "Dark"}</span>}
         </button>
 
         {!isMobile && (
           <button
-            onClick={() => {
-              if (sidebarOpen) {
-                // When collapsing, save current width and set to collapsed state
-                setSavedSidebarWidth(sidebarWidth);
-                setSidebarOpen(false);
-              } else {
-                // When expanding, restore the saved width
-                setSidebarWidth(savedSidebarWidth);
-                setSidebarOpen(true);
-              }
-            }}
+            onClick={() => setSidebarOpen(!sidebarOpen)}
             className={cn(
-              "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors",
+              "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors text-sm",
               sidebarOpen ? "justify-start" : "justify-center"
             )}
             title={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
           >
             <div className="flex-shrink-0">
               {sidebarOpen ? (
-                <ChevronsLeft className="w-5 h-5" />
+                <ChevronsLeft className="w-4 h-4" />
               ) : (
-                <ChevronsRight className="w-5 h-5" />
+                <ChevronsRight className="w-4 h-4" />
               )}
             </div>
-            {sidebarOpen && <span className="text-sm">Collapse</span>}
+            {sidebarOpen && <span className="text-xs">Collapse</span>}
           </button>
         )}
       </div>
@@ -288,7 +269,7 @@ export default function Layout({ children }: LayoutProps) {
             "flex flex-col bg-sidebar border-r border-sidebar-border flex-shrink-0 transition-all duration-200 overflow-hidden",
             "relative h-screen"
           )}
-          style={{ width: sidebarOpen ? `${sidebarWidth}px` : "80px" }}
+          style={{ width: sidebarOpen ? `${sidebarWidth}px` : `${COLLAPSED_WIDTH}px` }}
         >
           <SidebarContent />
         </aside>
@@ -297,13 +278,13 @@ export default function Layout({ children }: LayoutProps) {
         {sidebarOpen && (
           <div
             onMouseDown={handleDragStart}
-            className="hidden md:flex md:items-center md:justify-center absolute right-0 top-0 h-full w-1.5 bg-transparent hover:bg-primary/40 cursor-col-resize transition-all z-40 group-hover:w-2"
-            title="Drag to resize sidebar"
+            className="hidden md:flex md:items-center md:justify-center absolute right-0 top-0 h-full w-2 bg-transparent hover:bg-primary/30 cursor-col-resize transition-all z-40 group-hover:bg-primary/40"
+            title="Drag left/right to resize sidebar"
           >
-            <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <div className="w-0.5 h-4 bg-primary/60 rounded-full"></div>
-              <div className="w-0.5 h-4 bg-primary/60 rounded-full"></div>
-              <div className="w-0.5 h-4 bg-primary/60 rounded-full"></div>
+            <div className="flex flex-col gap-1.5">
+              <div className="w-1 h-3 bg-primary/40 rounded-full group-hover:bg-primary/70 transition-colors"></div>
+              <div className="w-1 h-3 bg-primary/40 rounded-full group-hover:bg-primary/70 transition-colors"></div>
+              <div className="w-1 h-3 bg-primary/40 rounded-full group-hover:bg-primary/70 transition-colors"></div>
             </div>
           </div>
         )}
@@ -331,15 +312,15 @@ export default function Layout({ children }: LayoutProps) {
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="h-16 border-b border-border bg-card flex items-center px-4 md:px-6 shadow-sm">
-          <div className="flex items-center justify-between w-full gap-4">
+        <header className="h-14 border-b border-border bg-card flex items-center px-3 md:px-4 shadow-sm">
+          <div className="flex items-center justify-between w-full gap-3">
             {isMobile && (
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-2 hover:bg-muted rounded-lg transition-colors flex-shrink-0"
+                className="p-1.5 hover:bg-muted rounded-lg transition-colors flex-shrink-0"
                 aria-label="Toggle mobile menu"
               >
-                <Menu className="w-5 h-5" />
+                <Menu className="w-4 h-4" />
               </button>
             )}
             <Link
@@ -350,10 +331,10 @@ export default function Layout({ children }: LayoutProps) {
               <img
                 src="https://cdn.builder.io/api/v1/image/assets%2Fc13b4e0240ec42a0981c688ed8e4138d%2F764a7575ec7b41acab908367454597f1?format=webp&width=800"
                 alt="Open Valley"
-                className="h-10 md:h-12"
+                className="h-8 md:h-10"
               />
             </Link>
-            <div className="text-xs md:text-sm text-muted-foreground whitespace-nowrap">
+            <div className="text-xs text-muted-foreground whitespace-nowrap">
               {new Date().toLocaleDateString("en-US", {
                 weekday: "short",
                 month: "short",
@@ -370,16 +351,16 @@ export default function Layout({ children }: LayoutProps) {
                 }
               }}
               className={cn(
-                "px-3 py-2 rounded-lg font-semibold text-sm flex items-center gap-2 transition-all flex-shrink-0",
+                "px-2.5 py-1.5 rounded-lg font-semibold text-xs flex items-center gap-1.5 transition-all flex-shrink-0",
                 emergencyKillActive
                   ? "bg-red-600 text-white hover:bg-red-700 animate-pulse"
                   : "bg-red-100 text-red-700 hover:bg-red-200"
               )}
               title="Emergency Kill Switch - Stops all automations immediately (Auditor Required)"
             >
-              <AlertTriangle className="w-4 h-4" />
+              <AlertTriangle className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">
-                {emergencyKillActive ? "🚨 KILL ACTIVE" : "Kill Switch"}
+                {emergencyKillActive ? "🚨 KILL" : "Kill"}
               </span>
             </button>
           </div>
@@ -387,7 +368,7 @@ export default function Layout({ children }: LayoutProps) {
 
         {/* Content Area */}
         <div className="flex-1 overflow-auto">
-          <div className="p-4 md:p-6">{children}</div>
+          <div className="p-3 md:p-4">{children}</div>
         </div>
       </main>
     </div>
