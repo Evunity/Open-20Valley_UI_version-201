@@ -115,18 +115,25 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
   };
 
   const handleCanvasMouseMove = (e: React.MouseEvent) => {
-    if (draggingNode && canvasRef.current) {
+    if (canvasRef.current) {
       const rect = canvasRef.current.getBoundingClientRect();
       const x = (e.clientX - rect.left - pan.x) / zoom;
       const y = (e.clientY - rect.top - pan.y) / zoom;
 
-      setWorkflow(prev => ({
-        ...prev,
-        nodes: prev.nodes.map(n =>
-          n.id === draggingNode ? { ...n, x, y } : n
-        ),
-        updatedAt: new Date().toLocaleString()
-      }));
+      if (draggingNode) {
+        setWorkflow(prev => ({
+          ...prev,
+          nodes: prev.nodes.map(n =>
+            n.id === draggingNode ? { ...n, x, y } : n
+          ),
+          updatedAt: new Date().toLocaleString()
+        }));
+      }
+
+      // Update connecting line endpoint
+      if (connecting) {
+        setConnecting(prev => prev ? { ...prev, x, y } : null);
+      }
     }
   };
 
@@ -253,13 +260,19 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
                 const toNode = workflow.nodes.find(n => n.id === edge.to);
                 if (!fromNode || !toNode) return null;
 
+                // Ensure coordinates are valid numbers
+                const x1 = Number.isFinite(fromNode.x) ? fromNode.x + 60 : 60;
+                const y1 = Number.isFinite(fromNode.y) ? fromNode.y + 40 : 40;
+                const x2 = Number.isFinite(toNode.x) ? toNode.x : 0;
+                const y2 = Number.isFinite(toNode.y) ? toNode.y + 40 : 40;
+
                 return (
                   <line
                     key={edge.id}
-                    x1={fromNode.x + 60}
-                    y1={fromNode.y + 40}
-                    x2={toNode.x}
-                    y2={toNode.y + 40}
+                    x1={x1}
+                    y1={y1}
+                    x2={x2}
+                    y2={y2}
                     stroke="#9CA3AF"
                     strokeWidth="2"
                     markerEnd="url(#arrowhead)"
@@ -275,17 +288,26 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
               </defs>
 
               {/* Connecting line */}
-              {connecting && (
-                <line
-                  x1={workflow.nodes.find(n => n.id === connecting.from)?.x! + 60}
-                  y1={workflow.nodes.find(n => n.id === connecting.from)?.y! + 40}
-                  x2={connecting.x}
-                  y2={connecting.y}
-                  stroke="#3B82F6"
-                  strokeWidth="2"
-                  strokeDasharray="5,5"
-                />
-              )}
+              {connecting && (() => {
+                const fromNode = workflow.nodes.find(n => n.id === connecting.from);
+                if (!fromNode) return null;
+                const x1 = Number.isFinite(fromNode.x) ? fromNode.x + 60 : 60;
+                const y1 = Number.isFinite(fromNode.y) ? fromNode.y + 40 : 40;
+                const x2 = Number.isFinite(connecting.x) ? connecting.x : 0;
+                const y2 = Number.isFinite(connecting.y) ? connecting.y : 0;
+
+                return (
+                  <line
+                    x1={x1}
+                    y1={y1}
+                    x2={x2}
+                    y2={y2}
+                    stroke="#3B82F6"
+                    strokeWidth="2"
+                    strokeDasharray="5,5"
+                  />
+                );
+              })()}
             </svg>
 
             {/* Nodes */}
