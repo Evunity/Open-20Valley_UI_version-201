@@ -712,17 +712,18 @@ export default function AnalyticsManagement() {
                         startDate={filters.timeRange.from}
                         endDate={filters.timeRange.to}
                         onDateSelect={(date, isStart) => {
+                          const isoDate = date.toISOString().split("T")[0];
                           if (isStart) {
                             setFilters({
                               ...filters,
-                              timeRange: { from: date, to: null },
+                              timeRange: { from: isoDate, to: "" },
                             });
                           } else {
                             setFilters({
                               ...filters,
                               timeRange: {
                                 from: filters.timeRange.from,
-                                to: date,
+                                to: isoDate,
                               },
                             });
                           }
@@ -730,7 +731,10 @@ export default function AnalyticsManagement() {
                         onRangeComplete={(start, end) => {
                           setFilters({
                             ...filters,
-                            timeRange: { from: start, to: end },
+                            timeRange: {
+                              from: start.toISOString().split("T")[0],
+                              to: end.toISOString().split("T")[0],
+                            },
                           });
                           setShowCalendarPicker(false);
                         }}

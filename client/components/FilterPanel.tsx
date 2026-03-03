@@ -440,6 +440,7 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
                       to: end,
                     },
                   });
+                  setShowCalendarDropdown(false);
                 }}
               />
 

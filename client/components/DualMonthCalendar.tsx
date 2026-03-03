@@ -3,8 +3,8 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface DualMonthCalendarProps {
-  startDate: Date | null;
-  endDate: Date | null;
+  startDate: Date | string | null;
+  endDate: Date | string | null;
   onDateSelect: (date: Date, isStart: boolean) => void;
   onRangeComplete?: (start: Date, end: Date) => void;
   minDate?: Date;
@@ -24,7 +24,17 @@ export default function DualMonthCalendar({
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
 
-  const [isSelectingStart, setIsSelectingStart] = useState(!startDate);
+  // Convert string dates to Date objects
+  const convertToDate = (date: Date | string | null): Date | null => {
+    if (!date) return null;
+    if (date instanceof Date) return date;
+    return new Date(date);
+  };
+
+  const normalizedStartDate = convertToDate(startDate);
+  const normalizedEndDate = convertToDate(endDate);
+
+  const [isSelectingStart, setIsSelectingStart] = useState(!normalizedStartDate);
 
   const weekDays = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
 
@@ -45,22 +55,22 @@ export default function DualMonthCalendar({
 
   // Check if date is in range
   const isInRange = (date: Date): boolean => {
-    if (!startDate || !endDate) return false;
+    if (!normalizedStartDate || !normalizedEndDate) return false;
     const checkDate = new Date(date);
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+    const start = new Date(normalizedStartDate);
+    const end = new Date(normalizedEndDate);
     return checkDate >= start && checkDate <= end;
   };
 
   // Check if date is start or end
   const isStartDate = (date: Date): boolean => {
-    if (!startDate) return false;
-    return date.toDateString() === startDate.toDateString();
+    if (!normalizedStartDate) return false;
+    return date.toDateString() === normalizedStartDate.toDateString();
   };
 
   const isEndDate = (date: Date): boolean => {
-    if (!endDate) return false;
-    return date.toDateString() === endDate.toDateString();
+    if (!normalizedEndDate) return false;
+    return date.toDateString() === normalizedEndDate.toDateString();
   };
 
   // Check if date is disabled
@@ -79,8 +89,8 @@ export default function DualMonthCalendar({
       setIsSelectingStart(false);
     } else {
       // When selecting end date
-      if (startDate) {
-        const start = new Date(startDate);
+      if (normalizedStartDate) {
+        const start = new Date(normalizedStartDate);
         const end = new Date(date);
 
         // If clicked date is before start date, swap them
@@ -204,7 +214,7 @@ export default function DualMonthCalendar({
       </div>
 
       {/* Selection Status */}
-      {startDate && !endDate && (
+      {normalizedStartDate && !normalizedEndDate && (
         <div className="text-xs text-center text-primary py-2 px-3 bg-primary/10 rounded-lg font-medium">
           ✓ Start date selected • Click to select end date
         </div>
