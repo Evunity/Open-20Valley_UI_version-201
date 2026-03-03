@@ -116,11 +116,16 @@ export const TriggerEngine: React.FC = () => {
       return;
     }
 
+    if (!newPolicyType) {
+      alert('Please select a policy type');
+      return;
+    }
+
     const policy: Policy = {
       id: `policy_${Date.now()}`,
-      name: newPolicyName,
+      name: newPolicyName.trim(),
       type: newPolicyType,
-      description: newPolicyDescription,
+      description: newPolicyDescription.trim(),
       status: 'active',
       priority: newPolicyPriority,
       conditions: {},
@@ -130,13 +135,22 @@ export const TriggerEngine: React.FC = () => {
       createdBy: 'Current User'
     };
 
-    setPolicies([...policies, policy]);
+    // Add the new policy
+    const updatedPolicies = [...policies, policy];
+    setPolicies(updatedPolicies);
     setSelectedPolicyId(policy.id);
+
+    // Reset form
     setShowAddPolicy(false);
     setNewPolicyName('');
     setNewPolicyDescription('');
     setNewPolicyPriority('medium');
-    alert('✓ Policy created successfully!');
+    setNewPolicyType('scope-limit');
+
+    // Show success message
+    setTimeout(() => {
+      alert('✓ Policy created successfully!');
+    }, 100);
   };
 
   const deletePolicy = (id: string) => {

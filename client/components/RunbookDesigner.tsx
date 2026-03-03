@@ -446,8 +446,8 @@ export const RunbookDesigner: React.FC<{
         </div>
       )}
 
-      {/* Footer - Hidden but for flex layout */}
-      <div className="absolute bottom-4 right-4 flex gap-2">
+      {/* Footer Actions */}
+      <div className="border-t border-border bg-card px-4 py-3 flex items-center justify-between">
         <button
           onClick={() => setShowPreview(!showPreview)}
           className="p-2 hover:bg-muted rounded-lg transition"
@@ -455,6 +455,32 @@ export const RunbookDesigner: React.FC<{
         >
           <Code className="w-4 h-4 text-muted-foreground" />
         </button>
+        <div className="flex gap-2">
+          <button
+            onClick={onCancel}
+            className="px-4 py-2 text-xs font-bold rounded-lg border border-border text-foreground hover:bg-muted transition"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => {
+              if (isValidRunbook) {
+                onSave?.(runbook);
+              } else {
+                alert('Please fix the errors:\n- Name is required\n- Must have at least 2 steps\n- First step must be a trigger');
+              }
+            }}
+            disabled={!isValidRunbook}
+            className={cn(
+              'px-4 py-2 text-xs font-bold rounded-lg transition flex items-center gap-2',
+              isValidRunbook
+                ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                : 'bg-muted text-muted-foreground cursor-not-allowed'
+            )}
+          >
+            <Save className="w-3 h-3" /> Save Runbook
+          </button>
+        </div>
       </div>
     </div>
   );

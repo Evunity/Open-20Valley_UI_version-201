@@ -70,8 +70,7 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [draggingNode, setDraggingNode] = useState<string | null>(null);
-  const [connectingFromNode, setConnectingFromNode] = useState<string | null>(null);
-  const [tempLineEnd, setTempLineEnd] = useState<{ x: number; y: number } | null>(null);
+  const [connectingMode, setConnectingMode] = useState<string | null>(null);
   const [showNodePalette, setShowNodePalette] = useState(true);
   const [showPreview, setShowPreview] = useState(false);
 
@@ -111,26 +110,18 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
   };
 
   const handleCanvasMouseMove = (e: React.MouseEvent) => {
-    if (canvasRef.current) {
+    if (canvasRef.current && draggingNode) {
       const rect = canvasRef.current.getBoundingClientRect();
       const x = (e.clientX - rect.left - pan.x) / zoom;
       const y = (e.clientY - rect.top - pan.y) / zoom;
 
-      // Update dragging node position
-      if (draggingNode) {
-        setWorkflow(prev => ({
-          ...prev,
-          nodes: prev.nodes.map(n =>
-            n.id === draggingNode ? { ...n, x: Math.max(0, x - 40), y: Math.max(0, y - 30) } : n
-          ),
-          updatedAt: new Date().toLocaleString()
-        }));
-      }
-
-      // Update connecting line endpoint
-      if (connectingFromNode) {
-        setTempLineEnd({ x, y });
-      }
+      setWorkflow(prev => ({
+        ...prev,
+        nodes: prev.nodes.map(n =>
+          n.id === draggingNode ? { ...n, x: Math.max(0, x - 40), y: Math.max(0, y - 30) } : n
+        ),
+        updatedAt: new Date().toLocaleString()
+      }));
     }
   };
 
@@ -138,23 +129,24 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
     setDraggingNode(null);
   };
 
-  const handleStartConnection = (e: React.MouseEvent, nodeId: string) => {
-    e.stopPropagation();
-    setConnectingFromNode(nodeId);
-    setTempLineEnd(null);
+  const handleConnectClick = (fromNodeId: string) => {
+    if (connectingMode === fromNodeId) {
+      setConnectingMode(null);
+    } else {
+      setConnectingMode(fromNodeId);
+    }
   };
 
-  const handleEndConnection = (e: React.MouseEvent, targetNodeId: string) => {
-    e.stopPropagation();
-    if (connectingFromNode && connectingFromNode !== targetNodeId) {
+  const handleNodeClick = (nodeId: string) => {
+    if (connectingMode && connectingMode !== nodeId) {
       const edgeExists = workflow.edges.some(
-        e => e.from === connectingFromNode && e.to === targetNodeId
+        e => e.from === connectingMode && e.to === nodeId
       );
       if (!edgeExists) {
         const newEdge: WorkflowEdge = {
           id: `edge_${Date.now()}`,
-          from: connectingFromNode,
-          to: targetNodeId
+          from: connectingMode,
+          to: nodeId
         };
         setWorkflow(prev => ({
           ...prev,
@@ -162,9 +154,10 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
           updatedAt: new Date().toLocaleString()
         }));
       }
+      setConnectingMode(null);
+    } else {
+      setSelectedNodeId(nodeId);
     }
-    setConnectingFromNode(null);
-    setTempLineEnd(null);
   };
 
   const isValidWorkflow = workflow.nodes.length > 0 && workflow.name.trim();
@@ -257,7 +250,7 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
               <Plus className="w-3 h-3" /> Add Node
             </button>
             <div className="text-xs text-muted-foreground px-2 py-1.5">
-              💡 Drag nodes to move • Click output port to connect
+              💡 Drag to move • Click "Connect" on a node, then click target node
             </div>
           </div>
 
@@ -305,27 +298,6 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
                 );
               })}
 
-              {/* Temporary connection line */}
-              {connectingFromNode && tempLineEnd && (() => {
-                const fromNode = workflow.nodes.find(n => n.id === connectingFromNode);
-                if (!fromNode) return null;
-
-                const x1 = fromNode.x + 80;
-                const y1 = fromNode.y + 30;
-                const x2 = tempLineEnd.x;
-                const y2 = tempLineEnd.y;
-
-                return (
-                  <path
-                    d={`M ${x1} ${y1} L ${(x1 + x2) / 2} ${y1} L ${(x1 + x2) / 2} ${y2} L ${x2} ${y2}`}
-                    stroke="#3B82F6"
-                    strokeWidth="2"
-                    fill="none"
-                    strokeDasharray="5,5"
-                  />
-                );
-              })()}
-
               {/* Arrow marker */}
               <defs>
                 <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
@@ -346,12 +318,14 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
                   >
                     {/* Node */}
                     <div
-                      onClick={() => setSelectedNodeId(node.id)}
+                      onClick={() => handleNodeClick(node.id)}
                       onMouseDown={(e) => handleNodeMouseDown(e, node.id)}
                       className={cn(
                         'w-full h-full rounded-lg border-2 flex flex-col items-center justify-center cursor-move transition relative',
                         `${typeConfig.bgLight} border-2`,
-                        selectedNodeId === node.id ? 'border-primary shadow-lg' : 'border-gray-300 dark:border-gray-600 hover:border-primary/50'
+                        connectingMode === node.id
+                          ? 'border-blue-500 shadow-lg ring-2 ring-blue-400'
+                          : selectedNodeId === node.id ? 'border-primary shadow-lg' : 'border-gray-300 dark:border-gray-600 hover:border-primary/50'
                       )}
                     >
                       <div className="text-2xl">{typeConfig.icon}</div>
@@ -360,17 +334,23 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
                       </div>
                     </div>
 
-                    {/* Output Connection Port (on right side) */}
+                    {/* Connect Button (on right side) */}
                     <button
-                      onMouseDown={(e) => handleStartConnection(e, node.id)}
-                      onMouseUp={(e) => handleEndConnection(e, node.id)}
-                      title="Drag to connect to another node"
-                      className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-8 w-4 h-4 rounded-full bg-primary border-2 border-white dark:border-gray-800 cursor-crosshair hover:scale-125 transition shadow-md"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleConnectClick(node.id);
+                      }}
+                      title="Click to connect to another node"
+                      className={cn(
+                        'absolute right-0 top-1/2 -translate-y-1/2 translate-x-8 px-2 py-1 text-xs font-bold rounded-lg transition shadow-md hover:scale-105',
+                        connectingMode === node.id
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-primary text-primary-foreground hover:bg-primary/90'
+                      )}
                       style={{ zIndex: 10 }}
-                    />
-
-                    {/* Input Connection Port (on left side) */}
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-8 w-4 h-4 rounded-full bg-gray-400 border-2 border-white dark:border-gray-800" />
+                    >
+                      {connectingMode === node.id ? '✓' : '→'}
+                    </button>
                   </div>
                 );
               })}

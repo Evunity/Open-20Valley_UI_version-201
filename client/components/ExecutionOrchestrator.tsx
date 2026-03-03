@@ -1,22 +1,21 @@
 import React, { useState } from 'react';
 import {
   Plus, Trash2, Clock, Power, PlayCircle, PauseCircle, Calendar,
-  Edit2, AlertCircle, CheckCircle, MoreVertical, Zap, Repeat
+  Edit2, AlertCircle, CheckCircle, Zap, Repeat, MoreVertical, Edit3
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface AutomationSchedule {
   id: string;
   name: string;
-  type: 'automation' | 'ai-model';
-  status: 'active' | 'inactive' | 'paused';
-  schedule: string; // cron expression or human readable
+  description: string;
+  schedule: string;
   frequency: 'once' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'custom';
   nextRun: string;
   lastRun: string | null;
   enabled: boolean;
-  relatedModels?: string[];
-  description: string;
+  automationsCount: number;
+  lastStatus: 'success' | 'error' | 'running';
 }
 
 interface AIModel {
@@ -25,61 +24,58 @@ interface AIModel {
   status: 'running' | 'stopped' | 'paused';
   automationsCount: number;
   lastActivity: string;
-  uptime: number; // percentage
+  uptime: number;
+  executionsToday: number;
 }
 
 const mockAutomations: AutomationSchedule[] = [
   {
     id: 'auto_1',
     name: 'Cell Outage Recovery',
-    type: 'automation',
-    status: 'active',
+    description: 'Automatically detect and recover cell outages',
     schedule: 'Every 5 minutes',
     frequency: 'custom',
     nextRun: '2 minutes',
     lastRun: '2 minutes ago',
     enabled: true,
-    relatedModels: ['model_1'],
-    description: 'Automatically detect and recover cell outages'
+    automationsCount: 2,
+    lastStatus: 'success'
   },
   {
     id: 'auto_2',
     name: 'Network Optimization',
-    type: 'automation',
-    status: 'active',
+    description: 'Optimize network performance',
     schedule: 'Every 15 minutes',
     frequency: 'custom',
     nextRun: '8 minutes',
     lastRun: '7 minutes ago',
     enabled: true,
-    relatedModels: ['model_2', 'model_3'],
-    description: 'Optimize network performance'
+    automationsCount: 3,
+    lastStatus: 'success'
   },
   {
     id: 'auto_3',
     name: 'Capacity Planning Check',
-    type: 'automation',
-    status: 'inactive',
+    description: 'Review and plan capacity for next week',
     schedule: 'Daily at 2:00 AM',
     frequency: 'daily',
     nextRun: '5 hours',
     lastRun: 'Yesterday at 2:04 AM',
     enabled: false,
-    relatedModels: ['model_2'],
-    description: 'Review and plan capacity for next week'
+    automationsCount: 1,
+    lastStatus: 'success'
   },
   {
     id: 'auto_4',
     name: 'Security Audit',
-    type: 'automation',
-    status: 'paused',
+    description: 'Run security compliance checks',
     schedule: 'Weekly on Monday',
     frequency: 'weekly',
     nextRun: '2 days 4 hours',
     lastRun: 'Last Monday',
     enabled: false,
-    relatedModels: [],
-    description: 'Run security compliance checks'
+    automationsCount: 0,
+    lastStatus: 'success'
   }
 ];
 
@@ -90,7 +86,8 @@ const mockModels: AIModel[] = [
     status: 'running',
     automationsCount: 2,
     lastActivity: '30 seconds ago',
-    uptime: 99.8
+    uptime: 99.8,
+    executionsToday: 847
   },
   {
     id: 'model_2',
@@ -98,7 +95,8 @@ const mockModels: AIModel[] = [
     status: 'running',
     automationsCount: 3,
     lastActivity: '1 minute ago',
-    uptime: 99.5
+    uptime: 99.5,
+    executionsToday: 623
   },
   {
     id: 'model_3',
@@ -106,7 +104,8 @@ const mockModels: AIModel[] = [
     status: 'paused',
     automationsCount: 1,
     lastActivity: '2 hours ago',
-    uptime: 98.2
+    uptime: 98.2,
+    executionsToday: 0
   },
   {
     id: 'model_4',
@@ -114,7 +113,8 @@ const mockModels: AIModel[] = [
     status: 'stopped',
     automationsCount: 0,
     lastActivity: '1 day ago',
-    uptime: 0
+    uptime: 0,
+    executionsToday: 0
   }
 ];
 
@@ -122,19 +122,13 @@ export const ExecutionOrchestrator: React.FC = () => {
   const [automations, setAutomations] = useState<AutomationSchedule[]>(mockAutomations);
   const [models, setModels] = useState<AIModel[]>(mockModels);
   const [activeTab, setActiveTab] = useState<'automations' | 'models'>('automations');
-  const [selectedAutomation, setSelectedAutomation] = useState<string | null>(null);
-  const [selectedModel, setSelectedModel] = useState<string | null>(null);
-  const [showScheduleDialog, setShowScheduleDialog] = useState(false);
+  const [selectedAutomation, setSelectedAutomation] = useState<string | null>(automations[0]?.id || null);
 
   const toggleAutomation = (id: string) => {
     setAutomations(prev =>
       prev.map(a =>
         a.id === id
-          ? {
-              ...a,
-              enabled: !a.enabled,
-              status: !a.enabled ? 'active' : 'inactive'
-            }
+          ? { ...a, enabled: !a.enabled }
           : a
       )
     );
@@ -144,10 +138,7 @@ export const ExecutionOrchestrator: React.FC = () => {
     setModels(prev =>
       prev.map(m =>
         m.id === id
-          ? {
-              ...m,
-              status: m.status === 'running' ? 'stopped' : 'running'
-            }
+          ? { ...m, status: m.status === 'running' ? 'stopped' : 'running' }
           : m
       )
     );
@@ -160,45 +151,43 @@ export const ExecutionOrchestrator: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active':
       case 'running':
-        return 'bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300 border-green-300 dark:border-green-700';
-      case 'inactive':
+        return 'bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300';
       case 'stopped':
-        return 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700';
+        return 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300';
       case 'paused':
-        return 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-700';
+        return 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300';
+      case 'success':
+        return 'bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300';
+      case 'error':
+        return 'bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300';
       default:
         return 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300';
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'active':
-      case 'running':
-        return <PlayCircle className="w-4 h-4 text-green-600" />;
-      case 'paused':
-        return <PauseCircle className="w-4 h-4 text-amber-600" />;
-      default:
-        return <Power className="w-4 h-4 text-gray-600" />;
-    }
-  };
+  const activeAutomations = automations.filter(a => a.enabled).length;
+  const runningModels = models.filter(m => m.status === 'running').length;
 
   return (
     <div className="w-full flex flex-col h-full gap-4 p-4 bg-background overflow-y-auto">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-bold text-foreground">Execution Orchestrator</h2>
-          <p className="text-xs text-muted-foreground mt-1">Schedule and manage automations and AI models</p>
+          <h2 className="text-2xl font-bold text-foreground">Execution Orchestrator</h2>
+          <p className="text-sm text-muted-foreground mt-1">Schedule and manage automations and AI models</p>
         </div>
-        <button
-          onClick={() => setShowScheduleDialog(true)}
-          className="px-4 py-2 text-sm font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4" /> Schedule
-        </button>
+        <div className="flex items-center gap-4">
+          <div className="text-right">
+            <p className="text-3xl font-bold text-primary">{activeAutomations}</p>
+            <p className="text-xs text-muted-foreground">Active Automations</p>
+          </div>
+          <div className="w-px h-12 bg-border" />
+          <div className="text-right">
+            <p className="text-3xl font-bold text-primary">{runningModels}</p>
+            <p className="text-xs text-muted-foreground">Running Models</p>
+          </div>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -206,141 +195,124 @@ export const ExecutionOrchestrator: React.FC = () => {
         <button
           onClick={() => setActiveTab('automations')}
           className={cn(
-            'px-4 py-2 text-sm font-semibold border-b-2 transition',
+            'px-4 py-2 text-sm font-bold border-b-2 transition',
             activeTab === 'automations'
               ? 'text-primary border-b-primary'
               : 'text-muted-foreground border-b-transparent hover:text-foreground'
           )}
         >
-          Automations ({automations.filter(a => a.enabled).length} active)
+          Automations ({automations.length})
         </button>
         <button
           onClick={() => setActiveTab('models')}
           className={cn(
-            'px-4 py-2 text-sm font-semibold border-b-2 transition',
+            'px-4 py-2 text-sm font-bold border-b-2 transition',
             activeTab === 'models'
               ? 'text-primary border-b-primary'
               : 'text-muted-foreground border-b-transparent hover:text-foreground'
           )}
         >
-          AI Models ({models.filter(m => m.status === 'running').length} running)
+          AI Models ({models.length})
         </button>
       </div>
 
       {/* Automations Tab */}
       {activeTab === 'automations' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1 overflow-hidden">
           {/* List */}
-          <div className="lg:col-span-2 space-y-2 overflow-y-auto max-h-96">
-            {automations.length === 0 ? (
-              <div className="p-8 text-center text-muted-foreground">
-                <p>No automations scheduled yet</p>
-              </div>
-            ) : (
-              automations.map(automation => (
-                <div
-                  key={automation.id}
-                  className={cn(
-                    'w-full p-4 rounded-lg border-2 transition cursor-pointer hover:shadow-sm',
-                    selectedAutomation === automation.id
-                      ? 'border-primary bg-primary/10'
-                      : 'border-border bg-card hover:border-border/80'
-                  )}
-                  onClick={() => setSelectedAutomation(automation.id)}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-sm font-bold text-foreground truncate">{automation.name}</h3>
-                        <span
-                          className={cn(
-                            'px-2 py-1 text-xs font-bold rounded-full whitespace-nowrap',
-                            getStatusColor(automation.status)
-                          )}
-                        >
-                          {getStatusIcon(automation.status)}
-                          <span className="ml-1">{automation.status.toUpperCase()}</span>
-                        </span>
-                      </div>
-                      <p className="text-xs text-muted-foreground truncate">{automation.description}</p>
-                      <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {automation.schedule}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Repeat className="w-3 h-3" />
-                          Next: {automation.nextRun}
-                        </span>
-                      </div>
-                    </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleAutomation(automation.id);
-                      }}
-                      className={cn(
-                        'px-3 py-1.5 text-xs font-bold rounded-lg transition flex-shrink-0',
-                        automation.enabled
-                          ? 'bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-900'
-                          : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                      )}
-                    >
-                      {automation.enabled ? 'ON' : 'OFF'}
-                    </button>
+          <div className="lg:col-span-2 space-y-3 overflow-y-auto">
+            {automations.map(automation => (
+              <div
+                key={automation.id}
+                onClick={() => setSelectedAutomation(automation.id)}
+                className={cn(
+                  'p-4 rounded-lg border-2 transition cursor-pointer hover:shadow-sm',
+                  selectedAutomation === automation.id
+                    ? 'border-primary bg-primary/10'
+                    : 'border-border bg-card hover:border-border/80'
+                )}
+              >
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <div className="flex-1">
+                    <h3 className="text-sm font-bold text-foreground">{automation.name}</h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">{automation.description}</p>
+                  </div>
+                  <span className={cn('px-2 py-1 text-xs font-bold rounded-full whitespace-nowrap', getStatusColor(automation.lastStatus))}>
+                    {automation.lastStatus === 'success' && '✓'}
+                    {automation.lastStatus === 'error' && '✗'}
+                    {automation.lastStatus === 'running' && '▶'}
+                  </span>
+                </div>
+
+                {/* Schedule Info */}
+                <div className="grid grid-cols-3 gap-3 mb-3 text-xs">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-3 h-3 text-muted-foreground" />
+                    <span className="text-muted-foreground">{automation.schedule}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Zap className="w-3 h-3 text-muted-foreground" />
+                    <span className="text-muted-foreground">Next: {automation.nextRun}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-3 h-3 text-muted-foreground" />
+                    <span className="text-muted-foreground">{automation.automationsCount} tasks</span>
                   </div>
                 </div>
-              ))
-            )}
+
+                {/* Status Toggle */}
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">
+                    Last run: <strong>{automation.lastRun || 'Never'}</strong>
+                  </span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleAutomation(automation.id);
+                    }}
+                    className={cn(
+                      'px-3 py-1.5 text-xs font-bold rounded-lg transition',
+                      automation.enabled
+                        ? 'bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-900'
+                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                    )}
+                  >
+                    {automation.enabled ? '✓ Active' : '○ Inactive'}
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
 
-          {/* Details */}
+          {/* Details Panel */}
           {selectedAutomation && (
-            <div className="bg-card border border-border rounded-lg p-4 flex flex-col gap-4 max-h-96 overflow-y-auto">
+            <div className="bg-card border border-border rounded-lg p-4 flex flex-col gap-4 max-h-[calc(100vh-300px)] overflow-y-auto">
               {(() => {
                 const auto = automations.find(a => a.id === selectedAutomation);
                 if (!auto) return null;
                 return (
                   <>
                     <div>
-                      <p className="text-xs font-bold text-foreground mb-1">Schedule Details</p>
-                      <div className="space-y-2 text-xs text-muted-foreground">
-                        <div className="flex justify-between">
-                          <span>Frequency:</span>
+                      <p className="text-sm font-bold text-foreground mb-3">{auto.name}</p>
+                      <div className="space-y-2 text-xs">
+                        <div className="flex justify-between pb-2 border-b border-border">
+                          <span className="text-muted-foreground">Frequency:</span>
                           <span className="font-semibold text-foreground">{auto.frequency}</span>
                         </div>
-                        <div className="flex justify-between">
-                          <span>Next Run:</span>
+                        <div className="flex justify-between pb-2 border-b border-border">
+                          <span className="text-muted-foreground">Schedule:</span>
+                          <span className="font-semibold text-foreground">{auto.schedule}</span>
+                        </div>
+                        <div className="flex justify-between pb-2 border-b border-border">
+                          <span className="text-muted-foreground">Next Run:</span>
                           <span className="font-semibold text-foreground">{auto.nextRun}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span>Last Run:</span>
+                          <span className="text-muted-foreground">Last Run:</span>
                           <span className="font-semibold text-foreground">{auto.lastRun || 'Never'}</span>
                         </div>
                       </div>
                     </div>
-
-                    {auto.relatedModels && auto.relatedModels.length > 0 && (
-                      <div>
-                        <p className="text-xs font-bold text-foreground mb-2">Related AI Models</p>
-                        <div className="space-y-1">
-                          {auto.relatedModels.map(modelId => {
-                            const model = models.find(m => m.id === modelId);
-                            return (
-                              <div key={modelId} className="flex items-center gap-2 text-xs">
-                                <div
-                                  className={cn(
-                                    'w-2 h-2 rounded-full',
-                                    model?.status === 'running' ? 'bg-green-500' : 'bg-gray-400'
-                                  )}
-                                />
-                                <span className="text-foreground">{model?.name}</span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
 
                     <div className="border-t border-border pt-3">
                       <button
@@ -361,132 +333,76 @@ export const ExecutionOrchestrator: React.FC = () => {
       {/* AI Models Tab */}
       {activeTab === 'models' && (
         <div className="space-y-3 flex-1 overflow-y-auto">
-          {models.length === 0 ? (
-            <div className="p-8 text-center text-muted-foreground">
-              <p>No AI models configured</p>
-            </div>
-          ) : (
-            models.map(model => (
-              <div
-                key={model.id}
-                className={cn(
-                  'p-4 rounded-lg border-2 bg-card',
-                  model.status === 'running' ? 'border-green-300 dark:border-green-700' : 'border-border'
-                )}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h3 className="text-sm font-bold text-foreground truncate">{model.name}</h3>
-                      <span
-                        className={cn(
-                          'px-2 py-1 text-xs font-bold rounded-full whitespace-nowrap',
-                          getStatusColor(model.status)
-                        )}
-                      >
-                        {getStatusIcon(model.status)}
-                        <span className="ml-1">{model.status.toUpperCase()}</span>
-                      </span>
-                    </div>
+          {models.map(model => (
+            <div
+              key={model.id}
+              className={cn(
+                'p-4 rounded-lg border-2 transition',
+                model.status === 'running' ? 'border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-950/30' : 'border-border bg-card'
+              )}
+            >
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <div className="flex-1">
+                  <h3 className="text-sm font-bold text-foreground">{model.name}</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {model.automationsCount} automations • {model.executionsToday} executions today
+                  </p>
+                </div>
+                <button
+                  onClick={() => toggleModel(model.id)}
+                  className={cn(
+                    'px-3 py-1.5 text-xs font-bold rounded-lg transition flex-shrink-0 flex items-center gap-1',
+                    model.status === 'running'
+                      ? 'bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-900'
+                      : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                  )}
+                >
+                  <Power className="w-3 h-3" />
+                  {model.status === 'running' ? 'ON' : 'OFF'}
+                </button>
+              </div>
 
-                    <div className="grid grid-cols-3 gap-2 mb-3 text-xs text-muted-foreground">
-                      <div>
-                        <p className="text-[11px] font-semibold">Automations</p>
-                        <p className="font-bold text-foreground">{model.automationsCount}</p>
-                      </div>
-                      <div>
-                        <p className="text-[11px] font-semibold">Last Activity</p>
-                        <p className="font-bold text-foreground">{model.lastActivity}</p>
-                      </div>
-                      <div>
-                        <p className="text-[11px] font-semibold">Uptime</p>
-                        <p className="font-bold text-foreground">{model.uptime}%</p>
-                      </div>
-                    </div>
-
-                    {/* Uptime Progress */}
-                    <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
-                      <div
-                        className={cn(
-                          'h-full rounded-full transition',
-                          model.uptime >= 99 ? 'bg-green-500' : model.uptime >= 98 ? 'bg-amber-500' : 'bg-red-500'
-                        )}
-                        style={{ width: `${model.uptime}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => toggleModel(model.id)}
-                    className={cn(
-                      'px-3 py-2 text-xs font-bold rounded-lg transition flex items-center gap-1 flex-shrink-0',
-                      model.status === 'running'
-                        ? 'bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-900'
-                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                    )}
-                  >
-                    {model.status === 'running' ? (
-                      <>
-                        <Power className="w-3 h-3" /> ON
-                      </>
-                    ) : (
-                      <>
-                        <Power className="w-3 h-3" /> OFF
-                      </>
-                    )}
-                  </button>
+              {/* Stats Grid */}
+              <div className="grid grid-cols-3 gap-2 mb-3">
+                <div className="bg-muted/50 rounded-lg p-2 text-center">
+                  <p className="text-[11px] text-muted-foreground font-semibold">Last Activity</p>
+                  <p className="text-xs font-bold text-foreground mt-1">{model.lastActivity}</p>
+                </div>
+                <div className="bg-muted/50 rounded-lg p-2 text-center">
+                  <p className="text-[11px] text-muted-foreground font-semibold">Uptime</p>
+                  <p className="text-xs font-bold text-foreground mt-1">{model.uptime}%</p>
+                </div>
+                <div className={cn(
+                  'rounded-lg p-2 text-center',
+                  model.status === 'running' ? 'bg-green-100 dark:bg-green-900' : 'bg-muted/50'
+                )}>
+                  <p className="text-[11px] font-semibold">Status</p>
+                  <p className="text-xs font-bold text-foreground mt-1">{model.status.toUpperCase()}</p>
                 </div>
               </div>
-            ))
-          )}
+
+              {/* Uptime Bar */}
+              <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                <div
+                  className={cn(
+                    'h-full rounded-full transition',
+                    model.uptime >= 99 ? 'bg-green-500' : model.uptime >= 98 ? 'bg-amber-500' : 'bg-red-500'
+                  )}
+                  style={{ width: `${model.uptime}%` }}
+                />
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
       {/* Info Box */}
       <div className="bg-primary/10 border border-primary/30 rounded-lg p-3 mt-auto">
-        <p className="text-xs font-semibold text-foreground mb-1">📅 About Orchestration</p>
+        <p className="text-xs font-semibold text-foreground mb-1">⚙️ How Orchestration Works</p>
         <p className="text-xs text-muted-foreground">
-          Use the Orchestrator to schedule when automations run and control which AI models are active.
-          Toggling a model off pauses all dependent automations.
+          Use this interface to schedule when automations run and control which AI models are active. Toggle models on/off to enable or disable them system-wide.
         </p>
       </div>
-
-      {/* Schedule Dialog */}
-      {showScheduleDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-card border border-border rounded-lg w-full max-w-md p-6">
-            <p className="text-sm font-bold text-foreground mb-4">Schedule New Automation</p>
-            <div className="space-y-3">
-              <input
-                type="text"
-                placeholder="Automation name"
-                className="w-full px-3 py-2 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-              />
-              <select className="w-full px-3 py-2 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50">
-                <option>Select frequency...</option>
-                <option>Hourly</option>
-                <option>Daily</option>
-                <option>Weekly</option>
-                <option>Monthly</option>
-              </select>
-              <div className="flex gap-2 pt-2">
-                <button
-                  onClick={() => setShowScheduleDialog(false)}
-                  className="flex-1 px-3 py-2 text-xs font-bold rounded-lg border border-border text-foreground hover:bg-muted transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => setShowScheduleDialog(false)}
-                  className="flex-1 px-3 py-2 text-xs font-bold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition"
-                >
-                  Create
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
