@@ -90,7 +90,7 @@ export default function KPIHeatmap({
                 {times.map((time) => (
                   <th
                     key={time}
-                    className="px-2 py-2 text-center font-semibold text-foreground bg-muted/30 border-b border-border/50 text-[10px]"
+                    className="px-2 py-2 text-center font-semibold text-foreground bg-muted/30 border-b border-border/50 text-xs"
                   >
                     {new Date(time).toLocaleDateString("en-US", {
                       month: "short",
@@ -135,12 +135,12 @@ export default function KPIHeatmap({
                             )}
                           >
                             {showValues && (
-                              <span className="text-white text-[9px] font-bold">
+                              <span className="text-white text-xs font-bold">
                                 {Math.round(cell.value)}
                               </span>
                             )}
                             {/* Tooltip on hover */}
-                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 rounded bg-gray-900 text-white text-[10px] whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-20 pointer-events-none">
+                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 rounded bg-gray-900 text-white text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-20 pointer-events-none">
                               {cell.value.toFixed(2)}
                             </div>
                           </div>

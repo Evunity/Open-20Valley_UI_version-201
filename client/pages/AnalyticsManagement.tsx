@@ -388,7 +388,7 @@ export default function AnalyticsManagement() {
         <div className="flex items-center gap-1 truncate min-w-0">
           <span className="text-xs truncate text-foreground font-semibold">{title}</span>
           {selectedItems.length > 0 && (
-            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground flex-shrink-0 font-semibold">
+            <span className="text-xs px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground flex-shrink-0 font-semibold">
               {selectedItems.length}
             </span>
           )}
@@ -472,7 +472,7 @@ export default function AnalyticsManagement() {
                       <Trash2 className="w-3 h-3" />
                     </button>
                   </div>
-                  <div className="text-[10px] text-muted-foreground mb-1.5">
+                  <div className="text-xs text-muted-foreground mb-1.5">
                     {view.kpis.length} KPI{view.kpis.length !== 1 ? "s" : ""} • {view.scope}
                   </div>
                   <button

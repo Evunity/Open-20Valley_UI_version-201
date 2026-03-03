@@ -659,8 +659,8 @@ export default function DashboardNew() {
       <div className="space-y-1">
         <div className="flex items-center justify-between gap-1.5 flex-wrap">
           <div className="space-y-0">
-            <h1 className="text-sm font-bold text-foreground">Network Operations Dashboard</h1>
-            <p className="text-[9px] text-muted-foreground">
+            <h1 className="text-lg font-bold text-foreground">Network Operations Dashboard</h1>
+            <p className="text-sm text-muted-foreground">
               Real-time monitoring and AI-driven insights across your infrastructure
             </p>
           </div>
@@ -681,8 +681,8 @@ export default function DashboardNew() {
       <div>
         <div className="space-y-1 mb-2">
           <div className="space-y-0">
-            <h2 className="text-xs font-bold text-foreground">Key Performance Indicators</h2>
-            <p className="text-[9px] text-muted-foreground">
+            <h2 className="text-base font-bold text-foreground">Key Performance Indicators</h2>
+            <p className="text-xs text-muted-foreground">
               Real-time metrics reflecting current filters ({selectedKPIIds.length} of{" "}
               {AVAILABLE_KPIS.length} displayed)
             </p>
@@ -773,8 +773,8 @@ export default function DashboardNew() {
         <div className="mb-2 space-y-0.5">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <h2 className="text-sm font-bold text-foreground">AI Engine Actions</h2>
-              <p className="text-[9px] text-muted-foreground">
+              <h2 className="text-base font-bold text-foreground">AI Engine Actions</h2>
+              <p className="text-xs text-muted-foreground">
                 Automated network operations and resolution activities
               </p>
             </div>
@@ -840,7 +840,7 @@ export default function DashboardNew() {
                         <p className="text-xs font-medium text-foreground truncate">
                           {action.name}
                         </p>
-                        <p className="text-[8px] text-muted-foreground">{action.time}</p>
+                        <p className="text-xs text-muted-foreground">{action.time}</p>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <span
@@ -951,8 +951,8 @@ export default function DashboardNew() {
         <div className="mb-2 space-y-0.5">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <h3 className="text-sm font-bold text-foreground">Sites by Region</h3>
-              <p className="text-[9px] text-muted-foreground">Geographic distribution</p>
+              <h3 className="text-base font-bold text-foreground">Sites by Region</h3>
+              <p className="text-xs text-muted-foreground">Geographic distribution</p>
             </div>
             <select
               className="px-3 py-1 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50"

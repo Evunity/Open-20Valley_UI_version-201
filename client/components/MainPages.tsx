@@ -74,8 +74,8 @@ export default function MainPages() {
         className="w-full flex items-center justify-between px-2 py-1.5 hover:bg-muted/50 transition-colors duration-200"
       >
         <div className="flex items-center gap-1.5">
-          <h3 className="text-[11px] font-bold text-foreground">Management</h3>
-          <span className="text-[10px] font-medium px-1 py-0.5 rounded-full bg-primary/10 text-primary">
+          <h3 className="text-sm font-bold text-foreground">Management</h3>
+          <span className="text-xs font-medium px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">
             {pages.length}
           </span>
         </div>
@@ -100,10 +100,10 @@ export default function MainPages() {
                 {React.cloneElement(page.icon as React.ReactElement, { className: "w-3 h-3" })}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-foreground text-[10px] group-hover:text-primary transition-colors leading-tight">
+                <p className="font-semibold text-foreground text-xs group-hover:text-primary transition-colors leading-tight">
                   {page.title}
                 </p>
-                <p className="text-[9px] text-muted-foreground mt-0.5 leading-tight">
+                <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">
                   {page.description}
                 </p>
               </div>
