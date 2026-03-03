@@ -5,6 +5,12 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+interface Handle {
+  id: string;
+  type: 'input' | 'output';
+  label: string;
+}
+
 interface WorkflowNode {
   id: string;
   type: 'trigger' | 'action' | 'condition' | 'api-call' | 'notification' | 'loop' | 'delay';
@@ -12,12 +18,15 @@ interface WorkflowNode {
   x: number;
   y: number;
   config: Record<string, any>;
+  handles: Handle[];
 }
 
 interface WorkflowEdge {
   id: string;
-  from: string;
-  to: string;
+  sourceNodeId: string;
+  targetNodeId: string;
+  sourceHandleId: string;
+  targetHandleId: string;
 }
 
 interface Workflow {
@@ -41,6 +50,50 @@ const NODE_TYPES = {
   delay: { icon: '⏳', label: 'Delay', color: 'bg-indigo-500', bgLight: 'bg-indigo-100 dark:bg-indigo-950' }
 };
 
+const getNodeHandles = (nodeType: WorkflowNode['type']): Handle[] => {
+  const baseHandles: Handle[] = [];
+
+  if (nodeType === 'trigger') {
+    // Trigger nodes only have output
+    baseHandles.push({
+      id: 'output_main',
+      type: 'output',
+      label: 'Start'
+    });
+  } else if (nodeType === 'condition') {
+    // Condition nodes have input and two outputs
+    baseHandles.push({
+      id: 'input_main',
+      type: 'input',
+      label: 'Input'
+    });
+    baseHandles.push({
+      id: 'output_true',
+      type: 'output',
+      label: 'True'
+    });
+    baseHandles.push({
+      id: 'output_false',
+      type: 'output',
+      label: 'False'
+    });
+  } else {
+    // All other nodes (action, api-call, notification, loop, delay) have input and output
+    baseHandles.push({
+      id: 'input_main',
+      type: 'input',
+      label: 'Input'
+    });
+    baseHandles.push({
+      id: 'output_main',
+      type: 'output',
+      label: 'Output'
+    });
+  }
+
+  return baseHandles;
+};
+
 export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; onCancel?: () => void }> = ({
   onSave,
   onCancel
@@ -57,7 +110,8 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
         label: 'Trigger',
         x: 100,
         y: 100,
-        config: {}
+        config: {},
+        handles: getNodeHandles('trigger')
       }
     ],
     edges: [],
@@ -70,20 +124,114 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [draggingNode, setDraggingNode] = useState<string | null>(null);
-  const [connectingMode, setConnectingMode] = useState<string | null>(null);
+  const [draggingEdge, setDraggingEdge] = useState<{ fromNodeId: string; fromHandleId: string; x: number; y: number } | null>(null);
   const [showNodePalette, setShowNodePalette] = useState(true);
   const [showPreview, setShowPreview] = useState(false);
 
   const selectedNode = workflow.nodes.find(n => n.id === selectedNodeId);
 
+  const getHandlePosition = (nodeId: string, handleId: string): { x: number; y: number } | null => {
+    const node = workflow.nodes.find(n => n.id === nodeId);
+    if (!node) return null;
+
+    const handle = node.handles.find(h => h.id === handleId);
+    if (!handle) return null;
+
+    const nodeWidth = 160;
+    const nodeHeight = 64;
+    const handleRadius = 6;
+
+    const inputHandles = node.handles.filter(h => h.type === 'input');
+    const outputHandles = node.handles.filter(h => h.type === 'output');
+
+    if (handle.type === 'input') {
+      const index = inputHandles.indexOf(handle);
+      const spacing = nodeHeight / (inputHandles.length + 1);
+      return {
+        x: node.x,
+        y: node.y + spacing * (index + 1)
+      };
+    } else {
+      const index = outputHandles.indexOf(handle);
+      const spacing = nodeHeight / (outputHandles.length + 1);
+      return {
+        x: node.x + nodeWidth,
+        y: node.y + spacing * (index + 1)
+      };
+    }
+  };
+
+  const canConnectNodes = (sourceNodeId: string, sourceHandleId: string, targetNodeId: string, targetHandleId: string): boolean => {
+    // Can't connect to itself
+    if (sourceNodeId === targetNodeId) return false;
+
+    const sourceNode = workflow.nodes.find(n => n.id === sourceNodeId);
+    const targetNode = workflow.nodes.find(n => n.id === targetNodeId);
+    if (!sourceNode || !targetNode) return false;
+
+    const sourceHandle = sourceNode.handles.find(h => h.id === sourceHandleId);
+    const targetHandle = targetNode.handles.find(h => h.id === targetHandleId);
+    if (!sourceHandle || !targetHandle) return false;
+
+    // Can't connect output to output or input to input
+    if (sourceHandle.type !== 'output' || targetHandle.type !== 'input') return false;
+
+    // Can't connect if edge already exists
+    const edgeExists = workflow.edges.some(
+      e => e.sourceNodeId === sourceNodeId && e.targetNodeId === targetNodeId &&
+           e.sourceHandleId === sourceHandleId && e.targetHandleId === targetHandleId
+    );
+    if (edgeExists) return false;
+
+    // Trigger nodes can't have inputs
+    if (targetNode.type === 'trigger') return false;
+
+    // Prevent cycles (simple check: can't connect to an ancestor)
+    const checkCycle = (nodeId: string, targetId: string, visited = new Set<string>()): boolean => {
+      if (nodeId === targetId) return true;
+      if (visited.has(nodeId)) return false;
+      visited.add(nodeId);
+
+      const predecessors = workflow.edges
+        .filter(e => e.targetNodeId === nodeId)
+        .map(e => e.sourceNodeId);
+
+      return predecessors.some(pred => checkCycle(pred, targetId, visited));
+    };
+
+    if (checkCycle(targetNodeId, sourceNodeId)) return false;
+
+    return true;
+  };
+
+  const handleConnectNodes = (sourceNodeId: string, sourceHandleId: string, targetNodeId: string, targetHandleId: string) => {
+    if (!canConnectNodes(sourceNodeId, sourceHandleId, targetNodeId, targetHandleId)) return;
+
+    const newEdge: WorkflowEdge = {
+      id: `edge_${Date.now()}`,
+      sourceNodeId,
+      targetNodeId,
+      sourceHandleId,
+      targetHandleId
+    };
+
+    setWorkflow(prev => ({
+      ...prev,
+      edges: [...prev.edges, newEdge],
+      updatedAt: new Date().toLocaleString()
+    }));
+  };
+
   const handleAddNode = (type: keyof typeof NODE_TYPES) => {
+    const nodeType = type as WorkflowNode['type'];
     const newNode: WorkflowNode = {
       id: `node_${Date.now()}`,
-      type: type as WorkflowNode['type'],
+      type: nodeType,
       label: NODE_TYPES[type].label,
       x: 300,
       y: 200,
-      config: {}
+      config: {},
+      handles: getNodeHandles(nodeType)
     };
     setWorkflow(prev => ({
       ...prev,
@@ -97,7 +245,7 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
     setWorkflow(prev => ({
       ...prev,
       nodes: prev.nodes.filter(n => n.id !== id),
-      edges: prev.edges.filter(e => e.from !== id && e.to !== id),
+      edges: prev.edges.filter(e => e.sourceNodeId !== id && e.targetNodeId !== id),
       updatedAt: new Date().toLocaleString()
     }));
     if (selectedNodeId === id) setSelectedNodeId(workflow.nodes[0]?.id || '');
@@ -118,49 +266,86 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
       setWorkflow(prev => ({
         ...prev,
         nodes: prev.nodes.map(n =>
-          n.id === draggingNode ? { ...n, x: Math.max(0, x - 40), y: Math.max(0, y - 30) } : n
+          n.id === draggingNode ? { ...n, x: Math.max(0, x - 80), y: Math.max(0, y - 32) } : n
         ),
         updatedAt: new Date().toLocaleString()
       }));
+    }
+
+    if (draggingEdge) {
+      const rect = canvasRef.current?.getBoundingClientRect();
+      if (rect) {
+        const x = (e.clientX - rect.left - pan.x) / zoom;
+        const y = (e.clientY - rect.top - pan.y) / zoom;
+        setDraggingEdge(prev => prev ? { ...prev, x, y } : null);
+      }
     }
   };
 
   const handleCanvasMouseUp = () => {
     setDraggingNode(null);
+    setDraggingEdge(null);
   };
 
-  const handleConnectClick = (fromNodeId: string) => {
-    if (connectingMode === fromNodeId) {
-      setConnectingMode(null);
-    } else {
-      setConnectingMode(fromNodeId);
+  const handleOutputHandleMouseDown = (nodeId: string, handleId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const pos = getHandlePosition(nodeId, handleId);
+    if (pos) {
+      setDraggingEdge({ fromNodeId: nodeId, fromHandleId: handleId, x: pos.x, y: pos.y });
+    }
+  };
+
+  const handleInputHandleMouseUp = (nodeId: string, handleId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (draggingEdge) {
+      handleConnectNodes(draggingEdge.fromNodeId, draggingEdge.fromHandleId, nodeId, handleId);
+      setDraggingEdge(null);
     }
   };
 
   const handleNodeClick = (nodeId: string) => {
-    if (connectingMode && connectingMode !== nodeId) {
-      const edgeExists = workflow.edges.some(
-        e => e.from === connectingMode && e.to === nodeId
-      );
-      if (!edgeExists) {
-        const newEdge: WorkflowEdge = {
-          id: `edge_${Date.now()}`,
-          from: connectingMode,
-          to: nodeId
-        };
-        setWorkflow(prev => ({
-          ...prev,
-          edges: [...prev.edges, newEdge],
-          updatedAt: new Date().toLocaleString()
-        }));
-      }
-      setConnectingMode(null);
-    } else {
-      setSelectedNodeId(nodeId);
-    }
+    setSelectedNodeId(nodeId);
   };
 
-  const isValidWorkflow = workflow.nodes.length > 0 && workflow.name.trim();
+  const isValidWorkflow = (() => {
+    // Must have a name
+    if (!workflow.name.trim()) return false;
+
+    // Must have at least one node
+    if (workflow.nodes.length === 0) return false;
+
+    // Must have a trigger node
+    const hasTrigger = workflow.nodes.some(n => n.type === 'trigger');
+    if (!hasTrigger) return false;
+
+    // If there are multiple nodes, they must be connected
+    if (workflow.nodes.length > 1) {
+      // Check if all non-trigger nodes have input connections
+      const nonTriggers = workflow.nodes.filter(n => n.type !== 'trigger');
+      const connectedNodes = new Set<string>();
+
+      // Trigger node should be in the graph
+      connectedNodes.add(workflow.nodes.find(n => n.type === 'trigger')!.id);
+
+      // Find all nodes reachable from trigger
+      const traverse = (nodeId: string) => {
+        const outgoing = workflow.edges.filter(e => e.sourceNodeId === nodeId);
+        outgoing.forEach(edge => {
+          if (!connectedNodes.has(edge.targetNodeId)) {
+            connectedNodes.add(edge.targetNodeId);
+            traverse(edge.targetNodeId);
+          }
+        });
+      };
+
+      traverse(workflow.nodes.find(n => n.type === 'trigger')!.id);
+
+      // All nodes should be reachable from trigger
+      return workflow.nodes.every(n => connectedNodes.has(n.id));
+    }
+
+    return true;
+  })();
 
   return (
     <div className="w-full h-full flex flex-col bg-background overflow-hidden">
@@ -250,7 +435,7 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
               <Plus className="w-3 h-3" /> Add Node
             </button>
             <div className="text-xs text-muted-foreground px-2 py-1.5">
-              💡 Drag to move • Click "+" button on a node to connect, then click target node
+              💡 Drag to move • Drag from output handle to input handle to connect
             </div>
           </div>
 
@@ -276,20 +461,20 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
             >
               {/* Edges */}
               {workflow.edges.map(edge => {
-                const fromNode = workflow.nodes.find(n => n.id === edge.from);
-                const toNode = workflow.nodes.find(n => n.id === edge.to);
-                if (!fromNode || !toNode) return null;
+                const sourcePos = getHandlePosition(edge.sourceNodeId, edge.sourceHandleId);
+                const targetPos = getHandlePosition(edge.targetNodeId, edge.targetHandleId);
+                if (!sourcePos || !targetPos) return null;
 
-                const x1 = fromNode.x + 80;
-                const y1 = fromNode.y + 30;
-                const x2 = toNode.x;
-                const y2 = toNode.y + 30;
+                const x1 = sourcePos.x;
+                const y1 = sourcePos.y;
+                const x2 = targetPos.x;
+                const y2 = targetPos.y;
 
                 return (
                   <g key={edge.id}>
                     <path
                       d={`M ${x1} ${y1} L ${(x1 + x2) / 2} ${y1} L ${(x1 + x2) / 2} ${y2} L ${x2} ${y2}`}
-                      stroke="#9CA3AF"
+                      stroke="#3B82F6"
                       strokeWidth="2"
                       fill="none"
                       markerEnd="url(#arrowhead)"
@@ -298,9 +483,26 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
                 );
               })}
 
-              {/* Arrow marker */}
+              {/* Dragging edge preview */}
+              {draggingEdge && (
+                <g>
+                  <path
+                    d={`M ${draggingEdge.x} ${draggingEdge.y} L ${draggingEdge.x + 50} ${draggingEdge.y} L ${draggingEdge.x + 50} ${draggingEdge.y} L ${draggingEdge.x + 50} ${draggingEdge.y}`}
+                    stroke="#9CA3AF"
+                    strokeWidth="2"
+                    fill="none"
+                    strokeDasharray="5,5"
+                    markerEnd="url(#arrowhead-preview)"
+                  />
+                </g>
+              )}
+
+              {/* Arrow markers */}
               <defs>
                 <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                  <polygon points="0 0, 10 3, 0 6" fill="#3B82F6" />
+                </marker>
+                <marker id="arrowhead-preview" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
                   <polygon points="0 0, 10 3, 0 6" fill="#9CA3AF" />
                 </marker>
               </defs>
@@ -314,8 +516,28 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
                   <div
                     key={node.id}
                     style={{ left: node.x, top: node.y }}
-                    className="absolute w-40 h-16 pointer-events-auto"
+                    className="absolute w-40 h-16 pointer-events-auto relative"
                   >
+                    {/* Input Handles (left side) */}
+                    {node.handles.filter(h => h.type === 'input').map((handle, idx) => {
+                      const inputHandles = node.handles.filter(h => h.type === 'input');
+                      const spacing = 64 / (inputHandles.length + 1);
+                      const top = spacing * (idx + 1);
+                      return (
+                        <button
+                          key={handle.id}
+                          onMouseUp={(e) => handleInputHandleMouseUp(node.id, handle.id, e)}
+                          className="absolute w-3 h-3 rounded-full bg-blue-500 hover:bg-blue-600 border-2 border-white hover:border-blue-300 shadow-md transition hover:scale-125"
+                          style={{
+                            left: '-8px',
+                            top: `${top - 6}px`,
+                            zIndex: 20
+                          }}
+                          title={`Input: ${handle.label}`}
+                        />
+                      );
+                    })}
+
                     {/* Node */}
                     <div
                       onClick={() => handleNodeClick(node.id)}
@@ -323,9 +545,7 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
                       className={cn(
                         'w-full h-full rounded-lg border-2 flex flex-col items-center justify-center cursor-move transition relative',
                         `${typeConfig.bgLight} border-2`,
-                        connectingMode === node.id
-                          ? 'border-blue-500 shadow-lg ring-2 ring-blue-400'
-                          : selectedNodeId === node.id ? 'border-primary shadow-lg' : 'border-gray-300 dark:border-gray-600 hover:border-primary/50'
+                        selectedNodeId === node.id ? 'border-primary shadow-lg' : 'border-gray-300 dark:border-gray-600 hover:border-primary/50'
                       )}
                     >
                       <div className="text-2xl">{typeConfig.icon}</div>
@@ -334,23 +554,25 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
                       </div>
                     </div>
 
-                    {/* Connect Button (bottom right) */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleConnectClick(node.id);
-                      }}
-                      title={connectingMode === node.id ? 'Click another node to complete connection' : 'Click to connect to another node'}
-                      className={cn(
-                        'absolute -bottom-2 -right-2 px-2 py-1 text-xs font-bold rounded-full transition shadow-md hover:scale-110',
-                        connectingMode === node.id
-                          ? 'bg-blue-500 text-white ring-2 ring-blue-300'
-                          : 'bg-primary text-primary-foreground hover:bg-primary/90'
-                      )}
-                      style={{ zIndex: 10 }}
-                    >
-                      {connectingMode === node.id ? '✓' : '+'}
-                    </button>
+                    {/* Output Handles (right side) */}
+                    {node.handles.filter(h => h.type === 'output').map((handle, idx) => {
+                      const outputHandles = node.handles.filter(h => h.type === 'output');
+                      const spacing = 64 / (outputHandles.length + 1);
+                      const top = spacing * (idx + 1);
+                      return (
+                        <button
+                          key={handle.id}
+                          onMouseDown={(e) => handleOutputHandleMouseDown(node.id, handle.id, e)}
+                          className="absolute w-3 h-3 rounded-full bg-green-500 hover:bg-green-600 border-2 border-white hover:border-green-300 shadow-md transition hover:scale-125 cursor-crosshair"
+                          style={{
+                            right: '-8px',
+                            top: `${top - 6}px`,
+                            zIndex: 20
+                          }}
+                          title={`Output: ${handle.label} - Drag to connect`}
+                        />
+                      );
+                    })}
                   </div>
                 );
               })}
@@ -391,13 +613,31 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
                   <select
                     value={selectedNode.type}
                     onChange={(e) => {
+                      const newType = e.target.value as WorkflowNode['type'];
                       setWorkflow(prev => ({
                         ...prev,
                         nodes: prev.nodes.map(n =>
                           n.id === selectedNodeId
-                            ? { ...n, type: e.target.value as WorkflowNode['type'] }
+                            ? { ...n, type: newType, handles: getNodeHandles(newType) }
                             : n
-                        )
+                        ),
+                        // Remove edges that are incompatible with new node type
+                        edges: prev.edges.filter(edge => {
+                          if (edge.sourceNodeId === selectedNodeId || edge.targetNodeId === selectedNodeId) {
+                            const sourceNode = prev.nodes.find(n => n.id === edge.sourceNodeId);
+                            const targetNode = prev.nodes.find(n => n.id === edge.targetNodeId);
+                            if (!sourceNode || !targetNode) return false;
+
+                            const srcNode = sourceNode.id === selectedNodeId ? { ...sourceNode, type: newType, handles: getNodeHandles(newType) } : sourceNode;
+                            const tgtNode = targetNode.id === selectedNodeId ? { ...targetNode, type: newType, handles: getNodeHandles(newType) } : targetNode;
+
+                            const sourceHandle = srcNode.handles.find(h => h.id === edge.sourceHandleId);
+                            const targetHandle = tgtNode.handles.find(h => h.id === edge.targetHandleId);
+
+                            return sourceHandle && targetHandle;
+                          }
+                          return true;
+                        })
                       }));
                     }}
                     className="w-full px-2 py-1.5 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
@@ -477,9 +717,32 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
             onClick={() => {
               if (isValidWorkflow) {
                 onSave?.(workflow);
-                alert('✓ Workflow saved successfully!');
               } else {
-                alert('Please fill in the workflow name');
+                const errors = [];
+                if (!workflow.name.trim()) errors.push('• Workflow name is required');
+                if (workflow.nodes.length === 0) errors.push('• Add at least one node');
+                if (!workflow.nodes.some(n => n.type === 'trigger')) errors.push('• Must have a trigger node');
+                if (workflow.nodes.length > 1) {
+                  const triggerNode = workflow.nodes.find(n => n.type === 'trigger');
+                  if (triggerNode) {
+                    const connectedNodes = new Set<string>([triggerNode.id]);
+                    const traverse = (nodeId: string) => {
+                      const outgoing = workflow.edges.filter(e => e.sourceNodeId === nodeId);
+                      outgoing.forEach(edge => {
+                        if (!connectedNodes.has(edge.targetNodeId)) {
+                          connectedNodes.add(edge.targetNodeId);
+                          traverse(edge.targetNodeId);
+                        }
+                      });
+                    };
+                    traverse(triggerNode.id);
+                    const unconnected = workflow.nodes.filter(n => !connectedNodes.has(n.id));
+                    if (unconnected.length > 0) {
+                      errors.push(`• ${unconnected.length} node(s) not connected to workflow`);
+                    }
+                  }
+                }
+                alert('Cannot save workflow:\n\n' + errors.join('\n'));
               }
             }}
             disabled={!isValidWorkflow}
