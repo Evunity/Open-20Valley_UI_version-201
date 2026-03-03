@@ -472,9 +472,12 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
                 const targetPos = getHandlePosition(edge.targetNodeId, edge.targetHandleId);
                 if (!sourcePos || !targetPos) return null;
 
-                const x1 = sourcePos.x;
+                // Adjust positions to connect to handle visual positions
+                // Output handles are positioned 14px to the right of node edge
+                // Input handles are positioned 14px to the left of node edge
+                const x1 = sourcePos.x + 14;
                 const y1 = sourcePos.y;
-                const x2 = targetPos.x;
+                const x2 = targetPos.x - 14;
                 const y2 = targetPos.y;
 
                 const isSelected = selectedEdgeId === edge.id;
@@ -544,7 +547,8 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
                 const startPos = getHandlePosition(draggingEdge.fromNodeId, draggingEdge.fromHandleId);
                 if (!startPos) return null;
 
-                const x1 = startPos.x;
+                // Output handle is 14px to the right of node edge
+                const x1 = startPos.x + 14;
                 const y1 = startPos.y;
                 const x2 = draggingEdge.x;
                 const y2 = draggingEdge.y;
