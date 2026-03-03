@@ -196,7 +196,7 @@ export const AutonomyHeatmap: React.FC = () => {
 
       {/* Geographic View */}
       {viewMode === 'regions' && (
-        <div className="space-y-3 flex-1 overflow-y-auto">
+        <div className="space-y-2 flex-1 overflow-y-auto">
           {mockRegions.map((region) => (
             <div
               key={region.region}
@@ -208,68 +208,61 @@ export const AutonomyHeatmap: React.FC = () => {
                   : 'border-border bg-card hover:border-border/80'
               )}
             >
-              <div className="space-y-3">
-                {/* Header */}
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h3 className="text-sm font-bold text-foreground">{region.region}</h3>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {region.automationCount} automations • {region.lastHourExecutions} executions last hour
-                    </p>
-                  </div>
+              {/* Region Header */}
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h3 className="text-sm font-bold text-foreground">{region.region}</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">{region.automationCount} automations</p>
+                </div>
+                <div className="flex items-center gap-2">
                   {region.alert && (
                     <div className="flex items-center gap-1 px-2 py-1 bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300 rounded text-xs font-bold">
                       <AlertCircle className="w-3 h-3" /> Alert
                     </div>
                   )}
-                </div>
-
-                {/* Metrics Grid */}
-                <div className="grid grid-cols-4 gap-2 text-xs">
-                  <div className="bg-muted/50 rounded p-2">
-                    <p className="text-muted-foreground font-semibold text-[11px]">Success Rate</p>
-                    <p className={cn('font-bold mt-1 text-sm', region.successRate >= 96 ? 'text-green-600' : 'text-amber-600')}>
-                      {region.successRate}%
-                    </p>
-                  </div>
-                  <div className="bg-muted/50 rounded p-2">
-                    <p className="text-muted-foreground font-semibold text-[11px]">Failure Rate</p>
-                    <p className="font-bold mt-1 text-sm text-red-600">{region.failureRate}%</p>
-                  </div>
-                  <div className="bg-muted/50 rounded p-2">
-                    <p className="text-muted-foreground font-semibold text-[11px]">Response Time</p>
-                    <p className="font-bold mt-1 text-sm text-foreground">{region.avgResponseTime}ms</p>
-                  </div>
-                  <div className="bg-muted/50 rounded p-2 flex items-center gap-1">
-                    <div>{getTrendIcon(region.trend)}</div>
-                    <div>
-                      <p className="text-muted-foreground font-semibold text-[11px]">Trend</p>
-                      <p className="font-bold mt-1 text-sm text-foreground">
-                        {region.trendValue > 0 ? '+' : ''}{region.trendValue}%
-                      </p>
-                    </div>
+                  <div className={cn('text-sm font-bold px-3 py-1 rounded', region.successRate >= 96 ? 'bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300' : 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300')}>
+                    {region.successRate}%
                   </div>
                 </div>
+              </div>
 
-                {/* Success Rate Bar */}
-                <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-xs font-semibold text-muted-foreground">Performance</span>
-                    <span className="text-xs font-bold text-foreground">{region.successRate}%</span>
-                  </div>
-                  <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
-                    <div
-                      className={cn(
-                        'h-full rounded-full transition',
-                        region.successRate >= 96
-                          ? 'bg-green-500'
-                          : region.successRate >= 94
-                          ? 'bg-amber-500'
-                          : 'bg-red-500'
-                      )}
-                      style={{ width: `${region.successRate}%` }}
-                    />
-                  </div>
+              {/* Performance Bar */}
+              <div className="mb-3">
+                <div className="flex justify-between items-center mb-1.5">
+                  <span className="text-xs font-semibold text-muted-foreground">Performance</span>
+                  <span className="text-xs text-muted-foreground">{region.failureRate}% failures</span>
+                </div>
+                <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
+                  <div
+                    className={cn(
+                      'h-full rounded-full transition',
+                      region.successRate >= 96
+                        ? 'bg-green-500'
+                        : region.successRate >= 94
+                        ? 'bg-amber-500'
+                        : 'bg-red-500'
+                    )}
+                    style={{ width: `${region.successRate}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Quick Stats Grid */}
+              <div className="grid grid-cols-3 gap-2">
+                <div className="bg-muted/50 rounded-lg p-2 text-center">
+                  <p className="text-[11px] text-muted-foreground font-semibold">Last Hour</p>
+                  <p className="text-sm font-bold text-foreground mt-1">{region.lastHourExecutions}</p>
+                </div>
+                <div className="bg-muted/50 rounded-lg p-2 text-center">
+                  <p className="text-[11px] text-muted-foreground font-semibold">Response</p>
+                  <p className="text-sm font-bold text-foreground mt-1">{region.avgResponseTime}ms</p>
+                </div>
+                <div className="bg-muted/50 rounded-lg p-2 text-center">
+                  <p className="text-[11px] text-muted-foreground font-semibold">Trend</p>
+                  <p className="text-sm font-bold text-foreground mt-1 flex items-center justify-center gap-1">
+                    {getTrendIcon(region.trend)}
+                    {region.trendValue > 0 ? '+' : ''}{region.trendValue}%
+                  </p>
                 </div>
               </div>
             </div>

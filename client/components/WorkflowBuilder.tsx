@@ -1,7 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
-  Plus, Trash2, Copy, Save, ZoomIn, ZoomOut, Play, Download, Upload,
-  ChevronRight, Settings, X, MoreVertical, Eye, Code
+  Plus, Trash2, Save, ZoomIn, ZoomOut, Play, Download,
+  Settings, X, Eye, Code, ArrowRight, Grid3x3
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -9,17 +9,8 @@ interface WorkflowNode {
   id: string;
   type: 'trigger' | 'action' | 'condition' | 'api-call' | 'notification' | 'loop' | 'delay';
   label: string;
-  x: number;
-  y: number;
+  position: number; // sequential position in workflow
   config: Record<string, any>;
-  status?: 'idle' | 'running' | 'success' | 'error';
-}
-
-interface WorkflowEdge {
-  id: string;
-  from: string;
-  to: string;
-  label?: string;
 }
 
 interface Workflow {
@@ -27,27 +18,25 @@ interface Workflow {
   name: string;
   description: string;
   nodes: WorkflowNode[];
-  edges: WorkflowEdge[];
   createdAt: string;
   updatedAt: string;
   active: boolean;
 }
 
 const NODE_TYPES = {
-  trigger: { icon: '🔔', color: '#3B82F6', bgColor: 'bg-blue-100 dark:bg-blue-950' },
-  action: { icon: '⚙️', color: '#8B5CF6', bgColor: 'bg-purple-100 dark:bg-purple-950' },
-  condition: { icon: '❓', color: '#F59E0B', bgColor: 'bg-amber-100 dark:bg-amber-950' },
-  'api-call': { icon: '🌐', color: '#06B6D4', bgColor: 'bg-cyan-100 dark:bg-cyan-950' },
-  notification: { icon: '📢', color: '#EC4899', bgColor: 'bg-pink-100 dark:bg-pink-950' },
-  loop: { icon: '🔄', color: '#10B981', bgColor: 'bg-green-100 dark:bg-green-950' },
-  delay: { icon: '⏳', color: '#6366F1', bgColor: 'bg-indigo-100 dark:bg-indigo-950' }
+  trigger: { icon: '🔔', label: 'Trigger', color: 'bg-blue-500', description: 'Start workflow' },
+  action: { icon: '⚙️', label: 'Action', color: 'bg-purple-500', description: 'Execute action' },
+  condition: { icon: '❓', label: 'Condition', color: 'bg-amber-500', description: 'If-then logic' },
+  'api-call': { icon: '🌐', label: 'API Call', color: 'bg-cyan-500', description: 'Call external API' },
+  notification: { icon: '📢', label: 'Notify', color: 'bg-pink-500', description: 'Send notification' },
+  loop: { icon: '🔄', label: 'Loop', color: 'bg-green-500', description: 'Repeat action' },
+  delay: { icon: '⏳', label: 'Delay', color: 'bg-indigo-500', description: 'Wait period' }
 };
 
 export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; onCancel?: () => void }> = ({
   onSave,
   onCancel
 }) => {
-  const canvasRef = useRef<HTMLDivElement>(null);
   const [workflow, setWorkflow] = useState<Workflow>({
     id: `workflow_${Date.now()}`,
     name: 'New Workflow',
@@ -56,38 +45,30 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
       {
         id: 'node_1',
         type: 'trigger',
-        label: 'Start',
-        x: 100,
-        y: 100,
-        config: {},
-        status: 'idle'
+        label: 'Trigger',
+        position: 0,
+        config: {}
       }
     ],
-    edges: [],
     createdAt: new Date().toLocaleString(),
     updatedAt: new Date().toLocaleString(),
     active: false
   });
 
   const [selectedNodeId, setSelectedNodeId] = useState<string>('node_1');
-  const [zoom, setZoom] = useState(1);
-  const [pan, setPan] = useState({ x: 0, y: 0 });
-  const [draggingNode, setDraggingNode] = useState<string | null>(null);
-  const [connecting, setConnecting] = useState<{ from: string; x: number; y: number } | null>(null);
   const [showNodePalette, setShowNodePalette] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
 
   const selectedNode = workflow.nodes.find(n => n.id === selectedNodeId);
 
   const handleAddNode = (type: keyof typeof NODE_TYPES) => {
+    const maxPosition = workflow.nodes.length > 0 ? Math.max(...workflow.nodes.map(n => n.position)) : -1;
     const newNode: WorkflowNode = {
       id: `node_${Date.now()}`,
       type: type as WorkflowNode['type'],
-      label: type.charAt(0).toUpperCase() + type.slice(1),
-      x: Math.random() * 400 + 200,
-      y: Math.random() * 300 + 150,
-      config: {},
-      status: 'idle'
+      label: NODE_TYPES[type].label,
+      position: maxPosition + 1,
+      config: {}
     };
     setWorkflow(prev => ({
       ...prev,
@@ -99,104 +80,57 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
   };
 
   const handleDeleteNode = (id: string) => {
+    if (workflow.nodes.length <= 1) {
+      alert('Workflow must have at least one node');
+      return;
+    }
     setWorkflow(prev => ({
       ...prev,
-      nodes: prev.nodes.filter(n => n.id !== id),
-      edges: prev.edges.filter(e => e.from !== id && e.to !== id),
+      nodes: prev.nodes
+        .filter(n => n.id !== id)
+        .map((n, idx) => ({ ...n, position: idx })),
       updatedAt: new Date().toLocaleString()
     }));
     if (selectedNodeId === id) setSelectedNodeId(workflow.nodes[0]?.id || '');
   };
 
-  const handleNodeMouseDown = (e: React.MouseEvent, nodeId: string) => {
-    if (e.button !== 0) return;
-    e.stopPropagation();
-    setDraggingNode(nodeId);
-  };
-
-  const handleCanvasMouseMove = (e: React.MouseEvent) => {
-    if (canvasRef.current) {
-      const rect = canvasRef.current.getBoundingClientRect();
-      const x = (e.clientX - rect.left - pan.x) / zoom;
-      const y = (e.clientY - rect.top - pan.y) / zoom;
-
-      if (draggingNode) {
-        setWorkflow(prev => ({
-          ...prev,
-          nodes: prev.nodes.map(n =>
-            n.id === draggingNode ? { ...n, x, y } : n
-          ),
-          updatedAt: new Date().toLocaleString()
-        }));
-      }
-
-      // Update connecting line endpoint
-      if (connecting) {
-        setConnecting(prev => prev ? { ...prev, x, y } : null);
-      }
+  const moveNode = (id: string, direction: 'up' | 'down') => {
+    const index = workflow.nodes.findIndex(n => n.id === id);
+    if ((direction === 'up' && index === 0) || (direction === 'down' && index === workflow.nodes.length - 1)) {
+      return;
     }
-  };
 
-  const handleCanvasMouseUp = () => {
-    setDraggingNode(null);
-  };
+    const newNodes = [...workflow.nodes];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    [newNodes[index], newNodes[targetIndex]] = [newNodes[targetIndex], newNodes[index]];
 
-  const handleStartConnection = (e: React.MouseEvent, nodeId: string) => {
-    e.stopPropagation();
-    setConnecting({ from: nodeId, x: 0, y: 0 });
-  };
-
-  const handleEndConnection = (nodeId: string) => {
-    if (connecting && connecting.from !== nodeId) {
-      const edgeExists = workflow.edges.some(e => e.from === connecting.from && e.to === nodeId);
-      if (!edgeExists) {
-        const newEdge: WorkflowEdge = {
-          id: `edge_${Date.now()}`,
-          from: connecting.from,
-          to: nodeId
-        };
-        setWorkflow(prev => ({
-          ...prev,
-          edges: [...prev.edges, newEdge],
-          updatedAt: new Date().toLocaleString()
-        }));
-      }
-    }
-    setConnecting(null);
+    setWorkflow(prev => ({
+      ...prev,
+      nodes: newNodes.map((n, idx) => ({ ...n, position: idx })),
+      updatedAt: new Date().toLocaleString()
+    }));
   };
 
   const isValidWorkflow = workflow.nodes.length > 0 && workflow.name.trim();
 
   return (
     <div className="w-full h-full flex flex-col bg-background overflow-hidden">
-      {/* Toolbar */}
-      <div className="border-b border-border bg-card px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <h2 className="text-lg font-bold text-foreground">Workflow Builder</h2>
+      {/* Header */}
+      <div className="border-b border-border bg-card px-6 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-4 flex-1">
+          <div>
+            <input
+              type="text"
+              value={workflow.name}
+              onChange={(e) => setWorkflow(prev => ({ ...prev, name: e.target.value }))}
+              placeholder="Workflow name..."
+              className="text-lg font-bold px-3 py-1.5 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+            />
+            <p className="text-xs text-muted-foreground mt-1">{workflow.nodes.length} nodes</p>
+          </div>
         </div>
+
         <div className="flex items-center gap-2">
-          <input
-            type="text"
-            value={workflow.name}
-            onChange={(e) => setWorkflow(prev => ({ ...prev, name: e.target.value }))}
-            placeholder="Workflow name..."
-            className="px-3 py-1.5 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 w-48"
-          />
-          <button
-            onClick={() => setZoom(z => Math.min(z + 0.1, 2))}
-            className="p-2 hover:bg-muted rounded-lg transition"
-            title="Zoom in"
-          >
-            <ZoomIn className="w-4 h-4 text-muted-foreground" />
-          </button>
-          <button
-            onClick={() => setZoom(z => Math.max(z - 0.1, 0.5))}
-            className="p-2 hover:bg-muted rounded-lg transition"
-            title="Zoom out"
-          >
-            <ZoomOut className="w-4 h-4 text-muted-foreground" />
-          </button>
-          <div className="text-xs text-muted-foreground px-2">{Math.round(zoom * 100)}%</div>
           <button
             onClick={() => setShowPreview(!showPreview)}
             className="p-2 hover:bg-muted rounded-lg transition"
@@ -209,145 +143,105 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
 
       {/* Main Content */}
       <div className="flex flex-1 gap-4 overflow-hidden p-4">
-        {/* Canvas */}
-        <div className="flex-1 flex flex-col gap-2 bg-muted/30 rounded-lg border border-border overflow-hidden">
-          {/* Canvas Toolbar */}
-          <div className="bg-card border-b border-border px-3 py-2 flex gap-2">
+        {/* Left Sidebar - Node Palette */}
+        <div className="w-56 bg-card border border-border rounded-lg flex flex-col overflow-hidden">
+          <div className="p-4 border-b border-border">
+            <p className="text-sm font-bold text-foreground mb-3">Add Node</p>
             <button
               onClick={() => setShowNodePalette(!showNodePalette)}
-              className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition flex items-center gap-1"
+              className="w-full px-3 py-2 text-xs font-bold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition flex items-center justify-center gap-2"
             >
               <Plus className="w-3 h-3" /> Add Node
             </button>
-            {showNodePalette && (
-              <div className="flex gap-2 ml-2 pl-2 border-l border-border">
-                {Object.entries(NODE_TYPES).map(([type, config]) => (
-                  <button
-                    key={type}
-                    onClick={() => handleAddNode(type as any)}
-                    className="px-2 py-1 text-xs font-bold rounded-lg border border-border text-muted-foreground hover:text-foreground transition"
-                    title={type}
-                  >
-                    {config.icon}
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
 
-          {/* Canvas */}
-          <div
-            ref={canvasRef}
-            className="flex-1 overflow-hidden relative bg-background/50 cursor-grab active:cursor-grabbing select-none"
-            onMouseMove={handleCanvasMouseMove}
-            onMouseUp={handleCanvasMouseUp}
-            style={{
-              backgroundImage: `
-                linear-gradient(rgba(128, 128, 128, 0.1) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(128, 128, 128, 0.1) 1px, transparent 1px)
-              `,
-              backgroundSize: `${30 * zoom}px ${30 * zoom}px`,
-              backgroundPosition: `${pan.x}px ${pan.y}px`
-            }}
-          >
-            <svg
-              className="absolute inset-0 w-full h-full pointer-events-none"
-              style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})` }}
-            >
-              {/* Edges */}
-              {workflow.edges.map(edge => {
-                const fromNode = workflow.nodes.find(n => n.id === edge.from);
-                const toNode = workflow.nodes.find(n => n.id === edge.to);
-                if (!fromNode || !toNode) return null;
-
-                // Ensure coordinates are valid numbers
-                const x1 = Number.isFinite(fromNode.x) ? fromNode.x + 60 : 60;
-                const y1 = Number.isFinite(fromNode.y) ? fromNode.y + 40 : 40;
-                const x2 = Number.isFinite(toNode.x) ? toNode.x : 0;
-                const y2 = Number.isFinite(toNode.y) ? toNode.y + 40 : 40;
-
-                return (
-                  <line
-                    key={edge.id}
-                    x1={x1}
-                    y1={y1}
-                    x2={x2}
-                    y2={y2}
-                    stroke="#9CA3AF"
-                    strokeWidth="2"
-                    markerEnd="url(#arrowhead)"
-                  />
-                );
-              })}
-
-              {/* Arrow marker */}
-              <defs>
-                <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-                  <polygon points="0 0, 10 3, 0 6" fill="#9CA3AF" />
-                </marker>
-              </defs>
-
-              {/* Connecting line */}
-              {connecting && (() => {
-                const fromNode = workflow.nodes.find(n => n.id === connecting.from);
-                if (!fromNode) return null;
-                const x1 = Number.isFinite(fromNode.x) ? fromNode.x + 60 : 60;
-                const y1 = Number.isFinite(fromNode.y) ? fromNode.y + 40 : 40;
-                const x2 = Number.isFinite(connecting.x) ? connecting.x : 0;
-                const y2 = Number.isFinite(connecting.y) ? connecting.y : 0;
-
-                return (
-                  <line
-                    x1={x1}
-                    y1={y1}
-                    x2={x2}
-                    y2={y2}
-                    stroke="#3B82F6"
-                    strokeWidth="2"
-                    strokeDasharray="5,5"
-                  />
-                );
-              })()}
-            </svg>
-
-            {/* Nodes */}
-            <div style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})` }} className="absolute inset-0">
-              {workflow.nodes.map(node => {
-                const typeConfig = NODE_TYPES[node.type];
-                return (
-                  <div
-                    key={node.id}
-                    style={{ left: node.x, top: node.y, transform: 'translate(0, 0)' }}
-                    className="absolute w-32 h-20 pointer-events-auto"
-                  >
-                    <div
-                      onClick={() => setSelectedNodeId(node.id)}
-                      onMouseDown={(e) => handleNodeMouseDown(e, node.id)}
-                      className={cn(
-                        'w-full h-full rounded-lg border-2 flex flex-col items-center justify-center cursor-move transition hover:shadow-lg',
-                        `bg-white dark:bg-gray-800 border-2`,
-                        selectedNodeId === node.id ? 'border-primary shadow-lg' : 'border-gray-300 dark:border-gray-600',
-                        node.status === 'running' && 'animate-pulse',
-                        node.status === 'success' && 'border-green-500',
-                        node.status === 'error' && 'border-red-500'
-                      )}
-                    >
-                      <div className="text-2xl">{typeConfig.icon}</div>
-                      <div className="text-xs font-bold text-center mt-1 text-foreground truncate px-1">
-                        {node.label}
-                      </div>
-                    </div>
-
-                    {/* Output port */}
-                    <button
-                      onMouseDown={(e) => handleStartConnection(e, node.id)}
-                      onMouseUp={() => handleEndConnection(node.id)}
-                      className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-6 w-3 h-3 rounded-full bg-primary border-2 border-white dark:border-gray-800 cursor-crosshair hover:scale-125 transition"
-                    />
-                  </div>
-                );
-              })}
+          {showNodePalette && (
+            <div className="flex-1 overflow-y-auto p-3 space-y-2">
+              {Object.entries(NODE_TYPES).map(([type, config]) => (
+                <button
+                  key={type}
+                  onClick={() => handleAddNode(type as any)}
+                  className="w-full p-3 rounded-lg border border-border bg-muted/50 hover:bg-muted transition text-left"
+                >
+                  <div className="text-lg mb-1">{config.icon}</div>
+                  <p className="text-xs font-bold text-foreground">{config.label}</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">{config.description}</p>
+                </button>
+              ))}
             </div>
+          )}
+
+          {/* Nodes List */}
+          <div className="flex-1 overflow-y-auto p-3 space-y-2 border-t border-border">
+            <p className="text-xs font-bold text-muted-foreground px-1">WORKFLOW STEPS</p>
+            {workflow.nodes.map((node, idx) => {
+              const nodeConfig = NODE_TYPES[node.type];
+              return (
+                <div key={node.id} className="space-y-1">
+                  <button
+                    onClick={() => setSelectedNodeId(node.id)}
+                    className={cn(
+                      'w-full p-3 rounded-lg border-2 transition text-left flex items-start gap-2',
+                      selectedNodeId === node.id
+                        ? 'border-primary bg-primary/10'
+                        : 'border-border bg-muted/50 hover:border-border/80'
+                    )}
+                  >
+                    <span className="text-lg flex-shrink-0">{nodeConfig.icon}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-foreground truncate">{node.label}</p>
+                      <p className="text-[10px] text-muted-foreground">{node.type}</p>
+                    </div>
+                    <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-muted text-muted-foreground flex-shrink-0">
+                      {idx + 1}
+                    </span>
+                  </button>
+
+                  {idx < workflow.nodes.length - 1 && (
+                    <div className="flex justify-center py-1">
+                      <ArrowRight className="w-4 h-4 text-muted-foreground rotate-90" />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Middle - Node Flow Visualization */}
+        <div className="flex-1 bg-muted/30 rounded-lg border border-border flex flex-col overflow-hidden">
+          <div className="flex-1 overflow-y-auto p-6 flex flex-col items-center justify-start gap-4">
+            {workflow.nodes.map((node, idx) => {
+              const nodeConfig = NODE_TYPES[node.type];
+              return (
+                <div key={node.id} className="w-full max-w-xs">
+                  <div
+                    onClick={() => setSelectedNodeId(node.id)}
+                    className={cn(
+                      'p-4 rounded-lg border-2 transition cursor-pointer text-center',
+                      selectedNodeId === node.id
+                        ? 'border-primary bg-primary/10 shadow-lg'
+                        : 'border-border bg-card hover:border-border/80'
+                    )}
+                  >
+                    <div className="text-3xl mb-2">{nodeConfig.icon}</div>
+                    <p className="text-sm font-bold text-foreground">{node.label}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{nodeConfig.description}</p>
+                    <div className="mt-3 flex items-center justify-center gap-2">
+                      <span className="text-xs font-bold px-2 py-1 rounded-full bg-muted text-muted-foreground">
+                        Step {idx + 1}
+                      </span>
+                    </div>
+                  </div>
+
+                  {idx < workflow.nodes.length - 1 && (
+                    <div className="flex justify-center py-3">
+                      <ArrowRight className="w-5 h-5 text-primary rotate-90" />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -355,15 +249,15 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
         {selectedNode && (
           <div className="w-80 bg-card border border-border rounded-lg p-4 flex flex-col gap-4 overflow-y-auto max-h-[calc(100vh-200px)]">
             <div>
-              <p className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
-                <span className="text-lg">{NODE_TYPES[selectedNode.type].icon}</span>
+              <p className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
+                <span className="text-2xl">{NODE_TYPES[selectedNode.type].icon}</span>
                 {selectedNode.label}
               </p>
 
               {/* Node Properties */}
               <div className="space-y-3">
                 <div>
-                  <label className="text-xs font-bold text-foreground block mb-1">Label</label>
+                  <label className="text-xs font-bold text-foreground block mb-1">Node Label</label>
                   <input
                     type="text"
                     value={selectedNode.label}
@@ -389,7 +283,11 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
                         ...prev,
                         nodes: prev.nodes.map(n =>
                           n.id === selectedNodeId
-                            ? { ...n, type: e.target.value as WorkflowNode['type'] }
+                            ? {
+                                ...n,
+                                type: e.target.value as WorkflowNode['type'],
+                                label: NODE_TYPES[e.target.value as keyof typeof NODE_TYPES].label
+                              }
                             : n
                         ),
                         updatedAt: new Date().toLocaleString()
@@ -397,9 +295,9 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
                     }}
                     className="w-full px-2 py-1.5 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                   >
-                    {Object.keys(NODE_TYPES).map(type => (
+                    {Object.entries(NODE_TYPES).map(([type, config]) => (
                       <option key={type} value={type}>
-                        {type.toUpperCase().replace('-', ' ')}
+                        {config.label}
                       </option>
                     ))}
                   </select>
@@ -407,10 +305,10 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
 
                 {selectedNode.type === 'condition' && (
                   <div>
-                    <label className="text-xs font-bold text-foreground block mb-1">Condition</label>
+                    <label className="text-xs font-bold text-foreground block mb-1">Condition Expression</label>
                     <input
                       type="text"
-                      placeholder="e.g., response.status === 200"
+                      placeholder="e.g., status === 'success'"
                       className="w-full px-2 py-1.5 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                     />
                   </div>
@@ -418,7 +316,7 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
 
                 {selectedNode.type === 'delay' && (
                   <div>
-                    <label className="text-xs font-bold text-foreground block mb-1">Delay (ms)</label>
+                    <label className="text-xs font-bold text-foreground block mb-1">Delay (milliseconds)</label>
                     <input
                       type="number"
                       placeholder="1000"
@@ -427,21 +325,52 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
                     />
                   </div>
                 )}
+
+                {selectedNode.type === 'api-call' && (
+                  <div className="space-y-2">
+                    <div>
+                      <label className="text-xs font-bold text-foreground block mb-1">API URL</label>
+                      <input
+                        type="text"
+                        placeholder="https://api.example.com/endpoint"
+                        className="w-full px-2 py-1.5 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-foreground block mb-1">Method</label>
+                      <select className="w-full px-2 py-1.5 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50">
+                        <option>GET</option>
+                        <option>POST</option>
+                        <option>PUT</option>
+                        <option>DELETE</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* Connections Info */}
-              <div className="mt-4 pt-4 border-t border-border">
-                <p className="text-xs font-bold text-foreground mb-2">Connections</p>
-                <div className="text-xs text-muted-foreground space-y-1">
-                  <p>Incoming: {workflow.edges.filter(e => e.to === selectedNodeId).length}</p>
-                  <p>Outgoing: {workflow.edges.filter(e => e.from === selectedNodeId).length}</p>
-                </div>
+              {/* Move Buttons */}
+              <div className="mt-4 pt-4 border-t border-border space-y-2">
+                <button
+                  onClick={() => moveNode(selectedNodeId, 'up')}
+                  disabled={workflow.nodes.findIndex(n => n.id === selectedNodeId) === 0}
+                  className="w-full px-3 py-1.5 text-xs font-bold rounded-lg bg-muted text-muted-foreground hover:bg-muted/80 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                >
+                  ↑ Move Up
+                </button>
+                <button
+                  onClick={() => moveNode(selectedNodeId, 'down')}
+                  disabled={workflow.nodes.findIndex(n => n.id === selectedNodeId) === workflow.nodes.length - 1}
+                  className="w-full px-3 py-1.5 text-xs font-bold rounded-lg bg-muted text-muted-foreground hover:bg-muted/80 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                >
+                  ↓ Move Down
+                </button>
               </div>
 
               {/* Delete Button */}
               <button
                 onClick={() => handleDeleteNode(selectedNodeId)}
-                className="w-full mt-4 px-3 py-2 text-xs font-bold rounded-lg bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900 transition flex items-center justify-center gap-1"
+                className="w-full mt-3 px-3 py-2 text-xs font-bold rounded-lg bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900 transition flex items-center justify-center gap-1"
               >
                 <Trash2 className="w-3 h-3" /> Delete Node
               </button>
@@ -461,10 +390,7 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
       )}
 
       {/* Footer */}
-      <div className="border-t border-border bg-card px-4 py-3 flex items-center justify-between">
-        <p className="text-xs text-muted-foreground">
-          {workflow.nodes.length} nodes • {workflow.edges.length} connections
-        </p>
+      <div className="border-t border-border bg-card px-6 py-3 flex items-center justify-between">
         <div className="flex gap-2">
           <button
             onClick={onCancel}

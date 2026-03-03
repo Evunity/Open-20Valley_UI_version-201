@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import {
   Plus, Trash2, Copy, Save, ArrowRight, Play, Pause, AlertCircle,
-  CheckCircle, Clock, RefreshCw, Settings, ChevronDown, Code, Eye, ChevronUp, ChevronDown as ChevronDownIcon
+  CheckCircle, Clock, Settings, ChevronUp, ChevronDown, Code, Eye
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-type StepType = 'trigger' | 'action' | 'validation' | 'rollback' | 'notification' | 'decision' | 'wait' | 'api-call' | 'delay';
+type StepType = 'trigger' | 'action' | 'validation' | 'rollback' | 'notification' | 'decision' | 'wait' | 'api-call';
 
 interface RunbookStep {
   id: string;
@@ -37,8 +37,7 @@ const STEP_TYPES: Record<StepType, { icon: string; color: string; description: s
   notification: { icon: '📢', color: 'bg-pink-100 dark:bg-pink-950 border-pink-300 dark:border-pink-700', description: 'Send notification' },
   decision: { icon: '❓', color: 'bg-amber-100 dark:bg-amber-950 border-amber-300 dark:border-amber-700', description: 'Decision point' },
   wait: { icon: '⏱️', color: 'bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600', description: 'Wait period' },
-  'api-call': { icon: '🌐', color: 'bg-cyan-100 dark:bg-cyan-950 border-cyan-300 dark:border-cyan-700', description: 'Call API' },
-  delay: { icon: '⏳', color: 'bg-indigo-100 dark:bg-indigo-950 border-indigo-300 dark:border-indigo-700', description: 'Add delay' }
+  'api-call': { icon: '🌐', color: 'bg-cyan-100 dark:bg-cyan-950 border-cyan-300 dark:border-cyan-700', description: 'Call API' }
 };
 
 export const RunbookDesigner: React.FC<{
@@ -53,8 +52,8 @@ export const RunbookDesigner: React.FC<{
       {
         id: 'step_1',
         type: 'trigger',
-        title: 'Alarm Detected',
-        description: 'Listen for critical network alarm',
+        title: 'Trigger',
+        description: 'Listen for critical alarm',
         config: { severity: 'critical' },
         rollbackAvailable: false,
         expectedRuntime: 0
@@ -75,11 +74,11 @@ export const RunbookDesigner: React.FC<{
     const newStep: RunbookStep = {
       id: `step_${Date.now()}`,
       type,
-      title: `New ${type}`,
+      title: STEP_TYPES[type].description,
       description: '',
       config: {},
       rollbackAvailable: type === 'action',
-      expectedRuntime: type === 'wait' ? 30 : type === 'trigger' ? 0 : 10,
+      expectedRuntime: type === 'wait' ? 30 : 0,
       onFailure: type === 'action' ? 'rollback' : 'stop'
     };
     setRunbook(prev => ({
@@ -87,8 +86,8 @@ export const RunbookDesigner: React.FC<{
       steps: [...prev.steps, newStep],
       lastModified: new Date().toLocaleString()
     }));
-    setShowStepPalette(false);
     setSelectedStepId(newStep.id);
+    setShowStepPalette(false);
   };
 
   const deleteStep = (id: string) => {
@@ -101,13 +100,12 @@ export const RunbookDesigner: React.FC<{
       steps: prev.steps.filter(s => s.id !== id),
       lastModified: new Date().toLocaleString()
     }));
-    if (selectedStepId === id) setSelectedStepId(null);
+    if (selectedStepId === id) setSelectedStepId(runbook.steps[0]?.id || null);
   };
 
   const duplicateStep = (id: string) => {
     const step = runbook.steps.find(s => s.id === id);
     if (!step) return;
-
     const newStep = { ...step, id: `step_${Date.now()}` };
     setRunbook(prev => ({
       ...prev,
@@ -118,9 +116,7 @@ export const RunbookDesigner: React.FC<{
 
   const moveStep = (id: string, direction: 'up' | 'down') => {
     const index = runbook.steps.findIndex(s => s.id === id);
-    if ((direction === 'up' && index === 0) || (direction === 'down' && index === runbook.steps.length - 1)) {
-      return;
-    }
+    if ((direction === 'up' && index === 0) || (direction === 'down' && index === runbook.steps.length - 1)) return;
 
     const newSteps = [...runbook.steps];
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
@@ -141,13 +137,16 @@ export const RunbookDesigner: React.FC<{
 
   return (
     <div className="flex h-full bg-background gap-4 p-4 overflow-hidden">
-      {/* Steps List */}
-      <div className="w-96 flex flex-col border border-border rounded-lg bg-card overflow-hidden">
+      {/* Left Sidebar - Steps List */}
+      <div className="w-80 flex flex-col border border-border rounded-lg bg-card overflow-hidden">
         <div className="p-4 border-b border-border space-y-3">
-          <h2 className="text-sm font-bold text-foreground">Runbook Steps ({runbook.steps.length})</h2>
+          <div>
+            <p className="text-sm font-bold text-foreground">Runbook Details</p>
+            <p className="text-xs text-muted-foreground mt-1">{runbook.steps.length} steps • {calculateTotalRuntime()}s runtime</p>
+          </div>
           <button
             onClick={() => setShowStepPalette(!showStepPalette)}
-            className="w-full px-3 py-2 text-xs font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition flex items-center justify-center gap-2"
+            className="w-full px-3 py-2 text-xs font-bold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition flex items-center justify-center gap-2"
           >
             <Plus className="w-3 h-3" /> Add Step
           </button>
@@ -155,7 +154,7 @@ export const RunbookDesigner: React.FC<{
 
         {/* Step Palette */}
         {showStepPalette && (
-          <div className="p-3 space-y-2 border-b border-border max-h-64 overflow-y-auto bg-muted/30">
+          <div className="p-3 space-y-2 border-b border-border max-h-48 overflow-y-auto bg-muted/30">
             {Object.entries(STEP_TYPES).map(([type, config]) => (
               <button
                 key={type}
@@ -176,48 +175,26 @@ export const RunbookDesigner: React.FC<{
         <div className="flex-1 overflow-y-auto p-3 space-y-2">
           {runbook.steps.map((step, idx) => (
             <div key={step.id} className="space-y-1">
-              <div className="flex items-stretch gap-2">
-                {/* Move buttons */}
-                <div className="flex flex-col gap-0.5">
-                  <button
-                    onClick={() => moveStep(step.id, 'up')}
-                    disabled={idx === 0}
-                    className="p-1 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed"
-                  >
-                    <ChevronUp className="w-3 h-3" />
-                  </button>
-                  <button
-                    onClick={() => moveStep(step.id, 'down')}
-                    disabled={idx === runbook.steps.length - 1}
-                    className="p-1 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed"
-                  >
-                    <ChevronDownIcon className="w-3 h-3" />
-                  </button>
+              <button
+                onClick={() => setSelectedStepId(step.id)}
+                className={cn(
+                  'w-full p-3 rounded-lg border-2 transition text-left',
+                  selectedStepId === step.id
+                    ? 'bg-primary/20 border-primary'
+                    : `border-border ${STEP_TYPES[step.type].color}`
+                )}
+              >
+                <div className="font-bold text-xs flex items-center gap-2">
+                  {STEP_TYPES[step.type].icon} <span className="truncate">{step.title}</span>
                 </div>
+                <div className="text-[10px] text-muted-foreground mt-0.5 truncate">{step.description}</div>
+                {step.expectedRuntime > 0 && (
+                  <div className="text-[10px] text-muted-foreground mt-1">⏱️ {step.expectedRuntime}s</div>
+                )}
+              </button>
 
-                {/* Step Button */}
-                <button
-                  onClick={() => setSelectedStepId(step.id)}
-                  className={cn(
-                    'flex-1 p-2 rounded-lg border-2 transition text-left',
-                    selectedStepId === step.id
-                      ? 'bg-primary/20 border-primary'
-                      : `border-border ${STEP_TYPES[step.type].color}`
-                  )}
-                >
-                  <div className="font-bold text-xs flex items-center gap-2">
-                    {STEP_TYPES[step.type].icon} <span className="truncate">{step.title}</span>
-                  </div>
-                  <div className="text-[10px] text-muted-foreground mt-0.5 truncate">{step.description}</div>
-                  {step.expectedRuntime > 0 && (
-                    <div className="text-[10px] text-muted-foreground mt-1">⏱️ {step.expectedRuntime}s</div>
-                  )}
-                </button>
-              </div>
-
-              {/* Arrow between steps */}
               {idx < runbook.steps.length - 1 && (
-                <div className="flex justify-center py-1 text-muted-foreground text-xs ml-6">
+                <div className="flex justify-center py-1 text-muted-foreground text-xs">
                   <ArrowRight className="w-3 h-3 rotate-90" />
                 </div>
               )}
@@ -225,19 +202,33 @@ export const RunbookDesigner: React.FC<{
           ))}
         </div>
 
-        {/* Step Actions - Bottom */}
+        {/* Step Actions */}
         {selectedStep && (
           <div className="border-t border-border p-3 space-y-2">
             <button
+              onClick={() => moveStep(selectedStepId!, 'up')}
+              disabled={runbook.steps.findIndex(s => s.id === selectedStepId) === 0}
+              className="w-full px-2 py-1.5 text-xs font-bold rounded-lg bg-muted text-muted-foreground hover:bg-muted/80 disabled:opacity-30 disabled:cursor-not-allowed transition"
+            >
+              ↑ Move Up
+            </button>
+            <button
+              onClick={() => moveStep(selectedStepId!, 'down')}
+              disabled={runbook.steps.findIndex(s => s.id === selectedStepId) === runbook.steps.length - 1}
+              className="w-full px-2 py-1.5 text-xs font-bold rounded-lg bg-muted text-muted-foreground hover:bg-muted/80 disabled:opacity-30 disabled:cursor-not-allowed transition"
+            >
+              ↓ Move Down
+            </button>
+            <button
               onClick={() => duplicateStep(selectedStepId!)}
-              className="w-full px-2 py-1.5 text-xs font-semibold rounded-lg bg-muted text-foreground hover:bg-muted/80 transition flex items-center justify-center gap-1"
+              className="w-full px-2 py-1.5 text-xs font-bold rounded-lg bg-muted text-muted-foreground hover:bg-muted/80 transition flex items-center justify-center gap-1"
             >
               <Copy className="w-3 h-3" /> Duplicate
             </button>
             <button
               onClick={() => deleteStep(selectedStepId!)}
               disabled={runbook.steps.length === 1}
-              className="w-full px-2 py-1.5 text-xs font-semibold rounded-lg bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900 transition flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full px-2 py-1.5 text-xs font-bold rounded-lg bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900 transition flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Trash2 className="w-3 h-3" /> Delete
             </button>
@@ -245,12 +236,12 @@ export const RunbookDesigner: React.FC<{
         )}
       </div>
 
-      {/* Main Editor */}
+      {/* Middle - Runbook Metadata & Flow */}
       <div className="flex-1 flex flex-col gap-4 overflow-hidden">
-        {/* Header & Meta */}
-        <div className="bg-card border border-border rounded-lg p-4 space-y-4">
+        {/* Metadata */}
+        <div className="bg-card border border-border rounded-lg p-4 space-y-3">
           <div className="grid grid-cols-3 gap-4">
-            <div className="col-span-2">
+            <div>
               <label className="text-xs font-bold text-foreground block mb-1">Runbook Name</label>
               <input
                 type="text"
@@ -274,6 +265,12 @@ export const RunbookDesigner: React.FC<{
                 {runbook.active ? 'Active' : 'Inactive'}
               </button>
             </div>
+            <div>
+              <label className="text-xs font-bold text-foreground block mb-1">Estimate</label>
+              <div className="px-3 py-2 rounded-lg border border-border bg-muted text-sm font-bold text-foreground text-center">
+                {calculateTotalRuntime()}s
+              </div>
+            </div>
           </div>
 
           <div>
@@ -285,40 +282,54 @@ export const RunbookDesigner: React.FC<{
               rows={2}
             />
           </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="bg-muted/50 rounded p-3 text-center">
-              <p className="text-xs text-muted-foreground font-semibold">Total Steps</p>
-              <p className="text-2xl font-bold text-primary mt-1">{runbook.steps.length}</p>
-            </div>
-            <div className="bg-muted/50 rounded p-3 text-center">
-              <p className="text-xs text-muted-foreground font-semibold">Est. Runtime</p>
-              <p className="text-2xl font-bold text-primary mt-1">{calculateTotalRuntime()}s</p>
-            </div>
-            <div className="bg-muted/50 rounded p-3 text-center">
-              <p className="text-xs text-muted-foreground font-semibold">Rollback Steps</p>
-              <p className="text-2xl font-bold text-primary mt-1">{runbook.steps.filter(s => s.rollbackAvailable).length}</p>
-            </div>
-          </div>
         </div>
 
-        {/* Step Configuration */}
-        {selectedStep && (
-          <div className="bg-card border border-border rounded-lg p-4 flex-1 overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <span className="text-lg">{STEP_TYPES[selectedStep.type].icon}</span>
-                <p className="text-sm font-bold text-foreground">Step Configuration</p>
-              </div>
-              <span className="text-xs font-bold px-2 py-1 rounded bg-muted text-muted-foreground">
-                {selectedStep.type.toUpperCase()}
-              </span>
-            </div>
+        {/* Step Flow Visualization */}
+        <div className="flex-1 bg-muted/30 rounded-lg border border-border overflow-y-auto p-6">
+          <div className="flex flex-col items-center gap-3">
+            {runbook.steps.map((step, idx) => {
+              const stepType = STEP_TYPES[step.type];
+              return (
+                <div key={step.id} className="w-full max-w-sm">
+                  <div
+                    onClick={() => setSelectedStepId(step.id)}
+                    className={cn(
+                      'p-4 rounded-lg border-2 transition cursor-pointer text-center',
+                      selectedStepId === step.id
+                        ? 'border-primary bg-primary/10 shadow-lg'
+                        : 'border-border bg-card hover:border-border/80'
+                    )}
+                  >
+                    <div className="text-2xl mb-2">{stepType.icon}</div>
+                    <p className="text-sm font-bold text-foreground">{step.title}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{step.description}</p>
+                    <p className="text-xs text-muted-foreground mt-2 font-semibold">Step {idx + 1}</p>
+                  </div>
 
-            <div className="space-y-4">
+                  {idx < runbook.steps.length - 1 && (
+                    <div className="flex justify-center py-2">
+                      <ArrowRight className="w-5 h-5 text-primary rotate-90" />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Right Panel - Step Config */}
+      {selectedStep && (
+        <div className="w-72 bg-card border border-border rounded-lg p-4 flex flex-col gap-3 overflow-y-auto max-h-[calc(100vh-120px)]">
+          <div>
+            <p className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
+              <span className="text-lg">{STEP_TYPES[selectedStep.type].icon}</span>
+              Step Config
+            </p>
+
+            <div className="space-y-3 text-xs">
               <div>
-                <label className="text-xs font-bold text-foreground block mb-1">Title *</label>
+                <label className="font-bold text-foreground block mb-1">Title</label>
                 <input
                   type="text"
                   value={selectedStep.title}
@@ -330,12 +341,12 @@ export const RunbookDesigner: React.FC<{
                       )
                     }));
                   }}
-                  className="w-full px-3 py-2 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className="w-full px-2 py-1.5 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-bold text-foreground block mb-1">Description</label>
+                <label className="font-bold text-foreground block mb-1">Description</label>
                 <textarea
                   value={selectedStep.description}
                   onChange={(e) => {
@@ -346,14 +357,14 @@ export const RunbookDesigner: React.FC<{
                       )
                     }));
                   }}
-                  className="w-full px-3 py-2 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className="w-full px-2 py-1.5 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                   rows={2}
                 />
               </div>
 
               {selectedStep.type === 'wait' && (
                 <div>
-                  <label className="text-xs font-bold text-foreground block mb-1">Duration (seconds)</label>
+                  <label className="font-bold text-foreground block mb-1">Duration (s)</label>
                   <input
                     type="number"
                     value={selectedStep.expectedRuntime}
@@ -365,7 +376,7 @@ export const RunbookDesigner: React.FC<{
                         )
                       }));
                     }}
-                    className="w-full px-3 py-2 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    className="w-full px-2 py-1.5 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                   />
                 </div>
               )}
@@ -373,7 +384,7 @@ export const RunbookDesigner: React.FC<{
               {selectedStep.type !== 'trigger' && (
                 <>
                   <div>
-                    <label className="text-xs font-bold text-foreground block mb-1">Timeout (seconds)</label>
+                    <label className="font-bold text-foreground block mb-1">Timeout (s)</label>
                     <input
                       type="number"
                       value={selectedStep.timeout || 120}
@@ -385,13 +396,13 @@ export const RunbookDesigner: React.FC<{
                           )
                         }));
                       }}
-                      className="w-full px-3 py-2 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      className="w-full px-2 py-1.5 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                     />
                   </div>
 
                   {selectedStep.type === 'action' && (
                     <div>
-                      <label className="text-xs font-bold text-foreground block mb-1">On Failure</label>
+                      <label className="font-bold text-foreground block mb-1">On Failure</label>
                       <select
                         value={selectedStep.onFailure || 'rollback'}
                         onChange={(e) => {
@@ -402,11 +413,11 @@ export const RunbookDesigner: React.FC<{
                             )
                           }));
                         }}
-                        className="w-full px-3 py-2 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                        className="w-full px-2 py-1.5 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                       >
-                        <option value="rollback">Rollback all changes</option>
-                        <option value="continue">Continue to next step</option>
-                        <option value="stop">Stop execution</option>
+                        <option value="rollback">Rollback</option>
+                        <option value="continue">Continue</option>
+                        <option value="stop">Stop</option>
                       </select>
                     </div>
                   )}
@@ -414,52 +425,36 @@ export const RunbookDesigner: React.FC<{
               )}
             </div>
           </div>
-        )}
-
-        {/* Actions */}
-        <div className="flex gap-2">
-          <button
-            onClick={() => setShowPreview(!showPreview)}
-            className="px-4 py-2 text-xs font-semibold rounded-lg bg-muted text-foreground hover:bg-muted/80 transition flex items-center gap-2"
-          >
-            <Code className="w-3 h-3" /> {showPreview ? 'Hide' : 'View'} JSON
-          </button>
-          <button
-            onClick={() => {
-              if (isValidRunbook) {
-                onSave?.(runbook);
-                alert('✓ Runbook saved successfully!');
-              } else {
-                alert('Please fix the errors:\n- Name is required\n- Must have at least 2 steps\n- First step must be a trigger');
-              }
-            }}
-            disabled={!isValidRunbook}
-            className={cn(
-              'px-4 py-2 text-xs font-semibold rounded-lg transition flex items-center gap-2 flex-1',
-              isValidRunbook
-                ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-                : 'bg-muted text-muted-foreground cursor-not-allowed'
-            )}
-          >
-            <Save className="w-3 h-3" /> Save Runbook
-          </button>
-          <button
-            onClick={onCancel}
-            className="px-4 py-2 text-xs font-semibold rounded-lg border border-border text-foreground hover:bg-muted transition"
-          >
-            Cancel
-          </button>
         </div>
+      )}
 
-        {/* JSON Preview */}
-        {showPreview && (
-          <div className="bg-card border border-border rounded-lg p-4 max-h-64 overflow-y-auto">
-            <p className="text-xs font-bold text-foreground mb-2">JSON Preview</p>
+      {/* JSON Preview Modal */}
+      {showPreview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-card border border-border rounded-lg w-3/4 max-h-96 p-6 overflow-y-auto">
+            <p className="text-sm font-bold text-foreground mb-4">Runbook JSON</p>
             <pre className="text-[10px] text-muted-foreground bg-muted/30 p-3 rounded-lg overflow-x-auto">
               {JSON.stringify(runbook, null, 2)}
             </pre>
+            <button
+              onClick={() => setShowPreview(false)}
+              className="mt-4 px-4 py-2 text-xs font-bold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              Close
+            </button>
           </div>
-        )}
+        </div>
+      )}
+
+      {/* Footer - Hidden but for flex layout */}
+      <div className="absolute bottom-4 right-4 flex gap-2">
+        <button
+          onClick={() => setShowPreview(!showPreview)}
+          className="p-2 hover:bg-muted rounded-lg transition"
+          title="View JSON"
+        >
+          <Code className="w-4 h-4 text-muted-foreground" />
+        </button>
       </div>
     </div>
   );
