@@ -427,9 +427,9 @@ export default function AnalyticsManagement() {
   );
 
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-1">
       {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-1">
+      <div className="flex items-center justify-between flex-wrap gap-0.5">
         <div>
           <h1 className="text-xs font-bold text-foreground">Analytics Management</h1>
           <p className="text-[10px] text-muted-foreground">Create and analyze custom KPIs</p>
@@ -455,13 +455,13 @@ export default function AnalyticsManagement() {
 
       {/* Saved Views Panel */}
       {showSavedViews && (
-        <div className="bg-card border border-border rounded-lg p-2 space-y-2">
+        <div className="bg-card border border-border rounded-lg p-1 space-y-1">
           <h3 className="text-xs font-bold text-foreground">Saved Views</h3>
           {savedViews.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
               {savedViews.map((view) => (
-                <div key={view.id} className="border border-border/50 rounded-lg p-2 hover:bg-muted/50 transition-colors">
-                  <div className="flex items-start justify-between mb-1">
+                <div key={view.id} className="border border-border/50 rounded-lg p-1 hover:bg-muted/50 transition-colors">
+                  <div className="flex items-start justify-between mb-0.5">
                     <div className="flex-1">
                       <h4 className="font-semibold text-xs text-foreground">{view.name}</h4>
                       {view.description && (
@@ -496,9 +496,9 @@ export default function AnalyticsManagement() {
       {/* Save View Dialog */}
       {showSaveDialog && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2">
-          <div className="bg-card rounded-lg border border-border p-3 max-w-sm w-full">
-            <h3 className="text-xs font-bold text-foreground mb-2">Save View</h3>
-            <div className="space-y-2">
+          <div className="bg-card rounded-lg border border-border p-2 max-w-sm w-full">
+            <h3 className="text-xs font-bold text-foreground mb-1">Save View</h3>
+            <div className="space-y-1">
               <div>
                 <label className="text-xs font-semibold text-muted-foreground block mb-0.5">
                   Name *
@@ -550,7 +550,7 @@ export default function AnalyticsManagement() {
 
       {/* KPI Search Bar - FULL WIDTH with Dropdown */}
       <div className="relative">
-        <div className={cn("bg-card border rounded-lg p-1.5 flex items-center gap-1.5 transition-all shadow-sm", showKPIDropdown ? "border-primary ring-1 ring-primary/30 shadow-md" : "border-border hover:border-primary/30")}>
+        <div className={cn("bg-card border rounded-lg p-1 flex items-center gap-1 transition-all shadow-sm", showKPIDropdown ? "border-primary ring-1 ring-primary/30 shadow-md" : "border-border hover:border-primary/30")}>
           <Search className="w-4 h-4 text-primary flex-shrink-0 stroke-2" />
           <input
             type="text"
@@ -620,10 +620,10 @@ export default function AnalyticsManagement() {
       </div>
 
       {/* Global Filter Bar - with buttons INSIDE */}
-      <div className="bg-card border border-border rounded-lg p-1.5 space-y-1">
-        <div className="space-y-1">
+      <div className="bg-card border border-border rounded-lg p-1 space-y-0.5">
+        <div className="space-y-0.5">
           {/* Time Range Mode Selection */}
-          <div className="flex items-center justify-between gap-1.5">
+          <div className="flex items-center justify-between gap-1">
             <label className="text-xs font-bold text-muted-foreground">Choose Dates</label>
             <div className="flex gap-0.5 bg-muted/50 p-0.5 rounded-lg">
               <button
@@ -783,7 +783,7 @@ export default function AnalyticsManagement() {
         </div>
 
         {/* Filter Dropdowns Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-1">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-0.5">
           {renderDropdown("Country", "country", ["USA", "Canada", "UK", "Germany", "France", "Japan"], filters.countries || [], "countries")}
           {renderDropdown("Region", "region", allRegions, filters.regions, "regions")}
           {renderDropdown("Cluster", "cluster", allClusters, filters.clusters, "clusters")}
@@ -793,7 +793,7 @@ export default function AnalyticsManagement() {
         </div>
 
         {/* Additional Filters */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-1">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-0.5">
           {renderDropdown("Domain", "domain", allDomains, filters.domains, "domains")}
           {renderDropdown("Category", "category", allCategories, filters.categories, "categories")}
           {renderDropdown("Scope", "scope", allScopes, filters.scopes, "scopes")}

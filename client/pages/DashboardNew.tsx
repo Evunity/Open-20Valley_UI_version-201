@@ -654,13 +654,13 @@ export default function DashboardNew() {
   };
 
   return (
-    <div className="space-y-3 pb-3">
+    <div className="space-y-1.5 pb-2">
       {/* ===== HEADER SECTION ===== */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between gap-2 flex-wrap">
-          <div className="space-y-0.5">
-            <h1 className="text-lg font-bold text-foreground">Network Operations Dashboard</h1>
-            <p className="text-[10px] text-muted-foreground">
+      <div className="space-y-1">
+        <div className="flex items-center justify-between gap-1.5 flex-wrap">
+          <div className="space-y-0">
+            <h1 className="text-sm font-bold text-foreground">Network Operations Dashboard</h1>
+            <p className="text-[9px] text-muted-foreground">
               Real-time monitoring and AI-driven insights across your infrastructure
             </p>
           </div>
@@ -679,10 +679,10 @@ export default function DashboardNew() {
 
       {/* ===== KPI SECTION ===== */}
       <div>
-        <div className="space-y-1.5 mb-3">
-          <div className="space-y-0.5">
-            <h2 className="text-sm font-bold text-foreground">Key Performance Indicators</h2>
-            <p className="text-[10px] text-muted-foreground">
+        <div className="space-y-1 mb-2">
+          <div className="space-y-0">
+            <h2 className="text-xs font-bold text-foreground">Key Performance Indicators</h2>
+            <p className="text-[9px] text-muted-foreground">
               Real-time metrics reflecting current filters ({selectedKPIIds.length} of{" "}
               {AVAILABLE_KPIS.length} displayed)
             </p>
@@ -698,7 +698,7 @@ export default function DashboardNew() {
         </div>
 
         {/* KPI Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
           {selectedKPIs.map((kpi) => {
             const kpiValue = calculateKPIValue(kpi.id, filters);
             const IconComponent = kpi.icon;
@@ -708,7 +708,7 @@ export default function DashboardNew() {
               <div
                 key={kpi.id}
                 className={cn(
-                  "p-3 rounded-lg border transition-all duration-300 hover:shadow-lg hover:border-primary/50",
+                  "p-2 rounded-lg border transition-all duration-300 hover:shadow-lg hover:border-primary/50",
                   kpiValue.status === "healthy"
                     ? "border-status-healthy/20 bg-status-healthy/5"
                     : kpiValue.status === "critical"
@@ -716,10 +716,10 @@ export default function DashboardNew() {
                       : "border-border bg-card"
                 )}
               >
-                <div className="flex items-start justify-between gap-2 mb-2">
+                <div className="flex items-start justify-between gap-1.5 mb-1.5">
                   <div
                     className={cn(
-                      "p-1.5 rounded-lg w-fit",
+                      "p-1 rounded-lg w-fit",
                       kpiValue.status === "healthy"
                         ? "bg-status-healthy/10"
                         : kpiValue.status === "critical"
@@ -769,12 +769,12 @@ export default function DashboardNew() {
       <AnalyticsSections />
 
       {/* ===== AI ENGINE ACTIONS (2-COLUMN LAYOUT) ===== */}
-      <div id="ai-actions" className="card-elevated rounded-xl border border-border/50 p-6">
-        <div className="mb-6 space-y-1">
+      <div id="ai-actions" className="card-elevated rounded-xl border border-border/50 p-3">
+        <div className="mb-2 space-y-0.5">
           <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <h2 className="text-2xl font-bold text-foreground">AI Engine Actions</h2>
-              <p className="text-sm text-muted-foreground">
+            <div className="space-y-0.5">
+              <h2 className="text-sm font-bold text-foreground">AI Engine Actions</h2>
+              <p className="text-[9px] text-muted-foreground">
                 Automated network operations and resolution activities
               </p>
             </div>
@@ -789,16 +789,16 @@ export default function DashboardNew() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
           {/* LEFT: Chart Visualization */}
-          <div className="rounded-lg border border-border/50 bg-background p-4">
-            <ResponsiveContainer width="100%" height={350}>
+          <div className="rounded-lg border border-border/50 bg-background p-2">
+            <ResponsiveContainer width="100%" height={200}>
               {renderChart(aiChartType, aiActionsData, ["successful", "failed"])}
             </ResponsiveContainer>
           </div>
 
           {/* RIGHT: AI Actions List */}
-          <div className="space-y-3">
+          <div className="space-y-1.5">
             {/* Severity Sorting Filter */}
             <div className="flex items-center gap-2">
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
@@ -818,8 +818,8 @@ export default function DashboardNew() {
 
             {/* Actions List */}
             <div
-              className="rounded-lg border border-border/50 bg-background p-4 overflow-y-auto space-y-2"
-              style={{ maxHeight: "350px" }}
+              className="rounded-lg border border-border/50 bg-background p-2 overflow-y-auto space-y-1"
+              style={{ maxHeight: "200px" }}
             >
               {aiActionsDetailList
                 .sort((a, b) => {
@@ -833,14 +833,14 @@ export default function DashboardNew() {
                 .map((action) => (
                   <div
                     key={action.id}
-                    className="p-3 rounded-lg border border-border/30 bg-card hover:bg-card/80 transition-colors space-y-2"
+                    className="p-1.5 rounded-lg border border-border/30 bg-card hover:bg-card/80 transition-colors space-y-0.5"
                   >
-                    <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-start justify-between gap-1">
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">
+                        <p className="text-xs font-medium text-foreground truncate">
                           {action.name}
                         </p>
-                        <p className="text-xs text-muted-foreground">{action.time}</p>
+                        <p className="text-[8px] text-muted-foreground">{action.time}</p>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <span
@@ -930,8 +930,8 @@ export default function DashboardNew() {
               </div>
 
               {/* Chart Visualization */}
-              <div className="rounded-lg border border-border/50 bg-background p-4">
-                <ResponsiveContainer width="100%" height={300}>
+              <div className="rounded-lg border border-border/50 bg-background p-2">
+                <ResponsiveContainer width="100%" height={180}>
                   {card.selectedKPIs.length > 0 ? (
                     renderChart(card.chartType, trafficData, card.selectedKPIs)
                   ) : (
@@ -947,12 +947,12 @@ export default function DashboardNew() {
       </div>
 
       {/* ===== SITES BY REGION ===== */}
-      <div className="card-elevated rounded-xl border border-border/50 p-6">
-        <div className="mb-6 space-y-1">
+      <div className="card-elevated rounded-xl border border-border/50 p-3">
+        <div className="mb-2 space-y-0.5">
           <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <h3 className="text-lg font-bold text-foreground">Sites by Region</h3>
-              <p className="text-sm text-muted-foreground">Geographic distribution</p>
+            <div className="space-y-0.5">
+              <h3 className="text-sm font-bold text-foreground">Sites by Region</h3>
+              <p className="text-[9px] text-muted-foreground">Geographic distribution</p>
             </div>
             <select
               className="px-3 py-1 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50"
@@ -964,18 +964,18 @@ export default function DashboardNew() {
             </select>
           </div>
         </div>
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveContainer width="100%" height={180}>
           {renderChart(regionChartType, regionData, ["sites"])}
         </ResponsiveContainer>
       </div>
 
       {/* ===== VENDOR DISTRIBUTION ===== */}
-      <div className="card-elevated rounded-xl border border-border/50 p-6">
-        <div className="mb-6 space-y-1">
+      <div className="card-elevated rounded-xl border border-border/50 p-3">
+        <div className="mb-2 space-y-0.5">
           <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <h3 className="text-lg font-bold text-foreground">Vendor Distribution</h3>
-              <p className="text-sm text-muted-foreground">Equipment manufacturer breakdown</p>
+            <div className="space-y-0.5">
+              <h3 className="text-sm font-bold text-foreground">Vendor Distribution</h3>
+              <p className="text-[9px] text-muted-foreground">Equipment manufacturer breakdown</p>
             </div>
             <select
               className="px-3 py-1 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50"
@@ -989,7 +989,7 @@ export default function DashboardNew() {
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className={vendorChartType === "pie" ? "lg:col-span-2" : "lg:col-span-3"}>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={180}>
               {renderChart(vendorChartType, vendorData, ["sites"])}
             </ResponsiveContainer>
           </div>
