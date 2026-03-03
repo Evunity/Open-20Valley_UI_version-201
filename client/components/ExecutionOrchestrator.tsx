@@ -238,15 +238,15 @@ export const ExecutionOrchestrator: React.FC = () => {
               </div>
             ) : (
               automations.map(automation => (
-                <button
+                <div
                   key={automation.id}
-                  onClick={() => setSelectedAutomation(automation.id)}
                   className={cn(
-                    'w-full p-4 rounded-lg border-2 transition text-left hover:shadow-sm',
+                    'w-full p-4 rounded-lg border-2 transition cursor-pointer hover:shadow-sm',
                     selectedAutomation === automation.id
                       ? 'border-primary bg-primary/10'
                       : 'border-border bg-card hover:border-border/80'
                   )}
+                  onClick={() => setSelectedAutomation(automation.id)}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
@@ -289,7 +289,7 @@ export const ExecutionOrchestrator: React.FC = () => {
                       {automation.enabled ? 'ON' : 'OFF'}
                     </button>
                   </div>
-                </button>
+                </div>
               ))
             )}
           </div>
