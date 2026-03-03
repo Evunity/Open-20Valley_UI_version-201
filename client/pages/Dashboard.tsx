@@ -26,6 +26,7 @@ import {
 } from "recharts";
 import DashboardWidget from "@/components/DashboardWidget";
 import AnalyticsSections from "@/components/AnalyticsSections";
+import MainPages from "@/components/MainPages";
 import { useLocalStorage, DEFAULT_WIDGETS, type DashboardLayout, type WidgetConfig } from "@/hooks/useLocalStorage";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -571,6 +572,9 @@ export default function Dashboard() {
 
       {/* ===== ANALYTICS SECTIONS ===== */}
       <AnalyticsSections />
+
+      {/* ===== MAIN PAGES ===== */}
+      <MainPages />
 
       {/* ===== NETWORK OVERVIEW SECTION ===== */}
       <div className="space-y-4">

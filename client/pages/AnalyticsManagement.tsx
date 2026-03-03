@@ -547,8 +547,8 @@ export default function AnalyticsManagement() {
 
       {/* KPI Search Bar - FULL WIDTH with Dropdown */}
       <div className="relative">
-        <div className={cn("bg-card border rounded-lg p-3 flex items-center gap-2 transition-all shadow-sm", showKPIDropdown ? "border-primary ring-1 ring-primary/30 shadow-md" : "border-border hover:border-primary/30")}>
-          <Search className="w-5 h-5 text-primary flex-shrink-0 stroke-2" />
+        <div className={cn("bg-card border rounded-lg p-2.5 flex items-center gap-2 transition-all shadow-sm", showKPIDropdown ? "border-primary ring-1 ring-primary/30 shadow-md" : "border-border hover:border-primary/30")}>
+          <Search className="w-4 h-4 text-primary flex-shrink-0 stroke-2" />
           <input
             type="text"
             placeholder="Search KPIs by name, category, or description..."
@@ -617,7 +617,7 @@ export default function AnalyticsManagement() {
       </div>
 
       {/* Global Filter Bar - with buttons INSIDE */}
-      <div className="bg-card border border-border rounded-lg p-4 space-y-4 text-sm">
+      <div className="bg-card border border-border rounded-lg p-3 space-y-3 text-sm">
         <div className="space-y-4">
           {/* Time Range Mode Selection */}
           <div className="flex items-center justify-between gap-3">
@@ -780,7 +780,7 @@ export default function AnalyticsManagement() {
         </div>
 
         {/* Filter Dropdowns Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-2">
           {renderDropdown("Country", "country", ["USA", "Canada", "UK", "Germany", "France", "Japan"], filters.countries || [], "countries")}
           {renderDropdown("Region", "region", allRegions, filters.regions, "regions")}
           {renderDropdown("Cluster", "cluster", allClusters, filters.clusters, "clusters")}
@@ -790,10 +790,6 @@ export default function AnalyticsManagement() {
           {renderDropdown("Network", "network", allNetworks, filters.networks, "networks")}
           {renderDropdown("Site", "site", allSites, filters.sites, "sites")}
           {renderDropdown("Cell", "cell", allCells, filters.cells, "cells")}
-        </div>
-
-        {/* Additional Filters */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
           {renderDropdown("Domain", "domain", allDomains, filters.domains, "domains")}
           {renderDropdown("Category", "category", allCategories, filters.categories, "categories")}
         </div>

@@ -205,14 +205,14 @@ export default function Layout({ children }: LayoutProps) {
                 if (isMobile) setMobileMenuOpen(false);
               }}
               className={cn(
-                "mx-1 flex items-center gap-2 px-2 py-1.5 rounded-lg transition-all duration-200 whitespace-nowrap cursor-pointer text-xs",
+                "mx-1 flex items-center gap-2 px-2 py-2 rounded-lg transition-all duration-200 whitespace-nowrap cursor-pointer text-xs",
                 isActive(path)
                   ? "bg-primary/20 text-primary font-medium border-l-2 border-primary"
                   : "text-sidebar-foreground hover:bg-sidebar-accent/50"
               )}
               title={!sidebarOpen ? label : undefined}
             >
-              <div className="flex-shrink-0 flex items-center justify-center">
+              <div className="flex-shrink-0 flex items-center justify-center w-4 h-4">
                 <Icon className="w-4 h-4" />
               </div>
               {sidebarOpen && <span className="text-xs truncate">{label}</span>}
@@ -226,12 +226,13 @@ export default function Layout({ children }: LayoutProps) {
         <button
           onClick={toggleDarkMode}
           className={cn(
-            "w-full flex items-center justify-center md:justify-start gap-2 px-2 py-1.5 rounded-lg transition-colors text-xs",
-            "text-sidebar-foreground hover:bg-sidebar-accent/50"
+            "w-full flex items-center px-2 py-2 rounded-lg transition-colors text-xs",
+            "text-sidebar-foreground hover:bg-sidebar-accent/50",
+            sidebarOpen ? "justify-start gap-2" : "justify-center"
           )}
           title="Toggle dark mode"
         >
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 flex items-center justify-center w-4 h-4">
             {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </div>
           {sidebarOpen && <span className="text-xs">{darkMode ? "Light" : "Dark"}</span>}
@@ -241,12 +242,12 @@ export default function Layout({ children }: LayoutProps) {
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className={cn(
-              "w-full flex items-center gap-1.5 px-2 py-1 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors text-xs",
-              sidebarOpen ? "justify-start" : "justify-center"
+              "w-full flex items-center px-2 py-2 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors text-xs",
+              sidebarOpen ? "justify-start gap-2" : "justify-center"
             )}
             title={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
           >
-            <div className="flex-shrink-0">
+            <div className="flex-shrink-0 flex items-center justify-center w-4 h-4">
               {sidebarOpen ? (
                 <ChevronsLeft className="w-4 h-4" />
               ) : (
