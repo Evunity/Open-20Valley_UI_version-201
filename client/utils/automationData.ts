@@ -23,6 +23,12 @@ export interface AutomationActivity {
   name: string;
   type: AutomationType;
   trigger: string;
+  triggerEvent: {
+    type: 'kpi_degradation' | 'alarm' | 'anomaly' | 'forecast';
+    description: string;
+    severity: 'warning' | 'critical';
+    value?: string;
+  };
   affectedObjects: string[];
   stages: ExecutionStageInfo[];
   subscribersSaved: number;
@@ -193,14 +199,32 @@ export function generateMockAutomationActivity(count: number = 15): AutomationAc
   const activities: AutomationActivity[] = [];
   const types: AutomationType[] = ['cell_outage_recovery', 'kpi_degradation', 'transport_failover', 'parameter_drift'];
   const risks: Array<'low' | 'medium' | 'high'> = ['low', 'medium', 'high'];
+  const triggerEvents = [
+    { type: 'kpi_degradation' as const, description: 'Accessibility (CSSR) dropped below 95%', severity: 'critical' as const, value: '92.4%' },
+    { type: 'kpi_degradation' as const, description: 'Call Drop Rate exceeded 0.8%', severity: 'critical' as const, value: '1.2%' },
+    { type: 'kpi_degradation' as const, description: 'Throughput degraded by 40%', severity: 'warning' as const, value: '850 Mbps' },
+    { type: 'alarm' as const, description: 'CRITICAL: RAN Processor Overload - Cluster East', severity: 'critical' as const },
+    { type: 'alarm' as const, description: 'MAJOR: Transport Link Latency Spike', severity: 'critical' as const },
+    { type: 'alarm' as const, description: 'Cell Connection Failure Detected', severity: 'warning' as const },
+    { type: 'anomaly' as const, description: 'Unusual traffic pattern detected in Site-42', severity: 'warning' as const },
+    { type: 'anomaly' as const, description: 'Configuration drift in DU parameters', severity: 'critical' as const },
+    { type: 'forecast' as const, description: 'ML forecast: Network capacity breach in 15 minutes', severity: 'warning' as const }
+  ];
 
   for (let i = 0; i < count; i++) {
     const createdAt = new Date(Date.now() - Math.random() * 3600000 * i);
+    const triggerEvent = triggerEvents[Math.floor(Math.random() * triggerEvents.length)];
     activities.push({
       id: `activity_${i}`,
-      name: `Automation Event ${i + 1}`,
+      name: ['Cell Outage Recovery', 'KPI Recovery', 'Transport Failover', 'Config Drift Fix'][Math.floor(Math.random() * 4)],
       type: types[Math.floor(Math.random() * types.length)],
-      trigger: `Trigger: ${['CPU threshold exceeded', 'Connection loss detected', 'Config drift detected', 'KPI below baseline'][Math.floor(Math.random() * 4)]}`,
+      trigger: triggerEvent.description,
+      triggerEvent: {
+        type: triggerEvent.type,
+        description: triggerEvent.description,
+        severity: triggerEvent.severity,
+        value: triggerEvent.value
+      },
       affectedObjects: [
         `Site_${Math.floor(Math.random() * 50 + 1)}`,
         `Cell_${Math.floor(Math.random() * 200 + 1)}`,
@@ -211,7 +235,7 @@ export function generateMockAutomationActivity(count: number = 15): AutomationAc
           stage: 'detected',
           timestamp: createdAt.toISOString(),
           status: 'success',
-          details: 'Issue detected by monitoring system'
+          details: triggerEvent.description
         },
         {
           stage: 'decision',

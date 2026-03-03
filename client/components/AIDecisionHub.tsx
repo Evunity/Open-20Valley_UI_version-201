@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Brain, TrendingUp, AlertCircle, CheckCircle } from 'lucide-react';
-import { generateMockDecisionCards } from '../utils/automationData';
+import { Brain, TrendingUp, AlertCircle, CheckCircle, BarChart2 } from 'lucide-react';
+import { generateMockDecisionCards, DecisionCard as DecisionCardType } from '../utils/automationData';
 
 interface DecisionCardProps {
   decision: string;
@@ -22,30 +22,30 @@ const DecisionCard: React.FC<DecisionCardProps> = ({
   isPrimary = false
 }) => (
   <div
-    className={`rounded-lg border-2 p-4 ${
+    className={`rounded-lg border-2 p-4 transition ${
       isPrimary
-        ? 'border-green-500 bg-green-50 shadow-lg'
-        : 'border-gray-200 bg-white hover:border-gray-300'
-    } transition`}
+        ? 'border-primary bg-primary/5'
+        : 'border-border bg-card hover:border-primary/50'
+    }`}
   >
     {isPrimary && (
-      <div className="mb-2 inline-block px-2 py-1 bg-green-600 text-white text-xs font-bold rounded">
+      <div className="mb-2 inline-block px-2 py-1 bg-primary text-primary-foreground text-xs font-bold rounded">
         PRODUCTION
       </div>
     )}
 
-    <h3 className="text-sm font-bold text-gray-900 mb-3">{decision}</h3>
+    <h3 className="text-sm font-bold text-foreground mb-3">{decision}</h3>
 
     {/* Metadata */}
     <div className="grid grid-cols-2 gap-2 mb-4 text-xs">
       <div>
-        <p className="text-gray-600 font-semibold">Model</p>
-        <p className="text-gray-900 font-mono">{model}</p>
+        <p className="text-muted-foreground font-semibold">Model</p>
+        <p className="text-foreground font-mono">{model}</p>
       </div>
       <div>
-        <p className="text-gray-600 font-semibold">Confidence</p>
+        <p className="text-muted-foreground font-semibold">Confidence</p>
         <div className="flex items-center gap-2">
-          <div className="flex-1 bg-gray-200 rounded h-2">
+          <div className="flex-1 bg-border rounded h-2">
             <div
               className={`h-full rounded transition ${
                 confidence >= 90
@@ -57,19 +57,19 @@ const DecisionCard: React.FC<DecisionCardProps> = ({
               style={{ width: `${confidence}%` }}
             />
           </div>
-          <span className="font-bold text-gray-900 w-8">{confidence}%</span>
+          <span className="font-bold text-foreground w-8">{confidence}%</span>
         </div>
       </div>
     </div>
 
     {/* Features */}
     <div className="mb-4">
-      <p className="text-xs font-semibold text-gray-700 mb-2">Features Analyzed</p>
+      <p className="text-xs font-semibold text-muted-foreground mb-2">Features Analyzed</p>
       <div className="flex flex-wrap gap-1">
         {features.map((feature, idx) => (
           <span
             key={idx}
-            className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded"
+            className="text-xs px-2 py-1 bg-primary/10 text-primary rounded"
           >
             {feature}
           </span>
@@ -78,19 +78,19 @@ const DecisionCard: React.FC<DecisionCardProps> = ({
     </div>
 
     {/* Similar Incidents */}
-    <div className="mb-4 p-2 bg-gray-50 rounded border border-gray-200">
-      <p className="text-xs font-semibold text-gray-700">
+    <div className="mb-4 p-2 bg-muted rounded border border-border">
+      <p className="text-xs font-semibold text-foreground">
         📊 {similarIncidents} similar incidents in history
       </p>
-      <p className="text-xs text-gray-600 mt-1">
+      <p className="text-xs text-muted-foreground mt-1">
         Model trained on {similarIncidents * 10}+ related incidents
       </p>
     </div>
 
     {/* Alternatives */}
     <div>
-      <p className="text-xs font-semibold text-gray-700 mb-2">Why not alternatives?</p>
-      <ul className="text-xs text-gray-700 space-y-1">
+      <p className="text-xs font-semibold text-muted-foreground mb-2">Why not alternatives?</p>
+      <ul className="text-xs text-foreground space-y-1">
         {alternatives.map((alt, idx) => (
           <li key={idx} className="flex items-start gap-2">
             <span className="text-red-600 mt-0.5">✗</span>
@@ -111,147 +111,286 @@ export const AIDecisionHub: React.FC<AIDecisionHubProps> = ({
   onDecisionApprove,
   onDecisionReject
 }) => {
-  const [showShadowMode, setShowShadowMode] = useState(false);
-  const decisions = generateMockDecisionCards();
+  const [pendingDecisions, setPendingDecisions] = useState<DecisionCardType[]>(generateMockDecisionCards());
+  const [approvedDecisions, setApprovedDecisions] = useState<DecisionCardType[]>([]);
+  const [rejectedDecisions, setRejectedDecisions] = useState<DecisionCardType[]>([]);
+  const [showAllDecisions, setShowAllDecisions] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+
+  const handleApprove = (decision: DecisionCardType) => {
+    setPendingDecisions(prev => prev.filter(d => d.id !== decision.id));
+    setApprovedDecisions(prev => [...prev, { ...decision, id: `approved_${decision.id}` }]);
+    onDecisionApprove?.(decision.decision);
+  };
+
+  const handleReject = (decision: DecisionCardType) => {
+    setPendingDecisions(prev => prev.filter(d => d.id !== decision.id));
+    setRejectedDecisions(prev => [...prev, { ...decision, id: `rejected_${decision.id}` }]);
+    onDecisionReject?.(decision.decision);
+  };
 
   return (
-    <div className="w-full flex flex-col h-full gap-4 p-4 bg-gray-50 overflow-y-auto">
+    <div className="w-full flex flex-col h-full gap-4 p-4 bg-background overflow-y-auto">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Brain className="w-5 h-5 text-indigo-600" />
-          <h2 className="text-lg font-bold text-gray-900">AI Decision Hub</h2>
+          <Brain className="w-5 h-5 text-primary" />
+          <h2 className="text-lg font-bold text-foreground">AI Decision Hub</h2>
         </div>
-        <button
-          onClick={() => setShowShadowMode(!showShadowMode)}
-          className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition ${
-            showShadowMode
-              ? 'bg-purple-600 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-          }`}
-        >
-          Shadow Mode {showShadowMode ? 'ON' : 'OFF'}
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowHistory(true)}
+            className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-card text-foreground border border-border hover:bg-muted transition"
+          >
+            📋 History
+          </button>
+          {pendingDecisions.length > 3 && (
+            <button
+              onClick={() => setShowAllDecisions(true)}
+              className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-card text-foreground border border-border hover:bg-muted transition"
+            >
+              Show All ({pendingDecisions.length})
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Primary Decision */}
-      <div className="space-y-2">
-        <p className="text-xs font-semibold text-gray-700">Production Decision</p>
-        <DecisionCard
-          decision={decisions[0].decision}
-          model={decisions[0].model}
-          confidence={decisions[0].confidence}
-          features={decisions[0].features}
-          similarIncidents={decisions[0].similarIncidents}
-          alternatives={decisions[0].alternatives}
-          isPrimary={true}
-        />
-      </div>
-
-      {/* Actions */}
-      <div className="flex gap-2">
-        <button
-          onClick={() => onDecisionApprove?.(decisions[0].decision)}
-          className="flex-1 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-green-600 hover:bg-green-700 transition flex items-center justify-center gap-2"
-        >
-          <CheckCircle className="w-4 h-4" /> Approve Execution
-        </button>
-        <button
-          onClick={() => onDecisionReject?.(decisions[0].decision)}
-          className="flex-1 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-red-600 hover:bg-red-700 transition flex items-center justify-center gap-2"
-        >
-          <AlertCircle className="w-4 h-4" /> Reject
-        </button>
-      </div>
-
-      {/* Shadow Mode Panel */}
-      {showShadowMode && (
-        <div className="bg-purple-50 border-2 border-purple-200 rounded-lg p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-lg">👁️</span>
-            <h3 className="text-sm font-bold text-purple-900">Shadow Mode Comparison</h3>
-          </div>
-
-          <div className="space-y-3">
-            {/* Current Model Recommendation */}
-            <div className="bg-white rounded-lg p-3 border border-purple-200">
-              <p className="text-xs font-semibold text-purple-900 mb-2">Model v4 (Candidate)</p>
-              <p className="text-xs text-purple-800 mb-2">
-                Recommends: <strong>{decisions[0].decision}</strong>
-              </p>
-              <div className="flex items-center gap-2">
-                <div className="flex-1 bg-gray-200 rounded h-1.5">
-                  <div
-                    className="h-full bg-green-500 rounded"
-                    style={{ width: '94%' }}
-                  />
-                </div>
-                <span className="text-xs font-bold text-gray-900">94%</span>
-              </div>
-            </div>
-
-            {/* Production Model */}
-            <div className="bg-white rounded-lg p-3 border border-gray-200">
-              <p className="text-xs font-semibold text-gray-900 mb-2">Production Model (v3.5)</p>
-              <p className="text-xs text-gray-700 mb-2">
-                Recommends: <strong>Do nothing</strong>
-              </p>
-              <div className="flex items-center gap-2">
-                <div className="flex-1 bg-gray-200 rounded h-1.5">
-                  <div
-                    className="h-full bg-gray-400 rounded"
-                    style={{ width: '15%' }}
-                  />
-                </div>
-                <span className="text-xs font-bold text-gray-900">15%</span>
-              </div>
-            </div>
-
-            {/* Projected Impact */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <div className="flex items-start gap-2">
-                <TrendingUp className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="text-xs font-semibold text-blue-900">Projected Improvement</p>
-                  <p className="text-sm font-bold text-blue-600 mt-1">+18% Success Rate</p>
-                  <p className="text-xs text-blue-800 mt-1">
-                    v4 has learned {decisions.length * 50}+ new patterns since v3.5
-                  </p>
-                </div>
-              </div>
-            </div>
+      {/* No Decisions Message */}
+      {pendingDecisions.length === 0 ? (
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-lg font-semibold text-muted-foreground mb-2">✓ No decisions pending</p>
+            <p className="text-sm text-muted-foreground">All decisions have been reviewed</p>
           </div>
         </div>
-      )}
-
-      {/* Alternative Decisions */}
-      {decisions.length > 1 && (
+      ) : (
         <>
-          <p className="text-xs font-semibold text-gray-700 mt-2">Alternative Decisions</p>
-          <div className="space-y-2">
-            {decisions.slice(1).map((decision, idx) => (
-              <DecisionCard
-                key={idx}
-                decision={decision.decision}
-                model={decision.model}
-                confidence={decision.confidence}
-                features={decision.features}
-                similarIncidents={decision.similarIncidents}
-                alternatives={decision.alternatives}
-              />
-            ))}
+          {/* Primary Decision */}
+          <div className="space-y-3">
+            <p className="text-xs font-semibold text-foreground">Production Decision</p>
+            
+            {/* Decision Card */}
+            <DecisionCard
+              decision={pendingDecisions[0].decision}
+              model={pendingDecisions[0].model}
+              confidence={pendingDecisions[0].confidence}
+              features={pendingDecisions[0].features}
+              similarIncidents={pendingDecisions[0].similarIncidents}
+              alternatives={pendingDecisions[0].alternatives}
+              isPrimary={true}
+            />
+
+            {/* Shadow Mode Comparison - Always Visible */}
+            <div className="bg-card border border-border rounded-lg p-3">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-lg">👁️</span>
+                <h3 className="text-sm font-bold text-foreground">Model Comparison</h3>
+              </div>
+
+              <div className="space-y-2 text-xs">
+                {/* Current Model Recommendation */}
+                <div className="bg-muted rounded p-2 border border-border">
+                  <p className="font-semibold text-foreground mb-1">Latest Model v4</p>
+                  <p className="text-muted-foreground mb-1">
+                    Recommends: <strong className="text-foreground">{pendingDecisions[0].decision}</strong>
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 bg-border rounded h-1.5">
+                      <div
+                        className="h-full bg-primary rounded"
+                        style={{ width: `${pendingDecisions[0].confidence}%` }}
+                      />
+                    </div>
+                    <span className="font-bold text-foreground w-8">{pendingDecisions[0].confidence}%</span>
+                  </div>
+                </div>
+
+                {/* Production Model */}
+                <div className="bg-muted rounded p-2 border border-border">
+                  <p className="font-semibold text-foreground mb-1">Production Model v3.5</p>
+                  <p className="text-muted-foreground mb-1">
+                    Recommends: <strong className="text-foreground">Review & Wait</strong>
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 bg-border rounded h-1.5">
+                      <div
+                        className="h-full bg-amber-500 rounded"
+                        style={{ width: '35%' }}
+                      />
+                    </div>
+                    <span className="font-bold text-foreground w-8">35%</span>
+                  </div>
+                </div>
+
+                {/* Projected Impact */}
+                <div className="bg-primary/5 border border-primary/20 rounded p-2">
+                  <div className="flex items-start gap-2">
+                    <TrendingUp className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="font-semibold text-foreground">Projected Improvement</p>
+                      <p className="text-primary font-bold mt-1">+18% Success Rate</p>
+                      <p className="text-muted-foreground mt-1">
+                        v4 has learned 750+ new patterns since v3.5
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
+
+          {/* Actions */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleApprove(pendingDecisions[0])}
+              className="flex-1 px-4 py-2 rounded-lg text-sm font-semibold text-primary-foreground bg-primary hover:bg-primary/90 transition flex items-center justify-center gap-2"
+            >
+              <CheckCircle className="w-4 h-4" /> Approve Execution
+            </button>
+            <button
+              onClick={() => handleReject(pendingDecisions[0])}
+              className="flex-1 px-4 py-2 rounded-lg text-sm font-semibold text-destructive-foreground bg-destructive hover:bg-destructive/90 transition flex items-center justify-center gap-2"
+            >
+              <AlertCircle className="w-4 h-4" /> Reject
+            </button>
+          </div>
+
+          {/* Alternative Decisions - Only if more than 1 */}
+          {pendingDecisions.length > 1 && (
+            <>
+              <p className="text-xs font-semibold text-foreground mt-4">Alternative Decisions</p>
+              <div className="space-y-2 max-h-40 overflow-y-auto">
+                {pendingDecisions.slice(1, 3).map((decision, idx) => (
+                  <DecisionCard
+                    key={idx}
+                    decision={decision.decision}
+                    model={decision.model}
+                    confidence={decision.confidence}
+                    features={decision.features}
+                    similarIncidents={decision.similarIncidents}
+                    alternatives={decision.alternatives}
+                  />
+                ))}
+              </div>
+            </>
+          )}
         </>
       )}
 
       {/* Explainability Info */}
-      <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3 mt-auto">
-        <p className="text-xs font-semibold text-indigo-900 mb-1">💡 Explainability</p>
-        <p className="text-xs text-indigo-800">
+      <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 mt-auto">
+        <p className="text-xs font-semibold text-foreground mb-1">💡 Explainability</p>
+        <p className="text-xs text-muted-foreground">
           All AI decisions are explainable. Features analyzed, confidence scores, and historical
           precedents are shown to ensure transparency and trust.
         </p>
       </div>
+
+      {/* History Modal */}
+      {showHistory && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-card rounded-lg border border-border max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b border-border">
+              <h2 className="text-lg font-bold text-foreground">Decision History</h2>
+              <button
+                onClick={() => setShowHistory(false)}
+                className="text-muted-foreground hover:text-foreground text-xl"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto space-y-2 p-4">
+              {approvedDecisions.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold text-foreground mb-2 flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-600" /> Approved ({approvedDecisions.length})
+                  </p>
+                  <div className="space-y-1 mb-3">
+                    {approvedDecisions.map(d => (
+                      <div key={d.id} className="text-xs p-2 bg-muted rounded border border-green-500/20">
+                        <p className="font-semibold text-foreground">{d.decision}</p>
+                        <p className="text-muted-foreground">Confidence: {d.confidence}%</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {rejectedDecisions.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold text-foreground mb-2 flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 text-red-600" /> Rejected ({rejectedDecisions.length})
+                  </p>
+                  <div className="space-y-1">
+                    {rejectedDecisions.map(d => (
+                      <div key={d.id} className="text-xs p-2 bg-muted rounded border border-red-500/20">
+                        <p className="font-semibold text-foreground">{d.decision}</p>
+                        <p className="text-muted-foreground">Confidence: {d.confidence}%</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {approvedDecisions.length === 0 && rejectedDecisions.length === 0 && (
+                <p className="text-xs text-muted-foreground text-center py-4">No decision history yet</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* All Decisions Modal */}
+      {showAllDecisions && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-card rounded-lg border border-border max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b border-border">
+              <h2 className="text-lg font-bold text-foreground">All Pending Decisions</h2>
+              <button
+                onClick={() => setShowAllDecisions(false)}
+                className="text-muted-foreground hover:text-foreground text-xl"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto space-y-2 p-4">
+              {pendingDecisions.map((decision, idx) => (
+                <div key={idx} className="border border-border rounded-lg p-3">
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <div>
+                      <p className="font-semibold text-foreground">{decision.decision}</p>
+                      <p className="text-xs text-muted-foreground">Confidence: {decision.confidence}%</p>
+                    </div>
+                    {idx === 0 && (
+                      <span className="text-xs px-2 py-1 rounded bg-primary text-primary-foreground">
+                        PRIMARY
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        handleApprove(decision);
+                        setShowAllDecisions(false);
+                      }}
+                      className="flex-1 px-2 py-1 text-xs rounded bg-primary/10 text-primary hover:bg-primary/20 transition"
+                    >
+                      Approve
+                    </button>
+                    <button
+                      onClick={() => {
+                        handleReject(decision);
+                        setShowAllDecisions(false);
+                      }}
+                      className="flex-1 px-2 py-1 text-xs rounded bg-red-500/10 text-red-600 hover:bg-red-500/20 transition"
+                    >
+                      Reject
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
