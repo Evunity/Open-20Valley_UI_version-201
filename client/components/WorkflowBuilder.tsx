@@ -540,18 +540,29 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
               })}
 
               {/* Dragging edge preview */}
-              {draggingEdge && (
-                <g pointerEvents="none">
+              {draggingEdge && (() => {
+                const startPos = getHandlePosition(draggingEdge.fromNodeId, draggingEdge.fromHandleId);
+                if (!startPos) return null;
+
+                const x1 = startPos.x;
+                const y1 = startPos.y;
+                const x2 = draggingEdge.x;
+                const y2 = draggingEdge.y;
+
+                const pathData = `M ${x1} ${y1} L ${(x1 + x2) / 2} ${y1} L ${(x1 + x2) / 2} ${y2} L ${x2} ${y2}`;
+
+                return (
                   <path
-                    d={`M ${draggingEdge.x} ${draggingEdge.y} L ${(draggingEdge.x * 2 + draggingEdge.x) / 2} ${draggingEdge.y} L ${(draggingEdge.x * 2 + draggingEdge.x) / 2} ${draggingEdge.y} L ${draggingEdge.x * 2} ${draggingEdge.y}`}
+                    d={pathData}
                     stroke="#9CA3AF"
                     strokeWidth="2"
                     fill="none"
                     strokeDasharray="5,5"
                     markerEnd="url(#arrowhead-preview)"
+                    pointerEvents="none"
                   />
-                </g>
-              )}
+                );
+              })()}
             </svg>
 
             {/* Nodes Container */}
@@ -573,10 +584,12 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
                         <button
                           key={handle.id}
                           onMouseUp={(e) => handleInputHandleMouseUp(node.id, handle.id, e)}
-                          className="absolute w-3 h-3 rounded-full bg-blue-500 hover:bg-blue-600 border-2 border-white hover:border-blue-300 shadow-md transition hover:scale-125"
+                          className="absolute rounded-full bg-blue-500 hover:bg-blue-400 border-3 border-white hover:border-blue-200 shadow-lg transition hover:scale-150 cursor-crosshair"
                           style={{
-                            left: '-8px',
-                            top: `${top - 6}px`,
+                            width: '12px',
+                            height: '12px',
+                            left: '-14px',
+                            top: `${top - 8}px`,
                             zIndex: 20
                           }}
                           title={`Input: ${handle.label}`}
@@ -609,10 +622,12 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
                         <button
                           key={handle.id}
                           onMouseDown={(e) => handleOutputHandleMouseDown(node.id, handle.id, e)}
-                          className="absolute w-3 h-3 rounded-full bg-green-500 hover:bg-green-600 border-2 border-white hover:border-green-300 shadow-md transition hover:scale-125 cursor-crosshair"
+                          className="absolute rounded-full bg-green-500 hover:bg-green-400 border-3 border-white hover:border-green-200 shadow-lg transition hover:scale-150 cursor-crosshair"
                           style={{
-                            right: '-8px',
-                            top: `${top - 6}px`,
+                            width: '12px',
+                            height: '12px',
+                            right: '-14px',
+                            top: `${top - 8}px`,
                             zIndex: 20
                           }}
                           title={`Output: ${handle.label} - Drag to connect`}
