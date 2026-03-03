@@ -335,8 +335,21 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
         {/* Add Cluster Location Button - Hidden in analytics view, only for admin */}
         {/* This configuration action has been moved to Settings page */}
 
-        {/* Reset Button */}
-        <div className="flex items-end">
+        {/* Buttons Row - Spans full width at bottom */}
+        <div className="col-span-1 md:col-span-2 lg:col-span-7 flex gap-2 pt-2 border-t border-border/50">
+          <button
+            onClick={handleApplyFilters}
+            disabled={!hasChanges}
+            className={cn(
+              "flex-1 px-4 py-2 rounded font-medium transition-colors text-sm flex items-center justify-center gap-2",
+              hasChanges
+                ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                : "bg-muted text-muted-foreground cursor-not-allowed opacity-50"
+            )}
+          >
+            <Check className="w-4 h-4" />
+            Apply
+          </button>
           <button
             onClick={() => {
               resetFilters();
@@ -350,10 +363,20 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
                 timeGranularity: "days",
               });
             }}
-            className="w-full px-3 py-2 rounded-lg bg-muted hover:bg-muted/70 transition-all duration-200 text-xs font-medium active:scale-95"
+            className="px-4 py-2 rounded border border-border text-foreground hover:bg-muted/50 transition-colors text-sm font-medium"
+            title="Clear all filters"
           >
             Reset All
           </button>
+          {hasChanges && (
+            <button
+              onClick={handleResetChanges}
+              className="px-3 py-2 rounded border border-border text-foreground hover:bg-muted/50 transition-colors text-sm"
+              title="Discard changes"
+            >
+              Cancel
+            </button>
+          )}
         </div>
       </div>
 
@@ -450,39 +473,6 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
       )}
 
       {/* Create Cluster Location Dialog removed - moved to Settings page */}
-
-      {/* Apply Filter Button - Sticky Footer */}
-      <div className="mt-auto border-t border-border/50 pt-3 flex gap-2">
-        <button
-          onClick={handleApplyFilters}
-          disabled={!hasChanges}
-          className={cn(
-            "flex-1 px-4 py-2 rounded font-medium transition-colors text-sm flex items-center justify-center gap-2",
-            hasChanges
-              ? "bg-primary text-primary-foreground hover:bg-primary/90"
-              : "bg-muted text-muted-foreground cursor-not-allowed opacity-50"
-          )}
-        >
-          <Check className="w-4 h-4" />
-          Apply
-        </button>
-        <button
-          onClick={() => resetFilters()}
-          className="px-4 py-2 rounded border border-border text-foreground hover:bg-muted/50 transition-colors text-sm font-medium"
-          title="Clear all filters"
-        >
-          Reset All
-        </button>
-        {hasChanges && (
-          <button
-            onClick={handleResetChanges}
-            className="px-3 py-2 rounded border border-border text-foreground hover:bg-muted/50 transition-colors text-sm"
-            title="Discard changes"
-          >
-            Cancel
-          </button>
-        )}
-      </div>
     </div>
   );
 }
