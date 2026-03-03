@@ -377,7 +377,7 @@ export default function AnalyticsManagement() {
       <button
         onClick={() => setOpenDropdown(openDropdown === dropdownKey ? null : dropdownKey)}
         className={cn(
-          "w-full flex items-center justify-between px-3 py-2.5 rounded-lg border text-sm font-medium transition-all",
+          "w-full flex items-center justify-between px-2 py-1.5 rounded border text-xs font-medium transition-all",
           openDropdown === dropdownKey
             ? "border-primary ring-1 ring-primary/30 bg-primary/5"
             : selectedItems.length > 0
@@ -385,15 +385,15 @@ export default function AnalyticsManagement() {
               : "border-border bg-background hover:bg-muted/50"
         )}
       >
-        <div className="flex items-center gap-2 truncate min-w-0">
-          <span className="text-sm truncate text-foreground font-semibold">{title}</span>
+        <div className="flex items-center gap-1 truncate min-w-0">
+          <span className="text-xs truncate text-foreground font-semibold">{title}</span>
           {selectedItems.length > 0 && (
-            <span className="text-xs px-2 py-0.5 rounded-full bg-primary text-primary-foreground flex-shrink-0 font-semibold">
+            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground flex-shrink-0 font-semibold">
               {selectedItems.length}
             </span>
           )}
         </div>
-        <ChevronDown className={cn("w-4 h-4 transition-transform flex-shrink-0 ml-2", openDropdown === dropdownKey && "rotate-180")} />
+        <ChevronDown className={cn("w-3 h-3 transition-transform flex-shrink-0 ml-1", openDropdown === dropdownKey && "rotate-180")} />
       </button>
 
       {openDropdown === dropdownKey && (
@@ -402,23 +402,23 @@ export default function AnalyticsManagement() {
             className="fixed inset-0 z-10"
             onClick={() => setOpenDropdown(null)}
           />
-          <div className="absolute top-full left-0 right-0 mt-1.5 bg-card border border-primary/30 rounded-lg shadow-xl z-20 max-h-48 overflow-y-auto">
+          <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-primary/30 rounded shadow-xl z-20 max-h-40 overflow-y-auto">
             {items.length > 0 ? (
               <div className="divide-y divide-border/50">
                 {items.map((item) => (
-                  <label key={item} className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-primary/5 transition-colors text-sm first:rounded-t-lg last:rounded-b-lg">
+                  <label key={item} className="flex items-center gap-2 px-2 py-1 cursor-pointer hover:bg-primary/5 transition-colors text-xs first:rounded-t last:rounded-b">
                     <input
                       type="checkbox"
                       checked={selectedItems.includes(item)}
                       onChange={() => toggleFilterItem(filterType, item)}
-                      className="w-4 h-4 rounded border border-border accent-primary cursor-pointer"
+                      className="w-3 h-3 rounded border border-border accent-primary cursor-pointer"
                     />
-                    <span className="truncate text-foreground font-medium">{item}</span>
+                    <span className="truncate text-foreground font-medium text-xs">{item}</span>
                   </label>
                 ))}
               </div>
             ) : (
-              <div className="px-3 py-4 text-sm text-muted-foreground text-center">No options available</div>
+              <div className="px-2 py-2 text-xs text-muted-foreground text-center">No options</div>
             )}
           </div>
         </>
@@ -427,24 +427,24 @@ export default function AnalyticsManagement() {
   );
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-2">
+      <div className="flex items-center justify-between flex-wrap gap-1.5">
         <div></div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <button
             onClick={() => setShowSavedViews(!showSavedViews)}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-background hover:bg-muted/50 transition-colors text-sm font-medium"
+            className="flex items-center gap-1 px-2 py-1 rounded border border-border bg-background hover:bg-muted/50 transition-colors text-xs font-medium"
           >
-            {showSavedViews ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            {showSavedViews ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
             Views ({savedViews.length})
           </button>
           <button
             onClick={() => setShowSaveDialog(true)}
             disabled={selectedKPIs.length === 0}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg border border-primary bg-primary/10 hover:bg-primary/20 transition-colors text-primary text-sm font-medium disabled:opacity-50"
+            className="flex items-center gap-1 px-2 py-1 rounded border border-primary bg-primary/10 hover:bg-primary/20 transition-colors text-primary text-xs font-medium disabled:opacity-50"
           >
-            <Save className="w-4 h-4" />
+            <Save className="w-3 h-3" />
             Save
           </button>
         </div>
@@ -452,32 +452,32 @@ export default function AnalyticsManagement() {
 
       {/* Saved Views Panel */}
       {showSavedViews && (
-        <div className="bg-card border border-border rounded-lg p-4 space-y-3">
-          <h3 className="text-sm font-bold text-foreground">Saved Views</h3>
+        <div className="bg-card border border-border rounded-lg p-2 space-y-1.5">
+          <h3 className="text-xs font-bold text-foreground">Saved Views</h3>
           {savedViews.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5">
               {savedViews.map((view) => (
-                <div key={view.id} className="border border-border/50 rounded-lg p-3 hover:bg-muted/50 transition-colors">
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-sm text-foreground">{view.name}</h4>
+                <div key={view.id} className="border border-border/50 rounded p-1.5 hover:bg-muted/50 transition-colors">
+                  <div className="flex items-start justify-between mb-1">
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-semibold text-xs text-foreground truncate">{view.name}</h4>
                       {view.description && (
-                        <p className="text-xs text-muted-foreground mt-1">{view.description}</p>
+                        <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">{view.description}</p>
                       )}
                     </div>
                     <button
                       onClick={() => handleDeleteView(view.id)}
-                      className="p-1 rounded hover:bg-red-100 text-red-600 transition-colors flex-shrink-0"
+                      className="p-0.5 rounded hover:bg-red-100 text-red-600 transition-colors flex-shrink-0 ml-1"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3 h-3" />
                     </button>
                   </div>
-                  <div className="text-xs text-muted-foreground mb-3">
+                  <div className="text-[10px] text-muted-foreground mb-1.5">
                     {view.kpis.length} KPI{view.kpis.length !== 1 ? "s" : ""} • {view.scope}
                   </div>
                   <button
                     onClick={() => handleLoadView(view)}
-                    className="w-full px-2 py-2 rounded text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium"
+                    className="w-full px-1.5 py-1 rounded text-xs bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium"
                   >
                     Load
                   </button>
@@ -547,25 +547,25 @@ export default function AnalyticsManagement() {
 
       {/* KPI Search Bar - FULL WIDTH with Dropdown */}
       <div className="relative">
-        <div className={cn("bg-card border rounded-lg p-2.5 flex items-center gap-2 transition-all shadow-sm", showKPIDropdown ? "border-primary ring-1 ring-primary/30 shadow-md" : "border-border hover:border-primary/30")}>
-          <Search className="w-4 h-4 text-primary flex-shrink-0 stroke-2" />
+        <div className={cn("bg-card border rounded p-1.5 flex items-center gap-1.5 transition-all shadow-sm", showKPIDropdown ? "border-primary ring-1 ring-primary/30 shadow-md" : "border-border hover:border-primary/30")}>
+          <Search className="w-3.5 h-3.5 text-primary flex-shrink-0 stroke-2" />
           <input
             type="text"
-            placeholder="Search KPIs by name, category, or description..."
+            placeholder="Search KPIs..."
             value={kpiSearch}
             onChange={(e) => {
               setKpiSearch(e.target.value);
               setShowKPIDropdown(true);
             }}
             onFocus={() => setShowKPIDropdown(true)}
-            className="flex-1 bg-transparent border-0 text-sm text-foreground placeholder-muted-foreground/70 focus:outline-none font-medium"
+            className="flex-1 bg-transparent border-0 text-xs text-foreground placeholder-muted-foreground/70 focus:outline-none font-medium"
           />
           {kpiSearch && (
             <button
               onClick={() => setKpiSearch("")}
-              className="p-1 text-muted-foreground hover:text-foreground transition-colors flex-shrink-0 hover:bg-muted/50 rounded"
+              className="p-0.5 text-muted-foreground hover:text-foreground transition-colors flex-shrink-0 hover:bg-muted/50 rounded"
             >
-              <X className="w-4 h-4" />
+              <X className="w-3 h-3" />
             </button>
           )}
         </div>
@@ -594,18 +594,18 @@ export default function AnalyticsManagement() {
                         }
                       }}
                       className={cn(
-                        "w-full text-left px-3 py-2 text-sm transition-all flex items-start gap-3",
+                        "w-full text-left px-2 py-1.5 text-xs transition-all flex items-start gap-2",
                         isSelected
                           ? "bg-primary/10 border-l-2 border-l-primary"
                           : "hover:bg-muted/40"
                       )}
                     >
-                      <div className={cn("w-5 h-5 rounded border-2 flex-shrink-0 mt-0.5 flex items-center justify-center", isSelected ? "bg-primary border-primary" : "border-border")}>
-                        {isSelected && <Check className="w-3.5 h-3.5 text-primary-foreground" />}
+                      <div className={cn("w-4 h-4 rounded border-2 flex-shrink-0 mt-0.5 flex items-center justify-center", isSelected ? "bg-primary border-primary" : "border-border")}>
+                        {isSelected && <Check className="w-2.5 h-2.5 text-primary-foreground" />}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-sm text-foreground">{kpi.name}</div>
-                        <div className="text-xs text-muted-foreground mt-0.5">{kpi.category} • {kpi.technology}</div>
+                        <div className="font-semibold text-xs text-foreground">{kpi.name}</div>
+                        <div className="text-[10px] text-muted-foreground mt-0.5">{kpi.category} • {kpi.technology}</div>
                       </div>
                     </button>
                   );
@@ -617,16 +617,16 @@ export default function AnalyticsManagement() {
       </div>
 
       {/* Global Filter Bar - with buttons INSIDE */}
-      <div className="bg-card border border-border rounded-lg p-3 space-y-3 text-sm">
-        <div className="space-y-4">
+      <div className="bg-card border border-border rounded p-2 space-y-2 text-xs">
+        <div className="space-y-2">
           {/* Time Range Mode Selection */}
-          <div className="flex items-center justify-between gap-3">
-            <label className="text-sm font-bold text-muted-foreground">Choose Dates</label>
-            <div className="flex gap-1 bg-muted/50 p-1 rounded-lg">
+          <div className="flex items-center justify-between gap-2">
+            <label className="text-xs font-bold text-muted-foreground">Dates</label>
+            <div className="flex gap-0.5 bg-muted/50 p-0.5 rounded">
               <button
                 onClick={() => setTimeRangeMode("predefined")}
                 className={cn(
-                  "px-3 py-1.5 rounded text-sm font-semibold transition-all",
+                  "px-2 py-1 rounded text-xs font-semibold transition-all",
                   timeRangeMode === "predefined"
                     ? "bg-primary text-primary-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
@@ -637,7 +637,7 @@ export default function AnalyticsManagement() {
               <button
                 onClick={() => setTimeRangeMode("manual")}
                 className={cn(
-                  "px-3 py-1.5 rounded text-sm font-semibold transition-all",
+                  "px-2 py-1 rounded text-xs font-semibold transition-all",
                   timeRangeMode === "manual"
                     ? "bg-primary text-primary-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
@@ -650,7 +650,7 @@ export default function AnalyticsManagement() {
 
           {/* Predefined or Manual Time Range */}
           {timeRangeMode === "predefined" ? (
-            <div className="grid grid-cols-5 gap-2">
+            <div className="grid grid-cols-5 gap-1">
               {[
                 { label: "1d", value: "1d" },
                 { label: "7d", value: "7d" },
@@ -662,7 +662,7 @@ export default function AnalyticsManagement() {
                   key={value}
                   onClick={() => handlePredefinedRange(value)}
                   className={cn(
-                    "px-2 py-2 rounded text-sm font-medium transition-all",
+                    "px-1.5 py-1 rounded text-xs font-medium transition-all",
                     predefinedRange === value
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted text-muted-foreground hover:bg-muted/70"
@@ -677,7 +677,7 @@ export default function AnalyticsManagement() {
               <button
                 onClick={() => setShowCalendarPicker(!showCalendarPicker)}
                 className={cn(
-                  "w-full px-3 py-2 rounded-lg border text-sm font-medium flex items-center gap-2 transition-all",
+                  "w-full px-2 py-1.5 rounded border text-xs font-medium flex items-center gap-1.5 transition-all",
                   showCalendarPicker
                     ? "border-primary ring-1 ring-primary/30 bg-primary/5"
                     : "border-border hover:border-primary/30"
@@ -780,7 +780,7 @@ export default function AnalyticsManagement() {
         </div>
 
         {/* Filter Dropdowns Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-1">
           {renderDropdown("Country", "country", ["USA", "Canada", "UK", "Germany", "France", "Japan"], filters.countries || [], "countries")}
           {renderDropdown("Region", "region", allRegions, filters.regions, "regions")}
           {renderDropdown("Cluster", "cluster", allClusters, filters.clusters, "clusters")}
@@ -795,20 +795,20 @@ export default function AnalyticsManagement() {
         </div>
 
         {/* Action Buttons - INSIDE the filter box */}
-        <div className="flex items-center justify-end gap-2 pt-4 border-t border-border/50">
+        <div className="flex items-center justify-end gap-1.5 pt-2 border-t border-border/50">
           {hasActiveFilters && (
             <button
               onClick={handleClearAllFilters}
-              className="flex items-center gap-1.5 px-3 py-2 rounded text-sm font-medium bg-muted text-muted-foreground hover:bg-red-100 hover:text-red-700 transition-colors"
+              className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-muted text-muted-foreground hover:bg-red-100 hover:text-red-700 transition-colors"
             >
-              <RotateCcw className="w-4 h-4" />
-              Reset All
+              <RotateCcw className="w-3 h-3" />
+              Reset
             </button>
           )}
 
           <button
             onClick={handleApplyFilter}
-            className="flex items-center gap-1.5 px-4 py-2 rounded text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+            className="flex items-center gap-1 px-3 py-1 rounded text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
           >
             Apply
           </button>
@@ -816,7 +816,7 @@ export default function AnalyticsManagement() {
           {isGenerated && (
             <button
               onClick={handleRegenerate}
-              className="flex items-center gap-1.5 px-3 py-2 rounded text-sm font-medium border border-border bg-background hover:bg-muted transition-colors"
+              className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium border border-border bg-background hover:bg-muted transition-colors"
             >
               ↻ Regenerate
             </button>
