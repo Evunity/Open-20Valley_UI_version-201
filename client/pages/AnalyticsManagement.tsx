@@ -617,7 +617,7 @@ export default function AnalyticsManagement() {
       </div>
 
       {/* Global Filter Bar - with buttons INSIDE */}
-      <div className="bg-card border border-border rounded-lg p-1 space-y-0.5">
+      <div className="bg-card border border-border rounded-lg p-1 space-y-0.5 text-xs">
         <div className="space-y-0.5">
           {/* Time Range Mode Selection */}
           <div className="flex items-center justify-between gap-1">
