@@ -111,21 +111,26 @@ export const AIDecisionHub: React.FC<AIDecisionHubProps> = ({
   onDecisionApprove,
   onDecisionReject
 }) => {
-  const [pendingDecisions, setPendingDecisions] = useState<DecisionCardType[]>(generateMockDecisionCards());
+  const initialDecisions = generateMockDecisionCards();
+  const [pendingDecisions, setPendingDecisions] = useState<DecisionCardType[]>(initialDecisions || []);
   const [approvedDecisions, setApprovedDecisions] = useState<DecisionCardType[]>([]);
   const [rejectedDecisions, setRejectedDecisions] = useState<DecisionCardType[]>([]);
-  const [showAllDecisions, setShowAllDecisions] = useState(false);
-  const [showHistory, setShowHistory] = useState(false);
+  const [showAllDecisions, setShowAllDecisions] = useState<boolean>(false);
+  const [showHistory, setShowHistory] = useState<boolean>(false);
 
   const handleApprove = (decision: DecisionCardType) => {
-    setPendingDecisions(prev => prev.filter(d => d.id !== decision.id));
-    setApprovedDecisions(prev => [...prev, { ...decision, id: `approved_${decision.id}` }]);
+    if (!decision) return;
+    const approvedDecision: DecisionCardType = { ...decision, id: `approved_${decision.id}` };
+    setPendingDecisions(prev => prev.filter(d => d.id !== decision.id) || []);
+    setApprovedDecisions(prev => [...(prev || []), approvedDecision]);
     onDecisionApprove?.(decision.decision);
   };
 
   const handleReject = (decision: DecisionCardType) => {
-    setPendingDecisions(prev => prev.filter(d => d.id !== decision.id));
-    setRejectedDecisions(prev => [...prev, { ...decision, id: `rejected_${decision.id}` }]);
+    if (!decision) return;
+    const rejectedDecision: DecisionCardType = { ...decision, id: `rejected_${decision.id}` };
+    setPendingDecisions(prev => prev.filter(d => d.id !== decision.id) || []);
+    setRejectedDecisions(prev => [...(prev || []), rejectedDecision]);
     onDecisionReject?.(decision.decision);
   };
 
@@ -156,7 +161,7 @@ export const AIDecisionHub: React.FC<AIDecisionHubProps> = ({
       </div>
 
       {/* No Decisions Message */}
-      {pendingDecisions.length === 0 ? (
+      {!pendingDecisions || pendingDecisions.length === 0 ? (
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <p className="text-lg font-semibold text-muted-foreground mb-2">✓ No decisions pending</p>
@@ -168,8 +173,9 @@ export const AIDecisionHub: React.FC<AIDecisionHubProps> = ({
           {/* Primary Decision */}
           <div className="space-y-3">
             <p className="text-xs font-semibold text-foreground">Production Decision</p>
-            
+
             {/* Decision Card */}
+            {pendingDecisions && pendingDecisions[0] && (
             <DecisionCard
               decision={pendingDecisions[0].decision}
               model={pendingDecisions[0].model}
@@ -179,8 +185,11 @@ export const AIDecisionHub: React.FC<AIDecisionHubProps> = ({
               alternatives={pendingDecisions[0].alternatives}
               isPrimary={true}
             />
+            )}
 
             {/* Shadow Mode Comparison - Always Visible */}
+            {pendingDecisions && pendingDecisions[0] && (
+            <>
             <div className="bg-card border border-border rounded-lg p-3">
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-lg">👁️</span>
@@ -237,26 +246,28 @@ export const AIDecisionHub: React.FC<AIDecisionHubProps> = ({
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Actions */}
-          <div className="flex gap-2">
-            <button
-              onClick={() => handleApprove(pendingDecisions[0])}
-              className="flex-1 px-4 py-2 rounded-lg text-sm font-semibold text-primary-foreground bg-primary hover:bg-primary/90 transition flex items-center justify-center gap-2"
-            >
-              <CheckCircle className="w-4 h-4" /> Approve Execution
-            </button>
-            <button
-              onClick={() => handleReject(pendingDecisions[0])}
-              className="flex-1 px-4 py-2 rounded-lg text-sm font-semibold text-destructive-foreground bg-destructive hover:bg-destructive/90 transition flex items-center justify-center gap-2"
-            >
-              <AlertCircle className="w-4 h-4" /> Reject
-            </button>
+            {/* Actions */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleApprove(pendingDecisions[0])}
+                className="flex-1 px-4 py-2 rounded-lg text-sm font-semibold text-primary-foreground bg-primary hover:bg-primary/90 transition flex items-center justify-center gap-2"
+              >
+                <CheckCircle className="w-4 h-4" /> Approve Execution
+              </button>
+              <button
+                onClick={() => handleReject(pendingDecisions[0])}
+                className="flex-1 px-4 py-2 rounded-lg text-sm font-semibold text-destructive-foreground bg-destructive hover:bg-destructive/90 transition flex items-center justify-center gap-2"
+              >
+                <AlertCircle className="w-4 h-4" /> Reject
+              </button>
+            </div>
+            </>
+            )}
           </div>
 
           {/* Alternative Decisions - Only if more than 1 */}
-          {pendingDecisions.length > 1 && (
+          {pendingDecisions && Array.isArray(pendingDecisions) && pendingDecisions.length > 1 && (
             <>
               <p className="text-xs font-semibold text-foreground mt-4">Alternative Decisions</p>
               <div className="space-y-2 max-h-40 overflow-y-auto">
@@ -300,7 +311,7 @@ export const AIDecisionHub: React.FC<AIDecisionHubProps> = ({
               </button>
             </div>
             <div className="flex-1 overflow-y-auto space-y-2 p-4">
-              {approvedDecisions.length > 0 && (
+              {approvedDecisions && Array.isArray(approvedDecisions) && approvedDecisions.length > 0 && (
                 <div>
                   <p className="text-xs font-semibold text-foreground mb-2 flex items-center gap-2">
                     <CheckCircle className="w-4 h-4 text-green-600" /> Approved ({approvedDecisions.length})
@@ -315,7 +326,7 @@ export const AIDecisionHub: React.FC<AIDecisionHubProps> = ({
                   </div>
                 </div>
               )}
-              {rejectedDecisions.length > 0 && (
+              {rejectedDecisions && Array.isArray(rejectedDecisions) && rejectedDecisions.length > 0 && (
                 <div>
                   <p className="text-xs font-semibold text-foreground mb-2 flex items-center gap-2">
                     <AlertCircle className="w-4 h-4 text-red-600" /> Rejected ({rejectedDecisions.length})
@@ -352,7 +363,7 @@ export const AIDecisionHub: React.FC<AIDecisionHubProps> = ({
               </button>
             </div>
             <div className="flex-1 overflow-y-auto space-y-2 p-4">
-              {pendingDecisions.map((decision, idx) => (
+              {pendingDecisions && Array.isArray(pendingDecisions) && pendingDecisions.map((decision, idx) => (
                 <div key={idx} className="border border-border rounded-lg p-3">
                   <div className="flex items-start justify-between gap-3 mb-2">
                     <div>
