@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Save, Trash2, Download, Eye, EyeOff, ChevronDown, Search, X, RotateCcw, Calendar } from "lucide-react";
+import { Save, Trash2, Download, Eye, EyeOff, ChevronDown, Search, X, RotateCcw, Calendar, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import * as XLSX from "xlsx";
 import TrendChartContainer from "@/components/TrendChartContainer";
@@ -25,6 +25,7 @@ export interface AnalyticsFilters {
   sites: string[];
   cells: string[];
   countries: string[];
+  granularityValues: string[];
   timeRange: {
     from: string;
     to: string;
@@ -47,6 +48,7 @@ export default function AnalyticsManagement() {
     sites: [],
     cells: [],
     countries: [],
+    granularityValues: [],
     timeRange: {
       from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
       to: new Date().toISOString().split("T")[0],
@@ -103,7 +105,8 @@ export default function AnalyticsManagement() {
     filters.clusters.length > 0 ||
     filters.sites.length > 0 ||
     filters.cells.length > 0 ||
-    filters.countries.length > 0;
+    filters.countries.length > 0 ||
+    filters.granularityValues.length > 0;
 
   const handlePredefinedRange = (range: string) => {
     const now = new Date();
@@ -166,6 +169,7 @@ export default function AnalyticsManagement() {
       sites: [],
       cells: [],
       countries: [],
+      granularityValues: [],
       timeRange: filters.timeRange,
       granularity: "1D",
     });
@@ -423,12 +427,12 @@ export default function AnalyticsManagement() {
   );
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-1.5">
       {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-2">
+      <div className="flex items-center justify-between flex-wrap gap-1">
         <div>
-          <h1 className="text-sm font-bold text-foreground">Analytics Management</h1>
-          <p className="text-[11px] text-muted-foreground">Create and analyze custom KPIs</p>
+          <h1 className="text-xs font-bold text-foreground">Analytics Management</h1>
+          <p className="text-[10px] text-muted-foreground">Create and analyze custom KPIs</p>
         </div>
         <div className="flex items-center gap-1.5">
           <button
@@ -546,28 +550,31 @@ export default function AnalyticsManagement() {
 
       {/* KPI Search Bar - FULL WIDTH with Dropdown */}
       <div className="relative">
-        <div className={cn("bg-card border rounded-lg p-2 flex items-center gap-2 transition-all", showKPIDropdown ? "border-primary ring-1 ring-primary/30" : "border-border")}>
-          <Search className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+        <div className={cn("bg-card border rounded-lg p-1.5 flex items-center gap-1.5 transition-all shadow-sm", showKPIDropdown ? "border-primary ring-1 ring-primary/30 shadow-md" : "border-border hover:border-primary/30")}>
+          <Search className="w-4 h-4 text-primary flex-shrink-0 stroke-2" />
           <input
             type="text"
-            placeholder="Search KPIs..."
+            placeholder="Search KPIs by name, category, or description..."
             value={kpiSearch}
-            onChange={(e) => setKpiSearch(e.target.value)}
+            onChange={(e) => {
+              setKpiSearch(e.target.value);
+              setShowKPIDropdown(true);
+            }}
             onFocus={() => setShowKPIDropdown(true)}
-            className="flex-1 bg-transparent border-0 text-xs text-foreground placeholder-muted-foreground focus:outline-none"
+            className="flex-1 bg-transparent border-0 text-xs text-foreground placeholder-muted-foreground/70 focus:outline-none font-medium"
           />
           {kpiSearch && (
             <button
               onClick={() => setKpiSearch("")}
-              className="p-0.5 text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
+              className="p-0.5 text-muted-foreground hover:text-foreground transition-colors flex-shrink-0 hover:bg-muted/50 rounded"
             >
-              <X className="w-3 h-3" />
+              <X className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
 
         {/* KPI Search Results Dropdown */}
-        {showKPIDropdown && !isGenerated && (
+        {showKPIDropdown && !isGenerated && filteredKPIs.length > 0 && (
           <>
             {/* Backdrop */}
             <div
@@ -575,73 +582,78 @@ export default function AnalyticsManagement() {
               onClick={() => setShowKPIDropdown(false)}
             />
             {/* Dropdown */}
-            <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-primary/30 rounded-lg shadow-lg z-20 max-h-64 overflow-y-auto">
-              {filteredKPIs.length > 0 ? (
-                <div className="space-y-0.5 p-1">
-                  {filteredKPIs.map((kpi) => {
-                    const isSelected = selectedKPIs.find((k) => k.id === kpi.id);
-                    return (
-                      <button
-                        key={kpi.id}
-                        onClick={() => {
-                          if (isSelected) {
-                            setSelectedKPIs(selectedKPIs.filter((k) => k.id !== kpi.id));
-                          } else {
-                            setSelectedKPIs([...selectedKPIs, kpi]);
-                          }
-                        }}
-                        className={cn(
-                          "w-full text-left px-2 py-1 rounded text-xs border transition-all",
-                          isSelected
-                            ? "border-primary bg-primary/10"
-                            : "border-border/50 bg-muted/30 hover:bg-muted/50"
-                        )}
-                      >
-                        <div className="font-medium text-foreground">{kpi.name}</div>
+            <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-primary/40 rounded-lg shadow-xl z-20 max-h-72 overflow-y-auto">
+              <div className="divide-y divide-border/30">
+                {filteredKPIs.map((kpi) => {
+                  const isSelected = selectedKPIs.find((k) => k.id === kpi.id);
+                  return (
+                    <button
+                      key={kpi.id}
+                      onClick={() => {
+                        if (isSelected) {
+                          setSelectedKPIs(selectedKPIs.filter((k) => k.id !== kpi.id));
+                        } else {
+                          setSelectedKPIs([...selectedKPIs, kpi]);
+                        }
+                      }}
+                      className={cn(
+                        "w-full text-left px-2 py-1.5 text-xs transition-all flex items-start gap-2",
+                        isSelected
+                          ? "bg-primary/10 border-l-2 border-l-primary"
+                          : "hover:bg-muted/40"
+                      )}
+                    >
+                      <div className={cn("w-4 h-4 rounded border-2 flex-shrink-0 mt-0.5 flex items-center justify-center", isSelected ? "bg-primary border-primary" : "border-border")}>
+                        {isSelected && <Check className="w-3 h-3 text-primary-foreground" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-foreground">{kpi.name}</div>
                         <div className="text-xs text-muted-foreground">{kpi.category} • {kpi.technology}</div>
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : (
-                <p className="text-xs text-muted-foreground text-center py-3">No KPIs found</p>
-              )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </>
         )}
       </div>
 
       {/* Global Filter Bar - with buttons INSIDE */}
-      <div className="bg-card border border-border rounded-lg p-2 space-y-2">
-        <div className="space-y-1.5">
+      <div className="bg-card border border-border rounded-lg p-1.5 space-y-1">
+        <div className="space-y-1">
           {/* Time Range Mode Selection */}
-          <div className="flex items-center justify-between">
-            <label className="text-xs font-semibold text-muted-foreground">Choose Dates</label>
-            <div className="flex gap-2">
-              <label className="flex items-center gap-1 cursor-pointer text-xs">
-                <input
-                  type="radio"
-                  checked={timeRangeMode === "predefined"}
-                  onChange={() => setTimeRangeMode("predefined")}
-                  className="w-3 h-3"
-                />
-                <span>Presets</span>
-              </label>
-              <label className="flex items-center gap-1 cursor-pointer text-xs">
-                <input
-                  type="radio"
-                  checked={timeRangeMode === "manual"}
-                  onChange={() => setTimeRangeMode("manual")}
-                  className="w-3 h-3"
-                />
-                <span>Custom</span>
-              </label>
+          <div className="flex items-center justify-between gap-1.5">
+            <label className="text-xs font-bold text-muted-foreground">Choose Dates</label>
+            <div className="flex gap-0.5 bg-muted/50 p-0.5 rounded-lg">
+              <button
+                onClick={() => setTimeRangeMode("predefined")}
+                className={cn(
+                  "px-1.5 py-0.5 rounded text-xs font-semibold transition-all",
+                  timeRangeMode === "predefined"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                Presets
+              </button>
+              <button
+                onClick={() => setTimeRangeMode("manual")}
+                className={cn(
+                  "px-1.5 py-0.5 rounded text-xs font-semibold transition-all",
+                  timeRangeMode === "manual"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                Custom
+              </button>
             </div>
           </div>
 
           {/* Predefined or Manual Time Range */}
           {timeRangeMode === "predefined" ? (
-            <div className="grid grid-cols-5 gap-1">
+            <div className="grid grid-cols-5 gap-0.5">
               {[
                 { label: "1d", value: "1d" },
                 { label: "7d", value: "7d" },
@@ -653,7 +665,7 @@ export default function AnalyticsManagement() {
                   key={value}
                   onClick={() => handlePredefinedRange(value)}
                   className={cn(
-                    "px-1.5 py-1 rounded text-xs font-medium transition-all",
+                    "px-1 py-0.5 rounded text-xs font-medium transition-all",
                     predefinedRange === value
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted text-muted-foreground hover:bg-muted/70"
@@ -668,7 +680,7 @@ export default function AnalyticsManagement() {
               <button
                 onClick={() => setShowCalendarPicker(!showCalendarPicker)}
                 className={cn(
-                  "w-full px-2 py-1.5 rounded-lg border text-xs font-medium flex items-center gap-2 transition-all",
+                  "w-full px-1.5 py-1 rounded-lg border text-xs font-medium flex items-center gap-1 transition-all",
                   showCalendarPicker
                     ? "border-primary ring-1 ring-primary/30 bg-primary/5"
                     : "border-border hover:border-primary/30"
@@ -771,17 +783,17 @@ export default function AnalyticsManagement() {
         </div>
 
         {/* Filter Dropdowns Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-1.5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-1">
           {renderDropdown("Country", "country", ["USA", "Canada", "UK", "Germany", "France", "Japan"], filters.countries || [], "countries")}
           {renderDropdown("Region", "region", allRegions, filters.regions, "regions")}
           {renderDropdown("Cluster", "cluster", allClusters, filters.clusters, "clusters")}
           {renderDropdown("Vendor", "vendor", allVendors, filters.vendors, "vendors")}
           {renderDropdown("Technology", "technology", allTechnologies, filters.technologies, "technologies")}
-          {renderDropdown("Granularity", "granularity", ["Hourly", "Daily", "Weekly", "Monthly"], filters.granularity ? [filters.granularity] : [], "granularity")}
+          {renderDropdown("Granularity", "granularity", ["Hourly", "Daily", "Weekly", "Monthly"], filters.granularityValues, "granularityValues")}
         </div>
 
         {/* Additional Filters */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-1.5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-1">
           {renderDropdown("Domain", "domain", allDomains, filters.domains, "domains")}
           {renderDropdown("Category", "category", allCategories, filters.categories, "categories")}
           {renderDropdown("Scope", "scope", allScopes, filters.scopes, "scopes")}
@@ -790,11 +802,11 @@ export default function AnalyticsManagement() {
         </div>
 
         {/* Action Buttons - INSIDE the filter box */}
-        <div className="flex items-center justify-end gap-1.5 pt-1 border-t border-border">
+        <div className="flex items-center justify-end gap-1 pt-1 border-t border-border/50">
           {hasActiveFilters && (
             <button
               onClick={handleClearAllFilters}
-              className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-muted text-muted-foreground hover:bg-red-100 hover:text-red-700 transition-colors"
+              className="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium bg-muted text-muted-foreground hover:bg-red-100 hover:text-red-700 transition-colors"
             >
               <RotateCcw className="w-3 h-3" />
               Reset All
@@ -803,15 +815,15 @@ export default function AnalyticsManagement() {
 
           <button
             onClick={handleApplyFilter}
-            className="flex items-center gap-1 px-2.5 py-1 rounded text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+            className="flex items-center gap-0.5 px-2 py-0.5 rounded text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
           >
-            Apply Filter
+            Apply
           </button>
 
           {isGenerated && (
             <button
               onClick={handleRegenerate}
-              className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium border border-border bg-background hover:bg-muted transition-colors"
+              className="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium border border-border bg-background hover:bg-muted transition-colors"
             >
               ↻ Regenerate
             </button>

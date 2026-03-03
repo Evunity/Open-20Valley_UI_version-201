@@ -654,13 +654,13 @@ export default function DashboardNew() {
   };
 
   return (
-    <div className="space-y-4 pb-4">
+    <div className="space-y-3 pb-3">
       {/* ===== HEADER SECTION ===== */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between gap-3 flex-wrap">
+      <div className="space-y-2">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
           <div className="space-y-0.5">
-            <h1 className="text-2xl font-bold text-foreground">Network Operations Dashboard</h1>
-            <p className="text-xs text-muted-foreground text-[11px]">
+            <h1 className="text-lg font-bold text-foreground">Network Operations Dashboard</h1>
+            <p className="text-[10px] text-muted-foreground">
               Real-time monitoring and AI-driven insights across your infrastructure
             </p>
           </div>
@@ -679,10 +679,10 @@ export default function DashboardNew() {
 
       {/* ===== KPI SECTION ===== */}
       <div>
-        <div className="space-y-2 mb-4">
+        <div className="space-y-1.5 mb-3">
           <div className="space-y-0.5">
-            <h2 className="text-xl font-bold text-foreground">Key Performance Indicators</h2>
-            <p className="text-xs text-muted-foreground">
+            <h2 className="text-sm font-bold text-foreground">Key Performance Indicators</h2>
+            <p className="text-[10px] text-muted-foreground">
               Real-time metrics reflecting current filters ({selectedKPIIds.length} of{" "}
               {AVAILABLE_KPIS.length} displayed)
             </p>
@@ -698,7 +698,7 @@ export default function DashboardNew() {
         </div>
 
         {/* KPI Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {selectedKPIs.map((kpi) => {
             const kpiValue = calculateKPIValue(kpi.id, filters);
             const IconComponent = kpi.icon;
@@ -708,7 +708,7 @@ export default function DashboardNew() {
               <div
                 key={kpi.id}
                 className={cn(
-                  "p-4 rounded-lg border transition-all duration-300 hover:shadow-lg hover:border-primary/50",
+                  "p-3 rounded-lg border transition-all duration-300 hover:shadow-lg hover:border-primary/50",
                   kpiValue.status === "healthy"
                     ? "border-status-healthy/20 bg-status-healthy/5"
                     : kpiValue.status === "critical"
@@ -716,10 +716,10 @@ export default function DashboardNew() {
                       : "border-border bg-card"
                 )}
               >
-                <div className="flex items-start justify-between gap-3 mb-3">
+                <div className="flex items-start justify-between gap-2 mb-2">
                   <div
                     className={cn(
-                      "p-2 rounded-lg w-fit",
+                      "p-1.5 rounded-lg w-fit",
                       kpiValue.status === "healthy"
                         ? "bg-status-healthy/10"
                         : kpiValue.status === "critical"
