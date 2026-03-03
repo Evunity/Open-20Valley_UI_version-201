@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   Plus, Trash2, Edit2, Save, X, Shield, AlertCircle, CheckCircle,
-  Copy, Settings, Toggle2, Eye, EyeOff
+  Copy, Settings, Power, Eye, EyeOff
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -281,7 +281,7 @@ export const TriggerEngine: React.FC = () => {
                         : 'bg-muted text-muted-foreground hover:bg-muted/80'
                     )}
                   >
-                    <Toggle2 className="w-3 h-3" />
+                    {selectedPolicy.status === 'active' ? '✓' : '✗'}
                     {selectedPolicy.status === 'active' ? 'Active' : 'Disabled'}
                   </button>
                 </div>
@@ -385,10 +385,11 @@ export const TriggerEngine: React.FC = () => {
             <div key={guard.id} className="bg-card border border-border rounded-lg p-3">
               <div className="flex items-start justify-between mb-2">
                 <p className="text-xs font-bold text-foreground">{guard.name}</p>
-                <Toggle2 className={cn(
-                  'w-3 h-3 cursor-pointer',
-                  guard.enabled ? 'text-status-healthy' : 'text-muted-foreground'
-                )} />
+                {guard.enabled ? (
+                  <CheckCircle className="w-3 h-3 text-status-healthy" />
+                ) : (
+                  <div className="w-3 h-3 rounded-full border border-muted-foreground" />
+                )}
               </div>
               <p className="text-[11px] text-muted-foreground mb-2">{guard.description}</p>
               <div className="flex items-center gap-1">

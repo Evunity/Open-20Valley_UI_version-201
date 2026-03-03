@@ -331,10 +331,10 @@ export const VisualWorkflowBuilder: React.FC<{
           {/* Nodes */}
           <div style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: '0 0' }}>
             {workflow.nodes.map(node => (
-              <div
+              <button
                 key={node.id}
                 className={cn(
-                  'absolute w-20 p-2 rounded-lg border-2 text-center cursor-move transition',
+                  'absolute w-20 p-2 rounded-lg border-2 text-center cursor-move transition flex flex-col items-center justify-center',
                   NODE_CONFIGS[node.type].color,
                   selectedNode === node.id && 'ring-2 ring-primary ring-offset-1',
                   node.status === 'running' && 'animate-pulse',
@@ -347,17 +347,27 @@ export const VisualWorkflowBuilder: React.FC<{
               >
                 <div className="text-2xl">{NODE_CONFIGS[node.type].icon}</div>
                 <div className="text-xs font-bold mt-1 truncate">{node.label}</div>
-                
-                {/* Output Port */}
-                <div
-                  className="absolute bottom-1/4 -right-2.5 w-3 h-3 rounded-full bg-primary border border-card cursor-pointer hover:bg-primary/80"
-                  onMouseDown={(e) => {
-                    e.stopPropagation();
-                    setDraggingFrom(node.id);
-                  }}
-                  title="Drag to connect"
-                />
-              </div>
+              </button>
+            ))}
+          </div>
+
+          {/* Output Ports - Separate from nodes */}
+          <div style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: '0 0', pointerEvents: 'auto' }}>
+            {workflow.nodes.map(node => (
+              <div
+                key={`port_${node.id}`}
+                className="absolute w-3 h-3 rounded-full bg-primary border border-card cursor-pointer hover:bg-primary/80"
+                style={{
+                  left: `${node.x + 80}px`,
+                  top: `${node.y + 32}px`,
+                  pointerEvents: 'auto'
+                }}
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                  setDraggingFrom(node.id);
+                }}
+                title="Drag to connect"
+              />
             ))}
           </div>
 
