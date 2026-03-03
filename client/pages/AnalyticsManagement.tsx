@@ -377,7 +377,7 @@ export default function AnalyticsManagement() {
       <button
         onClick={() => setOpenDropdown(openDropdown === dropdownKey ? null : dropdownKey)}
         className={cn(
-          "w-full flex items-center justify-between px-2 py-1.5 rounded-lg border text-xs font-medium transition-all",
+          "w-full flex items-center justify-between px-3 py-2.5 rounded-lg border text-sm font-medium transition-all",
           openDropdown === dropdownKey
             ? "border-primary ring-1 ring-primary/30 bg-primary/5"
             : selectedItems.length > 0
@@ -385,15 +385,15 @@ export default function AnalyticsManagement() {
               : "border-border bg-background hover:bg-muted/50"
         )}
       >
-        <div className="flex items-center gap-1.5 truncate min-w-0">
-          <span className="text-xs truncate text-foreground font-semibold">{title}</span>
+        <div className="flex items-center gap-2 truncate min-w-0">
+          <span className="text-sm truncate text-foreground font-semibold">{title}</span>
           {selectedItems.length > 0 && (
-            <span className="text-xs px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground flex-shrink-0 font-semibold">
+            <span className="text-xs px-2 py-0.5 rounded-full bg-primary text-primary-foreground flex-shrink-0 font-semibold">
               {selectedItems.length}
             </span>
           )}
         </div>
-        <ChevronDown className={cn("w-3 h-3 transition-transform flex-shrink-0 ml-1", openDropdown === dropdownKey && "rotate-180")} />
+        <ChevronDown className={cn("w-4 h-4 transition-transform flex-shrink-0 ml-2", openDropdown === dropdownKey && "rotate-180")} />
       </button>
 
       {openDropdown === dropdownKey && (
@@ -402,23 +402,23 @@ export default function AnalyticsManagement() {
             className="fixed inset-0 z-10"
             onClick={() => setOpenDropdown(null)}
           />
-          <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-primary/30 rounded-lg shadow-xl z-20 max-h-40 overflow-y-auto">
+          <div className="absolute top-full left-0 right-0 mt-1.5 bg-card border border-primary/30 rounded-lg shadow-xl z-20 max-h-48 overflow-y-auto">
             {items.length > 0 ? (
               <div className="divide-y divide-border/50">
                 {items.map((item) => (
-                  <label key={item} className="flex items-center gap-2 px-2 py-1.5 cursor-pointer hover:bg-primary/5 transition-colors text-xs first:rounded-t-lg last:rounded-b-lg">
+                  <label key={item} className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-primary/5 transition-colors text-sm first:rounded-t-lg last:rounded-b-lg">
                     <input
                       type="checkbox"
                       checked={selectedItems.includes(item)}
                       onChange={() => toggleFilterItem(filterType, item)}
-                      className="w-4 h-4 rounded border border-border accent-primary"
+                      className="w-4 h-4 rounded border border-border accent-primary cursor-pointer"
                     />
                     <span className="truncate text-foreground font-medium">{item}</span>
                   </label>
                 ))}
               </div>
             ) : (
-              <div className="px-2 py-3 text-xs text-muted-foreground text-center">No options available</div>
+              <div className="px-3 py-4 text-sm text-muted-foreground text-center">No options available</div>
             )}
           </div>
         </>
@@ -427,24 +427,24 @@ export default function AnalyticsManagement() {
   );
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-0.5">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <div></div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2">
           <button
             onClick={() => setShowSavedViews(!showSavedViews)}
-            className="flex items-center gap-1 px-2 py-1 rounded-lg border border-border bg-background hover:bg-muted/50 transition-colors text-xs font-medium"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-background hover:bg-muted/50 transition-colors text-sm font-medium"
           >
-            {showSavedViews ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+            {showSavedViews ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             Views ({savedViews.length})
           </button>
           <button
             onClick={() => setShowSaveDialog(true)}
             disabled={selectedKPIs.length === 0}
-            className="flex items-center gap-1 px-2 py-1 rounded-lg border border-primary bg-primary/10 hover:bg-primary/20 transition-colors text-primary text-xs font-medium disabled:opacity-50"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg border border-primary bg-primary/10 hover:bg-primary/20 transition-colors text-primary text-sm font-medium disabled:opacity-50"
           >
-            <Save className="w-3 h-3" />
+            <Save className="w-4 h-4" />
             Save
           </button>
         </div>
@@ -452,32 +452,32 @@ export default function AnalyticsManagement() {
 
       {/* Saved Views Panel */}
       {showSavedViews && (
-        <div className="bg-card border border-border rounded-lg p-1 space-y-1">
-          <h3 className="text-xs font-bold text-foreground">Saved Views</h3>
+        <div className="bg-card border border-border rounded-lg p-4 space-y-3">
+          <h3 className="text-sm font-bold text-foreground">Saved Views</h3>
           {savedViews.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {savedViews.map((view) => (
-                <div key={view.id} className="border border-border/50 rounded-lg p-1 hover:bg-muted/50 transition-colors">
-                  <div className="flex items-start justify-between mb-0.5">
+                <div key={view.id} className="border border-border/50 rounded-lg p-3 hover:bg-muted/50 transition-colors">
+                  <div className="flex items-start justify-between mb-2">
                     <div className="flex-1">
-                      <h4 className="font-semibold text-xs text-foreground">{view.name}</h4>
+                      <h4 className="font-semibold text-sm text-foreground">{view.name}</h4>
                       {view.description && (
-                        <p className="text-xs text-muted-foreground mt-0.5">{view.description}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{view.description}</p>
                       )}
                     </div>
                     <button
                       onClick={() => handleDeleteView(view.id)}
-                      className="p-0.5 rounded hover:bg-red-100 text-red-600 transition-colors flex-shrink-0"
+                      className="p-1 rounded hover:bg-red-100 text-red-600 transition-colors flex-shrink-0"
                     >
-                      <Trash2 className="w-3 h-3" />
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
-                  <div className="text-xs text-muted-foreground mb-1">
+                  <div className="text-xs text-muted-foreground mb-3">
                     {view.kpis.length} KPI{view.kpis.length !== 1 ? "s" : ""} • {view.scope}
                   </div>
                   <button
                     onClick={() => handleLoadView(view)}
-                    className="w-full px-1.5 py-0.5 rounded text-xs bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium"
+                    className="w-full px-2 py-2 rounded text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium"
                   >
                     Load
                   </button>
@@ -547,8 +547,8 @@ export default function AnalyticsManagement() {
 
       {/* KPI Search Bar - FULL WIDTH with Dropdown */}
       <div className="relative">
-        <div className={cn("bg-card border rounded-lg p-1 flex items-center gap-1 transition-all shadow-sm", showKPIDropdown ? "border-primary ring-1 ring-primary/30 shadow-md" : "border-border hover:border-primary/30")}>
-          <Search className="w-4 h-4 text-primary flex-shrink-0 stroke-2" />
+        <div className={cn("bg-card border rounded-lg p-3 flex items-center gap-2 transition-all shadow-sm", showKPIDropdown ? "border-primary ring-1 ring-primary/30 shadow-md" : "border-border hover:border-primary/30")}>
+          <Search className="w-5 h-5 text-primary flex-shrink-0 stroke-2" />
           <input
             type="text"
             placeholder="Search KPIs by name, category, or description..."
@@ -558,14 +558,14 @@ export default function AnalyticsManagement() {
               setShowKPIDropdown(true);
             }}
             onFocus={() => setShowKPIDropdown(true)}
-            className="flex-1 bg-transparent border-0 text-xs text-foreground placeholder-muted-foreground/70 focus:outline-none font-medium"
+            className="flex-1 bg-transparent border-0 text-sm text-foreground placeholder-muted-foreground/70 focus:outline-none font-medium"
           />
           {kpiSearch && (
             <button
               onClick={() => setKpiSearch("")}
-              className="p-0.5 text-muted-foreground hover:text-foreground transition-colors flex-shrink-0 hover:bg-muted/50 rounded"
+              className="p-1 text-muted-foreground hover:text-foreground transition-colors flex-shrink-0 hover:bg-muted/50 rounded"
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="w-4 h-4" />
             </button>
           )}
         </div>
@@ -594,18 +594,18 @@ export default function AnalyticsManagement() {
                         }
                       }}
                       className={cn(
-                        "w-full text-left px-2 py-1.5 text-xs transition-all flex items-start gap-2",
+                        "w-full text-left px-3 py-2 text-sm transition-all flex items-start gap-3",
                         isSelected
                           ? "bg-primary/10 border-l-2 border-l-primary"
                           : "hover:bg-muted/40"
                       )}
                     >
-                      <div className={cn("w-4 h-4 rounded border-2 flex-shrink-0 mt-0.5 flex items-center justify-center", isSelected ? "bg-primary border-primary" : "border-border")}>
-                        {isSelected && <Check className="w-3 h-3 text-primary-foreground" />}
+                      <div className={cn("w-5 h-5 rounded border-2 flex-shrink-0 mt-0.5 flex items-center justify-center", isSelected ? "bg-primary border-primary" : "border-border")}>
+                        {isSelected && <Check className="w-3.5 h-3.5 text-primary-foreground" />}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-foreground">{kpi.name}</div>
-                        <div className="text-xs text-muted-foreground">{kpi.category} • {kpi.technology}</div>
+                        <div className="font-semibold text-sm text-foreground">{kpi.name}</div>
+                        <div className="text-xs text-muted-foreground mt-0.5">{kpi.category} • {kpi.technology}</div>
                       </div>
                     </button>
                   );
@@ -617,16 +617,16 @@ export default function AnalyticsManagement() {
       </div>
 
       {/* Global Filter Bar - with buttons INSIDE */}
-      <div className="bg-card border border-border rounded-lg p-1 space-y-0.5 text-xs">
-        <div className="space-y-0.5">
+      <div className="bg-card border border-border rounded-lg p-4 space-y-4 text-sm">
+        <div className="space-y-4">
           {/* Time Range Mode Selection */}
-          <div className="flex items-center justify-between gap-1">
-            <label className="text-xs font-bold text-muted-foreground">Choose Dates</label>
-            <div className="flex gap-0.5 bg-muted/50 p-0.5 rounded-lg">
+          <div className="flex items-center justify-between gap-3">
+            <label className="text-sm font-bold text-muted-foreground">Choose Dates</label>
+            <div className="flex gap-1 bg-muted/50 p-1 rounded-lg">
               <button
                 onClick={() => setTimeRangeMode("predefined")}
                 className={cn(
-                  "px-1.5 py-0.5 rounded text-xs font-semibold transition-all",
+                  "px-3 py-1.5 rounded text-sm font-semibold transition-all",
                   timeRangeMode === "predefined"
                     ? "bg-primary text-primary-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
@@ -637,7 +637,7 @@ export default function AnalyticsManagement() {
               <button
                 onClick={() => setTimeRangeMode("manual")}
                 className={cn(
-                  "px-1.5 py-0.5 rounded text-xs font-semibold transition-all",
+                  "px-3 py-1.5 rounded text-sm font-semibold transition-all",
                   timeRangeMode === "manual"
                     ? "bg-primary text-primary-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
@@ -650,7 +650,7 @@ export default function AnalyticsManagement() {
 
           {/* Predefined or Manual Time Range */}
           {timeRangeMode === "predefined" ? (
-            <div className="grid grid-cols-5 gap-0.5">
+            <div className="grid grid-cols-5 gap-2">
               {[
                 { label: "1d", value: "1d" },
                 { label: "7d", value: "7d" },
@@ -662,7 +662,7 @@ export default function AnalyticsManagement() {
                   key={value}
                   onClick={() => handlePredefinedRange(value)}
                   className={cn(
-                    "px-1 py-0.5 rounded text-xs font-medium transition-all",
+                    "px-2 py-2 rounded text-sm font-medium transition-all",
                     predefinedRange === value
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted text-muted-foreground hover:bg-muted/70"
@@ -677,7 +677,7 @@ export default function AnalyticsManagement() {
               <button
                 onClick={() => setShowCalendarPicker(!showCalendarPicker)}
                 className={cn(
-                  "w-full px-1.5 py-1 rounded-lg border text-xs font-medium flex items-center gap-1 transition-all",
+                  "w-full px-3 py-2 rounded-lg border text-sm font-medium flex items-center gap-2 transition-all",
                   showCalendarPicker
                     ? "border-primary ring-1 ring-primary/30 bg-primary/5"
                     : "border-border hover:border-primary/30"
@@ -780,7 +780,7 @@ export default function AnalyticsManagement() {
         </div>
 
         {/* Filter Dropdowns Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-0.5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
           {renderDropdown("Country", "country", ["USA", "Canada", "UK", "Germany", "France", "Japan"], filters.countries || [], "countries")}
           {renderDropdown("Region", "region", allRegions, filters.regions, "regions")}
           {renderDropdown("Cluster", "cluster", allClusters, filters.clusters, "clusters")}
@@ -793,26 +793,26 @@ export default function AnalyticsManagement() {
         </div>
 
         {/* Additional Filters */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-0.5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
           {renderDropdown("Domain", "domain", allDomains, filters.domains, "domains")}
           {renderDropdown("Category", "category", allCategories, filters.categories, "categories")}
         </div>
 
         {/* Action Buttons - INSIDE the filter box */}
-        <div className="flex items-center justify-end gap-1 pt-1 border-t border-border/50">
+        <div className="flex items-center justify-end gap-2 pt-4 border-t border-border/50">
           {hasActiveFilters && (
             <button
               onClick={handleClearAllFilters}
-              className="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium bg-muted text-muted-foreground hover:bg-red-100 hover:text-red-700 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-2 rounded text-sm font-medium bg-muted text-muted-foreground hover:bg-red-100 hover:text-red-700 transition-colors"
             >
-              <RotateCcw className="w-3 h-3" />
+              <RotateCcw className="w-4 h-4" />
               Reset All
             </button>
           )}
 
           <button
             onClick={handleApplyFilter}
-            className="flex items-center gap-0.5 px-2 py-0.5 rounded text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+            className="flex items-center gap-1.5 px-4 py-2 rounded text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
           >
             Apply
           </button>
@@ -820,7 +820,7 @@ export default function AnalyticsManagement() {
           {isGenerated && (
             <button
               onClick={handleRegenerate}
-              className="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium border border-border bg-background hover:bg-muted transition-colors"
+              className="flex items-center gap-1.5 px-3 py-2 rounded text-sm font-medium border border-border bg-background hover:bg-muted transition-colors"
             >
               ↻ Regenerate
             </button>
@@ -830,30 +830,30 @@ export default function AnalyticsManagement() {
 
       {/* Selected KPIs Summary - shown after generation */}
       {isGenerated && selectedKPIs.length > 0 && (
-        <div className="bg-card border border-border/50 rounded-lg p-2 text-xs text-muted-foreground">
+        <div className="bg-card border border-border/50 rounded-lg p-3 text-sm text-muted-foreground">
           {selectedKPIs.length} KPI{selectedKPIs.length !== 1 ? "s" : ""} selected
         </div>
       )}
 
       {/* Analysis Scope - Only after generation */}
       {isGenerated && (filters.networks.length > 0 || filters.regions.length > 0 || filters.clusters.length > 0 || filters.sites.length > 0 || filters.cells.length > 0) && (
-        <div className="bg-card border border-border rounded-lg p-2">
-          <h3 className="text-xs font-semibold text-muted-foreground mb-1">Select Instance</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-1">
+        <div className="bg-card border border-border rounded-lg p-4">
+          <h3 className="text-sm font-semibold text-muted-foreground mb-3">Select Instance</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
             {filters.networks.length > 0 && (
               <div className="relative">
                 <button
                   onClick={() => setOpenScopeDropdown(openScopeDropdown === "networks" ? null : "networks")}
-                  className="w-full flex items-center justify-between px-1.5 py-1 rounded border border-border bg-muted/50 hover:bg-muted text-xs font-medium text-foreground transition-colors"
+                  className="w-full flex items-center justify-between px-3 py-2 rounded border border-border bg-muted/50 hover:bg-muted text-sm font-medium text-foreground transition-colors"
                 >
-                  <div className="flex items-center gap-1 truncate">
-                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />
-                    <span className="truncate text-xs">{selectedNetwork || "Networks"}</span>
+                  <div className="flex items-center gap-2 truncate">
+                    <div className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" />
+                    <span className="truncate text-sm">{selectedNetwork || "Networks"}</span>
                   </div>
-                  <ChevronDown className={cn("w-3 h-3 flex-shrink-0", openScopeDropdown === "networks" && "rotate-180")} />
+                  <ChevronDown className={cn("w-4 h-4 flex-shrink-0", openScopeDropdown === "networks" && "rotate-180")} />
                 </button>
                 {openScopeDropdown === "networks" && (
-                  <div className="absolute top-full left-0 right-0 mt-0.5 bg-card border border-border rounded shadow-lg z-10 max-h-24 overflow-y-auto">
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded shadow-lg z-10 max-h-32 overflow-y-auto">
                     {filters.networks.map((network) => (
                       <button
                         key={network}
@@ -861,11 +861,11 @@ export default function AnalyticsManagement() {
                           setSelectedNetwork(selectedNetwork === network ? null : network);
                           setOpenScopeDropdown(null);
                         }}
-                        className="w-full flex items-center gap-1 px-1.5 py-1 text-xs text-left border-b border-border/50 last:border-b-0 hover:bg-muted/50 transition-colors"
+                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left border-b border-border/50 last:border-b-0 hover:bg-muted/50 transition-colors"
                       >
-                        <div className="w-1 h-1 rounded-full bg-blue-500 flex-shrink-0" />
-                        <span className="truncate flex-1 text-xs">{network}</span>
-                        {selectedNetwork === network && <span className="text-primary text-xs">✓</span>}
+                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />
+                        <span className="truncate flex-1 text-sm">{network}</span>
+                        {selectedNetwork === network && <span className="text-primary text-sm">✓</span>}
                       </button>
                     ))}
                   </div>
@@ -877,16 +877,16 @@ export default function AnalyticsManagement() {
               <div className="relative">
                 <button
                   onClick={() => setOpenScopeDropdown(openScopeDropdown === "regions" ? null : "regions")}
-                  className="w-full flex items-center justify-between px-1.5 py-1 rounded border border-border bg-muted/50 hover:bg-muted text-xs font-medium text-foreground transition-colors"
+                  className="w-full flex items-center justify-between px-3 py-2 rounded border border-border bg-muted/50 hover:bg-muted text-sm font-medium text-foreground transition-colors"
                 >
-                  <div className="flex items-center gap-1 truncate">
-                    <div className="w-1.5 h-1.5 bg-green-500 flex-shrink-0" />
-                    <span className="truncate text-xs">{selectedRegion || "Regions"}</span>
+                  <div className="flex items-center gap-2 truncate">
+                    <div className="w-2 h-2 bg-green-500 flex-shrink-0" />
+                    <span className="truncate text-sm">{selectedRegion || "Regions"}</span>
                   </div>
-                  <ChevronDown className={cn("w-3 h-3 flex-shrink-0", openScopeDropdown === "regions" && "rotate-180")} />
+                  <ChevronDown className={cn("w-4 h-4 flex-shrink-0", openScopeDropdown === "regions" && "rotate-180")} />
                 </button>
                 {openScopeDropdown === "regions" && (
-                  <div className="absolute top-full left-0 right-0 mt-0.5 bg-card border border-border rounded shadow-lg z-10 max-h-24 overflow-y-auto">
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded shadow-lg z-10 max-h-32 overflow-y-auto">
                     {filters.regions.map((region) => (
                       <button
                         key={region}
@@ -894,11 +894,11 @@ export default function AnalyticsManagement() {
                           setSelectedRegion(selectedRegion === region ? null : region);
                           setOpenScopeDropdown(null);
                         }}
-                        className="w-full flex items-center gap-1 px-1.5 py-1 text-xs text-left border-b border-border/50 last:border-b-0 hover:bg-muted/50 transition-colors"
+                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left border-b border-border/50 last:border-b-0 hover:bg-muted/50 transition-colors"
                       >
-                        <div className="w-1 h-1 bg-green-500 flex-shrink-0" />
-                        <span className="truncate flex-1 text-xs">{region}</span>
-                        {selectedRegion === region && <span className="text-primary text-xs">✓</span>}
+                        <div className="w-1.5 h-1.5 bg-green-500 flex-shrink-0" />
+                        <span className="truncate flex-1 text-sm">{region}</span>
+                        {selectedRegion === region && <span className="text-primary text-sm">✓</span>}
                       </button>
                     ))}
                   </div>
@@ -910,16 +910,16 @@ export default function AnalyticsManagement() {
               <div className="relative">
                 <button
                   onClick={() => setOpenScopeDropdown(openScopeDropdown === "clusters" ? null : "clusters")}
-                  className="w-full flex items-center justify-between px-1.5 py-1 rounded border border-border bg-muted/50 hover:bg-muted text-xs font-medium text-foreground transition-colors"
+                  className="w-full flex items-center justify-between px-3 py-2 rounded border border-border bg-muted/50 hover:bg-muted text-sm font-medium text-foreground transition-colors"
                 >
-                  <div className="flex items-center gap-1 truncate">
-                    <div className="w-1 h-1 border border-purple-500 rotate-45 flex-shrink-0" />
-                    <span className="truncate text-xs">{selectedCluster || "Clusters"}</span>
+                  <div className="flex items-center gap-2 truncate">
+                    <div className="w-2 h-2 border border-purple-500 rotate-45 flex-shrink-0" />
+                    <span className="truncate text-sm">{selectedCluster || "Clusters"}</span>
                   </div>
-                  <ChevronDown className={cn("w-3 h-3 flex-shrink-0", openScopeDropdown === "clusters" && "rotate-180")} />
+                  <ChevronDown className={cn("w-4 h-4 flex-shrink-0", openScopeDropdown === "clusters" && "rotate-180")} />
                 </button>
                 {openScopeDropdown === "clusters" && (
-                  <div className="absolute top-full left-0 right-0 mt-0.5 bg-card border border-border rounded shadow-lg z-10 max-h-24 overflow-y-auto">
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded shadow-lg z-10 max-h-32 overflow-y-auto">
                     {filters.clusters.map((cluster) => (
                       <button
                         key={cluster}
@@ -927,11 +927,11 @@ export default function AnalyticsManagement() {
                           setSelectedCluster(selectedCluster === cluster ? null : cluster);
                           setOpenScopeDropdown(null);
                         }}
-                        className="w-full flex items-center gap-1 px-1.5 py-1 text-xs text-left border-b border-border/50 last:border-b-0 hover:bg-muted/50 transition-colors"
+                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left border-b border-border/50 last:border-b-0 hover:bg-muted/50 transition-colors"
                       >
-                        <div className="w-1 h-1 border border-purple-500 rotate-45 flex-shrink-0" />
-                        <span className="truncate flex-1 text-xs">{cluster}</span>
-                        {selectedCluster === cluster && <span className="text-primary text-xs">✓</span>}
+                        <div className="w-1.5 h-1.5 border border-purple-500 rotate-45 flex-shrink-0" />
+                        <span className="truncate flex-1 text-sm">{cluster}</span>
+                        {selectedCluster === cluster && <span className="text-primary text-sm">✓</span>}
                       </button>
                     ))}
                   </div>
@@ -943,16 +943,16 @@ export default function AnalyticsManagement() {
               <div className="relative">
                 <button
                   onClick={() => setOpenScopeDropdown(openScopeDropdown === "sites" ? null : "sites")}
-                  className="w-full flex items-center justify-between px-1.5 py-1 rounded border border-border bg-muted/50 hover:bg-muted text-xs font-medium text-foreground transition-colors"
+                  className="w-full flex items-center justify-between px-3 py-2 rounded border border-border bg-muted/50 hover:bg-muted text-sm font-medium text-foreground transition-colors"
                 >
-                  <div className="flex items-center gap-1 truncate">
-                    <div className="w-1 h-1 border border-orange-500 rounded-full flex-shrink-0" />
-                    <span className="truncate text-xs">{selectedSite || "Sites"}</span>
+                  <div className="flex items-center gap-2 truncate">
+                    <div className="w-2 h-2 border border-orange-500 rounded-full flex-shrink-0" />
+                    <span className="truncate text-sm">{selectedSite || "Sites"}</span>
                   </div>
-                  <ChevronDown className={cn("w-3 h-3 flex-shrink-0", openScopeDropdown === "sites" && "rotate-180")} />
+                  <ChevronDown className={cn("w-4 h-4 flex-shrink-0", openScopeDropdown === "sites" && "rotate-180")} />
                 </button>
                 {openScopeDropdown === "sites" && (
-                  <div className="absolute top-full left-0 right-0 mt-0.5 bg-card border border-border rounded shadow-lg z-10 max-h-24 overflow-y-auto">
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded shadow-lg z-10 max-h-32 overflow-y-auto">
                     {filters.sites.map((site) => (
                       <button
                         key={site}
@@ -960,11 +960,11 @@ export default function AnalyticsManagement() {
                           setSelectedSite(selectedSite === site ? null : site);
                           setOpenScopeDropdown(null);
                         }}
-                        className="w-full flex items-center gap-1 px-1.5 py-1 text-xs text-left border-b border-border/50 last:border-b-0 hover:bg-muted/50 transition-colors"
+                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left border-b border-border/50 last:border-b-0 hover:bg-muted/50 transition-colors"
                       >
-                        <div className="w-1 h-1 border border-orange-500 rounded-full flex-shrink-0" />
-                        <span className="truncate flex-1 text-xs">{site}</span>
-                        {selectedSite === site && <span className="text-primary text-xs">✓</span>}
+                        <div className="w-1.5 h-1.5 border border-orange-500 rounded-full flex-shrink-0" />
+                        <span className="truncate flex-1 text-sm">{site}</span>
+                        {selectedSite === site && <span className="text-primary text-sm">✓</span>}
                       </button>
                     ))}
                   </div>
@@ -976,16 +976,16 @@ export default function AnalyticsManagement() {
               <div className="relative">
                 <button
                   onClick={() => setOpenScopeDropdown(openScopeDropdown === "cells" ? null : "cells")}
-                  className="w-full flex items-center justify-between px-1.5 py-1 rounded border border-border bg-muted/50 hover:bg-muted text-xs font-medium text-foreground transition-colors"
+                  className="w-full flex items-center justify-between px-3 py-2 rounded border border-border bg-muted/50 hover:bg-muted text-sm font-medium text-foreground transition-colors"
                 >
-                  <div className="flex items-center gap-1 truncate">
-                    <div className="w-1 h-1 bg-red-500 flex-shrink-0" style={{clipPath: "polygon(50% 0%, 100% 100%, 0% 100%)"}} />
-                    <span className="truncate text-xs">{selectedCell || "Cells"}</span>
+                  <div className="flex items-center gap-2 truncate">
+                    <div className="w-2 h-2 bg-red-500 flex-shrink-0" style={{clipPath: "polygon(50% 0%, 100% 100%, 0% 100%)"}} />
+                    <span className="truncate text-sm">{selectedCell || "Cells"}</span>
                   </div>
-                  <ChevronDown className={cn("w-3 h-3 flex-shrink-0", openScopeDropdown === "cells" && "rotate-180")} />
+                  <ChevronDown className={cn("w-4 h-4 flex-shrink-0", openScopeDropdown === "cells" && "rotate-180")} />
                 </button>
                 {openScopeDropdown === "cells" && (
-                  <div className="absolute top-full left-0 right-0 mt-0.5 bg-card border border-border rounded shadow-lg z-10 max-h-24 overflow-y-auto">
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded shadow-lg z-10 max-h-32 overflow-y-auto">
                     {filters.cells.map((cell) => (
                       <button
                         key={cell}
@@ -993,11 +993,11 @@ export default function AnalyticsManagement() {
                           setSelectedCell(selectedCell === cell ? null : cell);
                           setOpenScopeDropdown(null);
                         }}
-                        className="w-full flex items-center gap-1 px-1.5 py-1 text-xs text-left border-b border-border/50 last:border-b-0 hover:bg-muted/50 transition-colors"
+                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left border-b border-border/50 last:border-b-0 hover:bg-muted/50 transition-colors"
                       >
-                        <div className="w-1 h-1 bg-red-500 flex-shrink-0" style={{clipPath: "polygon(50% 0%, 100% 100%, 0% 100%)"}} />
-                        <span className="truncate flex-1 text-xs">{cell}</span>
-                        {selectedCell === cell && <span className="text-primary text-xs">✓</span>}
+                        <div className="w-1.5 h-1.5 bg-red-500 flex-shrink-0" style={{clipPath: "polygon(50% 0%, 100% 100%, 0% 100%)"}} />
+                        <span className="truncate flex-1 text-sm">{cell}</span>
+                        {selectedCell === cell && <span className="text-primary text-sm">✓</span>}
                       </button>
                     ))}
                   </div>
@@ -1010,20 +1010,20 @@ export default function AnalyticsManagement() {
 
       {/* Charts and Details */}
       {isGenerated && selectedKPIs.length > 0 && (
-        <div className="space-y-2">
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
               {generatedTime && (
-                <p className="text-xs text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                   Generated: {generatedTime.toLocaleString()}
                 </p>
               )}
             </div>
             <button
               onClick={handleExportAll}
-              className="flex items-center gap-1 px-2 py-1 rounded-lg border border-border bg-background hover:bg-muted transition-colors text-xs font-medium"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-background hover:bg-muted transition-colors text-sm font-medium"
             >
-              <Download className="w-3 h-3" />
+              <Download className="w-4 h-4" />
               Export
             </button>
           </div>
@@ -1048,47 +1048,47 @@ export default function AnalyticsManagement() {
           {/* KPI Details Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
             {selectedKPIs.map((kpi) => (
-              <div
-                key={kpi.id}
-                className="group relative bg-card border border-border rounded-lg p-2 cursor-help hover:border-primary/50 transition-colors"
-              >
-                <div className="flex items-start justify-between gap-1">
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-xs text-foreground">{kpi.name}</h4>
-                    <p className="text-xs text-muted-foreground mt-0.5">{kpi.description}</p>
-                  </div>
-                  <button
-                    onClick={() => handleExportKPI(kpi)}
-                    className="flex-shrink-0 p-1 rounded hover:bg-muted transition-colors"
-                  >
-                    <Download className="w-3 h-3 text-muted-foreground hover:text-foreground" />
-                  </button>
+            <div
+              key={kpi.id}
+              className="group relative bg-card border border-border rounded-lg p-4 cursor-help hover:border-primary/50 transition-colors"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1">
+                  <h4 className="font-semibold text-sm text-foreground">{kpi.name}</h4>
+                  <p className="text-sm text-muted-foreground mt-1">{kpi.description}</p>
                 </div>
+                <button
+                  onClick={() => handleExportKPI(kpi)}
+                  className="flex-shrink-0 p-2 rounded hover:bg-muted transition-colors"
+                >
+                  <Download className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+                </button>
+              </div>
 
-                {/* Tooltip */}
-                <div className="absolute left-0 top-full mt-1 hidden group-hover:block bg-background border border-border rounded-lg p-1.5 shadow-lg z-10 w-48 text-xs space-y-0.5">
-                  <div>
-                    <span className="text-muted-foreground text-xs">Category:</span>
-                    <p className="font-medium text-foreground text-xs">{kpi.category}</p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground text-xs">Technology:</span>
-                    <p className="font-medium text-foreground text-xs">{kpi.technology}</p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground text-xs">Unit:</span>
-                    <p className="font-medium text-foreground text-xs">{kpi.unit}</p>
-                  </div>
+              {/* Tooltip */}
+              <div className="absolute left-0 top-full mt-2 hidden group-hover:block bg-background border border-border rounded-lg p-3 shadow-lg z-10 w-56 text-sm space-y-2">
+                <div>
+                  <span className="text-muted-foreground text-xs font-semibold">Category:</span>
+                  <p className="font-medium text-foreground text-sm">{kpi.category}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground text-xs font-semibold">Technology:</span>
+                  <p className="font-medium text-foreground text-sm">{kpi.technology}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground text-xs font-semibold">Unit:</span>
+                  <p className="font-medium text-foreground text-sm">{kpi.unit}</p>
                 </div>
               </div>
-            ))}
+            </div>
+          ))}
           </div>
         </div>
       )}
 
       {isGenerated && selectedKPIs.length === 0 && (
-        <div className="bg-card border border-dashed border-border rounded-lg p-3 text-center">
-          <p className="text-xs text-muted-foreground">Click "Regenerate" to modify and select KPIs</p>
+        <div className="bg-card border border-dashed border-border rounded-lg p-6 text-center">
+          <p className="text-sm text-muted-foreground">Click "Regenerate" to modify and select KPIs</p>
         </div>
       )}
     </div>
