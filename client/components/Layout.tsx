@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, LayoutDashboard, Settings, Moon, Sun, Gauge, Bell, Zap, History, FileText, Lock, AlertTriangle, Map, Terminal, BarChart3, Shield, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { Menu, X, LayoutDashboard, Settings, Moon, Sun, Gauge, Bell, Zap, Lock, AlertTriangle, Map, Terminal, BarChart3, Shield, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface LayoutProps {
@@ -17,10 +17,10 @@ export default function Layout({ children }: LayoutProps) {
   const [isDragging, setIsDragging] = useState(false);
   const location = useLocation();
 
-  const COLLAPSED_WIDTH = 80; // Width when collapsed
+  const COLLAPSED_WIDTH = 72; // Width when collapsed
   const MIN_WIDTH = 150; // Minimum width before collapse when dragging
   const MAX_WIDTH = 400; // Maximum width
-  const DEFAULT_WIDTH = 256; // Default expanded width
+  const COLLAPSE_SNAP_THRESHOLD = 132;
 
   // Handle responsive behavior
   useEffect(() => {
@@ -58,7 +58,14 @@ export default function Layout({ children }: LayoutProps) {
       if (!isDragging || isMobile) return;
 
       const deltaX = e.clientX - dragStartXRef.current;
-      const newWidth = Math.max(MIN_WIDTH, Math.min(dragStartWidthRef.current + deltaX, MAX_WIDTH));
+      const requestedWidth = dragStartWidthRef.current + deltaX;
+
+      if (requestedWidth <= COLLAPSE_SNAP_THRESHOLD) {
+        setSidebarOpen(false);
+        return;
+      }
+
+      const newWidth = Math.max(MIN_WIDTH, Math.min(requestedWidth, MAX_WIDTH));
 
       setSidebarWidth(newWidth);
       // Always keep sidebar open while dragging at expanded width
@@ -205,14 +212,20 @@ export default function Layout({ children }: LayoutProps) {
                 if (isMobile) setMobileMenuOpen(false);
               }}
               className={cn(
-                "mx-1 flex items-center gap-2 px-2 py-2 rounded-lg transition-all duration-200 whitespace-nowrap cursor-pointer text-xs",
+                "mx-1 rounded-lg transition-all duration-200 whitespace-nowrap cursor-pointer text-xs",
+                sidebarOpen
+                  ? "flex items-center gap-2 px-2 py-2"
+                  : "flex h-10 items-center justify-center px-0",
                 isActive(path)
-                  ? "bg-primary/20 text-primary font-medium border-l-2 border-primary"
+                  ? cn(
+                      "bg-primary/20 text-primary font-medium",
+                      sidebarOpen && "border-l-2 border-primary"
+                    )
                   : "text-sidebar-foreground hover:bg-sidebar-accent/50"
               )}
               title={!sidebarOpen ? label : undefined}
             >
-              <div className="flex-shrink-0 flex items-center justify-center w-4 h-4">
+              <div className={cn("flex items-center justify-center", sidebarOpen ? "w-4 h-4" : "w-5 h-5")}>
                 <Icon className="w-4 h-4" />
               </div>
               {sidebarOpen && <span className="text-xs truncate">{label}</span>}
@@ -228,7 +241,7 @@ export default function Layout({ children }: LayoutProps) {
           className={cn(
             "w-full flex items-center px-2 py-2 rounded-lg transition-colors text-xs",
             "text-sidebar-foreground hover:bg-sidebar-accent/50",
-            sidebarOpen ? "justify-start gap-2" : "justify-center"
+            sidebarOpen ? "justify-start gap-2" : "justify-center h-10 px-0"
           )}
           title="Toggle dark mode"
         >
@@ -243,7 +256,7 @@ export default function Layout({ children }: LayoutProps) {
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className={cn(
               "w-full flex items-center px-2 py-2 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors text-xs",
-              sidebarOpen ? "justify-start gap-2" : "justify-center"
+              sidebarOpen ? "justify-start gap-2" : "justify-center h-10 px-0"
             )}
             title={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
           >
