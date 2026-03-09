@@ -68,7 +68,7 @@ export default function SearchableDropdown({
           }
         }}
         className={cn(
-          "w-full px-3 py-2 rounded-lg border transition-all flex items-center justify-between cursor-pointer relative",
+          "w-full h-[46px] px-3 rounded-lg border transition-all flex items-center justify-between cursor-pointer relative",
           isOpen
             ? "border-primary bg-primary/5 ring-2 ring-primary/50"
             : "border-border bg-background hover:border-primary/50"

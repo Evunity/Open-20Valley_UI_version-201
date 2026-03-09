@@ -307,15 +307,15 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
 
         {/* Choose Dates Button */}
         <div>
+          <label className="block text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
+            Choose Dates
+          </label>
           <button
             onClick={() => setShowCalendarDropdown(!showCalendarDropdown)}
-            className="w-full h-[46px] px-3 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all hover:bg-muted/30 flex items-center justify-between gap-2"
+            className="w-full h-[46px] px-3 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all hover:bg-muted/30 flex items-center"
           >
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
-              Choose Dates
-            </span>
             {stagedFilters.dateRange.from && stagedFilters.dateRange.to ? (
-              <span className="text-sm text-foreground font-medium truncate text-right">
+              <span className="text-sm text-foreground font-medium truncate">
                 {new Date(stagedFilters.dateRange.from).toLocaleDateString("en-US", {
                   month: "short",
                   day: "numeric",
@@ -327,7 +327,7 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
                 })}
               </span>
             ) : (
-              <span className="text-sm text-muted-foreground truncate text-right">Select range</span>
+              <span className="text-sm text-muted-foreground truncate">Select range</span>
             )}
           </button>
         </div>
