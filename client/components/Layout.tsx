@@ -59,22 +59,13 @@ export default function Layout({ children }: LayoutProps) {
       if (!isDragging || isMobile) return;
 
       const deltaX = e.clientX - dragStartXRef.current;
+      const baseWidth = dragStartedCollapsedRef.current ? COLLAPSED_WIDTH : dragStartWidthRef.current;
+      const requestedWidth = baseWidth + deltaX;
+      const collapseThreshold = dragStartedCollapsedRef.current
+        ? COLLAPSED_WIDTH
+        : COLLAPSE_SNAP_THRESHOLD;
 
-      if (dragStartedCollapsedRef.current) {
-        if (deltaX <= 0) {
-          setSidebarOpen(false);
-          return;
-        }
-
-        const expandedWidth = Math.max(MIN_WIDTH, Math.min(COLLAPSED_WIDTH + deltaX, MAX_WIDTH));
-        setSidebarWidth(expandedWidth);
-        setSidebarOpen(true);
-        return;
-      }
-
-      const requestedWidth = dragStartWidthRef.current + deltaX;
-
-      if (requestedWidth <= COLLAPSE_SNAP_THRESHOLD) {
+      if (requestedWidth <= collapseThreshold) {
         setSidebarOpen(false);
         return;
       }
@@ -82,7 +73,6 @@ export default function Layout({ children }: LayoutProps) {
       const newWidth = Math.max(MIN_WIDTH, Math.min(requestedWidth, MAX_WIDTH));
 
       setSidebarWidth(newWidth);
-      // Always keep sidebar open while dragging at expanded width
       setSidebarOpen(true);
     };
 
