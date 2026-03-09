@@ -66,6 +66,9 @@ export default function Layout({ children }: LayoutProps) {
         : COLLAPSE_SNAP_THRESHOLD;
 
       if (requestedWidth <= collapseThreshold) {
+      const requestedWidth = dragStartWidthRef.current + deltaX;
+
+      if (requestedWidth <= COLLAPSE_SNAP_THRESHOLD) {
         setSidebarOpen(false);
         return;
       }
