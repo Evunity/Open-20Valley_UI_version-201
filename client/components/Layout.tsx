@@ -231,8 +231,8 @@ export default function Layout({ children }: LayoutProps) {
               )}
               title={!sidebarOpen ? label : undefined}
             >
-              <div className={cn("flex items-center justify-center", sidebarOpen ? "w-4 h-4" : "w-5 h-5")}>
-                <Icon className="w-4 h-4" />
+              <div className={cn("flex items-center justify-center", sidebarOpen ? "w-4 h-4" : "w-4 h-4")}>
+                <Icon className={cn("transition-all", sidebarOpen ? "w-4 h-4" : "w-[15px] h-[15px]")} />
               </div>
               {sidebarOpen && <span className="text-xs truncate">{label}</span>}
             </Link>
@@ -252,7 +252,7 @@ export default function Layout({ children }: LayoutProps) {
           title="Toggle dark mode"
         >
           <div className="flex-shrink-0 flex items-center justify-center w-4 h-4">
-            {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            {darkMode ? <Sun className={cn(sidebarOpen ? "w-4 h-4" : "w-[15px] h-[15px]")} /> : <Moon className={cn(sidebarOpen ? "w-4 h-4" : "w-[15px] h-[15px]")} />}
           </div>
           {sidebarOpen && <span className="text-xs">{darkMode ? "Light" : "Dark"}</span>}
         </button>
@@ -268,9 +268,9 @@ export default function Layout({ children }: LayoutProps) {
           >
             <div className="flex-shrink-0 flex items-center justify-center w-4 h-4">
               {sidebarOpen ? (
-                <ChevronsLeft className="w-4 h-4" />
+                <ChevronsLeft className={cn(sidebarOpen ? "w-4 h-4" : "w-[15px] h-[15px]")} />
               ) : (
-                <ChevronsRight className="w-4 h-4" />
+                <ChevronsRight className={cn(sidebarOpen ? "w-4 h-4" : "w-[15px] h-[15px]")} />
               )}
             </div>
             {sidebarOpen && <span className="text-xs">Collapse</span>}
