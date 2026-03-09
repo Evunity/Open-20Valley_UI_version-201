@@ -52,12 +52,20 @@ export default function Layout({ children }: LayoutProps) {
   // Handle sidebar dragging
   const dragStartXRef = useRef(0);
   const dragStartWidthRef = useRef(0);
+  const dragStartedCollapsedRef = useRef(false);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isDragging || isMobile) return;
 
       const deltaX = e.clientX - dragStartXRef.current;
+      const baseWidth = dragStartedCollapsedRef.current ? COLLAPSED_WIDTH : dragStartWidthRef.current;
+      const requestedWidth = baseWidth + deltaX;
+      const collapseThreshold = dragStartedCollapsedRef.current
+        ? COLLAPSED_WIDTH
+        : COLLAPSE_SNAP_THRESHOLD;
+
+      if (requestedWidth <= collapseThreshold) {
       const requestedWidth = dragStartWidthRef.current + deltaX;
 
       if (requestedWidth <= COLLAPSE_SNAP_THRESHOLD) {
@@ -68,11 +76,11 @@ export default function Layout({ children }: LayoutProps) {
       const newWidth = Math.max(MIN_WIDTH, Math.min(requestedWidth, MAX_WIDTH));
 
       setSidebarWidth(newWidth);
-      // Always keep sidebar open while dragging at expanded width
       setSidebarOpen(true);
     };
 
     const handleMouseUp = () => {
+      dragStartedCollapsedRef.current = false;
       setIsDragging(false);
     };
 
@@ -93,7 +101,8 @@ export default function Layout({ children }: LayoutProps) {
 
   const handleDragStart = (e: React.MouseEvent) => {
     dragStartXRef.current = e.clientX;
-    dragStartWidthRef.current = sidebarWidth;
+    dragStartedCollapsedRef.current = !sidebarOpen;
+    dragStartWidthRef.current = sidebarOpen ? sidebarWidth : COLLAPSED_WIDTH;
     setIsDragging(true);
   };
 
@@ -289,19 +298,22 @@ export default function Layout({ children }: LayoutProps) {
         </aside>
 
         {/* Draggable Handle */}
-        {sidebarOpen && (
-          <div
-            onMouseDown={handleDragStart}
-            className="hidden md:flex md:items-center md:justify-center absolute right-0 top-0 h-full w-2 bg-transparent hover:bg-primary/30 cursor-col-resize transition-all z-40 group-hover:bg-primary/40"
-            title="Drag left/right to resize sidebar"
-          >
-            <div className="flex flex-col gap-1.5">
-              <div className="w-1 h-3 bg-primary/40 rounded-full group-hover:bg-primary/70 transition-colors"></div>
-              <div className="w-1 h-3 bg-primary/40 rounded-full group-hover:bg-primary/70 transition-colors"></div>
-              <div className="w-1 h-3 bg-primary/40 rounded-full group-hover:bg-primary/70 transition-colors"></div>
-            </div>
+        <div
+          onMouseDown={handleDragStart}
+          className={cn(
+            "hidden md:flex md:items-center md:justify-center absolute right-0 top-0 h-full cursor-col-resize transition-all z-40",
+            sidebarOpen
+              ? "w-2 bg-transparent hover:bg-primary/30 group-hover:bg-primary/40"
+              : "w-3 bg-primary/20 hover:bg-primary/40"
+          )}
+          title="Drag left/right to resize sidebar"
+        >
+          <div className="flex flex-col gap-1.5">
+            <div className="w-1 h-3 bg-primary/40 rounded-full group-hover:bg-primary/70 transition-colors"></div>
+            <div className="w-1 h-3 bg-primary/40 rounded-full group-hover:bg-primary/70 transition-colors"></div>
+            <div className="w-1 h-3 bg-primary/40 rounded-full group-hover:bg-primary/70 transition-colors"></div>
           </div>
-        )}
+        </div>
       </div>
 
       {/* Mobile Overlay & Drawer */}
