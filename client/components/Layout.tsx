@@ -17,7 +17,7 @@ export default function Layout({ children }: LayoutProps) {
   const [isDragging, setIsDragging] = useState(false);
   const location = useLocation();
 
-  const COLLAPSED_WIDTH = 72; // Width when collapsed
+  const COLLAPSED_WIDTH = 84; // Width when collapsed
   const MIN_WIDTH = 150; // Minimum width before collapse when dragging
   const MAX_WIDTH = 400; // Maximum width
   const COLLAPSE_SNAP_THRESHOLD = 132;
@@ -218,14 +218,14 @@ export default function Layout({ children }: LayoutProps) {
                 if (isMobile) setMobileMenuOpen(false);
               }}
               className={cn(
-                "mx-1 rounded-lg transition-all duration-200 whitespace-nowrap cursor-pointer text-xs",
+                "rounded-lg transition-all duration-200 whitespace-nowrap cursor-pointer text-xs",
                 sidebarOpen
-                  ? "flex items-center gap-2 px-2 py-2"
-                  : "flex h-10 items-center justify-center px-0",
+                  ? "mx-1 flex items-center gap-2 px-2 py-2"
+                  : "mx-2 flex h-11 items-center justify-center px-0",
                 isActive(path)
                   ? cn(
-                      "bg-primary/20 text-primary font-medium",
-                      sidebarOpen && "border-l-2 border-primary"
+                      "text-primary font-medium",
+                      sidebarOpen ? "bg-primary/20 border-l-2 border-primary" : "bg-primary/15 ring-1 ring-primary/30"
                     )
                   : "text-sidebar-foreground hover:bg-sidebar-accent/50"
               )}
@@ -247,7 +247,7 @@ export default function Layout({ children }: LayoutProps) {
           className={cn(
             "w-full flex items-center px-2 py-2 rounded-lg transition-colors text-xs",
             "text-sidebar-foreground hover:bg-sidebar-accent/50",
-            sidebarOpen ? "justify-start gap-2" : "justify-center h-10 px-0"
+            sidebarOpen ? "justify-start gap-2" : "justify-center h-11 px-0"
           )}
           title="Toggle dark mode"
         >
@@ -262,7 +262,7 @@ export default function Layout({ children }: LayoutProps) {
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className={cn(
               "w-full flex items-center px-2 py-2 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors text-xs",
-              sidebarOpen ? "justify-start gap-2" : "justify-center h-10 px-0"
+              sidebarOpen ? "justify-start gap-2" : "justify-center h-11 px-0"
             )}
             title={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
           >
@@ -298,17 +298,17 @@ export default function Layout({ children }: LayoutProps) {
         <div
           onMouseDown={handleDragStart}
           className={cn(
-            "hidden md:flex md:items-center md:justify-center absolute right-0 top-0 h-full cursor-col-resize transition-all z-40",
+            "hidden md:flex md:items-center md:justify-center absolute top-0 h-full cursor-col-resize transition-all z-40",
             sidebarOpen
-              ? "w-2 bg-transparent hover:bg-primary/30 group-hover:bg-primary/40"
-              : "w-3 bg-primary/20 hover:bg-primary/40"
+              ? "right-0 w-3 translate-x-1/2 bg-transparent"
+              : "right-0 w-4 translate-x-1/2 bg-transparent"
           )}
           title="Drag left/right to resize sidebar"
         >
-          <div className="flex flex-col gap-1.5">
-            <div className="w-1 h-3 bg-primary/40 rounded-full group-hover:bg-primary/70 transition-colors"></div>
-            <div className="w-1 h-3 bg-primary/40 rounded-full group-hover:bg-primary/70 transition-colors"></div>
-            <div className="w-1 h-3 bg-primary/40 rounded-full group-hover:bg-primary/70 transition-colors"></div>
+          <div className="flex flex-col gap-1.5 rounded-full px-1 py-2 hover:bg-primary/10">
+            <div className="w-1 h-3 bg-primary/25 rounded-full group-hover:bg-primary/60 transition-colors"></div>
+            <div className="w-1 h-3 bg-primary/25 rounded-full group-hover:bg-primary/60 transition-colors"></div>
+            <div className="w-1 h-3 bg-primary/25 rounded-full group-hover:bg-primary/60 transition-colors"></div>
           </div>
         </div>
       </div>
