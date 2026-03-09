@@ -80,15 +80,15 @@ export default function SearchableDropdown({
             {selected.length}
           </div>
         )}
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
           {selected.length > 0 ? (
-            <div className="flex items-center gap-1 flex-wrap">
+            <div className="flex items-center gap-1 min-w-0 overflow-hidden">
               {selected.map((item) => (
                 <div
                   key={item}
-                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary/10 text-primary text-xs font-medium"
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary/10 text-primary text-xs font-medium max-w-full"
                 >
-                  {item}
+                  <span className="truncate">{item}</span>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -104,7 +104,7 @@ export default function SearchableDropdown({
               ))}
             </div>
           ) : (
-            <span className="text-muted-foreground text-sm">Select {label.toLowerCase()}...</span>
+            <span className="text-muted-foreground text-sm truncate">Select {label.toLowerCase()}...</span>
           )}
         </div>
         <ChevronDown
