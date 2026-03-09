@@ -17,7 +17,7 @@ export default function Layout({ children }: LayoutProps) {
   const [isDragging, setIsDragging] = useState(false);
   const location = useLocation();
 
-  const COLLAPSED_WIDTH = 84; // Width when collapsed
+  const COLLAPSED_WIDTH = 76; // Width when collapsed
   const MIN_WIDTH = 150; // Minimum width before collapse when dragging
   const MAX_WIDTH = 400; // Maximum width
   const COLLAPSE_SNAP_THRESHOLD = 132;
@@ -209,7 +209,7 @@ export default function Layout({ children }: LayoutProps) {
 
       {/* Main Navigation */}
       <nav className="flex-1 overflow-y-auto py-2 px-0">
-        <div className="space-y-1">
+        <div className={cn(sidebarOpen ? "space-y-1" : "space-y-0.5")}>
           {mainNavItems.map(({ path, label, icon: Icon }) => (
             <Link
               key={path}
@@ -221,7 +221,7 @@ export default function Layout({ children }: LayoutProps) {
                 "rounded-lg transition-all duration-200 whitespace-nowrap cursor-pointer text-xs",
                 sidebarOpen
                   ? "mx-1 flex items-center gap-2 px-2 py-2"
-                  : "mx-2 flex h-11 items-center justify-center px-0",
+                  : "mx-2 flex h-9 items-center justify-center px-0",
                 isActive(path)
                   ? cn(
                       "text-primary font-medium",
@@ -231,8 +231,8 @@ export default function Layout({ children }: LayoutProps) {
               )}
               title={!sidebarOpen ? label : undefined}
             >
-              <div className={cn("flex items-center justify-center", sidebarOpen ? "w-4 h-4" : "w-4 h-4")}>
-                <Icon className={cn("transition-all", sidebarOpen ? "w-4 h-4" : "w-[15px] h-[15px]")} />
+              <div className={cn("flex items-center justify-center", sidebarOpen ? "w-4 h-4" : "w-[14px] h-[14px]")}>
+                <Icon className={cn("transition-all", sidebarOpen ? "w-4 h-4" : "w-[14px] h-[14px]")} />
               </div>
               {sidebarOpen && <span className="text-xs truncate">{label}</span>}
             </Link>
@@ -247,12 +247,12 @@ export default function Layout({ children }: LayoutProps) {
           className={cn(
             "w-full flex items-center px-2 py-2 rounded-lg transition-colors text-xs",
             "text-sidebar-foreground hover:bg-sidebar-accent/50",
-            sidebarOpen ? "justify-start gap-2" : "justify-center h-11 px-0"
+            sidebarOpen ? "justify-start gap-2" : "justify-center h-9 px-0"
           )}
           title="Toggle dark mode"
         >
           <div className="flex-shrink-0 flex items-center justify-center w-4 h-4">
-            {darkMode ? <Sun className={cn(sidebarOpen ? "w-4 h-4" : "w-[15px] h-[15px]")} /> : <Moon className={cn(sidebarOpen ? "w-4 h-4" : "w-[15px] h-[15px]")} />}
+            {darkMode ? <Sun className={cn(sidebarOpen ? "w-4 h-4" : "w-[14px] h-[14px]")} /> : <Moon className={cn(sidebarOpen ? "w-4 h-4" : "w-[14px] h-[14px]")} />}
           </div>
           {sidebarOpen && <span className="text-xs">{darkMode ? "Light" : "Dark"}</span>}
         </button>
@@ -262,15 +262,15 @@ export default function Layout({ children }: LayoutProps) {
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className={cn(
               "w-full flex items-center px-2 py-2 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors text-xs",
-              sidebarOpen ? "justify-start gap-2" : "justify-center h-11 px-0"
+              sidebarOpen ? "justify-start gap-2" : "justify-center h-9 px-0"
             )}
             title={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
           >
             <div className="flex-shrink-0 flex items-center justify-center w-4 h-4">
               {sidebarOpen ? (
-                <ChevronsLeft className={cn(sidebarOpen ? "w-4 h-4" : "w-[15px] h-[15px]")} />
+                <ChevronsLeft className={cn(sidebarOpen ? "w-4 h-4" : "w-[14px] h-[14px]")} />
               ) : (
-                <ChevronsRight className={cn(sidebarOpen ? "w-4 h-4" : "w-[15px] h-[15px]")} />
+                <ChevronsRight className={cn(sidebarOpen ? "w-4 h-4" : "w-[14px] h-[14px]")} />
               )}
             </div>
             {sidebarOpen && <span className="text-xs">Collapse</span>}
@@ -301,7 +301,7 @@ export default function Layout({ children }: LayoutProps) {
             "hidden md:flex md:items-center md:justify-center absolute top-0 h-full cursor-col-resize transition-all z-40",
             sidebarOpen
               ? "right-0 w-3 translate-x-1/2 bg-transparent"
-              : "right-0 w-4 translate-x-1/2 bg-transparent"
+              : "right-0 w-3 translate-x-1/2 bg-transparent"
           )}
           title="Drag left/right to resize sidebar"
         >
