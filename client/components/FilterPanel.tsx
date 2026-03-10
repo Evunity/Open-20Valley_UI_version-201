@@ -274,43 +274,48 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
         />
 
         {/* Time Granularity Control */}
-        <SearchableDropdown
-          label="Granularity"
-          options={["Hours", "Days"]}
-          selected={[stagedFilters.timeGranularity === "hours" ? "Hours" : "Days"]}
-          multiSelect={false}
-          disabledOptions={allowHourly ? [] : ["Hours"]}
-          onChange={(selected) => {
-            const granularity = selected[0] === "Hours" ? "hours" : "days";
-
-            if (granularity === "hours" && !allowHourly) {
-              toast({
-                title: "Cannot select hourly",
-                description: "Hourly view is only available for date ranges of 3 days or less",
+        <div>
+          <label className="block text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
+            Granularity
+          </label>
+          <select
+            className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+            value={stagedFilters.timeGranularity}
+            onChange={(e) => {
+              const granularity = e.target.value as "hours" | "days";
+              // Only allow hourly if date range is 3 days or less
+              if (granularity === "hours" && !allowHourly) {
+                toast({
+                  title: "Cannot select hourly",
+                  description: "Hourly view is only available for date ranges of 3 days or less",
+                });
+                return;
+              }
+              handleStagedFilterChange({
+                ...stagedFilters,
+                timeGranularity: granularity,
               });
-              return;
-            }
-
-            handleStagedFilterChange({
-              ...stagedFilters,
-              timeGranularity: granularity,
-            });
-          }}
-          placeholder="Search granularity..."
-          searchable={false}
-        />
+            }}
+            disabled={!allowHourly && stagedFilters.timeGranularity === "hours"}
+          >
+            <option value="hours" disabled={!allowHourly}>
+              Hours {!allowHourly ? "(not available)" : ""}
+            </option>
+            <option value="days">Days</option>
+          </select>
+        </div>
 
         {/* Choose Dates Button */}
         <div>
-          <label className="block text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
-            Choose Dates
-          </label>
           <button
             onClick={() => setShowCalendarDropdown(!showCalendarDropdown)}
-            className="w-full h-[46px] px-3 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all hover:bg-muted/30 flex items-center"
+            className="w-full h-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all hover:bg-muted/30 flex flex-col items-start justify-center gap-1"
           >
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide block">
+              Choose Dates
+            </span>
             {stagedFilters.dateRange.from && stagedFilters.dateRange.to ? (
-              <span className="text-sm text-foreground font-medium truncate">
+              <span className="text-xs text-foreground font-medium">
                 {new Date(stagedFilters.dateRange.from).toLocaleDateString("en-US", {
                   month: "short",
                   day: "numeric",
@@ -322,7 +327,7 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
                 })}
               </span>
             ) : (
-              <span className="text-sm text-muted-foreground truncate">Select range</span>
+              <span className="text-xs text-muted-foreground">Select range</span>
             )}
           </button>
         </div>

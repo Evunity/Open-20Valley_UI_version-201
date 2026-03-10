@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { ChevronDown, X, Check } from "lucide-react";
+import { ChevronDown, X, Search, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AVAILABLE_KPIS } from "@/constants/kpis";
 
@@ -91,18 +91,23 @@ export default function SearchableKPISelect({
           );
         })}
 
+        {selectedKPILabels.length === 0 && (
+          <span className="text-muted-foreground flex-1">{placeholder}</span>
+        )}
+
         <div className="flex items-center gap-1.5 flex-1 min-w-0">
+          <Search
+            className={cn(
+              "w-4 h-4 transition-colors flex-shrink-0 stroke-2",
+              isOpen ? "text-primary" : "text-muted-foreground/70"
+            )}
+          />
           <input
             type="text"
             className="flex-1 bg-transparent outline-none text-foreground placeholder-muted-foreground text-xs min-w-0 font-medium"
-            placeholder={selectedKPILabels.length === 0 ? placeholder : ""}
+            placeholder="Search KPIs..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Backspace" && !searchTerm && value.length > 0) {
-                onChange(value.slice(0, -1));
-              }
-            }}
             onClick={(e) => {
               e.stopPropagation();
               setIsOpen(true);
