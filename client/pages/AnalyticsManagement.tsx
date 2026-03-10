@@ -58,6 +58,7 @@ export default function AnalyticsManagement() {
 
   const [kpiSearch, setKpiSearch] = useState("");
   const [selectedKPIs, setSelectedKPIs] = useState<KPI[]>([]);
+  const safeSelectedKPIs = Array.isArray(selectedKPIs) ? selectedKPIs : [];
   const [currentScope, setCurrentScope] = useState<SavedView["scope"]>("Network");
   const [savedViews, setSavedViews] = useState(getSavedViews());
   const [showSavedViews, setShowSavedViews] = useState(false);
@@ -204,16 +205,16 @@ export default function AnalyticsManagement() {
       );
     }
 
-    return kpis;
+    return Array.isArray(kpis) ? kpis : [];
   }, [filters, kpiSearch]);
 
   // Generate chart data for all selected KPIs
   const chartDataMap = useMemo(() => {
-    if (selectedKPIs.length === 0) return {};
+    if (safeSelectedKPIs.length === 0) return {};
 
     const dataMap: Record<string, any[]> = {};
 
-    selectedKPIs.forEach((kpi) => {
+    safeSelectedKPIs.forEach((kpi) => {
       let label = "All";
 
       if (selectedNetwork) label = selectedNetwork;
@@ -230,7 +231,7 @@ export default function AnalyticsManagement() {
     });
 
     return dataMap;
-  }, [selectedKPIs, currentScope, selectedNetwork, selectedRegion, selectedCluster, selectedSite, selectedCell]);
+  }, [safeSelectedKPIs, currentScope, selectedNetwork, selectedRegion, selectedCluster, selectedSite, selectedCell]);
 
   const handleSaveView = () => {
     if (!saveViewName.trim()) return;
@@ -255,7 +256,7 @@ export default function AnalyticsManagement() {
     setFilters(view.filters as AnalyticsFilters);
     setCurrentScope(view.scope);
 
-    const restoredKPIs = view.kpis
+    const restoredKPIs = (Array.isArray(view.kpis) ? view.kpis : [])
       .map((kpiId) => KPI_CATALOG.find((k) => k.id === kpiId))
       .filter((k) => k !== undefined) as KPI[];
     setSelectedKPIs(restoredKPIs);
@@ -315,14 +316,14 @@ export default function AnalyticsManagement() {
   };
 
   const handleExportAll = () => {
-    if (selectedKPIs.length === 0) {
+    if (safeSelectedKPIs.length === 0) {
       alert("No KPIs selected to export");
       return;
     }
 
     const workbook = XLSX.utils.book_new();
 
-    selectedKPIs.forEach((kpi) => {
+    safeSelectedKPIs.forEach((kpi) => {
       const kpiData = chartDataMap[kpi.id] || [];
 
       if (kpiData.length > 0) {
@@ -441,7 +442,7 @@ export default function AnalyticsManagement() {
           </button>
           <button
             onClick={() => setShowSaveDialog(true)}
-            disabled={selectedKPIs.length === 0}
+            disabled={safeSelectedKPIs.length === 0}
             className="flex items-center gap-1 px-2 py-1 rounded border border-primary bg-primary/10 hover:bg-primary/20 transition-colors text-primary text-xs font-medium disabled:opacity-50"
           >
             <Save className="w-3 h-3" />
@@ -473,7 +474,7 @@ export default function AnalyticsManagement() {
                     </button>
                   </div>
                   <div className="text-xs text-muted-foreground mb-1.5">
-                    {view.kpis.length} KPI{view.kpis.length !== 1 ? "s" : ""} • {view.scope}
+                    {(Array.isArray(view.kpis) ? view.kpis.length : 0)} KPI{(Array.isArray(view.kpis) ? view.kpis.length : 0) !== 1 ? "s" : ""} • {view.scope}
                   </div>
                   <button
                     onClick={() => handleLoadView(view)}
@@ -582,15 +583,15 @@ export default function AnalyticsManagement() {
             <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-primary/40 rounded-lg shadow-xl z-20 max-h-72 overflow-y-auto">
               <div className="divide-y divide-border/30">
                 {filteredKPIs.map((kpi) => {
-                  const isSelected = selectedKPIs.find((k) => k.id === kpi.id);
+                  const isSelected = safeSelectedKPIs.find((k) => k.id === kpi.id);
                   return (
                     <button
                       key={kpi.id}
                       onClick={() => {
                         if (isSelected) {
-                          setSelectedKPIs(selectedKPIs.filter((k) => k.id !== kpi.id));
+                          setSelectedKPIs(safeSelectedKPIs.filter((k) => k.id !== kpi.id));
                         } else {
-                          setSelectedKPIs([...selectedKPIs, kpi]);
+                          setSelectedKPIs([...safeSelectedKPIs, kpi]);
                         }
                       }}
                       className={cn(
@@ -825,9 +826,9 @@ export default function AnalyticsManagement() {
       </div>
 
       {/* Selected KPIs Summary - shown after generation */}
-      {isGenerated && selectedKPIs.length > 0 && (
+      {isGenerated && safeSelectedKPIs.length > 0 && (
         <div className="bg-card border border-border/50 rounded-lg p-3 text-sm text-muted-foreground">
-          {selectedKPIs.length} KPI{selectedKPIs.length !== 1 ? "s" : ""} selected
+          {safeSelectedKPIs.length} KPI{safeSelectedKPIs.length !== 1 ? "s" : ""} selected
         </div>
       )}
 
@@ -1005,7 +1006,7 @@ export default function AnalyticsManagement() {
       )}
 
       {/* Charts and Details */}
-      {isGenerated && selectedKPIs.length > 0 && (
+      {isGenerated && safeSelectedKPIs.length > 0 && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
@@ -1024,7 +1025,7 @@ export default function AnalyticsManagement() {
             </button>
           </div>
 
-          {selectedKPIs.map((kpi) => {
+          {safeSelectedKPIs.map((kpi) => {
             const selectedLabel = selectedNetwork || selectedRegion || selectedCluster || selectedSite || selectedCell || "All";
             const kpiChartData = chartDataMap[kpi.id] || [];
 
@@ -1043,7 +1044,7 @@ export default function AnalyticsManagement() {
 
           {/* KPI Details Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-            {selectedKPIs.map((kpi) => (
+            {safeSelectedKPIs.map((kpi) => (
             <div
               key={kpi.id}
               className="group relative bg-card border border-border rounded-lg p-4 cursor-help hover:border-primary/50 transition-colors"
@@ -1082,7 +1083,7 @@ export default function AnalyticsManagement() {
         </div>
       )}
 
-      {isGenerated && selectedKPIs.length === 0 && (
+      {isGenerated && safeSelectedKPIs.length === 0 && (
         <div className="bg-card border border-dashed border-border rounded-lg p-6 text-center">
           <p className="text-sm text-muted-foreground">Click "Regenerate" to modify and select KPIs</p>
         </div>

@@ -111,13 +111,13 @@ export default function AIEngineActions() {
   const getStatusColor = (result: string) => {
     switch (result) {
       case "successful":
-        return "bg-green-500/10 text-green-700 border border-green-500/30";
+        return "bg-green-500/10 text-green-700 dark:text-green-300 border border-green-500/30";
       case "failed":
-        return "bg-red-500/10 text-red-700 border border-red-500/30";
+        return "bg-red-500/10 text-red-700 dark:text-red-300 border border-red-500/30";
       case "partial":
-        return "bg-orange-500/10 text-orange-700 border border-orange-500/30";
+        return "bg-orange-500/10 text-orange-700 dark:text-orange-300 border border-orange-500/30";
       default:
-        return "bg-gray-500/10 text-gray-700";
+        return "bg-muted text-muted-foreground";
     }
   };
 
@@ -139,8 +139,8 @@ export default function AIEngineActions() {
     if (successRate < 90) {
       return (
         <div className="flex items-start gap-3 p-4 rounded-lg bg-orange-500/10 border border-orange-500/30">
-          <AlertCircle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-orange-700">
+          <AlertCircle className="w-5 h-5 text-orange-600 dark:text-orange-300 flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-orange-700 dark:text-orange-300">
             Automation success rate dropped below normal range. Consider reviewing recent actions.
           </p>
         </div>
@@ -154,9 +154,9 @@ export default function AIEngineActions() {
     : 0;
 
   const getFailureRateColor = (rate: number) => {
-    if (rate < 2) return "text-green-600 bg-green-500/10";
-    if (rate < 5) return "text-orange-600 bg-orange-500/10";
-    return "text-red-600 bg-red-500/10";
+    if (rate < 2) return "text-green-600 dark:text-green-300 bg-green-500/10";
+    if (rate < 5) return "text-orange-600 dark:text-orange-300 bg-orange-500/10";
+    return "text-red-600 dark:text-red-300 bg-red-500/10";
   };
 
   const handleExport = () => {
@@ -398,7 +398,7 @@ export default function AIEngineActions() {
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <div className={cn(
                 "w-2 h-2 rounded-full",
-                isAutoRefreshing ? "bg-green-600 animate-pulse" : "bg-gray-400"
+                isAutoRefreshing ? "bg-green-600 animate-pulse" : "bg-muted-foreground"
               )} />
               {isAutoRefreshing ? "Live" : "Paused"}
             </div>
@@ -431,7 +431,7 @@ export default function AIEngineActions() {
                     <td className="py-3 px-4 text-muted-foreground text-xs">{action.action}</td>
                     <td className="py-3 px-4 text-muted-foreground text-xs">{action.scope}</td>
                     <td className="py-3 px-4">
-                      <span className="inline-block px-2 py-1 rounded bg-blue-500/10 text-blue-700 text-xs font-semibold">
+                      <span className="inline-block px-2 py-1 rounded bg-blue-500/10 text-blue-700 dark:text-blue-300 text-xs font-semibold">
                         {action.confidence.toFixed(0)}%
                       </span>
                     </td>
@@ -550,7 +550,7 @@ export default function AIEngineActions() {
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm text-muted-foreground">Automation Handled</span>
-                    <span className="text-2xl font-bold text-green-600">94%</span>
+                    <span className="text-2xl font-bold text-green-600 dark:text-green-300">94%</span>
                   </div>
                   <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
                     <div className="bg-green-600 h-full" style={{ width: "94%" }} />
@@ -559,7 +559,7 @@ export default function AIEngineActions() {
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm text-muted-foreground">Manual Intervention Required</span>
-                    <span className="text-2xl font-bold text-orange-600">6%</span>
+                    <span className="text-2xl font-bold text-orange-600 dark:text-orange-300">6%</span>
                   </div>
                   <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
                     <div className="bg-orange-600 h-full" style={{ width: "6%" }} />
@@ -621,16 +621,16 @@ export default function AIEngineActions() {
                 {failures.map((failure) => (
                   <tr key={failure.id} className="border-b border-border/30 hover:bg-muted/30 transition-colors">
                     <td className="py-3 px-4 text-foreground font-medium">{failure.action}</td>
-                    <td className="py-3 px-4 text-red-600">{failure.failureCause}</td>
+                    <td className="py-3 px-4 text-red-600 dark:text-red-300">{failure.failureCause}</td>
                     <td className="py-3 px-4 text-muted-foreground text-xs">{failure.scope}</td>
                     <td className="py-3 px-4">
                       <span className={cn(
                         "px-2.5 py-1 rounded text-xs font-semibold",
                         failure.severity === "critical"
-                          ? "bg-red-500/10 text-red-700"
+                          ? "bg-red-500/10 text-red-700 dark:text-red-300"
                           : failure.severity === "major"
-                            ? "bg-orange-500/10 text-orange-700"
-                            : "bg-blue-500/10 text-blue-700"
+                            ? "bg-orange-500/10 text-orange-700 dark:text-orange-300"
+                            : "bg-blue-500/10 text-blue-700 dark:text-blue-300"
                       )}>
                         {failure.severity}
                       </span>
@@ -638,7 +638,7 @@ export default function AIEngineActions() {
                     <td className="py-3 px-4">
                       <span className={cn(
                         "px-2.5 py-1 rounded text-xs font-semibold",
-                        failure.rolledBack ? "bg-orange-500/10 text-orange-700" : "bg-green-500/10 text-green-700"
+                        failure.rolledBack ? "bg-orange-500/10 text-orange-700 dark:text-orange-300" : "bg-green-500/10 text-green-700 dark:text-green-300"
                       )}>
                         {failure.rolledBack ? "Yes" : "No"}
                       </span>
@@ -662,7 +662,7 @@ export default function AIEngineActions() {
             <div className="space-y-4">
               <p className="text-lg font-bold text-foreground">Automation Impact</p>
               <p className="text-muted-foreground">
-                Automation prevented approximately <strong className="text-green-600">320 minutes</strong> of potential downtime this week and improved network KPIs across <strong className="text-green-600">14 clusters</strong>.
+                Automation prevented approximately <strong className="text-green-600 dark:text-green-300">320 minutes</strong> of potential downtime this week and improved network KPIs across <strong className="text-green-600 dark:text-green-300">14 clusters</strong>.
               </p>
             </div>
           </div>
@@ -684,12 +684,12 @@ export default function AIEngineActions() {
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-muted-foreground">After</span>
-                    <span className="text-sm font-semibold text-green-600">
+                    <span className="text-sm font-semibold text-green-600 dark:text-green-300">
                       {impact.after}{impact.unit}
                     </span>
                   </div>
                   <div className="pt-2 border-t border-border/50">
-                    <p className="text-xs text-green-600 font-bold mb-1">
+                    <p className="text-xs text-green-600 dark:text-green-300 font-bold mb-1">
                       ↓ {impact.improvement}% Improvement
                     </p>
                     <p className="text-xs text-muted-foreground">{impact.description}</p>
