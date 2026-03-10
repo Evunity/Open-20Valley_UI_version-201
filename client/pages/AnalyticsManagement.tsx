@@ -199,7 +199,7 @@ export default function AnalyticsManagement() {
       else if (selectedCell) label = selectedCell;
       else {
         const scopeLabels = SCOPE_OPTIONS[currentScope] || ["Network"];
-        label = scopeLabels[0];
+        label = scopeLabels[0] ?? "All";
       }
 
       dataMap[kpi.id] = generateKPIValues(kpi, currentScope, label);
