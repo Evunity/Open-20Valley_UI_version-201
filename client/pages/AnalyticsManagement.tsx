@@ -558,7 +558,7 @@ export default function AnalyticsManagement() {
               setShowKPIDropdown(true);
             }}
             onFocus={() => setShowKPIDropdown(true)}
-            className="flex-1 bg-transparent border-0 text-xs text-foreground placeholder-muted-foreground/70 focus:outline-none font-medium"
+            className="flex-1 min-w-0 bg-transparent border-0 text-xs text-foreground placeholder-muted-foreground/70 focus:outline-none font-medium text-left"
           />
           {kpiSearch && (
             <button
@@ -567,6 +567,18 @@ export default function AnalyticsManagement() {
             >
               <X className="w-3 h-3" />
             </button>
+          )}
+          {selectedKPIs.length > 0 && (
+            <div className="flex items-center gap-1 max-w-[40%] overflow-x-auto pl-1 border-l border-border/60">
+              {selectedKPIs.slice(0, 2).map((kpi) => (
+                <span key={kpi.id} className="inline-flex items-center px-2 py-0.5 rounded bg-primary/10 text-primary text-[10px] whitespace-nowrap">
+                  {kpi.name}
+                </span>
+              ))}
+              {selectedKPIs.length > 2 && (
+                <span className="text-[10px] text-muted-foreground whitespace-nowrap">+{selectedKPIs.length - 2}</span>
+              )}
+            </div>
           )}
         </div>
 
@@ -592,6 +604,7 @@ export default function AnalyticsManagement() {
                         } else {
                           setSelectedKPIs([...selectedKPIs, kpi]);
                         }
+                        setKpiSearch("");
                       }}
                       className={cn(
                         "w-full text-left px-2 py-1.5 text-xs transition-all flex items-start gap-2",
