@@ -1,11 +1,12 @@
-import { useState, useMemo, useRef } from "react";
-import { Save, Trash2, Download, Eye, EyeOff, X, RotateCcw, Calendar, Check } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Save, Trash2, Download, Eye, EyeOff, X, RotateCcw, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 import * as XLSX from "xlsx";
 import TrendChartContainer from "@/components/TrendChartContainer";
 import DualMonthCalendar from "@/components/DualMonthCalendar";
+import SearchableKPISelect from "@/components/SearchableKPISelect";
 import type { KPI } from "@/utils/kpiData";
-import { KPI_CATALOG, filterKPIs, generateKPIValues, SCOPE_OPTIONS } from "@/utils/kpiData";
+import { KPI_CATALOG, generateKPIValues, SCOPE_OPTIONS } from "@/utils/kpiData";
 import {
   getSavedViews,
   saveView,
@@ -56,9 +57,7 @@ export default function AnalyticsManagement() {
     granularity: "1D",
   });
 
-  const [kpiSearch, setKpiSearch] = useState("");
   const [selectedKPIs, setSelectedKPIs] = useState<KPI[]>([]);
-  const kpiInputRef = useRef<HTMLInputElement>(null);
   const [currentScope, setCurrentScope] = useState<SavedView["scope"]>("Network");
   const [savedViews, setSavedViews] = useState(getSavedViews());
   const [showSavedViews, setShowSavedViews] = useState(false);
@@ -68,7 +67,6 @@ export default function AnalyticsManagement() {
   const [generatedTime, setGeneratedTime] = useState<Date | null>(null);
   const [isGenerated, setIsGenerated] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-  const [showKPIDropdown, setShowKPIDropdown] = useState(false);
 
   // Time range mode
   const [timeRangeMode, setTimeRangeMode] = useState<TimeRangeType>("predefined");
@@ -184,29 +182,6 @@ export default function AnalyticsManagement() {
 
     setFilters({ ...filters, [filterType]: updated });
   };
-
-  // Filter KPIs based on current filters + search text
-  const filteredKPIs = useMemo(() => {
-    let kpis = filterKPIs(KPI_CATALOG, {
-      technologies: filters.technologies,
-      vendors: filters.vendors,
-      domains: filters.domains,
-      categories: filters.categories,
-      scopes: filters.scopes,
-    });
-
-    if (kpiSearch.trim()) {
-      const search = kpiSearch.toLowerCase();
-      kpis = kpis.filter(
-        (kpi) =>
-          kpi.name.toLowerCase().includes(search) ||
-          kpi.category.toLowerCase().includes(search) ||
-          kpi.description.toLowerCase().includes(search)
-      );
-    }
-
-    return kpis;
-  }, [filters, kpiSearch]);
 
   // Generate chart data for all selected KPIs
   const chartDataMap = useMemo(() => {
@@ -546,99 +521,20 @@ export default function AnalyticsManagement() {
         </div>
       )}
 
-      {/* KPI Search + Select Bar */}
-      <div className="relative">
-        <div
-          className={cn(
-            "bg-card border rounded p-1.5 flex items-center flex-wrap gap-1 transition-all shadow-sm cursor-text",
-            showKPIDropdown ? "border-primary ring-1 ring-primary/30 shadow-md" : "border-border hover:border-primary/30"
-          )}
-          onClick={() => {
-            setShowKPIDropdown(true);
-            kpiInputRef.current?.focus();
+      {/* KPI Search + Select */}
+      {!isGenerated && (
+        <SearchableKPISelect
+          value={selectedKPIs.map((kpi) => kpi.id)}
+          onChange={(ids) => {
+            const mapped = ids
+              .map((id) => KPI_CATALOG.find((k) => k.id === id))
+              .filter((kpi): kpi is KPI => Boolean(kpi));
+            setSelectedKPIs(mapped);
           }}
-        >
-          {selectedKPIs.map((kpi) => (
-            <span key={kpi.id} className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary/10 text-primary text-[10px] whitespace-nowrap">
-              {kpi.name}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedKPIs(selectedKPIs.filter((item) => item.id !== kpi.id));
-                }}
-                className="text-primary/70 hover:text-primary"
-                title={`Remove ${kpi.name}`}
-              >
-                <X className="w-2.5 h-2.5" />
-              </button>
-            </span>
-          ))}
-
-          <input
-            ref={kpiInputRef}
-            type="text"
-            value={kpiSearch}
-            onChange={(e) => {
-              setKpiSearch(e.target.value);
-              setShowKPIDropdown(true);
-            }}
-            onFocus={() => setShowKPIDropdown(true)}
-            onKeyDown={(e) => {
-              if (e.key === "Backspace" && !kpiSearch && selectedKPIs.length > 0) {
-                setSelectedKPIs(selectedKPIs.slice(0, -1));
-              }
-            }}
-            placeholder={selectedKPIs.length === 0 ? "Search and select KPIs (max 6)" : ""}
-            className="flex-1 min-w-[180px] bg-transparent border-0 text-xs text-foreground placeholder-muted-foreground/70 focus:outline-none font-medium"
-          />
-        </div>
-
-        {/* KPI Search Results Dropdown */}
-        {showKPIDropdown && !isGenerated && filteredKPIs.length > 0 && (
-          <>
-            {/* Backdrop */}
-            <div
-              className="fixed inset-0 z-10"
-              onClick={() => setShowKPIDropdown(false)}
-            />
-            {/* Dropdown */}
-            <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-primary/40 rounded-lg shadow-xl z-20 max-h-72 overflow-y-auto">
-              <div className="divide-y divide-border/30">
-                {filteredKPIs.map((kpi) => {
-                  const isSelected = selectedKPIs.find((k) => k.id === kpi.id);
-                  return (
-                    <button
-                      key={kpi.id}
-                      onClick={() => {
-                        if (isSelected) {
-                          setSelectedKPIs(selectedKPIs.filter((k) => k.id !== kpi.id));
-                        } else if (selectedKPIs.length < 6) {
-                          setSelectedKPIs([...selectedKPIs, kpi]);
-                        }
-                        setKpiSearch("");
-                      }}
-                      className={cn(
-                        "w-full text-left px-2 py-1.5 text-xs transition-all flex items-start gap-2",
-                        isSelected
-                          ? "bg-primary/10 border-l-2 border-l-primary"
-                          : "hover:bg-muted/40"
-                      )}
-                    >
-                      <div className={cn("w-4 h-4 rounded border-2 flex-shrink-0 mt-0.5 flex items-center justify-center", isSelected ? "bg-primary border-primary" : "border-border")}>
-                        {isSelected && <Check className="w-2.5 h-2.5 text-primary-foreground" />}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-xs text-foreground">{kpi.name}</div>
-                        <div className="text-[10px] text-muted-foreground mt-0.5">{kpi.category} • {kpi.technology}</div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </>
-        )}
-      </div>
+          placeholder="Search and select KPIs (max 6)"
+          maxItems={6}
+        />
+      )}
 
       {/* Global Filter Bar - with buttons INSIDE */}
       <div className="bg-card border border-border rounded p-2 space-y-2 text-xs">
