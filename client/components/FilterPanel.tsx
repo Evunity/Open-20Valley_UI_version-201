@@ -274,36 +274,30 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
         />
 
         {/* Time Granularity Control */}
-        <div>
-          <label className="block text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
-            Granularity
-          </label>
-          <select
-            className="w-full h-[46px] px-3 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-            value={stagedFilters.timeGranularity}
-            onChange={(e) => {
-              const granularity = e.target.value as "hours" | "days";
-              // Only allow hourly if date range is 3 days or less
-              if (granularity === "hours" && !allowHourly) {
-                toast({
-                  title: "Cannot select hourly",
-                  description: "Hourly view is only available for date ranges of 3 days or less",
-                });
-                return;
-              }
-              handleStagedFilterChange({
-                ...stagedFilters,
-                timeGranularity: granularity,
+        <SearchableDropdown
+          label="Granularity"
+          options={["Hours", "Days"]}
+          selected={[stagedFilters.timeGranularity === "hours" ? "Hours" : "Days"]}
+          multiSelect={false}
+          disabledOptions={allowHourly ? [] : ["Hours"]}
+          onChange={(selected) => {
+            const granularity = selected[0] === "Hours" ? "hours" : "days";
+
+            if (granularity === "hours" && !allowHourly) {
+              toast({
+                title: "Cannot select hourly",
+                description: "Hourly view is only available for date ranges of 3 days or less",
               });
-            }}
-            disabled={!allowHourly && stagedFilters.timeGranularity === "hours"}
-          >
-            <option value="hours" disabled={!allowHourly}>
-              Hours {!allowHourly ? "(not available)" : ""}
-            </option>
-            <option value="days">Days</option>
-          </select>
-        </div>
+              return;
+            }
+
+            handleStagedFilterChange({
+              ...stagedFilters,
+              timeGranularity: granularity,
+            });
+          }}
+          placeholder="Search granularity..."
+        />
 
         {/* Choose Dates Button */}
         <div>
