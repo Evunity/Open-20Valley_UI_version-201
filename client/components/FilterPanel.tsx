@@ -297,6 +297,7 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
             });
           }}
           placeholder="Search granularity..."
+          searchable={false}
         />
 
         {/* Choose Dates Button */}
