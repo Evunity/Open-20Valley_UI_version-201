@@ -8,6 +8,7 @@ import ScrollToTop from "@/components/ScrollToTop";
 import Layout from "@/components/Layout";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import Login from "@/pages/Login";
 import DashboardNew from "@/pages/DashboardNew";
 import AIEngineActions from "@/pages/AIEngineActions";
@@ -223,7 +224,7 @@ export default function App() {
                   element={
                     <ProtectedRoute>
                       <Layout>
-                        <AnalyticsManagement />
+                        <ErrorBoundary><AnalyticsManagement /></ErrorBoundary>
                       </Layout>
                     </ProtectedRoute>
                   }

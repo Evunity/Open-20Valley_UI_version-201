@@ -173,7 +173,7 @@ export const AutomationManagement: React.FC = () => {
                   {runbooks.map(runbook => (
                     <div
                       key={runbook.id}
-                      className="bg-card rounded-lg border border-border p-4 hover:border-gray-300 dark:hover:border-gray-600 transition"
+                      className="bg-card rounded-lg border border-border p-4 hover:border-border/80 transition"
                     >
                       <div className="flex items-start justify-between mb-2">
                         <div>
@@ -214,7 +214,7 @@ export const AutomationManagement: React.FC = () => {
                 {policies.map(policy => (
                   <div
                     key={policy.id}
-                    className="bg-card rounded-lg border border-border p-4 hover:border-gray-300 dark:hover:border-gray-600 transition"
+                    className="bg-card rounded-lg border border-border p-4 hover:border-border/80 transition"
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div>
@@ -235,7 +235,7 @@ export const AutomationManagement: React.FC = () => {
                       {policy.constraints.map((constraint, idx) => (
                         <span
                           key={idx}
-                          className="text-xs bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-2 py-1 rounded"
+                          className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded"
                         >
                           {constraint}
                         </span>
@@ -284,7 +284,7 @@ export const AutomationManagement: React.FC = () => {
               className={`px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-2 ${
                 activeDomain === domain.id
                   ? `${domain.bgColor} ${domain.color} border-2 border-current`
-                  : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                  : 'bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground'
               }`}
             >
               <Icon className="w-4 h-4" />
@@ -295,7 +295,7 @@ export const AutomationManagement: React.FC = () => {
       </div>
 
       {/* Workspace Tabs */}
-      <div className="bg-gray-100 dark:bg-gray-800 border-b border-border px-6 overflow-x-auto">
+      <div className="bg-muted/60 border-b border-border px-6 overflow-x-auto">
         <div className="flex gap-1">
           {domainWorkspaces.map(workspace => (
             <button
@@ -304,7 +304,7 @@ export const AutomationManagement: React.FC = () => {
               className={`px-4 py-3 text-sm font-medium transition border-b-2 ${
                 activeWorkspace === workspace.id
                   ? 'bg-card text-blue-600 dark:text-blue-400 border-b-blue-600 dark:border-b-blue-400'
-                  : 'text-gray-700 dark:text-gray-300 border-b-transparent hover:bg-white/50 dark:hover:bg-gray-700/50'
+                  : 'text-muted-foreground border-b-transparent hover:bg-muted/50 hover:text-foreground'
               }`}
             >
               {workspace.label}
@@ -425,7 +425,7 @@ export const AutomationManagement: React.FC = () => {
                     {policyForm.constraints.map((constraint, idx) => (
                       <span
                         key={idx}
-                        className="text-xs bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-2 py-1 rounded flex items-center gap-1"
+                        className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded flex items-center gap-1"
                       >
                         {constraint}
                         <button
@@ -435,7 +435,7 @@ export const AutomationManagement: React.FC = () => {
                               constraints: prev.constraints.filter((_, i) => i !== idx)
                             }));
                           }}
-                          className="hover:text-gray-900 dark:hover:text-gray-100 font-bold"
+                          className="hover:text-foreground font-bold"
                         >
                           ✕
                         </button>
