@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import { Save, Trash2, Download, Eye, EyeOff, ChevronDown, X, RotateCcw, Calendar, Check } from "lucide-react";
+import { useState, useMemo, useRef } from "react";
+import { Save, Trash2, Download, Eye, EyeOff, X, RotateCcw, Calendar, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import * as XLSX from "xlsx";
 import TrendChartContainer from "@/components/TrendChartContainer";
@@ -56,7 +56,9 @@ export default function AnalyticsManagement() {
     granularity: "1D",
   });
 
+  const [kpiSearch, setKpiSearch] = useState("");
   const [selectedKPIs, setSelectedKPIs] = useState<KPI[]>([]);
+  const kpiInputRef = useRef<HTMLInputElement>(null);
   const [currentScope, setCurrentScope] = useState<SavedView["scope"]>("Network");
   const [savedViews, setSavedViews] = useState(getSavedViews());
   const [showSavedViews, setShowSavedViews] = useState(false);
@@ -183,16 +185,28 @@ export default function AnalyticsManagement() {
     setFilters({ ...filters, [filterType]: updated });
   };
 
-  // Filter KPIs based on current filters
+  // Filter KPIs based on current filters + search text
   const filteredKPIs = useMemo(() => {
-    return filterKPIs(KPI_CATALOG, {
+    let kpis = filterKPIs(KPI_CATALOG, {
       technologies: filters.technologies,
       vendors: filters.vendors,
       domains: filters.domains,
       categories: filters.categories,
       scopes: filters.scopes,
     });
-  }, [filters]);
+
+    if (kpiSearch.trim()) {
+      const search = kpiSearch.toLowerCase();
+      kpis = kpis.filter(
+        (kpi) =>
+          kpi.name.toLowerCase().includes(search) ||
+          kpi.category.toLowerCase().includes(search) ||
+          kpi.description.toLowerCase().includes(search)
+      );
+    }
+
+    return kpis;
+  }, [filters, kpiSearch]);
 
   // Generate chart data for all selected KPIs
   const chartDataMap = useMemo(() => {
@@ -532,31 +546,51 @@ export default function AnalyticsManagement() {
         </div>
       )}
 
-      {/* KPI Selector Bar */}
+      {/* KPI Search + Select Bar */}
       <div className="relative">
-        <div className={cn("bg-card border rounded p-1.5 flex items-center gap-1.5 transition-all shadow-sm", showKPIDropdown ? "border-primary ring-1 ring-primary/30 shadow-md" : "border-border hover:border-primary/30")}>
-          <button
-            onClick={() => setShowKPIDropdown(!showKPIDropdown)}
-            className="inline-flex items-center gap-1 px-2 py-1 rounded bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/20 transition-colors whitespace-nowrap"
-          >
-            Select KPIs
-            <ChevronDown className={cn("w-3 h-3 transition-transform", showKPIDropdown && "rotate-180")} />
-          </button>
-
-          {selectedKPIs.length > 0 ? (
-            <div className="flex items-center gap-1 flex-1 min-w-0 overflow-x-auto pl-1">
-              {selectedKPIs.slice(0, 3).map((kpi) => (
-                <span key={kpi.id} className="inline-flex items-center px-2 py-0.5 rounded bg-primary/10 text-primary text-[10px] whitespace-nowrap">
-                  {kpi.name}
-                </span>
-              ))}
-              {selectedKPIs.length > 3 && (
-                <span className="text-[10px] text-muted-foreground whitespace-nowrap">+{selectedKPIs.length - 3}</span>
-              )}
-            </div>
-          ) : (
-            <span className="text-xs text-muted-foreground">No KPIs selected</span>
+        <div
+          className={cn(
+            "bg-card border rounded p-1.5 flex items-center flex-wrap gap-1 transition-all shadow-sm cursor-text",
+            showKPIDropdown ? "border-primary ring-1 ring-primary/30 shadow-md" : "border-border hover:border-primary/30"
           )}
+          onClick={() => {
+            setShowKPIDropdown(true);
+            kpiInputRef.current?.focus();
+          }}
+        >
+          {selectedKPIs.map((kpi) => (
+            <span key={kpi.id} className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary/10 text-primary text-[10px] whitespace-nowrap">
+              {kpi.name}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedKPIs(selectedKPIs.filter((item) => item.id !== kpi.id));
+                }}
+                className="text-primary/70 hover:text-primary"
+                title={`Remove ${kpi.name}`}
+              >
+                <X className="w-2.5 h-2.5" />
+              </button>
+            </span>
+          ))}
+
+          <input
+            ref={kpiInputRef}
+            type="text"
+            value={kpiSearch}
+            onChange={(e) => {
+              setKpiSearch(e.target.value);
+              setShowKPIDropdown(true);
+            }}
+            onFocus={() => setShowKPIDropdown(true)}
+            onKeyDown={(e) => {
+              if (e.key === "Backspace" && !kpiSearch && selectedKPIs.length > 0) {
+                setSelectedKPIs(selectedKPIs.slice(0, -1));
+              }
+            }}
+            placeholder={selectedKPIs.length === 0 ? "Search and select KPIs (max 6)" : ""}
+            className="flex-1 min-w-[180px] bg-transparent border-0 text-xs text-foreground placeholder-muted-foreground/70 focus:outline-none font-medium"
+          />
         </div>
 
         {/* KPI Search Results Dropdown */}
@@ -578,9 +612,10 @@ export default function AnalyticsManagement() {
                       onClick={() => {
                         if (isSelected) {
                           setSelectedKPIs(selectedKPIs.filter((k) => k.id !== kpi.id));
-                        } else {
+                        } else if (selectedKPIs.length < 6) {
                           setSelectedKPIs([...selectedKPIs, kpi]);
                         }
+                        setKpiSearch("");
                       }}
                       className={cn(
                         "w-full text-left px-2 py-1.5 text-xs transition-all flex items-start gap-2",
