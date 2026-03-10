@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { FilterProvider } from "@/hooks/useGlobalFilters";
 import ScrollToTop from "@/components/ScrollToTop";
 import Layout from "@/components/Layout";
@@ -228,6 +228,7 @@ export default function App() {
                     </ProtectedRoute>
                   }
                 />
+                <Route path="/analytics" element={<Navigate to="/analytics-management" replace />} />
                 <Route
                   path="/alarm-management"
                   element={
