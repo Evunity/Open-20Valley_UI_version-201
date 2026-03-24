@@ -17,7 +17,7 @@ export default function Layout({ children }: LayoutProps) {
   const [isDragging, setIsDragging] = useState(false);
   const location = useLocation();
 
-  const COLLAPSED_WIDTH = 72; // Width when collapsed
+  const COLLAPSED_WIDTH = 76; // Width when collapsed
   const MIN_WIDTH = 150; // Minimum width before collapse when dragging
   const MAX_WIDTH = 400; // Maximum width
   const COLLAPSE_SNAP_THRESHOLD = 132;
@@ -52,15 +52,20 @@ export default function Layout({ children }: LayoutProps) {
   // Handle sidebar dragging
   const dragStartXRef = useRef(0);
   const dragStartWidthRef = useRef(0);
+  const dragStartedCollapsedRef = useRef(false);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isDragging || isMobile) return;
 
       const deltaX = e.clientX - dragStartXRef.current;
-      const requestedWidth = dragStartWidthRef.current + deltaX;
+      const baseWidth = dragStartedCollapsedRef.current ? COLLAPSED_WIDTH : dragStartWidthRef.current;
+      const requestedWidth = baseWidth + deltaX;
+      const collapseThreshold = dragStartedCollapsedRef.current
+        ? COLLAPSED_WIDTH
+        : COLLAPSE_SNAP_THRESHOLD;
 
-      if (requestedWidth <= COLLAPSE_SNAP_THRESHOLD) {
+      if (requestedWidth <= collapseThreshold) {
         setSidebarOpen(false);
         return;
       }
@@ -68,11 +73,11 @@ export default function Layout({ children }: LayoutProps) {
       const newWidth = Math.max(MIN_WIDTH, Math.min(requestedWidth, MAX_WIDTH));
 
       setSidebarWidth(newWidth);
-      // Always keep sidebar open while dragging at expanded width
       setSidebarOpen(true);
     };
 
     const handleMouseUp = () => {
+      dragStartedCollapsedRef.current = false;
       setIsDragging(false);
     };
 
@@ -93,7 +98,8 @@ export default function Layout({ children }: LayoutProps) {
 
   const handleDragStart = (e: React.MouseEvent) => {
     dragStartXRef.current = e.clientX;
-    dragStartWidthRef.current = sidebarWidth;
+    dragStartedCollapsedRef.current = !sidebarOpen;
+    dragStartWidthRef.current = sidebarOpen ? sidebarWidth : COLLAPSED_WIDTH;
     setIsDragging(true);
   };
 
@@ -102,19 +108,25 @@ export default function Layout({ children }: LayoutProps) {
   };
 
   const mainNavItems = [
-    { path: "/", label: "Dashboard", icon: LayoutDashboard },
-    { path: "/analytics-management", label: "Analytics Management", icon: Gauge },
-    { path: "/alarm-management", label: "Alarm Management", icon: Bell },
-    { path: "/automation-management", label: "Automation & AI", icon: Zap },
-    { path: "/topology-management", label: "Topology & Network", icon: Map },
-    { path: "/command-center", label: "Command Center", icon: Terminal },
-    { path: "/activity-audit", label: "Activity & Audit", icon: Shield },
-    { path: "/reports-module", label: "Reports", icon: BarChart3 },
-    { path: "/access-control", label: "Access Control", icon: Lock },
-    { path: "/settings-2", label: "Settings", icon: Settings },
+    { path: "/", label: "Dashboard", icon: LayoutDashboard, matchPaths: ["/"] },
+    {
+      path: "/analytics-management",
+      label: "Analytics Management",
+      icon: Gauge,
+      matchPaths: ["/analytics-management", "/analytics-home", "/voice-analytics", "/data-analytics"],
+    },
+    { path: "/alarm-management", label: "Alarm Management", icon: Bell, matchPaths: ["/alarm-management", "/network-alarms"] },
+    { path: "/automation-management", label: "Automation & AI", icon: Zap, matchPaths: ["/automation-management", "/ai-actions"] },
+    { path: "/topology-management", label: "Topology & Network", icon: Map, matchPaths: ["/topology-management", "/network", "/network-status"] },
+    { path: "/command-center", label: "Command Center", icon: Terminal, matchPaths: ["/command-center"] },
+    { path: "/activity-audit", label: "Activity & Audit", icon: Shield, matchPaths: ["/activity-audit", "/activity-log"] },
+    { path: "/reports-module", label: "Reports", icon: BarChart3, matchPaths: ["/reports-module", "/reports"] },
+    { path: "/access-control", label: "Access Control", icon: Lock, matchPaths: ["/access-control"] },
+    { path: "/settings-2", label: "Settings", icon: Settings, matchPaths: ["/settings-2", "/settings"] },
   ];
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (matchPaths: string[]) =>
+    matchPaths.some((path) => (path === "/" ? location.pathname === "/" : location.pathname.startsWith(path)));
 
   const SidebarContent = () => (
     <>
@@ -203,8 +215,8 @@ export default function Layout({ children }: LayoutProps) {
 
       {/* Main Navigation */}
       <nav className="flex-1 overflow-y-auto py-2 px-0">
-        <div className="space-y-1">
-          {mainNavItems.map(({ path, label, icon: Icon }) => (
+        <div className={cn(sidebarOpen ? "space-y-1" : "space-y-0.5")}>
+          {mainNavItems.map(({ path, label, icon: Icon, matchPaths }) => (
             <Link
               key={path}
               to={path}
@@ -212,21 +224,21 @@ export default function Layout({ children }: LayoutProps) {
                 if (isMobile) setMobileMenuOpen(false);
               }}
               className={cn(
-                "mx-1 rounded-lg transition-all duration-200 whitespace-nowrap cursor-pointer text-xs",
+                "rounded-lg transition-all duration-200 whitespace-nowrap cursor-pointer text-xs",
                 sidebarOpen
-                  ? "flex items-center gap-2 px-2 py-2"
-                  : "flex h-10 items-center justify-center px-0",
-                isActive(path)
+                  ? "mx-1 flex items-center gap-2 px-2 py-2"
+                  : "mx-2 flex h-9 items-center justify-center px-0",
+                isActive(matchPaths)
                   ? cn(
-                      "bg-primary/20 text-primary font-medium",
-                      sidebarOpen && "border-l-2 border-primary"
+                      "text-primary font-medium",
+                      sidebarOpen ? "bg-primary/20 border-l-2 border-primary" : "bg-primary/15 ring-1 ring-primary/30"
                     )
                   : "text-sidebar-foreground hover:bg-sidebar-accent/50"
               )}
               title={!sidebarOpen ? label : undefined}
             >
-              <div className={cn("flex items-center justify-center", sidebarOpen ? "w-4 h-4" : "w-5 h-5")}>
-                <Icon className="w-4 h-4" />
+              <div className={cn("flex items-center justify-center", sidebarOpen ? "w-4 h-4" : "w-[14px] h-[14px]")}>
+                <Icon className={cn("transition-all", sidebarOpen ? "w-4 h-4" : "w-[14px] h-[14px]")} />
               </div>
               {sidebarOpen && <span className="text-xs truncate">{label}</span>}
             </Link>
@@ -241,12 +253,12 @@ export default function Layout({ children }: LayoutProps) {
           className={cn(
             "w-full flex items-center px-2 py-2 rounded-lg transition-colors text-xs",
             "text-sidebar-foreground hover:bg-sidebar-accent/50",
-            sidebarOpen ? "justify-start gap-2" : "justify-center h-10 px-0"
+            sidebarOpen ? "justify-start gap-2" : "justify-center h-9 px-0"
           )}
           title="Toggle dark mode"
         >
           <div className="flex-shrink-0 flex items-center justify-center w-4 h-4">
-            {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            {darkMode ? <Sun className={cn(sidebarOpen ? "w-4 h-4" : "w-[14px] h-[14px]")} /> : <Moon className={cn(sidebarOpen ? "w-4 h-4" : "w-[14px] h-[14px]")} />}
           </div>
           {sidebarOpen && <span className="text-xs">{darkMode ? "Light" : "Dark"}</span>}
         </button>
@@ -256,15 +268,15 @@ export default function Layout({ children }: LayoutProps) {
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className={cn(
               "w-full flex items-center px-2 py-2 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors text-xs",
-              sidebarOpen ? "justify-start gap-2" : "justify-center h-10 px-0"
+              sidebarOpen ? "justify-start gap-2" : "justify-center h-9 px-0"
             )}
             title={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
           >
             <div className="flex-shrink-0 flex items-center justify-center w-4 h-4">
               {sidebarOpen ? (
-                <ChevronsLeft className="w-4 h-4" />
+                <ChevronsLeft className={cn(sidebarOpen ? "w-4 h-4" : "w-[14px] h-[14px]")} />
               ) : (
-                <ChevronsRight className="w-4 h-4" />
+                <ChevronsRight className={cn(sidebarOpen ? "w-4 h-4" : "w-[14px] h-[14px]")} />
               )}
             </div>
             {sidebarOpen && <span className="text-xs">Collapse</span>}
@@ -289,19 +301,22 @@ export default function Layout({ children }: LayoutProps) {
         </aside>
 
         {/* Draggable Handle */}
-        {sidebarOpen && (
-          <div
-            onMouseDown={handleDragStart}
-            className="hidden md:flex md:items-center md:justify-center absolute right-0 top-0 h-full w-2 bg-transparent hover:bg-primary/30 cursor-col-resize transition-all z-40 group-hover:bg-primary/40"
-            title="Drag left/right to resize sidebar"
-          >
-            <div className="flex flex-col gap-1.5">
-              <div className="w-1 h-3 bg-primary/40 rounded-full group-hover:bg-primary/70 transition-colors"></div>
-              <div className="w-1 h-3 bg-primary/40 rounded-full group-hover:bg-primary/70 transition-colors"></div>
-              <div className="w-1 h-3 bg-primary/40 rounded-full group-hover:bg-primary/70 transition-colors"></div>
-            </div>
+        <div
+          onMouseDown={handleDragStart}
+          className={cn(
+            "hidden md:flex md:items-center md:justify-center absolute top-0 h-full cursor-col-resize transition-all z-40",
+            sidebarOpen
+              ? "right-0 w-3 translate-x-1/2 bg-transparent"
+              : "right-0 w-3 translate-x-1/2 bg-transparent"
+          )}
+          title="Drag left/right to resize sidebar"
+        >
+          <div className="flex flex-col gap-1.5 rounded-full px-1 py-2 hover:bg-primary/10">
+            <div className="w-1 h-3 bg-primary/25 rounded-full group-hover:bg-primary/60 transition-colors"></div>
+            <div className="w-1 h-3 bg-primary/25 rounded-full group-hover:bg-primary/60 transition-colors"></div>
+            <div className="w-1 h-3 bg-primary/25 rounded-full group-hover:bg-primary/60 transition-colors"></div>
           </div>
-        )}
+        </div>
       </div>
 
       {/* Mobile Overlay & Drawer */}
