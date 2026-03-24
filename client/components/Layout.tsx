@@ -108,19 +108,25 @@ export default function Layout({ children }: LayoutProps) {
   };
 
   const mainNavItems = [
-    { path: "/", label: "Dashboard", icon: LayoutDashboard },
-    { path: "/analytics-management", label: "Analytics Management", icon: Gauge },
-    { path: "/alarm-management", label: "Alarm Management", icon: Bell },
-    { path: "/automation-management", label: "Automation & AI", icon: Zap },
-    { path: "/topology-management", label: "Topology & Network", icon: Map },
-    { path: "/command-center", label: "Command Center", icon: Terminal },
-    { path: "/activity-audit", label: "Activity & Audit", icon: Shield },
-    { path: "/reports-module", label: "Reports", icon: BarChart3 },
-    { path: "/access-control", label: "Access Control", icon: Lock },
-    { path: "/settings-2", label: "Settings", icon: Settings },
+    { path: "/", label: "Dashboard", icon: LayoutDashboard, matchPaths: ["/"] },
+    {
+      path: "/analytics-management",
+      label: "Analytics Management",
+      icon: Gauge,
+      matchPaths: ["/analytics-management", "/analytics-home", "/voice-analytics", "/data-analytics"],
+    },
+    { path: "/alarm-management", label: "Alarm Management", icon: Bell, matchPaths: ["/alarm-management", "/network-alarms"] },
+    { path: "/automation-management", label: "Automation & AI", icon: Zap, matchPaths: ["/automation-management", "/ai-actions"] },
+    { path: "/topology-management", label: "Topology & Network", icon: Map, matchPaths: ["/topology-management", "/network", "/network-status"] },
+    { path: "/command-center", label: "Command Center", icon: Terminal, matchPaths: ["/command-center"] },
+    { path: "/activity-audit", label: "Activity & Audit", icon: Shield, matchPaths: ["/activity-audit", "/activity-log"] },
+    { path: "/reports-module", label: "Reports", icon: BarChart3, matchPaths: ["/reports-module", "/reports"] },
+    { path: "/access-control", label: "Access Control", icon: Lock, matchPaths: ["/access-control"] },
+    { path: "/settings-2", label: "Settings", icon: Settings, matchPaths: ["/settings-2", "/settings"] },
   ];
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (matchPaths: string[]) =>
+    matchPaths.some((path) => (path === "/" ? location.pathname === "/" : location.pathname.startsWith(path)));
 
   const SidebarContent = () => (
     <>
@@ -210,7 +216,7 @@ export default function Layout({ children }: LayoutProps) {
       {/* Main Navigation */}
       <nav className="flex-1 overflow-y-auto py-2 px-0">
         <div className={cn(sidebarOpen ? "space-y-1" : "space-y-0.5")}>
-          {mainNavItems.map(({ path, label, icon: Icon }) => (
+          {mainNavItems.map(({ path, label, icon: Icon, matchPaths }) => (
             <Link
               key={path}
               to={path}
@@ -222,7 +228,7 @@ export default function Layout({ children }: LayoutProps) {
                 sidebarOpen
                   ? "mx-1 flex items-center gap-2 px-2 py-2"
                   : "mx-2 flex h-9 items-center justify-center px-0",
-                isActive(path)
+                isActive(matchPaths)
                   ? cn(
                       "text-primary font-medium",
                       sidebarOpen ? "bg-primary/20 border-l-2 border-primary" : "bg-primary/15 ring-1 ring-primary/30"
