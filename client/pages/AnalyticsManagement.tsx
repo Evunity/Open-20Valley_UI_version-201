@@ -384,7 +384,7 @@ export default function AnalyticsManagement() {
     selectedItems: string[],
     filterType: keyof AnalyticsFilters
   ) => (
-    <div className="relative flex-1">
+    <div className="relative w-full min-w-0">
       <button
         onClick={() => setOpenDropdown(openDropdown === dropdownKey ? null : dropdownKey)}
         className={cn(
@@ -832,7 +832,7 @@ export default function AnalyticsManagement() {
         )}
 
         {/* Filter Dropdowns Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-2">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-3">
           {renderDropdown("Country", "country", ["USA", "Canada", "UK", "Germany", "France", "Japan"], filters.countries || [], "countries")}
           {renderDropdown("Region", "region", allRegions, filters.regions, "regions")}
           {renderDropdown("Cluster", "cluster", allClusters, filters.clusters, "clusters")}
