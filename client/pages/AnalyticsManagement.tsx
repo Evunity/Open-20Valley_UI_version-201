@@ -559,8 +559,8 @@ export default function AnalyticsManagement() {
       </div>
 
       {/* Global Filter Bar - Redesigned */}
-      <div className="bg-card border border-border rounded-lg p-3 md:p-4 space-y-4 text-xs shadow-sm">
-        <div className="flex items-center justify-between gap-3 flex-wrap">
+      <div className="bg-card border border-border rounded-lg p-2.5 md:p-3 space-y-3 text-xs shadow-sm">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
           <div>
             <h3 className="text-sm font-semibold text-foreground">Analytics Filters</h3>
             <p className="text-xs text-muted-foreground">Choose date mode and filter dimensions before applying.</p>
@@ -571,14 +571,14 @@ export default function AnalyticsManagement() {
         </div>
 
         {/* Date Modes + Date Controls */}
-        <div className="space-y-3 border border-border/60 rounded-lg p-3 bg-muted/20">
-          <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="space-y-2 border border-border/60 rounded-lg p-2.5 bg-muted/20">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Date Range</label>
             <div className="inline-flex rounded-md border border-border bg-background p-0.5">
               <button
                 onClick={activatePredefinedMode}
                 className={cn(
-                  "px-3 py-1 rounded text-xs font-semibold transition-colors",
+                  "px-2.5 py-0.5 rounded text-xs font-semibold transition-colors",
                   timeRangeMode === "predefined"
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground"
@@ -589,7 +589,7 @@ export default function AnalyticsManagement() {
               <button
                 onClick={activateManualMode}
                 className={cn(
-                  "px-3 py-1 rounded text-xs font-semibold transition-colors",
+                  "px-2.5 py-0.5 rounded text-xs font-semibold transition-colors",
                   timeRangeMode === "manual"
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground"
@@ -600,22 +600,22 @@ export default function AnalyticsManagement() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-2.5">
             <div
               className={cn(
-                "rounded-lg border p-3 transition-all",
+                "rounded-md border p-2.5 transition-all",
                 timeRangeMode === "predefined"
                   ? "border-primary/40 bg-primary/5"
                   : "border-border/70 bg-background/40 opacity-55"
               )}
             >
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-1.5">
                 <p className="text-xs font-semibold text-foreground">Presets</p>
                 {timeRangeMode === "predefined" && (
                   <span className="text-[10px] font-semibold text-primary">Active</span>
                 )}
               </div>
-              <div className="grid grid-cols-5 gap-1.5">
+              <div className="grid grid-cols-5 gap-1">
                 {[
                   { label: "1d", value: "1d" },
                   { label: "7d", value: "7d" },
@@ -628,7 +628,7 @@ export default function AnalyticsManagement() {
                     onClick={() => handlePredefinedRange(value)}
                     disabled={timeRangeMode !== "predefined"}
                     className={cn(
-                      "px-1.5 py-1.5 rounded text-xs font-semibold transition-all border",
+                      "px-1.5 py-1 rounded text-xs font-semibold transition-all border rounded-md",
                       predefinedRange === value
                         ? "bg-primary text-primary-foreground border-primary"
                         : "bg-background text-muted-foreground border-border hover:border-primary/40",
@@ -643,13 +643,13 @@ export default function AnalyticsManagement() {
 
             <div
               className={cn(
-                "rounded-lg border p-3 transition-all relative",
+                "rounded-md border p-2.5 transition-all relative",
                 timeRangeMode === "manual"
                   ? "border-primary/40 bg-primary/5"
                   : "border-border/70 bg-background/40 opacity-55"
               )}
             >
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-1.5">
                 <p className="text-xs font-semibold text-foreground">Custom</p>
                 {timeRangeMode === "manual" && (
                   <span className="text-[10px] font-semibold text-primary">Active</span>
@@ -659,7 +659,7 @@ export default function AnalyticsManagement() {
                 onClick={() => setShowCalendarPicker(!showCalendarPicker)}
                 disabled={timeRangeMode !== "manual"}
                 className={cn(
-                  "w-full px-2.5 py-2 rounded border text-xs font-medium flex items-center gap-2 transition-all",
+                  "w-full px-2 py-1.5 rounded-md border text-xs font-medium flex items-center gap-1.5 transition-all",
                   showCalendarPicker && timeRangeMode === "manual"
                     ? "border-primary ring-1 ring-primary/30 bg-background"
                     : "border-border bg-background",
@@ -763,13 +763,14 @@ export default function AnalyticsManagement() {
         )}
 
         {/* Filter Dropdowns Grid */}
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-3">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-2.5">
           <SearchableDropdown
             label="Country"
             options={["USA", "Canada", "UK", "Germany", "France", "Japan"]}
             selected={filters.countries || []}
             onChange={(selected) => setFilters({ ...filters, countries: selected })}
             placeholder="Search countries..."
+            compact
           />
           <SearchableDropdown
             label="Region"
@@ -777,6 +778,7 @@ export default function AnalyticsManagement() {
             selected={filters.regions}
             onChange={(selected) => setFilters({ ...filters, regions: selected })}
             placeholder="Search regions..."
+            compact
           />
           <SearchableDropdown
             label="Cluster"
@@ -784,6 +786,7 @@ export default function AnalyticsManagement() {
             selected={filters.clusters}
             onChange={(selected) => setFilters({ ...filters, clusters: selected })}
             placeholder="Search clusters..."
+            compact
           />
           <SearchableDropdown
             label="Vendor"
@@ -791,6 +794,7 @@ export default function AnalyticsManagement() {
             selected={filters.vendors}
             onChange={(selected) => setFilters({ ...filters, vendors: selected })}
             placeholder="Search vendors..."
+            compact
           />
           <SearchableDropdown
             label="Technology"
@@ -798,6 +802,7 @@ export default function AnalyticsManagement() {
             selected={filters.technologies}
             onChange={(selected) => setFilters({ ...filters, technologies: selected })}
             placeholder="Search technologies..."
+            compact
           />
           <SearchableDropdown
             label="Granularity"
@@ -805,6 +810,7 @@ export default function AnalyticsManagement() {
             selected={filters.granularityValues}
             onChange={(selected) => setFilters({ ...filters, granularityValues: selected })}
             placeholder="Search granularity..."
+            compact
           />
           <SearchableDropdown
             label="Network"
@@ -812,6 +818,7 @@ export default function AnalyticsManagement() {
             selected={filters.networks}
             onChange={(selected) => setFilters({ ...filters, networks: selected })}
             placeholder="Search networks..."
+            compact
           />
           <SearchableDropdown
             label="Site"
@@ -819,6 +826,7 @@ export default function AnalyticsManagement() {
             selected={filters.sites}
             onChange={(selected) => setFilters({ ...filters, sites: selected })}
             placeholder="Search sites..."
+            compact
           />
           <SearchableDropdown
             label="Cell"
@@ -826,6 +834,7 @@ export default function AnalyticsManagement() {
             selected={filters.cells}
             onChange={(selected) => setFilters({ ...filters, cells: selected })}
             placeholder="Search cells..."
+            compact
           />
           <SearchableDropdown
             label="Domain"
@@ -833,6 +842,7 @@ export default function AnalyticsManagement() {
             selected={filters.domains}
             onChange={(selected) => setFilters({ ...filters, domains: selected })}
             placeholder="Search domains..."
+            compact
           />
           <SearchableDropdown
             label="Category"
@@ -840,15 +850,16 @@ export default function AnalyticsManagement() {
             selected={filters.categories}
             onChange={(selected) => setFilters({ ...filters, categories: selected })}
             placeholder="Search categories..."
+            compact
           />
         </div>
 
         {/* Action Buttons - INSIDE the filter box */}
-        <div className="flex items-center justify-end gap-2 pt-3 border-t border-border/50">
+        <div className="flex items-center justify-end gap-1.5 pt-2 border-t border-border/50">
           <button
             onClick={handleClearAllFilters}
             disabled={!hasActiveFilters}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium bg-muted text-muted-foreground hover:bg-red-100 hover:text-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-muted text-muted-foreground hover:bg-red-100 hover:text-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             Reset
@@ -856,7 +867,7 @@ export default function AnalyticsManagement() {
 
           <button
             onClick={handleApplyFilter}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+            className="flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
           >
             Apply
           </button>
