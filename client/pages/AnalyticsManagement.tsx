@@ -130,7 +130,9 @@ export default function AnalyticsManagement() {
         break;
     }
 
+    setTimeRangeMode("predefined");
     setPredefinedRange(range);
+    setShowCalendarPicker(false);
     setFilters({
       ...filters,
       timeRange: {
@@ -138,6 +140,15 @@ export default function AnalyticsManagement() {
         to: now.toISOString().split("T")[0],
       },
     });
+  };
+
+  const activatePredefinedMode = () => {
+    setTimeRangeMode("predefined");
+    setShowCalendarPicker(false);
+  };
+
+  const activateManualMode = () => {
+    setTimeRangeMode("manual");
   };
 
   const handleApplyFilter = () => {
@@ -616,30 +627,40 @@ export default function AnalyticsManagement() {
         )}
       </div>
 
-      {/* Global Filter Bar - with buttons INSIDE */}
-      <div className="bg-card border border-border rounded p-2 space-y-2 text-xs">
-        <div className="space-y-2">
-          {/* Time Range Mode Selection */}
-          <div className="flex items-center justify-between gap-2">
-            <label className="text-xs font-bold text-muted-foreground">Dates</label>
-            <div className="flex gap-0.5 bg-muted/50 p-0.5 rounded">
+      {/* Global Filter Bar - Redesigned */}
+      <div className="bg-card border border-border rounded-lg p-3 md:p-4 space-y-4 text-xs shadow-sm">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div>
+            <h3 className="text-sm font-semibold text-foreground">Analytics Filters</h3>
+            <p className="text-xs text-muted-foreground">Choose date mode and filter dimensions before applying.</p>
+          </div>
+          <div className="text-xs text-muted-foreground bg-muted/40 rounded-md px-2 py-1">
+            Active mode: <span className="font-semibold text-foreground">{timeRangeMode === "predefined" ? "Presets" : "Custom"}</span>
+          </div>
+        </div>
+
+        {/* Date Modes + Date Controls */}
+        <div className="space-y-3 border border-border/60 rounded-lg p-3 bg-muted/20">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Date Range</label>
+            <div className="inline-flex rounded-md border border-border bg-background p-0.5">
               <button
-                onClick={() => setTimeRangeMode("predefined")}
+                onClick={activatePredefinedMode}
                 className={cn(
-                  "px-2 py-1 rounded text-xs font-semibold transition-all",
+                  "px-3 py-1 rounded text-xs font-semibold transition-colors",
                   timeRangeMode === "predefined"
-                    ? "bg-primary text-primary-foreground shadow-sm"
+                    ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 Presets
               </button>
               <button
-                onClick={() => setTimeRangeMode("manual")}
+                onClick={activateManualMode}
                 className={cn(
-                  "px-2 py-1 rounded text-xs font-semibold transition-all",
+                  "px-3 py-1 rounded text-xs font-semibold transition-colors",
                   timeRangeMode === "manual"
-                    ? "bg-primary text-primary-foreground shadow-sm"
+                    ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
@@ -648,43 +669,74 @@ export default function AnalyticsManagement() {
             </div>
           </div>
 
-          {/* Predefined or Manual Time Range */}
-          {timeRangeMode === "predefined" ? (
-            <div className="grid grid-cols-5 gap-1">
-              {[
-                { label: "1d", value: "1d" },
-                { label: "7d", value: "7d" },
-                { label: "14d", value: "14d" },
-                { label: "30d", value: "30d" },
-                { label: "90d", value: "90d" },
-              ].map(({ label, value }) => (
-                <button
-                  key={value}
-                  onClick={() => handlePredefinedRange(value)}
-                  className={cn(
-                    "px-1.5 py-1 rounded text-xs font-medium transition-all",
-                    predefinedRange === value
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-muted-foreground hover:bg-muted/70"
-                  )}
-                >
-                  {label}
-                </button>
-              ))}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
+            <div
+              className={cn(
+                "rounded-lg border p-3 transition-all",
+                timeRangeMode === "predefined"
+                  ? "border-primary/40 bg-primary/5"
+                  : "border-border/70 bg-background/40 opacity-55"
+              )}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs font-semibold text-foreground">Presets</p>
+                {timeRangeMode === "predefined" && (
+                  <span className="text-[10px] font-semibold text-primary">Active</span>
+                )}
+              </div>
+              <div className="grid grid-cols-5 gap-1.5">
+                {[
+                  { label: "1d", value: "1d" },
+                  { label: "7d", value: "7d" },
+                  { label: "14d", value: "14d" },
+                  { label: "30d", value: "30d" },
+                  { label: "90d", value: "90d" },
+                ].map(({ label, value }) => (
+                  <button
+                    key={value}
+                    onClick={() => handlePredefinedRange(value)}
+                    disabled={timeRangeMode !== "predefined"}
+                    className={cn(
+                      "px-1.5 py-1.5 rounded text-xs font-semibold transition-all border",
+                      predefinedRange === value
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background text-muted-foreground border-border hover:border-primary/40",
+                      timeRangeMode !== "predefined" && "cursor-not-allowed opacity-60 hover:border-border"
+                    )}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
             </div>
-          ) : (
-            <div className="relative">
+
+            <div
+              className={cn(
+                "rounded-lg border p-3 transition-all relative",
+                timeRangeMode === "manual"
+                  ? "border-primary/40 bg-primary/5"
+                  : "border-border/70 bg-background/40 opacity-55"
+              )}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs font-semibold text-foreground">Custom</p>
+                {timeRangeMode === "manual" && (
+                  <span className="text-[10px] font-semibold text-primary">Active</span>
+                )}
+              </div>
               <button
                 onClick={() => setShowCalendarPicker(!showCalendarPicker)}
+                disabled={timeRangeMode !== "manual"}
                 className={cn(
-                  "w-full px-2 py-1.5 rounded border text-xs font-medium flex items-center gap-1.5 transition-all",
-                  showCalendarPicker
-                    ? "border-primary ring-1 ring-primary/30 bg-primary/5"
-                    : "border-border hover:border-primary/30"
+                  "w-full px-2.5 py-2 rounded border text-xs font-medium flex items-center gap-2 transition-all",
+                  showCalendarPicker && timeRangeMode === "manual"
+                    ? "border-primary ring-1 ring-primary/30 bg-background"
+                    : "border-border bg-background",
+                  timeRangeMode !== "manual" && "cursor-not-allowed text-muted-foreground"
                 )}
               >
                 <Calendar className="w-3.5 h-3.5" />
-                <span>
+                <span className="truncate">
                   {filters.timeRange.from && filters.timeRange.to
                     ? `${new Date(filters.timeRange.from).toLocaleDateString("en-US", {
                         month: "short",
@@ -693,94 +745,94 @@ export default function AnalyticsManagement() {
                         month: "short",
                         day: "numeric",
                       })}`
-                    : "Select date range"}
+                    : "Select custom range"}
                 </span>
               </button>
-
-              {/* Calendar Popup */}
-              {showCalendarPicker && (
-                <>
-                  <div
-                    className="fixed inset-0 z-40 bg-black/30"
-                    onClick={() => setShowCalendarPicker(false)}
-                  />
-                  <div className="fixed inset-x-4 top-1/2 -translate-y-1/2 max-w-sm mx-auto p-3 rounded-lg border border-border bg-card shadow-2xl z-50 max-h-[85vh] overflow-y-auto">
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <label className="text-xs font-semibold text-muted-foreground">
-                          Select Dates
-                        </label>
-                        <button
-                          onClick={() => setShowCalendarPicker(false)}
-                          className="text-muted-foreground hover:text-foreground transition-colors p-0.5"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                      <DualMonthCalendar
-                        startDate={filters.timeRange.from}
-                        endDate={filters.timeRange.to}
-                        onDateSelect={(date, isStart) => {
-                          const isoDate = date.toISOString().split("T")[0];
-                          if (isStart) {
-                            setFilters({
-                              ...filters,
-                              timeRange: { from: isoDate, to: "" },
-                            });
-                          } else {
-                            setFilters({
-                              ...filters,
-                              timeRange: {
-                                from: filters.timeRange.from,
-                                to: isoDate,
-                              },
-                            });
-                          }
-                        }}
-                        onRangeComplete={(start, end) => {
-                          setFilters({
-                            ...filters,
-                            timeRange: {
-                              from: start.toISOString().split("T")[0],
-                              to: end.toISOString().split("T")[0],
-                            },
-                          });
-                          setShowCalendarPicker(false);
-                        }}
-                      />
-                      {filters.timeRange.from && filters.timeRange.to && (
-                        <div className="pt-2 border-t border-border/50 space-y-1">
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="text-xs text-muted-foreground truncate">
-                              <strong>Selected:</strong> {new Date(filters.timeRange.from).toLocaleDateString()}
-                            </span>
-                            <button
-                              onClick={() => {
-                                setFilters({
-                                  ...filters,
-                                  timeRange: { from: "", to: "" },
-                                });
-                              }}
-                              className="px-2 py-0.5 text-xs rounded bg-muted hover:bg-muted/70 transition-all flex-shrink-0"
-                            >
-                              Clear
-                            </button>
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            to {new Date(filters.timeRange.to).toLocaleDateString()}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </>
-              )}
             </div>
-          )}
+          </div>
         </div>
 
+        {/* Calendar Popup */}
+        {showCalendarPicker && timeRangeMode === "manual" && (
+          <>
+            <div
+              className="fixed inset-0 z-40 bg-black/30"
+              onClick={() => setShowCalendarPicker(false)}
+            />
+            <div className="fixed inset-x-4 top-1/2 -translate-y-1/2 max-w-sm mx-auto p-3 rounded-lg border border-border bg-card shadow-2xl z-50 max-h-[85vh] overflow-y-auto">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-muted-foreground">
+                    Select Dates
+                  </label>
+                  <button
+                    onClick={() => setShowCalendarPicker(false)}
+                    className="text-muted-foreground hover:text-foreground transition-colors p-0.5"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+                <DualMonthCalendar
+                  startDate={filters.timeRange.from}
+                  endDate={filters.timeRange.to}
+                  onDateSelect={(date, isStart) => {
+                    const isoDate = date.toISOString().split("T")[0];
+                    if (isStart) {
+                      setFilters({
+                        ...filters,
+                        timeRange: { from: isoDate, to: "" },
+                      });
+                    } else {
+                      setFilters({
+                        ...filters,
+                        timeRange: {
+                          from: filters.timeRange.from,
+                          to: isoDate,
+                        },
+                      });
+                    }
+                  }}
+                  onRangeComplete={(start, end) => {
+                    setFilters({
+                      ...filters,
+                      timeRange: {
+                        from: start.toISOString().split("T")[0],
+                        to: end.toISOString().split("T")[0],
+                      },
+                    });
+                    setShowCalendarPicker(false);
+                  }}
+                />
+                {filters.timeRange.from && filters.timeRange.to && (
+                  <div className="pt-2 border-t border-border/50 space-y-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs text-muted-foreground truncate">
+                        <strong>Selected:</strong> {new Date(filters.timeRange.from).toLocaleDateString()}
+                      </span>
+                      <button
+                        onClick={() => {
+                          setFilters({
+                            ...filters,
+                            timeRange: { from: "", to: "" },
+                          });
+                        }}
+                        className="px-2 py-0.5 text-xs rounded bg-muted hover:bg-muted/70 transition-all flex-shrink-0"
+                      >
+                        Clear
+                      </button>
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      to {new Date(filters.timeRange.to).toLocaleDateString()}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+
         {/* Filter Dropdowns Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-1">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-2">
           {renderDropdown("Country", "country", ["USA", "Canada", "UK", "Germany", "France", "Japan"], filters.countries || [], "countries")}
           {renderDropdown("Region", "region", allRegions, filters.regions, "regions")}
           {renderDropdown("Cluster", "cluster", allClusters, filters.clusters, "clusters")}
@@ -795,20 +847,19 @@ export default function AnalyticsManagement() {
         </div>
 
         {/* Action Buttons - INSIDE the filter box */}
-        <div className="flex items-center justify-end gap-1.5 pt-2 border-t border-border/50">
-          {hasActiveFilters && (
-            <button
-              onClick={handleClearAllFilters}
-              className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-muted text-muted-foreground hover:bg-red-100 hover:text-red-700 transition-colors"
-            >
-              <RotateCcw className="w-3 h-3" />
-              Reset
-            </button>
-          )}
+        <div className="flex items-center justify-end gap-2 pt-3 border-t border-border/50">
+          <button
+            onClick={handleClearAllFilters}
+            disabled={!hasActiveFilters}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium bg-muted text-muted-foreground hover:bg-red-100 hover:text-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            Reset
+          </button>
 
           <button
             onClick={handleApplyFilter}
-            className="flex items-center gap-1 px-3 py-1 rounded text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
           >
             Apply
           </button>
