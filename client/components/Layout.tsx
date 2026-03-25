@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, LayoutDashboard, Settings, Moon, Sun, Gauge, Bell, Zap, Lock, AlertTriangle, Map, Terminal, BarChart3, Shield, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { Menu, X, LayoutDashboard, Settings, Moon, Sun, Gauge, Bell, Zap, Lock, Map, Terminal, BarChart3, Shield, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface LayoutProps {
@@ -12,7 +12,6 @@ export default function Layout({ children }: LayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [emergencyKillActive, setEmergencyKillActive] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(256); // 64 * 4 = 256px (w-64)
   const [isDragging, setIsDragging] = useState(false);
   const location = useLocation();
@@ -340,60 +339,15 @@ export default function Layout({ children }: LayoutProps) {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
-        <header className="h-10 border-b border-border bg-card flex items-center px-2 shadow-sm">
-          <div className="flex items-center justify-between w-full gap-3">
-            {isMobile && (
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-1.5 hover:bg-muted rounded-lg transition-colors flex-shrink-0"
-                aria-label="Toggle mobile menu"
-              >
-                <Menu className="w-4 h-4" />
-              </button>
-            )}
-            <Link
-              to="/"
-              className="flex items-center gap-2 group hover:opacity-80 transition-opacity flex-1 min-w-0 cursor-pointer"
-              title="Back to Dashboard"
-            >
-              <img
-                src="https://cdn.builder.io/api/v1/image/assets%2Fc13b4e0240ec42a0981c688ed8e4138d%2F764a7575ec7b41acab908367454597f1?format=webp&width=800"
-                alt="Open Valley"
-                className="h-8 md:h-10"
-              />
-            </Link>
-            <div className="text-xs text-muted-foreground whitespace-nowrap">
-              {new Date().toLocaleDateString("en-US", {
-                weekday: "short",
-                month: "short",
-                day: "numeric",
-              })}
-            </div>
-
-            {/* Emergency Kill Switch */}
-            <button
-              onClick={() => {
-                setEmergencyKillActive(!emergencyKillActive);
-                if (!emergencyKillActive) {
-                  alert('🚨 EMERGENCY KILL SWITCH ACTIVATED\n\nAll automations have been paused.\nManual intervention required to resume.');
-                }
-              }}
-              className={cn(
-                "px-2.5 py-1.5 rounded-lg font-semibold text-xs flex items-center gap-1.5 transition-all flex-shrink-0",
-                emergencyKillActive
-                  ? "bg-red-600 text-white hover:bg-red-700 animate-pulse"
-                  : "bg-red-100 text-red-700 hover:bg-red-200"
-              )}
-              title="Emergency Kill Switch - Stops all automations immediately (Auditor Required)"
-            >
-              <AlertTriangle className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">
-                {emergencyKillActive ? "🚨 KILL" : "Kill"}
-              </span>
-            </button>
-          </div>
-        </header>
+        {isMobile && (
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="fixed top-2 left-2 z-30 p-1.5 bg-card border border-border shadow-sm rounded-lg hover:bg-muted transition-colors md:hidden"
+            aria-label="Toggle mobile menu"
+          >
+            <Menu className="w-4 h-4" />
+          </button>
+        )}
 
         {/* Content Area */}
         <div className="flex-1 overflow-auto">
