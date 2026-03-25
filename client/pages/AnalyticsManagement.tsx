@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import * as XLSX from "xlsx";
 import TrendChartContainer from "@/components/TrendChartContainer";
 import DualMonthCalendar from "@/components/DualMonthCalendar";
+import SearchableDropdown from "@/components/SearchableDropdown";
 import type { KPI } from "@/utils/kpiData";
 import { KPI_CATALOG, filterKPIs, generateKPIValues, SCOPE_OPTIONS } from "@/utils/kpiData";
 import {
@@ -66,7 +67,6 @@ export default function AnalyticsManagement() {
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [generatedTime, setGeneratedTime] = useState<Date | null>(null);
   const [isGenerated, setIsGenerated] = useState(false);
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [showKPIDropdown, setShowKPIDropdown] = useState(false);
 
   // Time range mode
@@ -184,15 +184,6 @@ export default function AnalyticsManagement() {
       timeRange: filters.timeRange,
       granularity: "1D",
     });
-  };
-
-  const toggleFilterItem = (filterType: keyof AnalyticsFilters, item: any) => {
-    const current = filters[filterType] as any[];
-    const updated = current.includes(item)
-      ? current.filter((x) => x !== item)
-      : [...current, item];
-
-    setFilters({ ...filters, [filterType]: updated });
   };
 
   // Filter KPIs based on current filters AND search
@@ -376,66 +367,6 @@ export default function AnalyticsManagement() {
 
     XLSX.writeFile(workbook, `KPI_Export_${new Date().toISOString().split("T")[0]}.xlsx`);
   };
-
-  const renderDropdown = (
-    title: string,
-    dropdownKey: string,
-    items: string[],
-    selectedItems: string[],
-    filterType: keyof AnalyticsFilters
-  ) => (
-    <div className="relative w-full min-w-0">
-      <button
-        onClick={() => setOpenDropdown(openDropdown === dropdownKey ? null : dropdownKey)}
-        className={cn(
-          "w-full flex items-center justify-between px-2 py-1.5 rounded border text-xs font-medium transition-all",
-          openDropdown === dropdownKey
-            ? "border-primary ring-1 ring-primary/30 bg-primary/5"
-            : selectedItems.length > 0
-              ? "border-primary/30 bg-primary/5 hover:border-primary/50"
-              : "border-border bg-background hover:bg-muted/50"
-        )}
-      >
-        <div className="flex items-center gap-1 truncate min-w-0">
-          <span className="text-xs truncate text-foreground font-semibold">{title}</span>
-          {selectedItems.length > 0 && (
-            <span className="text-xs px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground flex-shrink-0 font-semibold">
-              {selectedItems.length}
-            </span>
-          )}
-        </div>
-        <ChevronDown className={cn("w-3 h-3 transition-transform flex-shrink-0 ml-1", openDropdown === dropdownKey && "rotate-180")} />
-      </button>
-
-      {openDropdown === dropdownKey && (
-        <>
-          <div
-            className="fixed inset-0 z-10"
-            onClick={() => setOpenDropdown(null)}
-          />
-          <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-primary/30 rounded shadow-xl z-20 max-h-40 overflow-y-auto">
-            {items.length > 0 ? (
-              <div className="divide-y divide-border/50">
-                {items.map((item) => (
-                  <label key={item} className="flex items-center gap-2 px-2 py-1 cursor-pointer hover:bg-primary/5 transition-colors text-xs first:rounded-t last:rounded-b">
-                    <input
-                      type="checkbox"
-                      checked={selectedItems.includes(item)}
-                      onChange={() => toggleFilterItem(filterType, item)}
-                      className="w-3 h-3 rounded border border-border accent-primary cursor-pointer"
-                    />
-                    <span className="truncate text-foreground font-medium text-xs">{item}</span>
-                  </label>
-                ))}
-              </div>
-            ) : (
-              <div className="px-2 py-2 text-xs text-muted-foreground text-center">No options</div>
-            )}
-          </div>
-        </>
-      )}
-    </div>
-  );
 
   return (
     <div className="space-y-2">
@@ -833,17 +764,83 @@ export default function AnalyticsManagement() {
 
         {/* Filter Dropdowns Grid */}
         <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-3">
-          {renderDropdown("Country", "country", ["USA", "Canada", "UK", "Germany", "France", "Japan"], filters.countries || [], "countries")}
-          {renderDropdown("Region", "region", allRegions, filters.regions, "regions")}
-          {renderDropdown("Cluster", "cluster", allClusters, filters.clusters, "clusters")}
-          {renderDropdown("Vendor", "vendor", allVendors, filters.vendors, "vendors")}
-          {renderDropdown("Technology", "technology", allTechnologies, filters.technologies, "technologies")}
-          {renderDropdown("Granularity", "granularity", ["Hourly", "Daily", "Weekly", "Monthly"], filters.granularityValues, "granularityValues")}
-          {renderDropdown("Network", "network", allNetworks, filters.networks, "networks")}
-          {renderDropdown("Site", "site", allSites, filters.sites, "sites")}
-          {renderDropdown("Cell", "cell", allCells, filters.cells, "cells")}
-          {renderDropdown("Domain", "domain", allDomains, filters.domains, "domains")}
-          {renderDropdown("Category", "category", allCategories, filters.categories, "categories")}
+          <SearchableDropdown
+            label="Country"
+            options={["USA", "Canada", "UK", "Germany", "France", "Japan"]}
+            selected={filters.countries || []}
+            onChange={(selected) => setFilters({ ...filters, countries: selected })}
+            placeholder="Search countries..."
+          />
+          <SearchableDropdown
+            label="Region"
+            options={allRegions}
+            selected={filters.regions}
+            onChange={(selected) => setFilters({ ...filters, regions: selected })}
+            placeholder="Search regions..."
+          />
+          <SearchableDropdown
+            label="Cluster"
+            options={allClusters}
+            selected={filters.clusters}
+            onChange={(selected) => setFilters({ ...filters, clusters: selected })}
+            placeholder="Search clusters..."
+          />
+          <SearchableDropdown
+            label="Vendor"
+            options={allVendors}
+            selected={filters.vendors}
+            onChange={(selected) => setFilters({ ...filters, vendors: selected })}
+            placeholder="Search vendors..."
+          />
+          <SearchableDropdown
+            label="Technology"
+            options={allTechnologies}
+            selected={filters.technologies}
+            onChange={(selected) => setFilters({ ...filters, technologies: selected })}
+            placeholder="Search technologies..."
+          />
+          <SearchableDropdown
+            label="Granularity"
+            options={["Hourly", "Daily", "Weekly", "Monthly"]}
+            selected={filters.granularityValues}
+            onChange={(selected) => setFilters({ ...filters, granularityValues: selected })}
+            placeholder="Search granularity..."
+          />
+          <SearchableDropdown
+            label="Network"
+            options={allNetworks}
+            selected={filters.networks}
+            onChange={(selected) => setFilters({ ...filters, networks: selected })}
+            placeholder="Search networks..."
+          />
+          <SearchableDropdown
+            label="Site"
+            options={allSites}
+            selected={filters.sites}
+            onChange={(selected) => setFilters({ ...filters, sites: selected })}
+            placeholder="Search sites..."
+          />
+          <SearchableDropdown
+            label="Cell"
+            options={allCells}
+            selected={filters.cells}
+            onChange={(selected) => setFilters({ ...filters, cells: selected })}
+            placeholder="Search cells..."
+          />
+          <SearchableDropdown
+            label="Domain"
+            options={allDomains}
+            selected={filters.domains}
+            onChange={(selected) => setFilters({ ...filters, domains: selected })}
+            placeholder="Search domains..."
+          />
+          <SearchableDropdown
+            label="Category"
+            options={allCategories}
+            selected={filters.categories}
+            onChange={(selected) => setFilters({ ...filters, categories: selected })}
+            placeholder="Search categories..."
+          />
         </div>
 
         {/* Action Buttons - INSIDE the filter box */}
