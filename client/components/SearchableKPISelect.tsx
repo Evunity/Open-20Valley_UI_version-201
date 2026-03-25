@@ -14,7 +14,7 @@ export default function SearchableKPISelect({
   value,
   onChange,
   maxItems = 2,
-  placeholder = "Select KPIs...",
+  placeholder = "Search and select KPIs...",
 }: SearchableKPISelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -53,73 +53,67 @@ export default function SearchableKPISelect({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const selectedKPILabels = AVAILABLE_KPIS.filter((kpi) => value.includes(kpi.id)).map(
-    (kpi) => kpi.label
-  );
+  const selectedKPIs = AVAILABLE_KPIS.filter((kpi) => value.includes(kpi.id));
 
   return (
     <div ref={containerRef} className="relative w-full">
       {/* Selected Tags & Input */}
       <div
         className={cn(
-          "w-full px-3 py-2 rounded-lg border bg-background text-xs transition-all flex items-center gap-2 flex-wrap cursor-text shadow-sm",
+          "w-full px-3 py-2 rounded-lg border bg-background text-xs transition-all flex items-center gap-2 cursor-text shadow-sm",
           isOpen
             ? "border-primary ring-2 ring-primary/20 shadow-lg"
             : "border-border hover:border-primary/40 focus-within:ring-2 focus-within:ring-primary/40 focus-within:border-primary"
         )}
         onClick={() => setIsOpen(true)}
       >
-        {selectedKPILabels.map((label) => {
-          const kpiId = AVAILABLE_KPIS.find((k) => k.label === label)?.id;
-          return (
+        <div className="flex flex-1 min-w-0 items-center gap-2 flex-wrap">
+          {selectedKPIs.map((kpi) => (
             <div
-              key={label}
+              key={kpi.id}
               className="flex items-center gap-1 px-2 py-1 rounded-md bg-primary/15 text-primary text-xs font-semibold hover:bg-primary/25 transition-colors border border-primary/20"
             >
-              {label}
+              {kpi.label}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (kpiId) handleRemove(kpiId);
+                  handleRemove(kpi.id);
                 }}
                 className="hover:opacity-70 transition-opacity ml-0.5"
-                title="Remove KPI"
+                title={`Remove ${kpi.label}`}
               >
                 <X className="w-3.5 h-3.5" />
               </button>
             </div>
-          );
-        })}
+          ))}
 
-        {selectedKPILabels.length === 0 && (
-          <span className="text-muted-foreground flex-1">{placeholder}</span>
-        )}
+          <div className="flex items-center gap-1.5 flex-1 min-w-[180px]">
+            <Search
+              className={cn(
+                "w-4 h-4 transition-colors flex-shrink-0 stroke-2",
+                isOpen ? "text-primary" : "text-muted-foreground/70"
+              )}
+            />
+            <input
+              type="text"
+              className="flex-1 bg-transparent outline-none text-foreground placeholder-muted-foreground text-xs min-w-[120px] font-medium"
+              placeholder={value.length === 0 ? placeholder : "Search KPIs..."}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsOpen(true);
+              }}
+            />
+          </div>
+        </div>
 
-        <div className="flex items-center gap-1.5 flex-1 min-w-0">
-          <Search
-            className={cn(
-              "w-4 h-4 transition-colors flex-shrink-0 stroke-2",
-              isOpen ? "text-primary" : "text-muted-foreground/70"
-            )}
-          />
-          <input
-            type="text"
-            className="flex-1 bg-transparent outline-none text-foreground placeholder-muted-foreground text-xs min-w-0 font-medium"
-            placeholder="Search KPIs..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsOpen(true);
-            }}
-          />
-          <ChevronDown
+        <ChevronDown
             className={cn(
               "w-4 h-4 text-muted-foreground transition-transform duration-200 flex-shrink-0",
               isOpen ? "rotate-180 text-primary" : ""
             )}
-          />
-        </div>
+        />
       </div>
 
       {/* Dropdown Menu */}
