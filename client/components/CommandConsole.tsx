@@ -120,11 +120,11 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
       <div className="grid grid-cols-3 gap-4">
         {/* Vendor Selection */}
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Vendor</label>
+          <label className="block text-sm font-semibold text-muted-foreground mb-2">Vendor</label>
           <select
             value={selectedVendor}
             onChange={(e) => setSelectedVendor(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm"
           >
             {Object.keys(VENDOR_COMMANDS).map(vendor => (
               <option key={vendor} value={vendor}>{vendor}</option>
@@ -134,11 +134,11 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
 
         {/* Mode Selection */}
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Mode</label>
+          <label className="block text-sm font-semibold text-muted-foreground mb-2">Mode</label>
           <select
             value={mode}
             onChange={(e) => setMode(e.target.value as any)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm"
           >
             <option value="raw">Raw Mode (Native)</option>
             <option value="guided">Guided Mode (Form-Based)</option>
@@ -148,20 +148,20 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
 
         {/* Context */}
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Target Context</label>
+          <label className="block text-sm font-semibold text-muted-foreground mb-2">Target Context</label>
           <input
             type="text"
             placeholder="Global → Country → Region → Site"
             value={selectedTarget.site ? `${selectedTarget.site}` : 'Global'}
             readOnly
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-sm"
+            className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground text-sm"
           />
         </div>
       </div>
 
       {/* Quick Commands */}
       <div>
-        <label className="block text-xs font-semibold text-gray-700 mb-2 flex items-center gap-1">
+        <label className="block text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1">
           <Lightbulb className="w-4 h-4 text-yellow-600" />
           Quick Commands ({selectedVendor})
         </label>
@@ -170,7 +170,7 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
             <button
               key={i}
               onClick={() => pasteCommand(cmd)}
-              className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded transition font-mono text-left"
+              className="px-2 py-1 text-xs bg-muted/60 hover:bg-muted border border-border rounded transition font-mono text-left text-foreground"
               title={`Paste: ${cmd}`}
             >
               {cmd.length > 20 ? cmd.substring(0, 17) + '...' : cmd}
@@ -219,10 +219,10 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
               placeholder={`Enter ${selectedVendor} command (e.g., LST CELL;)`}
               className={`w-full px-3 py-2 border-2 rounded-lg font-mono text-sm focus:outline-none transition ${
                 command.trim() && isValid
-                  ? 'border-green-500 bg-green-50'
+                  ? 'border-green-500 bg-green-50 dark:bg-green-950/30 text-foreground'
                   : command.trim()
-                  ? 'border-red-500 bg-red-50'
-                  : 'border-gray-300'
+                  ? 'border-red-500 bg-red-50 dark:bg-red-950/30 text-foreground'
+                  : 'border-border bg-input text-foreground'
               }`}
               rows={3}
             />
@@ -230,7 +230,7 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
           <button
             onClick={executeCommand}
             disabled={!command.trim()}
-            className="px-4 h-fit py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-2 font-semibold"
+            className="px-4 h-fit py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-2 font-semibold"
           >
             <Send className="w-4 h-4" />
             Execute
@@ -240,9 +240,11 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
         {/* Syntax Hints */}
         {command.trim() && (
           <div className={`p-2 rounded-lg text-xs ${
-            isValid ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
+            isValid
+              ? 'bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800'
+              : 'bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800'
           }`}>
-            <p className={isValid ? 'text-green-800' : 'text-red-800'}>
+            <p className={isValid ? 'text-green-800 dark:text-green-300' : 'text-red-800 dark:text-red-300'}>
               {isValid ? '✓ Valid syntax' : '✗ Invalid syntax'} 
               {getCommandSyntaxValidation(command).matchedKeyword && 
                 ` - ${COMMAND_HINTS[getCommandSyntaxValidation(command).matchedKeyword || '']}`}
@@ -254,19 +256,19 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
       {/* Recent Commands */}
       {history.length > 0 && (
         <div className="mt-4">
-          <p className="text-xs font-semibold text-gray-700 mb-2">Recent Commands</p>
+          <p className="text-xs font-semibold text-muted-foreground mb-2">Recent Commands</p>
           <div className="space-y-1 max-h-20 overflow-y-auto">
             {history.slice(-5).reverse().map((entry) => (
               <button
                 key={entry.id}
                 onClick={() => copyCommand(entry.command, entry.id)}
-                className="w-full text-left px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border border-gray-300 font-mono flex items-center justify-between group"
+                className="w-full text-left px-2 py-1 text-xs bg-muted/60 hover:bg-muted rounded border border-border font-mono flex items-center justify-between group text-foreground"
               >
                 <span className="truncate">{entry.command}</span>
                 {copiedId === entry.id ? (
                   <Check className="w-3 h-3 text-green-600 flex-shrink-0" />
                 ) : (
-                  <Copy className="w-3 h-3 text-gray-600 opacity-0 group-hover:opacity-100 flex-shrink-0" />
+                  <Copy className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 flex-shrink-0" />
                 )}
               </button>
             ))}
