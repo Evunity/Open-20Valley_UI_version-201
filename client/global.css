@@ -267,3 +267,62 @@
     animation: slideInFromBottom 0.3s ease-out;
   }
 }
+
+@layer utilities {
+  /* Dark-mode parity patch for module content that still uses light utility classes */
+  .dark .app-content-theme [class~="bg-white"],
+  .dark .app-content-theme [class~="bg-gray-50"],
+  .dark .app-content-theme [class~="bg-gray-100"] {
+    background-color: hsl(var(--card)) !important;
+  }
+
+  .dark .app-content-theme [class~="bg-slate-50"],
+  .dark .app-content-theme [class~="bg-slate-100"] {
+    background-color: hsl(var(--card)) !important;
+  }
+
+  .dark .app-content-theme [class~="bg-blue-50"],
+  .dark .app-content-theme [class~="bg-indigo-50"],
+  .dark .app-content-theme [class~="bg-purple-50"],
+  .dark .app-content-theme [class~="bg-emerald-50"],
+  .dark .app-content-theme [class~="bg-amber-50"] {
+    background-color: hsl(var(--muted) / 0.25) !important;
+  }
+
+  .dark .app-content-theme [class~="text-black"],
+  .dark .app-content-theme [class~="text-gray-900"],
+  .dark .app-content-theme [class~="text-gray-800"],
+  .dark .app-content-theme [class~="text-slate-900"] {
+    color: hsl(var(--foreground)) !important;
+  }
+
+  .dark .app-content-theme [class~="text-gray-700"],
+  .dark .app-content-theme [class~="text-gray-600"],
+  .dark .app-content-theme [class~="text-gray-500"],
+  .dark .app-content-theme [class~="text-slate-700"],
+  .dark .app-content-theme [class~="text-slate-600"] {
+    color: hsl(var(--muted-foreground)) !important;
+  }
+
+  .dark .app-content-theme [class~="border-gray-200"],
+  .dark .app-content-theme [class~="border-gray-300"],
+  .dark .app-content-theme [class~="border-slate-200"],
+  .dark .app-content-theme [class~="border-slate-300"] {
+    border-color: hsl(var(--border)) !important;
+  }
+
+  .dark .app-content-theme [class~="hover:bg-gray-50"]:hover,
+  .dark .app-content-theme [class~="hover:bg-gray-100"]:hover,
+  .dark .app-content-theme [class~="hover:bg-slate-50"]:hover,
+  .dark .app-content-theme [class~="hover:bg-slate-100"]:hover {
+    background-color: hsl(var(--muted) / 0.3) !important;
+  }
+
+  .dark .app-content-theme [class~="bg-gray-300"] {
+    background-color: hsl(var(--muted)) !important;
+  }
+
+  .dark .app-content-theme [class~="after:bg-white"]::after {
+    background-color: hsl(var(--foreground)) !important;
+  }
+}
