@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Eye, EyeOff } from 'lucide-react';
 
@@ -10,7 +10,9 @@ export default function Login() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const location = useLocation();
+  const { login, isAuthenticated, isLoading: isAuthLoading } = useAuth();
+  const from = (location.state as { from?: { pathname?: string } })?.from?.pathname || '/';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,7 +21,7 @@ export default function Login() {
 
     try {
       await login(username, password);
-      navigate('/');
+      navigate(from, { replace: true });
     } catch (err) {
       setError('Invalid username or password');
       setPassword('');
@@ -32,6 +34,10 @@ export default function Login() {
     // In production, this would navigate to a forgot password page or show a modal
     alert('Password reset functionality coming soon. Please contact your administrator.');
   };
+
+  if (!isAuthLoading && isAuthenticated) {
+    return <Navigate to={from} replace />;
+  }
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-purple-900 via-purple-800 to-purple-900 dark:from-purple-950 dark:via-purple-900 dark:to-purple-950">

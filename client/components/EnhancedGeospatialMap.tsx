@@ -103,22 +103,22 @@ export const EnhancedGeospatialMap: React.FC<EnhancedGeospatialMapProps> = ({
   const SVG_HEIGHT = 600;
 
   return (
-    <div className="w-full flex flex-col gap-4 bg-white rounded-lg border border-gray-200 p-4">
+    <div className="w-full flex flex-col gap-4 bg-card rounded-lg border border-border p-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-gray-900">Geospatial Network Map - MENA Region</h3>
+        <h3 className="font-semibold text-foreground">Geospatial Network Map - MENA Region</h3>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-600">Zoom: {(zoomLevel * 100).toFixed(0)}%</span>
+          <span className="text-xs text-muted-foreground">Zoom: {(zoomLevel * 100).toFixed(0)}%</span>
           <button
             onClick={zoomOut}
-            className="p-1.5 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition"
+            className="p-1.5 bg-muted text-muted-foreground rounded hover:bg-muted/80 transition"
             title="Zoom out"
           >
             <ZoomOut className="w-4 h-4" />
           </button>
           <button
             onClick={zoomIn}
-            className="p-1.5 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition"
+            className="p-1.5 bg-muted text-muted-foreground rounded hover:bg-muted/80 transition"
             title="Zoom in"
           >
             <ZoomIn className="w-4 h-4" />
@@ -127,12 +127,12 @@ export const EnhancedGeospatialMap: React.FC<EnhancedGeospatialMapProps> = ({
       </div>
 
       {/* Map Canvas */}
-      <div className="overflow-x-auto bg-gray-50 rounded-lg border border-gray-200">
+      <div className="overflow-x-auto bg-muted/30 rounded-lg border border-border">
         <svg
           width={SVG_WIDTH * zoomLevel}
           height={SVG_HEIGHT * zoomLevel}
           viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
-          className="bg-gradient-to-br from-blue-50 to-blue-100"
+          className="bg-gradient-to-br from-muted/40 to-muted/20"
         >
           {/* Country boundaries */}
           <defs>
@@ -251,39 +251,39 @@ export const EnhancedGeospatialMap: React.FC<EnhancedGeospatialMapProps> = ({
 
       {/* Info Panel */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-          <p className="text-xs text-blue-600 font-semibold">Network Objects</p>
-          <p className="text-lg font-bold text-blue-900">{geoObjects.length}</p>
-          <p className="text-xs text-blue-700">sites with geo-coordinates</p>
+        <div className="p-3 bg-primary/10 rounded-lg border border-primary/20">
+          <p className="text-xs text-primary font-semibold">Network Objects</p>
+          <p className="text-lg font-bold text-foreground">{geoObjects.length}</p>
+          <p className="text-xs text-muted-foreground">sites with geo-coordinates</p>
         </div>
 
-        <div className="p-3 bg-green-50 rounded-lg border border-green-200">
-          <p className="text-xs text-green-600 font-semibold">Healthy</p>
-          <p className="text-lg font-bold text-green-900">
+        <div className="p-3 bg-green-100/60 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800">
+          <p className="text-xs text-green-700 dark:text-green-300 font-semibold">Healthy</p>
+          <p className="text-lg font-bold text-green-900 dark:text-green-200">
             {geoObjects.filter(o => o.healthState === 'healthy').length}
           </p>
-          <p className="text-xs text-green-700">({((geoObjects.filter(o => o.healthState === 'healthy').length / geoObjects.length) * 100).toFixed(0)}%)</p>
+          <p className="text-xs text-green-700 dark:text-green-300">({((geoObjects.filter(o => o.healthState === 'healthy').length / geoObjects.length) * 100).toFixed(0)}%)</p>
         </div>
 
-        <div className="p-3 bg-red-50 rounded-lg border border-red-200">
-          <p className="text-xs text-red-600 font-semibold">Issues</p>
-          <p className="text-lg font-bold text-red-900">
+        <div className="p-3 bg-red-100/60 dark:bg-red-950/30 rounded-lg border border-red-200 dark:border-red-800">
+          <p className="text-xs text-red-700 dark:text-red-300 font-semibold">Issues</p>
+          <p className="text-lg font-bold text-red-900 dark:text-red-200">
             {geoObjects.filter(o => o.healthState !== 'healthy').length}
           </p>
-          <p className="text-xs text-red-700">need attention</p>
+          <p className="text-xs text-red-700 dark:text-red-300">need attention</p>
         </div>
       </div>
 
       {/* Selected Object Details */}
       {selectedObject && (
-        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+        <div className="p-3 bg-primary/10 border border-primary/20 rounded-lg">
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
-                <MapPin className="w-4 h-4 text-blue-600" />
-                <p className="font-semibold text-gray-900">{selectedObject.name}</p>
+                <MapPin className="w-4 h-4 text-primary" />
+                <p className="font-semibold text-foreground">{selectedObject.name}</p>
               </div>
-              <div className="space-y-1 text-xs text-gray-700">
+              <div className="space-y-1 text-xs text-muted-foreground">
                 {selectedObject.geoCoordinates && (
                   <p className="font-mono">
                     Coordinates: {selectedObject.geoCoordinates.latitude.toFixed(4)}, {selectedObject.geoCoordinates.longitude.toFixed(4)}
@@ -303,14 +303,14 @@ export const EnhancedGeospatialMap: React.FC<EnhancedGeospatialMapProps> = ({
               }`}>
                 {selectedObject.healthState}
               </p>
-              <p className="text-xs text-gray-600 mt-1">{getAlarmCount(selectedObject)} alarms</p>
+              <p className="text-xs text-muted-foreground mt-1">{getAlarmCount(selectedObject)} alarms</p>
             </div>
           </div>
         </div>
       )}
 
       {/* Map Controls Info */}
-      <div className="text-xs text-gray-600 flex items-center gap-2 justify-center p-2 bg-gray-50 rounded">
+      <div className="text-xs text-muted-foreground flex items-center gap-2 justify-center p-2 bg-muted/40 rounded border border-border/50">
         <Navigation className="w-4 h-4" />
         <span>Click on sites to view details • Use zoom controls to adjust view</span>
       </div>

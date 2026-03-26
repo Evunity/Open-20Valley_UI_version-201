@@ -4,6 +4,13 @@ import {
   Download, Settings, Plus
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import ExecutiveRiskOverview from "@/components/audit/ExecutiveRiskOverview";
 import UnifiedActivityStream from "@/components/audit/UnifiedActivityStream";
 import ForensicInvestigationExplorer from "@/components/audit/ForensicInvestigationExplorer";
@@ -127,17 +134,18 @@ export default function ActivityAudit() {
           <div className="flex items-center justify-between mb-4">
             <div></div>
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-background">
-                <span className="text-xs font-semibold text-muted-foreground">MODE:</span>
-                <select 
-                  value={timeMode}
-                  onChange={(e) => setTimeMode(e.target.value as any)}
-                  className="bg-transparent text-sm font-medium text-foreground focus:outline-none"
-                >
-                  <option value="live">Live</option>
-                  <option value="investigative">Investigative</option>
-                  <option value="historical">Historical</option>
-                </select>
+              <div className="flex items-center gap-2 px-3 py-2 h-10 rounded-lg border border-border bg-background">
+                <span className="text-xs font-semibold text-muted-foreground whitespace-nowrap">MODE:</span>
+                <Select value={timeMode} onValueChange={(value) => setTimeMode(value as any)}>
+                  <SelectTrigger className="h-8 min-w-[150px] border-0 bg-transparent px-1 text-sm font-medium text-foreground focus:ring-0">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="live">Live</SelectItem>
+                    <SelectItem value="investigative">Investigative</SelectItem>
+                    <SelectItem value="historical">Historical</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <button className="px-3 py-2 rounded-lg border border-border hover:bg-muted transition-colors text-sm flex items-center gap-2">
                 <Download className="w-4 h-4" />

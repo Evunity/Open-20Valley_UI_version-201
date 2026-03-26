@@ -269,7 +269,7 @@ export const AutomationManagement: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-background">
+    <div className="automation-theme flex flex-col h-screen bg-background">
       {/* Domain Navigation */}
       <div className="bg-card border-b border-border px-6 py-3 flex gap-2">
         {DOMAINS.map(domain => {
