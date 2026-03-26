@@ -47,7 +47,7 @@ export default function Settings2() {
   ];
 
   return (
-    <div className="flex h-full flex-col bg-background">
+    <div className="settings-theme-fix flex h-full flex-col bg-background">
       {/* Header */}
       <div className="border-b border-border bg-card px-8 py-4">
       </div>
@@ -146,7 +146,7 @@ export default function Settings2() {
                       { name: 'Disable external exports', risk: 'high' },
                       { name: 'Force system read-only', risk: 'critical' }
                     ].map(sw => (
-                      <div key={sw.name} className="flex items-center justify-between rounded-lg bg-muted  p-4">
+                      <div key={sw.name} className="flex items-center justify-between rounded-lg bg-card border border-border p-4">
                         <div>
                           <p className="font-semibold text-foreground">{sw.name}</p>
                           <p className={`text-xs font-semibold mt-1 ${sw.risk === 'critical' ? 'text-red-600' : 'text-orange-600'}`}>
