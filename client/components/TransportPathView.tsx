@@ -92,20 +92,20 @@ export const TransportPathView: React.FC<TransportPathViewProps> = ({ onPathSele
 
   const getHealthColor = (health: string) => {
     switch (health) {
-      case 'healthy': return 'bg-green-100 text-green-800';
-      case 'degraded': return 'bg-yellow-100 text-yellow-800';
-      case 'down': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'healthy': return 'bg-green-100/70 dark:bg-green-950/30 text-green-800 dark:text-green-300';
+      case 'degraded': return 'bg-yellow-100/70 dark:bg-yellow-950/30 text-yellow-800 dark:text-yellow-300';
+      case 'down': return 'bg-red-100/70 dark:bg-red-950/30 text-red-800 dark:text-red-300';
+      default: return 'bg-muted text-foreground';
     }
   };
 
   return (
-    <div className="w-full h-full flex flex-col gap-4 p-4 bg-gray-50 overflow-y-auto">
-      <h2 className="text-lg font-bold text-gray-900">Transport & Path Visualization</h2>
+    <div className="w-full h-full flex flex-col gap-4 p-4 bg-background overflow-y-auto">
+      <h2 className="text-lg font-bold text-foreground">Transport & Path Visualization</h2>
 
       {/* Topology Pattern Selector */}
-      <div className="bg-white rounded-lg border border-gray-200 p-3">
-        <p className="text-xs font-semibold text-gray-700 mb-2">Topology Pattern</p>
+      <div className="bg-card rounded-lg border border-border p-3">
+        <p className="text-xs font-semibold text-muted-foreground mb-2">Topology Pattern</p>
         <div className="grid grid-cols-6 gap-2">
           {topologyPatterns.map(pattern => (
             <button
@@ -113,8 +113,8 @@ export const TransportPathView: React.FC<TransportPathViewProps> = ({ onPathSele
               onClick={() => setTopologyType(pattern.id)}
               className={`px-2 py-2 rounded text-center transition flex flex-col items-center justify-center gap-1 ${
                 topologyType === pattern.id
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
               }`}
               title={pattern.description}
             >
@@ -126,26 +126,26 @@ export const TransportPathView: React.FC<TransportPathViewProps> = ({ onPathSele
       </div>
 
       {/* Mesh Filter */}
-      <label className="flex items-center gap-2 px-3 py-1.5 bg-white rounded border border-gray-200 text-xs cursor-pointer hover:bg-gray-50 w-fit">
+      <label className="flex items-center gap-2 px-3 py-1.5 bg-card rounded border border-border text-xs cursor-pointer hover:bg-muted/40 w-fit">
         <input
           type="checkbox"
           checked={showMeshOnly}
           onChange={(e) => setShowMeshOnly(e.target.checked)}
           className="w-3 h-3 rounded"
         />
-        <span className="font-semibold text-gray-700">Show Mesh Links Only</span>
+        <span className="font-semibold text-muted-foreground">Show Mesh Links Only</span>
       </label>
 
       {/* Path Trace Tool */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4">
-        <h3 className="text-sm font-bold text-gray-900 mb-3">Path Trace Tool</h3>
+      <div className="bg-card rounded-lg border border-border p-4">
+        <h3 className="text-sm font-bold text-foreground mb-3">Path Trace Tool</h3>
         <div className="grid grid-cols-2 gap-3 mb-3">
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">Source</label>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">Source</label>
             <select
               value={sourceRegion}
               onChange={(e) => setSourceRegion(e.target.value)}
-              className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-2 py-1 border border-border rounded text-xs focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground"
             >
               {regions.map(r => (
                 <option key={r} value={r}>{r}</option>
@@ -153,11 +153,11 @@ export const TransportPathView: React.FC<TransportPathViewProps> = ({ onPathSele
             </select>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">Destination</label>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">Destination</label>
             <select
               value={destRegion}
               onChange={(e) => setDestRegion(e.target.value)}
-              className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-2 py-1 border border-border rounded text-xs focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground"
             >
               {regions.map(r => (
                 <option key={r} value={r}>{r}</option>
@@ -169,11 +169,11 @@ export const TransportPathView: React.FC<TransportPathViewProps> = ({ onPathSele
         {selectedTransportPath && (
           <div className="space-y-3">
             {/* Path Header */}
-            <div className="flex items-center gap-2 pb-3 border-b border-gray-200">
-              <span className="text-sm font-semibold text-gray-900">
+            <div className="flex items-center gap-2 pb-3 border-b border-border">
+              <span className="text-sm font-semibold text-foreground">
                 {selectedTransportPath.source} → {selectedTransportPath.destination}
               </span>
-              <span className="px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded font-semibold">
+              <span className="px-2 py-0.5 bg-primary/15 text-primary text-xs rounded font-semibold">
                 {getLinkTypeIcon(selectedTransportPath.type)} {selectedTransportPath.type.toUpperCase()}
               </span>
             </div>
@@ -188,11 +188,11 @@ export const TransportPathView: React.FC<TransportPathViewProps> = ({ onPathSele
               <div className="space-y-1 ml-2">
                 {selectedTransportPath.primary.map((hop, idx) => (
                   <div key={idx} className="flex items-center gap-2 text-xs">
-                    {idx > 0 && <span className="text-gray-400">→</span>}
+                    {idx > 0 && <span className="text-muted-foreground">→</span>}
                     <span className={`px-2 py-0.5 rounded font-semibold ${getHealthColor(hop.health)}`}>
                       {hop.name}
                     </span>
-                    <span className="text-gray-600 text-xs">
+                    <span className="text-muted-foreground text-xs">
                       {hop.latency}ms • {hop.utilization}% util
                     </span>
                   </div>
@@ -211,11 +211,11 @@ export const TransportPathView: React.FC<TransportPathViewProps> = ({ onPathSele
                 <div className="space-y-1 ml-2">
                   {selectedTransportPath.backup.map((hop, idx) => (
                     <div key={idx} className="flex items-center gap-2 text-xs">
-                      {idx > 0 && <span className="text-gray-400">→</span>}
+                      {idx > 0 && <span className="text-muted-foreground">→</span>}
                       <span className={`px-2 py-0.5 rounded font-semibold ${getHealthColor(hop.health)}`}>
                         {hop.name}
                       </span>
-                      <span className="text-gray-600 text-xs">
+                      <span className="text-muted-foreground text-xs">
                         {hop.latency}ms • {hop.utilization}% util
                       </span>
                     </div>
@@ -225,7 +225,7 @@ export const TransportPathView: React.FC<TransportPathViewProps> = ({ onPathSele
             )}
 
             {/* Summary */}
-            <div className="p-2 bg-blue-50 rounded text-xs text-blue-900">
+            <div className="p-2 bg-primary/10 rounded text-xs text-foreground border border-primary/20">
               <p className="font-semibold mb-1">Path Summary</p>
               <p>Total hops: {selectedTransportPath.primary.length + (selectedTransportPath.backup?.length || 0)}</p>
               <p>Primary latency: {selectedTransportPath.primary.reduce((sum, h) => sum + h.latency, 0).toFixed(1)}ms</p>
@@ -236,10 +236,10 @@ export const TransportPathView: React.FC<TransportPathViewProps> = ({ onPathSele
       </div>
 
       {/* Transport Engineer Info */}
-      <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+      <div className="bg-primary/10 border border-primary/20 rounded-lg p-3">
         <div className="flex items-start gap-2">
-          <Route className="w-4 h-4 text-purple-600 mt-0.5 flex-shrink-0" />
-          <div className="text-xs text-purple-900">
+          <Route className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+          <div className="text-xs text-foreground">
             <p className="font-semibold mb-1">For Transport Engineers:</p>
             <ul className="space-y-0.5">
               <li>• Select topology pattern to visualize network structure</li>
