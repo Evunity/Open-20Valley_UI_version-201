@@ -350,7 +350,7 @@ export default function Layout({ children }: LayoutProps) {
         )}
 
         {/* Content Area */}
-        <div className="flex-1 overflow-auto">
+        <div className="app-content-theme flex-1 overflow-auto">
           <div className="p-1.5 md:p-2">{children}</div>
         </div>
       </main>
