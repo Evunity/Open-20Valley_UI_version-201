@@ -339,4 +339,60 @@
   .dark .settings-theme-fix textarea::placeholder {
     color: hsl(var(--muted-foreground)) !important;
   }
+
+  /* Command Center module components */
+  .dark .command-center-theme [class~="bg-white"],
+  .dark .command-center-theme [class~="bg-gray-50"],
+  .dark .command-center-theme [class~="bg-gray-100"] {
+    background-color: hsl(var(--card)) !important;
+  }
+
+  .dark .command-center-theme [class~="border-gray-200"],
+  .dark .command-center-theme [class~="border-gray-300"] {
+    border-color: hsl(var(--border)) !important;
+  }
+
+  .dark .command-center-theme [class~="text-gray-900"],
+  .dark .command-center-theme [class~="text-gray-800"],
+  .dark .command-center-theme [class~="text-gray-700"],
+  .dark .command-center-theme [class~="text-gray-600"],
+  .dark .command-center-theme [class~="text-gray-500"] {
+    color: hsl(var(--foreground)) !important;
+  }
+
+  .dark .command-center-theme input:not([type="checkbox"]):not([type="radio"]),
+  .dark .command-center-theme select,
+  .dark .command-center-theme textarea {
+    background-color: hsl(var(--input)) !important;
+    color: hsl(var(--foreground)) !important;
+    border-color: hsl(var(--border)) !important;
+  }
+
+  /* Automation & AI + Topology sections */
+  .dark .automation-theme [class~="bg-white"],
+  .dark .automation-theme [class~="bg-gray-50"],
+  .dark .automation-theme [class~="bg-gray-100"],
+  .dark .topology-theme [class~="bg-white"],
+  .dark .topology-theme [class~="bg-gray-50"],
+  .dark .topology-theme [class~="bg-gray-100"] {
+    background-color: hsl(var(--card)) !important;
+  }
+
+  .dark .automation-theme [class~="border-gray-200"],
+  .dark .automation-theme [class~="border-gray-300"],
+  .dark .topology-theme [class~="border-gray-200"],
+  .dark .topology-theme [class~="border-gray-300"] {
+    border-color: hsl(var(--border)) !important;
+  }
+
+  .dark .automation-theme [class~="text-gray-900"],
+  .dark .automation-theme [class~="text-gray-800"],
+  .dark .automation-theme [class~="text-gray-700"],
+  .dark .automation-theme [class~="text-gray-600"],
+  .dark .topology-theme [class~="text-gray-900"],
+  .dark .topology-theme [class~="text-gray-800"],
+  .dark .topology-theme [class~="text-gray-700"],
+  .dark .topology-theme [class~="text-gray-600"] {
+    color: hsl(var(--foreground)) !important;
+  }
 }

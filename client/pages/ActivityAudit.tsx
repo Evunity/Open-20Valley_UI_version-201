@@ -134,10 +134,10 @@ export default function ActivityAudit() {
           <div className="flex items-center justify-between mb-4">
             <div></div>
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-background">
-                <span className="text-xs font-semibold text-muted-foreground">MODE:</span>
+              <div className="flex items-center gap-2 px-3 py-2 h-10 rounded-lg border border-border bg-background">
+                <span className="text-xs font-semibold text-muted-foreground whitespace-nowrap">MODE:</span>
                 <Select value={timeMode} onValueChange={(value) => setTimeMode(value as any)}>
-                  <SelectTrigger className="h-7 border-0 bg-transparent px-1 text-sm font-medium text-foreground focus:ring-0">
+                  <SelectTrigger className="h-8 min-w-[150px] border-0 bg-transparent px-1 text-sm font-medium text-foreground focus:ring-0">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>

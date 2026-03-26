@@ -144,7 +144,7 @@ export const CommandCenter: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full gap-4 bg-background">
+    <div className="command-center-theme flex flex-col h-full gap-4 bg-background">
       {/* Target Selection Context */}
       {(selectedTarget.country || selectedTarget.region || selectedTarget.site || selectedTarget.node) && (
         <div className="bg-card border-b border-border rounded-lg p-4">
