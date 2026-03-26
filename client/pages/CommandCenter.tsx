@@ -172,7 +172,7 @@ export const CommandCenter: React.FC = () => {
                 className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition ${
                   activeModule === module.id
                     ? 'border-blue-600 bg-blue-50 dark:bg-blue-950'
-                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 bg-card'
+                    : 'border-border hover:border-primary/40 bg-card'
                 }`}
                 title={module.description}
               >

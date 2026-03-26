@@ -359,9 +359,9 @@ export default function AccessControl() {
 
       {/* Tenant Switcher Modal */}
       {showTenantSwitcher && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
-          <div className="bg-card rounded-xl border border-border max-w-2xl w-full mx-4">
-            <div className="p-6">
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <div className="bg-card rounded-xl border border-border shadow-2xl max-w-xl w-full max-h-[85vh] overflow-hidden">
+            <div className="p-4 md:p-5 max-h-[85vh] overflow-y-auto">
               <TenantSwitcher onClose={() => setShowTenantSwitcher(false)} />
             </div>
           </div>

@@ -159,7 +159,7 @@ export const RackView: React.FC<RackViewProps> = ({ onDeviceSelect }) => {
       <div className="flex-1 bg-card rounded-lg border border-border p-4 overflow-y-auto">
         <div className="font-mono text-xs space-y-1">
           {/* U Scale */}
-          <div className="sticky top-0 bg-card border-b border-border pb-2 mb-2">
+          <div className="bg-card border-b border-border pb-2 mb-2">
             <p className="text-muted-foreground font-bold text-center">
               {cabinet.name} • {cabinet.location}
             </p>
