@@ -302,15 +302,15 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
 
         {/* Choose Dates Button */}
         <div>
-          <label className="block text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
+          <label className="block typo-label mb-2">
             Choose Dates
           </label>
           <button
             onClick={() => setShowCalendarDropdown(!showCalendarDropdown)}
-            className="w-full h-[46px] px-3 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all hover:bg-muted/30 flex items-center"
+            className="w-full control-height px-3 rounded-lg border border-border bg-background typo-input focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all hover:bg-muted/30 flex items-center"
           >
             {stagedFilters.dateRange.from && stagedFilters.dateRange.to ? (
-              <span className="text-sm text-foreground font-medium truncate">
+              <span className="typo-input font-medium truncate">
                 {new Date(stagedFilters.dateRange.from).toLocaleDateString("en-US", {
                   month: "short",
                   day: "numeric",
@@ -322,7 +322,7 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
                 })}
               </span>
             ) : (
-              <span className="text-sm text-muted-foreground truncate">Select range</span>
+              <span className="typo-input text-muted-foreground truncate">Select range</span>
             )}
           </button>
         </div>
@@ -336,7 +336,7 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
             onClick={handleApplyFilters}
             disabled={!hasChanges}
             className={cn(
-              "flex-1 px-4 py-2 rounded font-medium transition-colors text-sm flex items-center justify-center gap-2",
+              "flex-1 control-height px-4 rounded typo-button transition-colors flex items-center justify-center gap-2",
               hasChanges
                 ? "bg-primary text-primary-foreground hover:bg-primary/90"
                 : "bg-muted text-muted-foreground cursor-not-allowed opacity-50"
@@ -358,7 +358,7 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
                 timeGranularity: "days",
               });
             }}
-            className="px-4 py-2 rounded border border-border text-foreground hover:bg-muted/50 transition-colors text-sm font-medium"
+            className="control-height px-4 rounded border border-border text-foreground hover:bg-muted/50 transition-colors typo-button"
             title="Clear all filters"
           >
             Reset All
@@ -366,7 +366,7 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
           {hasChanges && (
             <button
               onClick={handleResetChanges}
-              className="px-3 py-2 rounded border border-border text-foreground hover:bg-muted/50 transition-colors text-sm"
+              className="control-height px-3 rounded border border-border text-foreground hover:bg-muted/50 transition-colors typo-button"
               title="Discard changes"
             >
               Cancel
@@ -387,7 +387,7 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
           <div className="fixed inset-x-4 top-1/2 -translate-y-1/2 max-w-sm mx-auto p-4 rounded-lg border border-border bg-card shadow-2xl z-50 max-h-[85vh] overflow-y-auto">
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                <label className="block typo-label">
                   Select Dates
                 </label>
                 <button
@@ -443,7 +443,7 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
               {stagedFilters.dateRange.from && stagedFilters.dateRange.to && (
                 <div className="pt-2 border-t border-border/50 space-y-2">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs text-muted-foreground truncate">
+                    <span className="typo-meta truncate">
                       <strong>Selected:</strong> {new Date(stagedFilters.dateRange.from).toLocaleDateString()}
                     </span>
                     <button
@@ -453,12 +453,12 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
                           dateRange: { from: null, to: null },
                         });
                       }}
-                      className="px-2 py-1 text-xs rounded bg-muted hover:bg-muted/70 transition-all flex-shrink-0"
+                      className="px-2 py-1 typo-badge rounded bg-muted hover:bg-muted/70 transition-all flex-shrink-0"
                     >
                       Clear
                     </button>
                   </div>
-                  <div className="text-xs text-muted-foreground">
+                  <div className="typo-meta">
                     to {new Date(stagedFilters.dateRange.to).toLocaleDateString()} ({daysDiff} day{daysDiff !== 1 ? "s" : ""})
                   </div>
                 </div>

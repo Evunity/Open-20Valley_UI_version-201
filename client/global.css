@@ -178,6 +178,76 @@
 
 /* Utility classes for Open Valley */
 @layer components {
+  /* Typography tokens */
+  .typo-page-title {
+    @apply text-[1.75rem] leading-tight font-semibold text-foreground;
+  }
+
+  .typo-section-title {
+    @apply text-[1.25rem] leading-snug font-semibold text-foreground;
+  }
+
+  .typo-subsection-title {
+    @apply text-base leading-snug font-semibold text-foreground;
+  }
+
+  .typo-card-title {
+    @apply text-sm leading-snug font-semibold text-foreground;
+  }
+
+  .typo-body {
+    @apply text-sm leading-6 text-foreground;
+  }
+
+  .typo-label {
+    @apply text-xs leading-5 font-semibold text-muted-foreground uppercase tracking-wide;
+  }
+
+  .typo-meta {
+    @apply text-xs leading-5 text-muted-foreground;
+  }
+
+  .typo-button {
+    @apply text-sm leading-5 font-medium;
+  }
+
+  .typo-input {
+    @apply text-sm leading-5 text-foreground placeholder:text-muted-foreground;
+  }
+
+  .typo-tab {
+    @apply text-sm leading-5 font-medium;
+  }
+
+  .typo-badge {
+    @apply text-xs leading-5 font-semibold;
+  }
+
+  /* Layout rhythm tokens */
+  .layout-page {
+    @apply space-y-6 pb-6;
+  }
+
+  .layout-page-header {
+    @apply flex items-start justify-between gap-4 flex-wrap;
+  }
+
+  .layout-section {
+    @apply space-y-4;
+  }
+
+  .layout-card {
+    @apply rounded-xl border border-border/60 bg-card p-4 md:p-5;
+  }
+
+  .layout-controls-row {
+    @apply flex items-center gap-2 flex-wrap;
+  }
+
+  .control-height {
+    @apply h-10;
+  }
+
   .status-healthy {
     @apply text-[hsl(var(--status-healthy))];
   }

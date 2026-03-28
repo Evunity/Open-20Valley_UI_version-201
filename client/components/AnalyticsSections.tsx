@@ -56,15 +56,15 @@ export default function AnalyticsSections() {
   ];
 
   return (
-    <div className="card-elevated rounded border border-border/50 shadow-sm overflow-hidden">
+    <div className="layout-card overflow-hidden">
       {/* Header */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between px-2 py-1.5 hover:bg-muted/50 transition-colors duration-200"
+        className="w-full flex items-center justify-between px-1 py-2 hover:bg-muted/50 transition-colors duration-200"
       >
         <div className="flex items-center gap-1.5">
-          <h3 className="text-sm font-bold text-foreground">Analytics</h3>
-          <span className="text-xs font-medium px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">
+          <h3 className="typo-section-title">Analytics</h3>
+          <span className="typo-badge px-2 py-0.5 rounded-full bg-primary/10 text-primary">
             {sections.length}
           </span>
         </div>
@@ -84,18 +84,18 @@ export default function AnalyticsSections() {
               key={section.path}
               onClick={() => navigate(section.path)}
               className={cn(
-                "flex flex-col items-start gap-1 p-1.5 hover:bg-primary/5 transition-all duration-200 text-left group border-border/30",
+                "flex flex-col items-start gap-2 p-4 hover:bg-primary/5 transition-all duration-200 text-left group border-border/30",
                 "border-b border-r"
               )}
             >
-              <div className="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded bg-primary/10 group-hover:bg-primary/20 transition-colors">
-                {React.cloneElement(section.icon as React.ReactElement, { className: "w-3 h-3" })}
+              <div className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-md bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                {React.cloneElement(section.icon as React.ReactElement, { className: "w-4 h-4" })}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-foreground text-xs group-hover:text-primary transition-colors leading-tight">
+                <p className="typo-card-title group-hover:text-primary transition-colors">
                   {section.title}
                 </p>
-                <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">
+                <p className="typo-meta mt-1">
                   {section.description}
                 </p>
               </div>
