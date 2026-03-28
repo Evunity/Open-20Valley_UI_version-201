@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-import { Link } from "react-router-dom";
 import { Download } from "lucide-react";
 import * as XLSX from "xlsx";
 import {
@@ -13,6 +12,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import FilterPanel from "@/components/FilterPanel";
+import DashboardDrilldownHeader from "@/components/DashboardDrilldownHeader";
 import KPICard from "@/components/KPICard";
 import ExecutiveInsightSummary, { type InsightData } from "@/components/ExecutiveInsightSummary";
 import VoicePerformanceTable from "@/components/VoicePerformanceTable";
@@ -265,34 +265,22 @@ export default function VoiceAnalytics() {
 
   return (
     <div className="space-y-8 pb-6">
-      {/* Breadcrumb Navigation */}
-      <div className="flex items-center gap-2 text-sm">
-        <Link to="/" className="text-primary hover:text-primary/80 transition-colors font-medium">
-          Dashboard
-        </Link>
-        <span className="text-muted-foreground">/</span>
-        <span className="text-muted-foreground">Voice Analytics</span>
-      </div>
-
       {/* Header */}
-      <div className="space-y-6">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div className="space-y-1">
-            <h1 className="text-4xl font-bold text-foreground">Voice Analytics</h1>
-            <p className="text-muted-foreground">
-              Real-time voice service performance and quality insights
-            </p>
-          </div>
-          <button
-            onClick={handleExport}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-border bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium"
-          >
-            <Download className="w-4 h-4" />
-            Export to Excel
-          </button>
-        </div>
-
-        {/* Global Filter Panel */}
+      <div className="border-b border-border bg-card/50 backdrop-blur-sm rounded-lg">
+        <DashboardDrilldownHeader
+          title="Voice Analytics"
+          description="Real-time voice service performance and quality insights"
+          className="px-6 py-5"
+          actions={
+            <button
+              onClick={handleExport}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-border bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium"
+            >
+              <Download className="w-4 h-4" />
+              Export to Excel
+            </button>
+          }
+        />
         <FilterPanel />
       </div>
 

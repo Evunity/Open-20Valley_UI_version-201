@@ -131,8 +131,19 @@ export default function Layout({ children }: LayoutProps) {
     { path: "/settings-2", label: "Settings", icon: Settings, matchPaths: ["/settings-2", "/settings"] },
   ];
 
+  const drilldownNavMap: Record<string, string> = {
+    "/voice-analytics": "/analytics-management",
+    "/data-analytics": "/analytics-management",
+    "/network-alarms": "/alarm-management",
+    "/network-status": "/topology-management",
+    "/ai-actions": "/automation-management",
+    "/reports": "/reports-module",
+  };
+
+  const resolvedPath = drilldownNavMap[location.pathname] ?? location.pathname;
+
   const isActive = (matchPaths: string[]) =>
-    matchPaths.some((path) => (path === "/" ? location.pathname === "/" : location.pathname.startsWith(path)));
+    matchPaths.some((path) => (path === "/" ? resolvedPath === "/" : resolvedPath.startsWith(path)));
 
   const SidebarContent = () => (
     <>
