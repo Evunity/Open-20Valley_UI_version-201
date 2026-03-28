@@ -309,7 +309,7 @@
   /* Global table alignment system */
   .app-content-theme table {
     @apply w-full text-sm border-collapse;
-    table-layout: auto;
+    table-layout: fixed;
   }
 
   .app-content-theme table thead th {
@@ -334,6 +334,7 @@
   .app-content-theme table :is(th, td).text-right {
     text-align: right;
     font-variant-numeric: tabular-nums;
+    white-space: nowrap;
   }
 
   .app-content-theme table :is(th, td).text-center {
@@ -346,6 +347,11 @@
   }
 
   .app-content-theme table td :is(.badge, .typo-badge) {
+    @apply inline-flex items-center justify-center;
+    min-width: 4.5rem;
+  }
+
+  .app-content-theme table td.text-center > span {
     @apply inline-flex items-center justify-center;
     min-width: 4.5rem;
   }
