@@ -71,7 +71,7 @@ export default function SearchableDropdown({
   return (
     <div ref={dropdownRef} className="relative">
       <label className={cn(
-        "block font-semibold text-muted-foreground uppercase tracking-wide",
+        "block typo-label",
         compact ? "text-[11px] mb-1.5" : "text-xs mb-2"
       )}>
         {label}
@@ -89,7 +89,7 @@ export default function SearchableDropdown({
         }}
         className={cn(
           "w-full border transition-all flex items-center justify-between cursor-pointer relative",
-          compact ? "h-9 px-2.5 rounded-md" : "h-[46px] px-3 rounded-lg",
+          compact ? "h-9 px-2.5 rounded-md" : "control-height px-3 rounded-lg",
           isOpen
             ? "border-primary bg-primary/5 ring-2 ring-primary/50"
             : "border-border bg-background hover:border-primary/50"
@@ -126,12 +126,12 @@ export default function SearchableDropdown({
                 ))}
               </div>
             ) : (
-              <span className="text-muted-foreground text-sm truncate">Select {label.toLowerCase()}...</span>
+              <span className="typo-input text-muted-foreground truncate">Select {label.toLowerCase()}...</span>
             )
           ) : singleSelection ? (
-            <span className="text-foreground text-sm truncate">{singleSelection}</span>
+            <span className="typo-input text-foreground truncate">{singleSelection}</span>
           ) : (
-            <span className="text-muted-foreground text-sm truncate">Select {label.toLowerCase()}...</span>
+            <span className="typo-input text-muted-foreground truncate">Select {label.toLowerCase()}...</span>
           )}
         </div>
 
