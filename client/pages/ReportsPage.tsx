@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import { Download, FileText, Clock, AlertCircle, TrendingUp, X } from "lucide-react";
 import * as XLSX from "xlsx";
 import {
@@ -19,6 +18,7 @@ import {
 } from "recharts";
 
 import FilterPanel from "@/components/FilterPanel";
+import DashboardDrilldownHeader from "@/components/DashboardDrilldownHeader";
 import KPICard from "@/components/KPICard";
 import SearchableDropdown from "@/components/SearchableDropdown";
 import ReportHistoryModal from "@/components/ReportHistoryModal";
@@ -203,22 +203,11 @@ export default function ReportsPage() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="border-b border-border bg-card/50 backdrop-blur-sm">
-        <div className="px-8 py-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                <Link to="/" className="hover:text-foreground">
-                  Dashboard
-                </Link>
-                <span>/</span>
-                <span>Reports</span>
-              </div>
-              <h1 className="text-3xl font-bold text-foreground">Reports</h1>
-              <p className="text-muted-foreground">
-                Report observability layer – visibility into generation, freshness, and delivery
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
+        <DashboardDrilldownHeader
+          title="Reports"
+          description="Report observability layer – visibility into generation, freshness, and delivery"
+          actions={
+            <>
               <select
                 value={exportFormat}
                 onChange={(e) => setExportFormat(e.target.value as "xlsx" | "csv")}
@@ -234,9 +223,9 @@ export default function ReportsPage() {
                 <Download className="w-4 h-4" />
                 Export
               </button>
-            </div>
-          </div>
-        </div>
+            </>
+          }
+        />
 
         {/* Global Filters */}
         <FilterPanel />

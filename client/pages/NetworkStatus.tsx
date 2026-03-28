@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-import { Link } from "react-router-dom";
 import { Download, Server, AlertCircle, TrendingUp, Clock } from "lucide-react";
 import * as XLSX from "xlsx";
 import {
@@ -16,6 +15,7 @@ import {
 } from "recharts";
 
 import FilterPanel from "@/components/FilterPanel";
+import DashboardDrilldownHeader from "@/components/DashboardDrilldownHeader";
 import KPICard from "@/components/KPICard";
 import { useGlobalFilters } from "@/hooks/useGlobalFilters";
 import { useToast } from "@/hooks/use-toast";
@@ -73,19 +73,10 @@ export default function NetworkStatus() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="border-b border-border bg-card/50 backdrop-blur-sm">
-        <div className="px-8 py-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                <Link to="/" className="hover:text-foreground">
-                  Dashboard
-                </Link>
-                <span>/</span>
-                <span>Network Status</span>
-              </div>
-              <h1 className="text-3xl font-bold text-foreground">Network Status</h1>
-              <p className="text-muted-foreground">Structural and availability-focused network overview</p>
-            </div>
+        <DashboardDrilldownHeader
+          title="Network Status"
+          description="Structural and availability-focused network overview"
+          actions={
             <button
               onClick={handleExport}
               className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
@@ -93,8 +84,8 @@ export default function NetworkStatus() {
               <Download className="w-4 h-4" />
               Export to Excel
             </button>
-          </div>
-        </div>
+          }
+        />
 
         {/* Filter Panel */}
         <FilterPanel />

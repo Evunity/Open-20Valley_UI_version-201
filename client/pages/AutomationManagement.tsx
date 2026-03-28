@@ -269,7 +269,7 @@ export const AutomationManagement: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-background">
+    <div className="automation-theme flex flex-col h-screen bg-background">
       {/* Domain Navigation */}
       <div className="bg-card border-b border-border px-6 py-3 flex gap-2">
         {DOMAINS.map(domain => {
@@ -284,7 +284,7 @@ export const AutomationManagement: React.FC = () => {
               className={`px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-2 ${
                 activeDomain === domain.id
                   ? `${domain.bgColor} ${domain.color} border-2 border-current`
-                  : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
               }`}
             >
               <Icon className="w-4 h-4" />
@@ -295,7 +295,7 @@ export const AutomationManagement: React.FC = () => {
       </div>
 
       {/* Workspace Tabs */}
-      <div className="bg-gray-100 dark:bg-gray-800 border-b border-border px-6 overflow-x-auto">
+      <div className="bg-muted/50 border-b border-border px-6 overflow-x-auto">
         <div className="flex gap-1">
           {domainWorkspaces.map(workspace => (
             <button
@@ -304,7 +304,7 @@ export const AutomationManagement: React.FC = () => {
               className={`px-4 py-3 text-sm font-medium transition border-b-2 ${
                 activeWorkspace === workspace.id
                   ? 'bg-card text-blue-600 dark:text-blue-400 border-b-blue-600 dark:border-b-blue-400'
-                  : 'text-gray-700 dark:text-gray-300 border-b-transparent hover:bg-white/50 dark:hover:bg-gray-700/50'
+                  : 'text-muted-foreground border-b-transparent hover:bg-card/70'
               }`}
             >
               {workspace.label}
