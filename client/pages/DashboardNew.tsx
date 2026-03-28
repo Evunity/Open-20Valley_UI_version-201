@@ -624,19 +624,25 @@ export default function DashboardNew() {
           </BarChart>
         );
       case "pie":
+        const pieData = data.map((entry: any) => ({
+          ...entry,
+          name: entry.region || entry.vendor || "Unknown",
+        }));
+
         return (
-          <PieChart>
+          <PieChart margin={{ top: 12, right: 24, left: 24, bottom: 24 }}>
             <Pie
-              data={data}
+              data={pieData}
               cx="50%"
-              cy="50%"
+              cy="46%"
               labelLine={false}
-              label={({ region, vendor, sites }) => `${region || vendor}: ${sites}`}
-              outerRadius={100}
+              label={false}
+              outerRadius={80}
               fill="#8884d8"
               dataKey="sites"
+              nameKey="name"
             >
-              {data.map((entry: any, index: number) => (
+              {pieData.map((entry: any, index: number) => (
                 <Cell
                   key={`cell-${index}`}
                   fill={
@@ -645,6 +651,16 @@ export default function DashboardNew() {
                 />
               ))}
             </Pie>
+            <Legend
+              align="center"
+              verticalAlign="bottom"
+              iconType="circle"
+              wrapperStyle={{ fontSize: "12px", paddingTop: "6px" }}
+              formatter={(value: string, _entry, index) => {
+                const item = pieData[index];
+                return item ? `${value}: ${item.sites}` : value;
+              }}
+            />
             <Tooltip />
           </PieChart>
         );
@@ -769,36 +785,14 @@ export default function DashboardNew() {
       {/* ===== AI ENGINE ACTIONS (2-COLUMN LAYOUT) ===== */}
       <div id="ai-actions" className="layout-card !p-3 space-y-3">
         <div className="space-y-1">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
             <div className="space-y-1">
               <h2 className="typo-section-title">AI Engine Actions</h2>
               <p className="typo-meta">
                 Automated network operations and resolution activities
               </p>
             </div>
-            <select
-              value={aiChartType}
-              onChange={(e) => setAiChartType(e.target.value as ChartType)}
-              className="control-height px-3 rounded-lg border border-border bg-background typo-input focus:ring-2 focus:ring-primary/50"
-            >
-              <option value="bar">Bar Chart</option>
-              <option value="line">Line Chart</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-1.5">
-          {/* LEFT: Chart Visualization */}
-          <div className="rounded-lg border border-border/50 bg-background p-2">
-            <ResponsiveContainer width="100%" height={210}>
-              {renderChart(aiChartType, aiActionsData, ["successful", "failed"])}
-            </ResponsiveContainer>
-          </div>
-
-          {/* RIGHT: AI Actions List */}
-          <div className="space-y-1.5">
-            {/* Severity Sorting Filter */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <label className="typo-label">
                 Sort by Severity:
               </label>
@@ -812,12 +806,35 @@ export default function DashboardNew() {
                 <option value="high-to-low">High → Low</option>
                 <option value="low-to-high">Low → High</option>
               </select>
+              <select
+                value={aiChartType}
+                onChange={(e) => setAiChartType(e.target.value as ChartType)}
+                className="control-height px-3 rounded-lg border border-border bg-background typo-input focus:ring-2 focus:ring-primary/50"
+              >
+                <option value="bar">Bar Chart</option>
+                <option value="line">Line Chart</option>
+              </select>
             </div>
+          </div>
+        </div>
 
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 items-stretch">
+          {/* LEFT: Chart Visualization */}
+          <div className="rounded-lg border border-border/50 bg-background p-2.5 h-full flex flex-col">
+            <p className="typo-meta mb-2">Actions trend by hour</p>
+            <div className="flex-1 min-h-[220px]">
+              <ResponsiveContainer width="100%" height="100%">
+                {renderChart(aiChartType, aiActionsData, ["successful", "failed"])}
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* RIGHT: AI Actions List */}
+          <div className="rounded-lg border border-border/50 bg-background p-2.5 h-full flex flex-col">
+            <p className="typo-meta mb-2">Recent execution activity</p>
             {/* Actions List */}
             <div
-              className="rounded-lg border border-border/50 bg-background p-2 overflow-y-auto space-y-1"
-              style={{ maxHeight: "210px" }}
+              className="flex-1 overflow-y-auto space-y-1 min-h-[220px]"
             >
               {aiActionsDetailList
                 .sort((a, b) => {
