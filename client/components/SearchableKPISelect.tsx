@@ -61,18 +61,18 @@ export default function SearchableKPISelect({
       {/* Selected Tags & Input */}
       <div
         className={cn(
-          "w-full control-height px-3 rounded-lg border bg-background typo-input transition-all flex items-center gap-2 cursor-text shadow-sm",
+          "w-full min-h-[2.5rem] px-2.5 py-1.5 rounded-lg border bg-background typo-input transition-all flex items-start gap-2 cursor-text shadow-sm",
           isOpen
             ? "border-primary ring-2 ring-primary/20 shadow-lg"
             : "border-border hover:border-primary/40 focus-within:ring-2 focus-within:ring-primary/40 focus-within:border-primary"
         )}
         onClick={() => setIsOpen(true)}
       >
-        <div className="flex flex-1 min-w-0 items-center gap-2 flex-wrap">
+        <div className="flex flex-1 min-w-0 items-center gap-1.5 flex-wrap content-start">
           {selectedKPIs.map((kpi) => (
             <div
               key={kpi.id}
-              className="flex items-center gap-1 px-2 py-1 rounded-md bg-primary/15 text-primary typo-badge hover:bg-primary/25 transition-colors border border-primary/20"
+              className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary/15 text-primary typo-badge hover:bg-primary/25 transition-colors border border-primary/20 shrink-0"
             >
               {kpi.label}
               <button
@@ -105,7 +105,7 @@ export default function SearchableKPISelect({
             <input
               type="text"
               className={cn(
-                "bg-transparent outline-none typo-input font-medium",
+                "bg-transparent outline-none typo-input font-medium h-7",
                 value.length === 0 ? "flex-1 min-w-[120px]" : "flex-1 min-w-[56px]"
               )}
               placeholder={

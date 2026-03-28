@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback, useLayoutEffect, useEffect } from 'react';
 import {
   Plus, Trash2, Save, ZoomIn, ZoomOut, X, Code
 } from 'lucide-react';
@@ -95,6 +95,8 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
   onCancel
 }) => {
   const canvasRef = useRef<HTMLDivElement>(null);
+  const inputHandleRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const outputHandleRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const [workflow, setWorkflow] = useState<Workflow>({
     id: `workflow_${Date.now()}`,
     name: 'New Workflow',
@@ -124,37 +126,16 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
   const [draggingEdge, setDraggingEdge] = useState<{ fromNodeId: string; fromHandleId: string; x: number; y: number } | null>(null);
   const [showNodePalette, setShowNodePalette] = useState(true);
   const [showPreview, setShowPreview] = useState(false);
+  const [edgeGeometry, setEdgeGeometry] = useState<Record<string, { x1: number; y1: number; x2: number; y2: number }>>({});
 
   const selectedNode = workflow.nodes.find(n => n.id === selectedNodeId);
 
-  const getHandlePosition = (nodeId: string, handleId: string): { x: number; y: number } | null => {
-    const node = workflow.nodes.find(n => n.id === nodeId);
-    if (!node) return null;
-
-    const handle = node.handles.find(h => h.id === handleId);
-    if (!handle) return null;
-
-    const nodeWidth = 160;
-    const nodeHeight = 64;
-
-    const inputHandles = node.handles.filter(h => h.type === 'input');
-    const outputHandles = node.handles.filter(h => h.type === 'output');
-
-    if (handle.type === 'input') {
-      const index = inputHandles.indexOf(handle);
-      const spacing = nodeHeight / (inputHandles.length + 1);
-      return {
-        x: node.x,
-        y: node.y + spacing * (index + 1)
-      };
-    } else {
-      const index = outputHandles.indexOf(handle);
-      const spacing = nodeHeight / (outputHandles.length + 1);
-      return {
-        x: node.x + nodeWidth,
-        y: node.y + spacing * (index + 1)
-      };
-    }
+  const getSmoothEdgePath = (x1: number, y1: number, x2: number, y2: number) => {
+    const delta = Math.abs(x2 - x1);
+    const control = Math.max(36, Math.min(140, delta * 0.45));
+    const c1x = x1 + control;
+    const c2x = x2 - control;
+    return `M ${x1} ${y1} C ${c1x} ${y1}, ${c2x} ${y2}, ${x2} ${y2}`;
   };
 
   const canConnectNodes = (sourceNodeId: string, sourceHandleId: string, targetNodeId: string, targetHandleId: string): boolean => {
@@ -266,8 +247,8 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
     if (draggingEdge) {
       const rect = canvasRef.current?.getBoundingClientRect();
       if (rect) {
-        const x = (e.clientX - rect.left - pan.x) / zoom;
-        const y = (e.clientY - rect.top - pan.y) / zoom;
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
         setDraggingEdge(prev => prev ? { ...prev, x, y } : null);
       }
     }
@@ -284,9 +265,16 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
 
   const handleOutputHandleMouseDown = (nodeId: string, handleId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    const pos = getHandlePosition(nodeId, handleId);
-    if (pos) {
-      setDraggingEdge({ fromNodeId: nodeId, fromHandleId: handleId, x: pos.x, y: pos.y });
+    const canvasRect = canvasRef.current?.getBoundingClientRect();
+    const outputHandle = outputHandleRefs.current[`${nodeId}:${handleId}`];
+    if (canvasRect && outputHandle) {
+      const handleRect = outputHandle.getBoundingClientRect();
+      setDraggingEdge({
+        fromNodeId: nodeId,
+        fromHandleId: handleId,
+        x: handleRect.left + handleRect.width / 2 - canvasRect.left,
+        y: handleRect.top + handleRect.height / 2 - canvasRect.top
+      });
     }
   };
 
@@ -311,6 +299,55 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
     }));
     setSelectedEdgeId(null);
   };
+
+  const recalculateEdgeGeometry = useCallback(() => {
+    const canvasRect = canvasRef.current?.getBoundingClientRect();
+    if (!canvasRect) return;
+
+    const nextGeometry: Record<string, { x1: number; y1: number; x2: number; y2: number }> = {};
+
+    workflow.edges.forEach((edge) => {
+      const sourceHandle = outputHandleRefs.current[`${edge.sourceNodeId}:${edge.sourceHandleId}`];
+      const targetHandle = inputHandleRefs.current[`${edge.targetNodeId}:${edge.targetHandleId}`];
+      if (!sourceHandle || !targetHandle) return;
+
+      const sourceRect = sourceHandle.getBoundingClientRect();
+      const targetRect = targetHandle.getBoundingClientRect();
+
+      nextGeometry[edge.id] = {
+        x1: sourceRect.left + sourceRect.width / 2 - canvasRect.left,
+        y1: sourceRect.top + sourceRect.height / 2 - canvasRect.top,
+        x2: targetRect.left + targetRect.width / 2 - canvasRect.left,
+        y2: targetRect.top + targetRect.height / 2 - canvasRect.top
+      };
+    });
+
+    setEdgeGeometry(nextGeometry);
+  }, [workflow.edges]);
+
+  useLayoutEffect(() => {
+    const frame = requestAnimationFrame(recalculateEdgeGeometry);
+    return () => cancelAnimationFrame(frame);
+  }, [workflow.nodes, workflow.edges, zoom, pan, recalculateEdgeGeometry]);
+
+  useEffect(() => {
+    const scheduleRecalc = () => requestAnimationFrame(recalculateEdgeGeometry);
+    const canvasEl = canvasRef.current;
+    const observer = new ResizeObserver(scheduleRecalc);
+    const mutationObserver = new MutationObserver(scheduleRecalc);
+
+    if (canvasEl) {
+      observer.observe(canvasEl);
+      mutationObserver.observe(canvasEl, { childList: true, subtree: true, attributes: true });
+    }
+
+    window.addEventListener('resize', scheduleRecalc);
+    return () => {
+      window.removeEventListener('resize', scheduleRecalc);
+      observer.disconnect();
+      mutationObserver.disconnect();
+    };
+  }, [recalculateEdgeGeometry]);
 
   const isValidWorkflow = (() => {
     if (!workflow.name.trim()) return false;
@@ -451,38 +488,44 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
             {/* SVG Connections */}
             <svg
               className="absolute inset-0 w-full h-full"
-              style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, pointerEvents: 'auto' }}
+              style={{ pointerEvents: 'auto' }}
             >
-              {/* Arrow markers */}
               <defs>
-                <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-                  <polygon points="0 0, 10 3, 0 6" fill="#3B82F6" />
+                <marker
+                  id="workflow-edge-arrow"
+                  viewBox="0 0 10 10"
+                  markerWidth="8"
+                  markerHeight="8"
+                  refX="10"
+                  refY="5"
+                  orient="auto-start-reverse"
+                  markerUnits="userSpaceOnUse"
+                >
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="#3B82F6" />
                 </marker>
-                <marker id="arrowhead-selected" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-                  <polygon points="0 0, 10 3, 0 6" fill="#EF4444" />
-                </marker>
-                <marker id="arrowhead-preview" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-                  <polygon points="0 0, 10 3, 0 6" fill="#9CA3AF" />
+                <marker
+                  id="workflow-edge-arrow-selected"
+                  viewBox="0 0 10 10"
+                  markerWidth="8"
+                  markerHeight="8"
+                  refX="10"
+                  refY="5"
+                  orient="auto-start-reverse"
+                  markerUnits="userSpaceOnUse"
+                >
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="#EF4444" />
                 </marker>
               </defs>
 
               {/* Edges */}
               {workflow.edges.map(edge => {
-                const sourcePos = getHandlePosition(edge.sourceNodeId, edge.sourceHandleId);
-                const targetPos = getHandlePosition(edge.targetNodeId, edge.targetHandleId);
-                if (!sourcePos || !targetPos) return null;
-
-                // Adjust positions to connect to handle visual positions
-                // Output handles are positioned 14px to the right of node edge
-                // Input handles are positioned 14px to the left of node edge
-                const x1 = sourcePos.x + 14;
-                const y1 = sourcePos.y;
-                const x2 = targetPos.x - 14;
-                const y2 = targetPos.y;
+                const geometry = edgeGeometry[edge.id];
+                if (!geometry) return null;
+                const { x1, y1, x2, y2 } = geometry;
 
                 const isSelected = selectedEdgeId === edge.id;
 
-                const pathData = `M ${x1} ${y1} L ${(x1 + x2) / 2} ${y1} L ${(x1 + x2) / 2} ${y2} L ${x2} ${y2}`;
+                const pathData = getSmoothEdgePath(x1, y1, x2, y2);
 
                 // Calculate midpoint for delete button
                 const midX = (x1 + x2) / 2;
@@ -504,7 +547,8 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
                       stroke={isSelected ? '#EF4444' : '#3B82F6'}
                       strokeWidth={isSelected ? 3 : 2}
                       fill="none"
-                      markerEnd={isSelected ? "url(#arrowhead-selected)" : "url(#arrowhead)"}
+                      strokeLinecap="round"
+                      markerEnd={isSelected ? "url(#workflow-edge-arrow-selected)" : "url(#workflow-edge-arrow)"}
                       pointerEvents="none"
                     />
                     {/* Delete button on edge */}
@@ -544,16 +588,17 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
 
               {/* Dragging edge preview */}
               {draggingEdge && (() => {
-                const startPos = getHandlePosition(draggingEdge.fromNodeId, draggingEdge.fromHandleId);
-                if (!startPos) return null;
+                const outputHandle = outputHandleRefs.current[`${draggingEdge.fromNodeId}:${draggingEdge.fromHandleId}`];
+                const canvasRect = canvasRef.current?.getBoundingClientRect();
+                if (!outputHandle || !canvasRect) return null;
+                const sourceRect = outputHandle.getBoundingClientRect();
 
-                // Output handle is 14px to the right of node edge
-                const x1 = startPos.x + 14;
-                const y1 = startPos.y;
+                const x1 = sourceRect.left + sourceRect.width / 2 - canvasRect.left;
+                const y1 = sourceRect.top + sourceRect.height / 2 - canvasRect.top;
                 const x2 = draggingEdge.x;
                 const y2 = draggingEdge.y;
 
-                const pathData = `M ${x1} ${y1} L ${(x1 + x2) / 2} ${y1} L ${(x1 + x2) / 2} ${y2} L ${x2} ${y2}`;
+                const pathData = getSmoothEdgePath(x1, y1, x2, y2);
 
                 return (
                   <path
@@ -562,7 +607,7 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
                     strokeWidth="2"
                     fill="none"
                     strokeDasharray="5,5"
-                    markerEnd="url(#arrowhead-preview)"
+                    strokeLinecap="round"
                     pointerEvents="none"
                   />
                 );
@@ -588,6 +633,9 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
                         <button
                           key={handle.id}
                           onMouseUp={(e) => handleInputHandleMouseUp(node.id, handle.id, e)}
+                          ref={(el) => {
+                            inputHandleRefs.current[`${node.id}:${handle.id}`] = el;
+                          }}
                           className="absolute rounded-full bg-blue-500 hover:bg-blue-400 border-3 border-white hover:border-blue-200 shadow-lg transition hover:scale-150 cursor-crosshair"
                           style={{
                             width: '12px',
@@ -626,6 +674,9 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
                         <button
                           key={handle.id}
                           onMouseDown={(e) => handleOutputHandleMouseDown(node.id, handle.id, e)}
+                          ref={(el) => {
+                            outputHandleRefs.current[`${node.id}:${handle.id}`] = el;
+                          }}
                           className="absolute rounded-full bg-green-500 hover:bg-green-400 border-3 border-white hover:border-green-200 shadow-lg transition hover:scale-150 cursor-crosshair"
                           style={{
                             width: '12px',
