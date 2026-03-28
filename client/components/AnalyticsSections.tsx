@@ -56,11 +56,11 @@ export default function AnalyticsSections() {
   ];
 
   return (
-    <div className="layout-card !p-3 overflow-hidden">
+    <section className="layout-card !p-3 space-y-3 overflow-hidden">
       {/* Header */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between px-1 py-2 hover:bg-muted/50 transition-colors duration-200"
+        className="w-full flex items-center justify-between px-1 py-1.5 hover:bg-muted/50 transition-colors duration-200"
       >
         <div className="flex items-center gap-1.5">
           <h3 className="typo-section-title">Analytics</h3>
@@ -78,14 +78,13 @@ export default function AnalyticsSections() {
 
       {/* Content */}
       {isOpen && (
-        <div className="border-t border-border/50 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0">
+        <div className="border-t border-border/50 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 pt-2">
           {sections.map((section) => (
             <button
               key={section.path}
               onClick={() => navigate(section.path)}
               className={cn(
-                "flex flex-col items-start gap-2 p-4 hover:bg-primary/5 transition-all duration-200 text-left group border-border/30",
-                "border-b border-r"
+                "min-h-[128px] flex flex-col items-start gap-2 p-3 rounded-lg hover:bg-primary/5 transition-all duration-200 text-left group border border-border/40"
               )}
             >
               <div className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-md bg-primary/10 group-hover:bg-primary/20 transition-colors">
@@ -103,6 +102,6 @@ export default function AnalyticsSections() {
           ))}
         </div>
       )}
-    </div>
+    </section>
   );
 }

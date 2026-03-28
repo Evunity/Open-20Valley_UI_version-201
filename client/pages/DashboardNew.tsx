@@ -44,6 +44,10 @@ interface KPIValue {
 }
 
 type ChartType = "line" | "bar" | "pie";
+const DASHBOARD_SECTION_GAP = "space-y-6";
+const SECTION_HEADER_GAP = "space-y-1";
+const SECTION_CONTENT_GAP = "space-y-3";
+const CHART_HEIGHT = 190;
 
 // Get active filters summary for display on KPI cards
 const getActiveFiltersSummary = (filters: any) => {
@@ -507,6 +511,7 @@ export default function DashboardNew() {
   };
 
   const selectedKPIs = selectedKPIIds.map((id) => getKPIById(id)).filter(Boolean);
+  const fixedKPIGrid = [...selectedKPIs, ...Array(Math.max(0, 6 - selectedKPIs.length)).fill(null)].slice(0, 6);
 
   // Format date for X-axis display (YYYY-MM-DD) - ALWAYS used, never day names
   const formatDateForAxis = (dateStr: string | number): string => {
@@ -652,11 +657,11 @@ export default function DashboardNew() {
   };
 
   return (
-    <div className="space-y-4 pb-4">
+    <div className={cn(DASHBOARD_SECTION_GAP, "pb-4")}>
       {/* ===== HEADER SECTION ===== */}
-      <div className="space-y-3">
+      <div className={cn(SECTION_CONTENT_GAP)}>
         <div className="layout-page-header">
-          <div className="space-y-1">
+          <div className={SECTION_HEADER_GAP}>
             <h1 className="typo-page-title">Network Operations Dashboard</h1>
             <p className="typo-body text-muted-foreground">
               Real-time monitoring and AI-driven insights across your infrastructure
@@ -672,13 +677,15 @@ export default function DashboardNew() {
         </div>
 
         {/* Global Filter Panel */}
-        <FilterPanel />
+        <div className="layout-card !p-2.5">
+          <FilterPanel />
+        </div>
       </div>
 
       {/* ===== KPI SECTION ===== */}
-      <div className="space-y-3">
-        <div className="space-y-2 mb-1">
-          <div className="space-y-1">
+      <section className={cn("layout-card !p-3", SECTION_CONTENT_GAP)}>
+        <div className={cn(SECTION_CONTENT_GAP, "mb-1")}>
+          <div className={SECTION_HEADER_GAP}>
             <h2 className="typo-section-title">Key Performance Indicators</h2>
             <p className="typo-meta">
               Real-time metrics reflecting current filters ({selectedKPIIds.length} of{" "}
@@ -696,8 +703,16 @@ export default function DashboardNew() {
         </div>
 
         {/* KPI Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1.5">
-          {selectedKPIs.map((kpi) => {
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+          {fixedKPIGrid.map((kpi, index) => {
+            if (!kpi) {
+              return (
+                <div
+                  key={`kpi-placeholder-${index}`}
+                  className="min-h-[132px] rounded-lg border border-dashed border-border/60 bg-muted/20"
+                />
+              );
+            }
             const kpiValue = calculateKPIValue(kpi.id, filters);
             const IconComponent = kpi.icon;
             const activeFilters = getActiveFiltersSummary(filters);
@@ -706,7 +721,7 @@ export default function DashboardNew() {
               <div
                 key={kpi.id}
                 className={cn(
-                  "p-2.5 rounded-lg border transition-all duration-200 hover:shadow-md hover:border-primary/50",
+                  "min-h-[132px] p-2.5 rounded-lg border transition-all duration-200 hover:shadow-sm hover:border-primary/50",
                   kpiValue.status === "healthy"
                     ? "border-status-healthy/20 bg-status-healthy/5"
                     : kpiValue.status === "critical"
@@ -761,16 +776,16 @@ export default function DashboardNew() {
             );
           })}
         </div>
-      </div>
+      </section>
 
       {/* ===== ANALYTICS SECTIONS ===== */}
       <AnalyticsSections />
 
       {/* ===== AI ENGINE ACTIONS (2-COLUMN LAYOUT) ===== */}
-      <div id="ai-actions" className="layout-card !p-3 space-y-3">
-        <div className="space-y-1">
+      <section id="ai-actions" className={cn("layout-card !p-3", SECTION_CONTENT_GAP)}>
+        <div className={SECTION_HEADER_GAP}>
           <div className="flex items-center justify-between">
-            <div className="space-y-1">
+            <div className={SECTION_HEADER_GAP}>
               <h2 className="typo-section-title">AI Engine Actions</h2>
               <p className="typo-meta">
                 Automated network operations and resolution activities
@@ -787,16 +802,16 @@ export default function DashboardNew() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-1.5">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
           {/* LEFT: Chart Visualization */}
           <div className="rounded-lg border border-border/50 bg-background p-2">
-            <ResponsiveContainer width="100%" height={210}>
+            <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
               {renderChart(aiChartType, aiActionsData, ["successful", "failed"])}
             </ResponsiveContainer>
           </div>
 
           {/* RIGHT: AI Actions List */}
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {/* Severity Sorting Filter */}
             <div className="flex items-center gap-2">
               <label className="typo-label">
@@ -817,7 +832,7 @@ export default function DashboardNew() {
             {/* Actions List */}
             <div
               className="rounded-lg border border-border/50 bg-background p-2 overflow-y-auto space-y-1"
-              style={{ maxHeight: "210px" }}
+              style={{ maxHeight: `${CHART_HEIGHT}px` }}
             >
               {aiActionsDetailList
                 .sort((a, b) => {
@@ -874,19 +889,19 @@ export default function DashboardNew() {
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* ===== 4 CONFIGURABLE GRAPH CARDS ===== */}
-      <div className="space-y-2">
-        <div className="mb-2">
+      <section className={cn("layout-card !p-3", SECTION_CONTENT_GAP)}>
+        <div className={SECTION_HEADER_GAP}>
           <h2 className="typo-section-title">Analytics Graphs</h2>
           <p className="typo-body text-muted-foreground">Configure up to 2 KPIs per card</p>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
           {graphCards.map((card) => (
             <div
               key={card.id}
-              className="card-elevated rounded-xl border border-border/50 p-3.5 space-y-3"
+              className="card-elevated rounded-xl border border-border/50 p-3 space-y-3"
             >
               {/* Card Header with KPI Selection and Chart Type */}
               <div className="space-y-2">
@@ -929,7 +944,7 @@ export default function DashboardNew() {
 
               {/* Chart Visualization */}
               <div className="rounded-lg border border-border/50 bg-background p-2.5">
-                <ResponsiveContainer width="100%" height={180}>
+                <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
                   {card.selectedKPIs.length > 0 ? (
                     renderChart(card.chartType, trafficData, card.selectedKPIs)
                   ) : (
@@ -942,13 +957,13 @@ export default function DashboardNew() {
             </div>
           ))}
         </div>
-      </div>
+      </section>
 
       {/* ===== SITES BY REGION ===== */}
-      <div className="layout-card !p-3 space-y-2">
-        <div className="space-y-1">
+      <section className={cn("layout-card !p-3", SECTION_CONTENT_GAP)}>
+        <div className={SECTION_HEADER_GAP}>
           <div className="flex items-center justify-between">
-            <div className="space-y-1">
+            <div className={SECTION_HEADER_GAP}>
               <h3 className="typo-subsection-title">Sites by Region</h3>
               <p className="typo-meta">Geographic distribution</p>
             </div>
@@ -962,16 +977,16 @@ export default function DashboardNew() {
             </select>
           </div>
         </div>
-        <ResponsiveContainer width="100%" height={210}>
+        <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
           {renderChart(regionChartType, regionData, ["sites"])}
         </ResponsiveContainer>
-      </div>
+      </section>
 
       {/* ===== VENDOR DISTRIBUTION ===== */}
-      <div className="layout-card !p-3 space-y-2">
-        <div className="space-y-1">
+      <section className={cn("layout-card !p-3", SECTION_CONTENT_GAP)}>
+        <div className={SECTION_HEADER_GAP}>
           <div className="flex items-center justify-between">
-            <div className="space-y-1">
+            <div className={SECTION_HEADER_GAP}>
               <h3 className="typo-subsection-title">Vendor Distribution</h3>
               <p className="typo-meta">Equipment manufacturer breakdown</p>
             </div>
@@ -985,9 +1000,9 @@ export default function DashboardNew() {
             </select>
           </div>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-2">
           <div className={vendorChartType === "pie" ? "lg:col-span-2" : "lg:col-span-3"}>
-            <ResponsiveContainer width="100%" height={210}>
+            <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
               {renderChart(vendorChartType, vendorData, ["sites"])}
             </ResponsiveContainer>
           </div>
@@ -1005,7 +1020,7 @@ export default function DashboardNew() {
             </div>
           )}
         </div>
-      </div>
+      </section>
 
       {/* ===== VENDOR COMPARISON ===== */}
       {filters.vendors.length > 1 && vendorMetrics.length > 0 && (

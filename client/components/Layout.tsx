@@ -12,9 +12,10 @@ export default function Layout({ children }: LayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [sidebarWidth, setSidebarWidth] = useState(256); // 64 * 4 = 256px (w-64)
+  const [sidebarWidth, setSidebarWidth] = useState(248); // Reduced baseline width for better content balance
   const [isDragging, setIsDragging] = useState(false);
   const location = useLocation();
+  const isDashboardRoute = location.pathname === "/";
 
   const COLLAPSED_WIDTH = 76; // Width when collapsed
   const MIN_WIDTH = 150; // Minimum width before collapse when dragging
@@ -310,7 +311,8 @@ export default function Layout({ children }: LayoutProps) {
       <div className="hidden md:flex md:flex-col relative group">
         <aside
           className={cn(
-            "flex flex-col bg-sidebar border-r border-sidebar-border flex-shrink-0 transition-all duration-200 overflow-hidden",
+            "flex flex-col border-r border-sidebar-border flex-shrink-0 transition-all duration-200 overflow-hidden",
+            isDashboardRoute ? "bg-sidebar/95" : "bg-sidebar",
             "relative h-screen"
           )}
           style={{ width: sidebarOpen ? `${sidebarWidth}px` : `${COLLAPSED_WIDTH}px` }}
