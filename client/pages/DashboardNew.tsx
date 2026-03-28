@@ -18,7 +18,6 @@ import {
 } from "recharts";
 import FilterPanel from "@/components/FilterPanel";
 import SearchableKPISelect from "@/components/SearchableKPISelect";
-import AnalyticsSections from "@/components/AnalyticsSections";
 import VendorComparison from "@/components/VendorComparison";
 import { useGlobalFilters } from "@/hooks/useGlobalFilters";
 import { useToast } from "@/hooks/use-toast";
@@ -764,9 +763,6 @@ export default function DashboardNew() {
           })}
         </div>
       </div>
-
-      {/* ===== ANALYTICS SECTIONS ===== */}
-      <AnalyticsSections />
 
       {/* ===== AI ENGINE ACTIONS (2-COLUMN LAYOUT) ===== */}
       <div id="ai-actions" className="card-elevated rounded-xl border border-border/50 p-3">

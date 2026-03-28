@@ -1,9 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Save, Trash2, Download, Eye, EyeOff, ChevronDown, Search, X, RotateCcw, Calendar, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import * as XLSX from "xlsx";
 import TrendChartContainer from "@/components/TrendChartContainer";
 import DualMonthCalendar from "@/components/DualMonthCalendar";
+import SearchableDropdown from "@/components/SearchableDropdown";
 import type { KPI } from "@/utils/kpiData";
 import { KPI_CATALOG, filterKPIs, generateKPIValues, SCOPE_OPTIONS } from "@/utils/kpiData";
 import {
@@ -35,26 +36,29 @@ export interface AnalyticsFilters {
 
 type TimeRangeType = "predefined" | "manual";
 
+const createDefaultFilters = (): AnalyticsFilters => ({
+  technologies: [],
+  vendors: [],
+  domains: [],
+  categories: [],
+  scopes: [],
+  networks: [],
+  regions: [],
+  clusters: [],
+  sites: [],
+  cells: [],
+  countries: [],
+  granularityValues: [],
+  timeRange: {
+    from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+    to: new Date().toISOString().split("T")[0],
+  },
+  granularity: "1D",
+});
+
 export default function AnalyticsManagement() {
-  const [filters, setFilters] = useState<AnalyticsFilters>({
-    technologies: [],
-    vendors: [],
-    domains: [],
-    categories: [],
-    scopes: [],
-    networks: [],
-    regions: [],
-    clusters: [],
-    sites: [],
-    cells: [],
-    countries: [],
-    granularityValues: [],
-    timeRange: {
-      from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-      to: new Date().toISOString().split("T")[0],
-    },
-    granularity: "1D",
-  });
+  const [filters, setFilters] = useState<AnalyticsFilters>(createDefaultFilters());
+  const [appliedFilters, setAppliedFilters] = useState<AnalyticsFilters>(createDefaultFilters());
 
   const [kpiSearch, setKpiSearch] = useState("");
   const [selectedKPIs, setSelectedKPIs] = useState<KPI[]>([]);
@@ -66,7 +70,6 @@ export default function AnalyticsManagement() {
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [generatedTime, setGeneratedTime] = useState<Date | null>(null);
   const [isGenerated, setIsGenerated] = useState(false);
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [showKPIDropdown, setShowKPIDropdown] = useState(false);
 
   // Time range mode
@@ -130,7 +133,9 @@ export default function AnalyticsManagement() {
         break;
     }
 
+    setTimeRangeMode("predefined");
     setPredefinedRange(range);
+    setShowCalendarPicker(false);
     setFilters({
       ...filters,
       timeRange: {
@@ -140,9 +145,21 @@ export default function AnalyticsManagement() {
     });
   };
 
+  const activatePredefinedMode = () => {
+    setTimeRangeMode("predefined");
+    setShowCalendarPicker(false);
+  };
+
+  const activateManualMode = () => {
+    setTimeRangeMode("manual");
+  };
+
   const handleApplyFilter = () => {
+    setAppliedFilters(filters);
     setGeneratedTime(new Date());
     setIsGenerated(true);
+    setOpenScopeDropdown(null);
+    setShowKPIDropdown(false);
   };
 
   const handleRegenerate = () => {
@@ -157,43 +174,38 @@ export default function AnalyticsManagement() {
   };
 
   const handleClearAllFilters = () => {
-    setFilters({
-      technologies: [],
-      vendors: [],
-      domains: [],
-      categories: [],
-      scopes: [],
-      networks: [],
-      regions: [],
-      clusters: [],
-      sites: [],
-      cells: [],
-      countries: [],
-      granularityValues: [],
-      timeRange: filters.timeRange,
-      granularity: "1D",
+    const defaults = createDefaultFilters();
+    setFilters(defaults);
+    setAppliedFilters(defaults);
+    setSelectedKPIs([]);
+    setKpiSearch("");
+    setIsGenerated(false);
+    setGeneratedTime(null);
+    setTimeRangeMode("predefined");
+    setPredefinedRange("30d");
+    setShowCalendarPicker(false);
+    setSelectedNetwork(null);
+    setSelectedRegion(null);
+    setSelectedCluster(null);
+    setSelectedSite(null);
+    setSelectedCell(null);
+    setOpenScopeDropdown(null);
+  };
+
+  // Filter KPIs from currently applied analytics state
+  const filteredKPIsByAppliedState = useMemo(() => {
+    return filterKPIs(KPI_CATALOG, {
+      technologies: appliedFilters.technologies,
+      vendors: appliedFilters.vendors,
+      domains: appliedFilters.domains,
+      categories: appliedFilters.categories,
+      scopes: appliedFilters.scopes,
     });
-  };
+  }, [appliedFilters]);
 
-  const toggleFilterItem = (filterType: keyof AnalyticsFilters, item: any) => {
-    const current = filters[filterType] as any[];
-    const updated = current.includes(item)
-      ? current.filter((x) => x !== item)
-      : [...current, item];
-
-    setFilters({ ...filters, [filterType]: updated });
-  };
-
-  // Filter KPIs based on current filters AND search
+  // KPI search always queries against applied/committed filters
   const filteredKPIs = useMemo(() => {
-    let kpis = filterKPIs(KPI_CATALOG, {
-      technologies: filters.technologies,
-      vendors: filters.vendors,
-      domains: filters.domains,
-      categories: filters.categories,
-      scopes: filters.scopes,
-    });
-
+    let kpis = filteredKPIsByAppliedState;
     if (kpiSearch.trim()) {
       const search = kpiSearch.toLowerCase();
       kpis = kpis.filter(
@@ -205,7 +217,13 @@ export default function AnalyticsManagement() {
     }
 
     return kpis;
-  }, [filters, kpiSearch]);
+  }, [filteredKPIsByAppliedState, kpiSearch]);
+
+  // Keep selected KPIs synchronized with applied filters.
+  useEffect(() => {
+    const validKpiIds = new Set(filteredKPIsByAppliedState.map((kpi) => kpi.id));
+    setSelectedKPIs((prev) => prev.filter((kpi) => validKpiIds.has(kpi.id)));
+  }, [filteredKPIsByAppliedState]);
 
   // Generate chart data for all selected KPIs
   const chartDataMap = useMemo(() => {
@@ -252,13 +270,19 @@ export default function AnalyticsManagement() {
   };
 
   const handleLoadView = (view: SavedView) => {
-    setFilters(view.filters as AnalyticsFilters);
+    const restoredFilters = view.filters as AnalyticsFilters;
+    setFilters(restoredFilters);
+    setAppliedFilters(restoredFilters);
     setCurrentScope(view.scope);
 
     const restoredKPIs = view.kpis
       .map((kpiId) => KPI_CATALOG.find((k) => k.id === kpiId))
       .filter((k) => k !== undefined) as KPI[];
     setSelectedKPIs(restoredKPIs);
+    setIsGenerated(true);
+    setGeneratedTime(new Date());
+    setKpiSearch("");
+    setOpenScopeDropdown(null);
 
     setShowSavedViews(false);
   };
@@ -365,66 +389,6 @@ export default function AnalyticsManagement() {
 
     XLSX.writeFile(workbook, `KPI_Export_${new Date().toISOString().split("T")[0]}.xlsx`);
   };
-
-  const renderDropdown = (
-    title: string,
-    dropdownKey: string,
-    items: string[],
-    selectedItems: string[],
-    filterType: keyof AnalyticsFilters
-  ) => (
-    <div className="relative flex-1">
-      <button
-        onClick={() => setOpenDropdown(openDropdown === dropdownKey ? null : dropdownKey)}
-        className={cn(
-          "w-full flex items-center justify-between px-2 py-1.5 rounded border text-xs font-medium transition-all",
-          openDropdown === dropdownKey
-            ? "border-primary ring-1 ring-primary/30 bg-primary/5"
-            : selectedItems.length > 0
-              ? "border-primary/30 bg-primary/5 hover:border-primary/50"
-              : "border-border bg-background hover:bg-muted/50"
-        )}
-      >
-        <div className="flex items-center gap-1 truncate min-w-0">
-          <span className="text-xs truncate text-foreground font-semibold">{title}</span>
-          {selectedItems.length > 0 && (
-            <span className="text-xs px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground flex-shrink-0 font-semibold">
-              {selectedItems.length}
-            </span>
-          )}
-        </div>
-        <ChevronDown className={cn("w-3 h-3 transition-transform flex-shrink-0 ml-1", openDropdown === dropdownKey && "rotate-180")} />
-      </button>
-
-      {openDropdown === dropdownKey && (
-        <>
-          <div
-            className="fixed inset-0 z-10"
-            onClick={() => setOpenDropdown(null)}
-          />
-          <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-primary/30 rounded shadow-xl z-20 max-h-40 overflow-y-auto">
-            {items.length > 0 ? (
-              <div className="divide-y divide-border/50">
-                {items.map((item) => (
-                  <label key={item} className="flex items-center gap-2 px-2 py-1 cursor-pointer hover:bg-primary/5 transition-colors text-xs first:rounded-t last:rounded-b">
-                    <input
-                      type="checkbox"
-                      checked={selectedItems.includes(item)}
-                      onChange={() => toggleFilterItem(filterType, item)}
-                      className="w-3 h-3 rounded border border-border accent-primary cursor-pointer"
-                    />
-                    <span className="truncate text-foreground font-medium text-xs">{item}</span>
-                  </label>
-                ))}
-              </div>
-            ) : (
-              <div className="px-2 py-2 text-xs text-muted-foreground text-center">No options</div>
-            )}
-          </div>
-        </>
-      )}
-    </div>
-  );
 
   return (
     <div className="space-y-2">
@@ -571,7 +535,7 @@ export default function AnalyticsManagement() {
         </div>
 
         {/* KPI Search Results Dropdown */}
-        {showKPIDropdown && !isGenerated && filteredKPIs.length > 0 && (
+        {showKPIDropdown && !isGenerated && (
           <>
             {/* Backdrop */}
             <div
@@ -580,66 +544,82 @@ export default function AnalyticsManagement() {
             />
             {/* Dropdown */}
             <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-primary/40 rounded-lg shadow-xl z-20 max-h-72 overflow-y-auto">
-              <div className="divide-y divide-border/30">
-                {filteredKPIs.map((kpi) => {
-                  const isSelected = selectedKPIs.find((k) => k.id === kpi.id);
-                  return (
-                    <button
-                      key={kpi.id}
-                      onClick={() => {
-                        if (isSelected) {
-                          setSelectedKPIs(selectedKPIs.filter((k) => k.id !== kpi.id));
-                        } else {
-                          setSelectedKPIs([...selectedKPIs, kpi]);
-                        }
-                      }}
-                      className={cn(
-                        "w-full text-left px-2 py-1.5 text-xs transition-all flex items-start gap-2",
-                        isSelected
-                          ? "bg-primary/10 border-l-2 border-l-primary"
-                          : "hover:bg-muted/40"
-                      )}
-                    >
-                      <div className={cn("w-4 h-4 rounded border-2 flex-shrink-0 mt-0.5 flex items-center justify-center", isSelected ? "bg-primary border-primary" : "border-border")}>
-                        {isSelected && <Check className="w-2.5 h-2.5 text-primary-foreground" />}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-xs text-foreground">{kpi.name}</div>
-                        <div className="text-[10px] text-muted-foreground mt-0.5">{kpi.category} • {kpi.technology}</div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
+              {filteredKPIs.length > 0 ? (
+                <div className="divide-y divide-border/30">
+                  {filteredKPIs.map((kpi) => {
+                    const isSelected = selectedKPIs.find((k) => k.id === kpi.id);
+                    return (
+                      <button
+                        key={kpi.id}
+                        onClick={() => {
+                          if (isSelected) {
+                            setSelectedKPIs(selectedKPIs.filter((k) => k.id !== kpi.id));
+                          } else {
+                            setSelectedKPIs([...selectedKPIs, kpi]);
+                          }
+                        }}
+                        className={cn(
+                          "w-full text-left px-2 py-1.5 text-xs transition-all flex items-start gap-2",
+                          isSelected
+                            ? "bg-primary/10 border-l-2 border-l-primary"
+                            : "hover:bg-muted/40"
+                        )}
+                      >
+                        <div className={cn("w-4 h-4 rounded border-2 flex-shrink-0 mt-0.5 flex items-center justify-center", isSelected ? "bg-primary border-primary" : "border-border")}>
+                          {isSelected && <Check className="w-2.5 h-2.5 text-primary-foreground" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-xs text-foreground">{kpi.name}</div>
+                          <div className="text-[10px] text-muted-foreground mt-0.5">{kpi.category} • {kpi.technology}</div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="px-3 py-4 text-xs text-muted-foreground">
+                  No KPI matches the currently applied filters{kpiSearch ? ` and search "${kpiSearch}".` : "."}
+                </div>
+              )}
             </div>
           </>
         )}
       </div>
 
-      {/* Global Filter Bar - with buttons INSIDE */}
-      <div className="bg-card border border-border rounded p-2 space-y-2 text-xs">
-        <div className="space-y-2">
-          {/* Time Range Mode Selection */}
-          <div className="flex items-center justify-between gap-2">
-            <label className="text-xs font-bold text-muted-foreground">Dates</label>
-            <div className="flex gap-0.5 bg-muted/50 p-0.5 rounded">
+      {/* Global Filter Bar - Redesigned */}
+      <div className="bg-card border border-border rounded-lg p-2.5 md:p-3 space-y-3 text-xs shadow-sm">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div>
+            <h3 className="text-sm font-semibold text-foreground">Analytics Filters</h3>
+            <p className="text-xs text-muted-foreground">Choose date mode and filter dimensions before applying.</p>
+          </div>
+          <div className="text-xs text-muted-foreground bg-muted/40 rounded-md px-2 py-1">
+            Active mode: <span className="font-semibold text-foreground">{timeRangeMode === "predefined" ? "Presets" : "Custom"}</span>
+          </div>
+        </div>
+
+        {/* Date Modes + Date Controls */}
+        <div className="space-y-2 border border-border/60 rounded-lg p-2.5 bg-muted/20">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Date Range</label>
+            <div className="inline-flex rounded-md border border-border bg-background p-0.5">
               <button
-                onClick={() => setTimeRangeMode("predefined")}
+                onClick={activatePredefinedMode}
                 className={cn(
-                  "px-2 py-1 rounded text-xs font-semibold transition-all",
+                  "px-2.5 py-0.5 rounded text-xs font-semibold transition-colors",
                   timeRangeMode === "predefined"
-                    ? "bg-primary text-primary-foreground shadow-sm"
+                    ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 Presets
               </button>
               <button
-                onClick={() => setTimeRangeMode("manual")}
+                onClick={activateManualMode}
                 className={cn(
-                  "px-2 py-1 rounded text-xs font-semibold transition-all",
+                  "px-2.5 py-0.5 rounded text-xs font-semibold transition-colors",
                   timeRangeMode === "manual"
-                    ? "bg-primary text-primary-foreground shadow-sm"
+                    ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
@@ -648,43 +628,74 @@ export default function AnalyticsManagement() {
             </div>
           </div>
 
-          {/* Predefined or Manual Time Range */}
-          {timeRangeMode === "predefined" ? (
-            <div className="grid grid-cols-5 gap-1">
-              {[
-                { label: "1d", value: "1d" },
-                { label: "7d", value: "7d" },
-                { label: "14d", value: "14d" },
-                { label: "30d", value: "30d" },
-                { label: "90d", value: "90d" },
-              ].map(({ label, value }) => (
-                <button
-                  key={value}
-                  onClick={() => handlePredefinedRange(value)}
-                  className={cn(
-                    "px-1.5 py-1 rounded text-xs font-medium transition-all",
-                    predefinedRange === value
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-muted-foreground hover:bg-muted/70"
-                  )}
-                >
-                  {label}
-                </button>
-              ))}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-2.5">
+            <div
+              className={cn(
+                "rounded-md border p-2.5 transition-all",
+                timeRangeMode === "predefined"
+                  ? "border-primary/40 bg-primary/5"
+                  : "border-border/70 bg-background/40 opacity-55"
+              )}
+            >
+              <div className="flex items-center justify-between mb-1.5">
+                <p className="text-xs font-semibold text-foreground">Presets</p>
+                {timeRangeMode === "predefined" && (
+                  <span className="text-[10px] font-semibold text-primary">Active</span>
+                )}
+              </div>
+              <div className="grid grid-cols-5 gap-1">
+                {[
+                  { label: "1d", value: "1d" },
+                  { label: "7d", value: "7d" },
+                  { label: "14d", value: "14d" },
+                  { label: "30d", value: "30d" },
+                  { label: "90d", value: "90d" },
+                ].map(({ label, value }) => (
+                  <button
+                    key={value}
+                    onClick={() => handlePredefinedRange(value)}
+                    disabled={timeRangeMode !== "predefined"}
+                    className={cn(
+                      "px-1.5 py-1 rounded text-xs font-semibold transition-all border rounded-md",
+                      predefinedRange === value
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background text-muted-foreground border-border hover:border-primary/40",
+                      timeRangeMode !== "predefined" && "cursor-not-allowed opacity-60 hover:border-border"
+                    )}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
             </div>
-          ) : (
-            <div className="relative">
+
+            <div
+              className={cn(
+                "rounded-md border p-2.5 transition-all relative",
+                timeRangeMode === "manual"
+                  ? "border-primary/40 bg-primary/5"
+                  : "border-border/70 bg-background/40 opacity-55"
+              )}
+            >
+              <div className="flex items-center justify-between mb-1.5">
+                <p className="text-xs font-semibold text-foreground">Custom</p>
+                {timeRangeMode === "manual" && (
+                  <span className="text-[10px] font-semibold text-primary">Active</span>
+                )}
+              </div>
               <button
                 onClick={() => setShowCalendarPicker(!showCalendarPicker)}
+                disabled={timeRangeMode !== "manual"}
                 className={cn(
-                  "w-full px-2 py-1.5 rounded border text-xs font-medium flex items-center gap-1.5 transition-all",
-                  showCalendarPicker
-                    ? "border-primary ring-1 ring-primary/30 bg-primary/5"
-                    : "border-border hover:border-primary/30"
+                  "w-full px-2 py-1.5 rounded-md border text-xs font-medium flex items-center gap-1.5 transition-all",
+                  showCalendarPicker && timeRangeMode === "manual"
+                    ? "border-primary ring-1 ring-primary/30 bg-background"
+                    : "border-border bg-background",
+                  timeRangeMode !== "manual" && "cursor-not-allowed text-muted-foreground"
                 )}
               >
                 <Calendar className="w-3.5 h-3.5" />
-                <span>
+                <span className="truncate">
                   {filters.timeRange.from && filters.timeRange.to
                     ? `${new Date(filters.timeRange.from).toLocaleDateString("en-US", {
                         month: "short",
@@ -693,122 +704,198 @@ export default function AnalyticsManagement() {
                         month: "short",
                         day: "numeric",
                       })}`
-                    : "Select date range"}
+                    : "Select custom range"}
                 </span>
               </button>
-
-              {/* Calendar Popup */}
-              {showCalendarPicker && (
-                <>
-                  <div
-                    className="fixed inset-0 z-40 bg-black/30"
-                    onClick={() => setShowCalendarPicker(false)}
-                  />
-                  <div className="fixed inset-x-4 top-1/2 -translate-y-1/2 max-w-sm mx-auto p-3 rounded-lg border border-border bg-card shadow-2xl z-50 max-h-[85vh] overflow-y-auto">
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <label className="text-xs font-semibold text-muted-foreground">
-                          Select Dates
-                        </label>
-                        <button
-                          onClick={() => setShowCalendarPicker(false)}
-                          className="text-muted-foreground hover:text-foreground transition-colors p-0.5"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                      <DualMonthCalendar
-                        startDate={filters.timeRange.from}
-                        endDate={filters.timeRange.to}
-                        onDateSelect={(date, isStart) => {
-                          const isoDate = date.toISOString().split("T")[0];
-                          if (isStart) {
-                            setFilters({
-                              ...filters,
-                              timeRange: { from: isoDate, to: "" },
-                            });
-                          } else {
-                            setFilters({
-                              ...filters,
-                              timeRange: {
-                                from: filters.timeRange.from,
-                                to: isoDate,
-                              },
-                            });
-                          }
-                        }}
-                        onRangeComplete={(start, end) => {
-                          setFilters({
-                            ...filters,
-                            timeRange: {
-                              from: start.toISOString().split("T")[0],
-                              to: end.toISOString().split("T")[0],
-                            },
-                          });
-                          setShowCalendarPicker(false);
-                        }}
-                      />
-                      {filters.timeRange.from && filters.timeRange.to && (
-                        <div className="pt-2 border-t border-border/50 space-y-1">
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="text-xs text-muted-foreground truncate">
-                              <strong>Selected:</strong> {new Date(filters.timeRange.from).toLocaleDateString()}
-                            </span>
-                            <button
-                              onClick={() => {
-                                setFilters({
-                                  ...filters,
-                                  timeRange: { from: "", to: "" },
-                                });
-                              }}
-                              className="px-2 py-0.5 text-xs rounded bg-muted hover:bg-muted/70 transition-all flex-shrink-0"
-                            >
-                              Clear
-                            </button>
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            to {new Date(filters.timeRange.to).toLocaleDateString()}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </>
-              )}
             </div>
-          )}
+          </div>
         </div>
 
+        {/* Calendar Popup */}
+        {showCalendarPicker && timeRangeMode === "manual" && (
+          <>
+            <div
+              className="fixed inset-0 z-40 bg-black/30"
+              onClick={() => setShowCalendarPicker(false)}
+            />
+            <div className="fixed inset-x-4 top-1/2 -translate-y-1/2 max-w-sm mx-auto p-3 rounded-lg border border-border bg-card shadow-2xl z-50 max-h-[85vh] overflow-y-auto">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-muted-foreground">
+                    Select Dates
+                  </label>
+                  <button
+                    onClick={() => setShowCalendarPicker(false)}
+                    className="text-muted-foreground hover:text-foreground transition-colors p-0.5"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+                <DualMonthCalendar
+                  startDate={filters.timeRange.from}
+                  endDate={filters.timeRange.to}
+                  onDateSelect={(date, isStart) => {
+                    const isoDate = date.toISOString().split("T")[0];
+                    if (isStart) {
+                      setFilters({
+                        ...filters,
+                        timeRange: { from: isoDate, to: "" },
+                      });
+                    } else {
+                      setFilters({
+                        ...filters,
+                        timeRange: {
+                          from: filters.timeRange.from,
+                          to: isoDate,
+                        },
+                      });
+                    }
+                  }}
+                  onRangeComplete={(start, end) => {
+                    setFilters({
+                      ...filters,
+                      timeRange: {
+                        from: start.toISOString().split("T")[0],
+                        to: end.toISOString().split("T")[0],
+                      },
+                    });
+                    setShowCalendarPicker(false);
+                  }}
+                />
+                {filters.timeRange.from && filters.timeRange.to && (
+                  <div className="pt-2 border-t border-border/50 space-y-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs text-muted-foreground truncate">
+                        <strong>Selected:</strong> {new Date(filters.timeRange.from).toLocaleDateString()}
+                      </span>
+                      <button
+                        onClick={() => {
+                          setFilters({
+                            ...filters,
+                            timeRange: { from: "", to: "" },
+                          });
+                        }}
+                        className="px-2 py-0.5 text-xs rounded bg-muted hover:bg-muted/70 transition-all flex-shrink-0"
+                      >
+                        Clear
+                      </button>
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      to {new Date(filters.timeRange.to).toLocaleDateString()}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+
         {/* Filter Dropdowns Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-1">
-          {renderDropdown("Country", "country", ["USA", "Canada", "UK", "Germany", "France", "Japan"], filters.countries || [], "countries")}
-          {renderDropdown("Region", "region", allRegions, filters.regions, "regions")}
-          {renderDropdown("Cluster", "cluster", allClusters, filters.clusters, "clusters")}
-          {renderDropdown("Vendor", "vendor", allVendors, filters.vendors, "vendors")}
-          {renderDropdown("Technology", "technology", allTechnologies, filters.technologies, "technologies")}
-          {renderDropdown("Granularity", "granularity", ["Hourly", "Daily", "Weekly", "Monthly"], filters.granularityValues, "granularityValues")}
-          {renderDropdown("Network", "network", allNetworks, filters.networks, "networks")}
-          {renderDropdown("Site", "site", allSites, filters.sites, "sites")}
-          {renderDropdown("Cell", "cell", allCells, filters.cells, "cells")}
-          {renderDropdown("Domain", "domain", allDomains, filters.domains, "domains")}
-          {renderDropdown("Category", "category", allCategories, filters.categories, "categories")}
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-2.5">
+          <SearchableDropdown
+            label="Country"
+            options={["USA", "Canada", "UK", "Germany", "France", "Japan"]}
+            selected={filters.countries || []}
+            onChange={(selected) => setFilters({ ...filters, countries: selected })}
+            placeholder="Search countries..."
+            compact
+          />
+          <SearchableDropdown
+            label="Region"
+            options={allRegions}
+            selected={filters.regions}
+            onChange={(selected) => setFilters({ ...filters, regions: selected })}
+            placeholder="Search regions..."
+            compact
+          />
+          <SearchableDropdown
+            label="Cluster"
+            options={allClusters}
+            selected={filters.clusters}
+            onChange={(selected) => setFilters({ ...filters, clusters: selected })}
+            placeholder="Search clusters..."
+            compact
+          />
+          <SearchableDropdown
+            label="Vendor"
+            options={allVendors}
+            selected={filters.vendors}
+            onChange={(selected) => setFilters({ ...filters, vendors: selected })}
+            placeholder="Search vendors..."
+            compact
+          />
+          <SearchableDropdown
+            label="Technology"
+            options={allTechnologies}
+            selected={filters.technologies}
+            onChange={(selected) => setFilters({ ...filters, technologies: selected })}
+            placeholder="Search technologies..."
+            compact
+          />
+          <SearchableDropdown
+            label="Granularity"
+            options={["Hourly", "Daily", "Weekly", "Monthly"]}
+            selected={filters.granularityValues}
+            onChange={(selected) => setFilters({ ...filters, granularityValues: selected })}
+            placeholder="Search granularity..."
+            compact
+          />
+          <SearchableDropdown
+            label="Network"
+            options={allNetworks}
+            selected={filters.networks}
+            onChange={(selected) => setFilters({ ...filters, networks: selected })}
+            placeholder="Search networks..."
+            compact
+          />
+          <SearchableDropdown
+            label="Site"
+            options={allSites}
+            selected={filters.sites}
+            onChange={(selected) => setFilters({ ...filters, sites: selected })}
+            placeholder="Search sites..."
+            compact
+          />
+          <SearchableDropdown
+            label="Cell"
+            options={allCells}
+            selected={filters.cells}
+            onChange={(selected) => setFilters({ ...filters, cells: selected })}
+            placeholder="Search cells..."
+            compact
+          />
+          <SearchableDropdown
+            label="Domain"
+            options={allDomains}
+            selected={filters.domains}
+            onChange={(selected) => setFilters({ ...filters, domains: selected })}
+            placeholder="Search domains..."
+            compact
+          />
+          <SearchableDropdown
+            label="Category"
+            options={allCategories}
+            selected={filters.categories}
+            onChange={(selected) => setFilters({ ...filters, categories: selected })}
+            placeholder="Search categories..."
+            compact
+          />
         </div>
 
         {/* Action Buttons - INSIDE the filter box */}
         <div className="flex items-center justify-end gap-1.5 pt-2 border-t border-border/50">
-          {hasActiveFilters && (
-            <button
-              onClick={handleClearAllFilters}
-              className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-muted text-muted-foreground hover:bg-red-100 hover:text-red-700 transition-colors"
-            >
-              <RotateCcw className="w-3 h-3" />
-              Reset
-            </button>
-          )}
+          <button
+            onClick={handleClearAllFilters}
+            disabled={!hasActiveFilters}
+            className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-muted text-muted-foreground hover:bg-red-100 hover:text-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            Reset
+          </button>
 
           <button
             onClick={handleApplyFilter}
-            className="flex items-center gap-1 px-3 py-1 rounded text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+            className="flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
           >
             Apply
           </button>
@@ -832,11 +919,11 @@ export default function AnalyticsManagement() {
       )}
 
       {/* Analysis Scope - Only after generation */}
-      {isGenerated && (filters.networks.length > 0 || filters.regions.length > 0 || filters.clusters.length > 0 || filters.sites.length > 0 || filters.cells.length > 0) && (
+      {isGenerated && (appliedFilters.networks.length > 0 || appliedFilters.regions.length > 0 || appliedFilters.clusters.length > 0 || appliedFilters.sites.length > 0 || appliedFilters.cells.length > 0) && (
         <div className="bg-card border border-border rounded-lg p-4">
           <h3 className="text-sm font-semibold text-muted-foreground mb-3">Select Instance</h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
-            {filters.networks.length > 0 && (
+            {appliedFilters.networks.length > 0 && (
               <div className="relative">
                 <button
                   onClick={() => setOpenScopeDropdown(openScopeDropdown === "networks" ? null : "networks")}
@@ -850,7 +937,7 @@ export default function AnalyticsManagement() {
                 </button>
                 {openScopeDropdown === "networks" && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded shadow-lg z-10 max-h-32 overflow-y-auto">
-                    {filters.networks.map((network) => (
+                    {appliedFilters.networks.map((network) => (
                       <button
                         key={network}
                         onClick={() => {
@@ -869,7 +956,7 @@ export default function AnalyticsManagement() {
               </div>
             )}
 
-            {filters.regions.length > 0 && (
+            {appliedFilters.regions.length > 0 && (
               <div className="relative">
                 <button
                   onClick={() => setOpenScopeDropdown(openScopeDropdown === "regions" ? null : "regions")}
@@ -883,7 +970,7 @@ export default function AnalyticsManagement() {
                 </button>
                 {openScopeDropdown === "regions" && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded shadow-lg z-10 max-h-32 overflow-y-auto">
-                    {filters.regions.map((region) => (
+                    {appliedFilters.regions.map((region) => (
                       <button
                         key={region}
                         onClick={() => {
@@ -902,7 +989,7 @@ export default function AnalyticsManagement() {
               </div>
             )}
 
-            {filters.clusters.length > 0 && (
+            {appliedFilters.clusters.length > 0 && (
               <div className="relative">
                 <button
                   onClick={() => setOpenScopeDropdown(openScopeDropdown === "clusters" ? null : "clusters")}
@@ -916,7 +1003,7 @@ export default function AnalyticsManagement() {
                 </button>
                 {openScopeDropdown === "clusters" && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded shadow-lg z-10 max-h-32 overflow-y-auto">
-                    {filters.clusters.map((cluster) => (
+                    {appliedFilters.clusters.map((cluster) => (
                       <button
                         key={cluster}
                         onClick={() => {
@@ -935,7 +1022,7 @@ export default function AnalyticsManagement() {
               </div>
             )}
 
-            {filters.sites.length > 0 && (
+            {appliedFilters.sites.length > 0 && (
               <div className="relative">
                 <button
                   onClick={() => setOpenScopeDropdown(openScopeDropdown === "sites" ? null : "sites")}
@@ -949,7 +1036,7 @@ export default function AnalyticsManagement() {
                 </button>
                 {openScopeDropdown === "sites" && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded shadow-lg z-10 max-h-32 overflow-y-auto">
-                    {filters.sites.map((site) => (
+                    {appliedFilters.sites.map((site) => (
                       <button
                         key={site}
                         onClick={() => {
@@ -968,7 +1055,7 @@ export default function AnalyticsManagement() {
               </div>
             )}
 
-            {filters.cells.length > 0 && (
+            {appliedFilters.cells.length > 0 && (
               <div className="relative">
                 <button
                   onClick={() => setOpenScopeDropdown(openScopeDropdown === "cells" ? null : "cells")}
@@ -982,7 +1069,7 @@ export default function AnalyticsManagement() {
                 </button>
                 {openScopeDropdown === "cells" && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded shadow-lg z-10 max-h-32 overflow-y-auto">
-                    {filters.cells.map((cell) => (
+                    {appliedFilters.cells.map((cell) => (
                       <button
                         key={cell}
                         onClick={() => {

@@ -267,7 +267,7 @@ const TopologyManagementContent: React.FC = () => {
                       renderMapView();
 
   return (
-    <div className="flex flex-col h-screen bg-background">
+    <div className="topology-theme flex flex-col h-screen bg-background">
       {/* View Selector */}
       <div className="bg-card border-b border-border px-6 py-3">
         <div className="flex gap-2">
@@ -293,7 +293,7 @@ const TopologyManagementContent: React.FC = () => {
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-auto">
         {currentView}
       </div>
 

@@ -25,7 +25,6 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import DashboardWidget from "@/components/DashboardWidget";
-import AnalyticsSections from "@/components/AnalyticsSections";
 import MainPages from "@/components/MainPages";
 import { useLocalStorage, DEFAULT_WIDGETS, type DashboardLayout, type WidgetConfig } from "@/hooks/useLocalStorage";
 import { useToast } from "@/hooks/use-toast";
@@ -569,9 +568,6 @@ export default function Dashboard() {
           )}
         </div>
       </div>
-
-      {/* ===== ANALYTICS SECTIONS ===== */}
-      <AnalyticsSections />
 
       {/* ===== MAIN PAGES ===== */}
       <MainPages />

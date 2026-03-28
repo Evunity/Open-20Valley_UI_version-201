@@ -56,12 +56,12 @@ export default function TenantSwitcher({ onClose }: Props) {
   const otherTenants = tenants.filter(t => !t.isCurrent);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="font-bold text-lg text-foreground">Tenant Switcher</h3>
-          <p className="text-sm text-muted-foreground">
+          <h3 className="font-bold text-base text-foreground">Tenant Switcher</h3>
+          <p className="text-xs text-muted-foreground">
             Switch between your assigned tenants. Switching is intentional to prevent mistakes.
           </p>
         </div>
@@ -76,13 +76,13 @@ export default function TenantSwitcher({ onClose }: Props) {
       </div>
 
       {/* Current Tenant */}
-      <div className="p-4 bg-primary/5 border border-primary/30 rounded-lg">
+      <div className="p-3 bg-primary/5 border border-primary/30 rounded-lg">
         <div className="flex items-start justify-between mb-3">
           <div>
             <p className="text-xs font-semibold text-muted-foreground mb-1">Currently In</p>
             <div className="flex items-center gap-2">
               <Building2 className="w-5 h-5 text-primary" />
-              <h4 className="font-bold text-foreground text-lg">{currentTenant.name}</h4>
+              <h4 className="font-bold text-foreground text-base">{currentTenant.name}</h4>
               <span className="px-2 py-0.5 rounded text-xs font-bold bg-primary text-primary-foreground">
                 CURRENT
               </span>
@@ -91,7 +91,7 @@ export default function TenantSwitcher({ onClose }: Props) {
           <Check className="w-6 h-6 text-green-600 flex-shrink-0" />
         </div>
 
-        <div className="grid grid-cols-2 gap-2 text-sm">
+        <div className="grid grid-cols-2 gap-2 text-xs">
           <div>
             <p className="text-xs text-muted-foreground mb-1">Your Role</p>
             <p className="font-semibold text-foreground">{currentTenant.role}</p>
@@ -107,16 +107,16 @@ export default function TenantSwitcher({ onClose }: Props) {
       {otherTenants.length > 0 && (
         <>
           <div>
-            <p className="text-sm font-semibold text-foreground mb-3">
+            <p className="text-xs font-semibold text-foreground mb-2">
               Available Tenants ({otherTenants.length})
             </p>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               {otherTenants.map(tenant => (
                 <div
                   key={tenant.id}
                   onClick={() => setSelectedTenant(tenant.id)}
-                  className={`cursor-pointer p-4 rounded-lg border transition-colors ${
+                  className={`cursor-pointer p-3 rounded-lg border transition-colors ${
                     selectedTenant === tenant.id
                       ? 'border-primary bg-primary/5'
                       : 'border-border/50 hover:border-border bg-card/50'
@@ -150,10 +150,10 @@ export default function TenantSwitcher({ onClose }: Props) {
           </div>
 
           {/* Switch Button */}
-          <div className="pt-4 border-t border-border">
+          <div className="pt-3 border-t border-border">
             <button
               onClick={onClose}
-              className="w-full px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium"
+              className="w-full px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium"
             >
               Switch to {tenants.find(t => t.id === selectedTenant)?.name}
             </button>
@@ -162,14 +162,14 @@ export default function TenantSwitcher({ onClose }: Props) {
       )}
 
       {/* Info Box */}
-      <div className="p-4 bg-blue-500/5 border border-blue-500/20 rounded-lg">
+      <div className="p-3 bg-blue-500/5 border border-blue-500/20 rounded-lg">
         <p className="text-xs text-blue-700">
           <span className="font-bold">Why Intentional Switching?</span> Prevents catastrophic mistakes. Each tenant has isolated data. Switching context clearly signals environment change.
         </p>
       </div>
 
       {/* Key Information */}
-      <div className="space-y-2 text-xs">
+      <div className="space-y-1.5 text-xs">
         <div className="p-3 bg-muted/30 rounded-lg border border-border/30">
           <p className="font-semibold text-foreground mb-1">What gets isolated:</p>
           <p className="text-muted-foreground">

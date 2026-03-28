@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, LayoutDashboard, Settings, Moon, Sun, Gauge, Bell, Zap, Lock, AlertTriangle, Map, Terminal, BarChart3, Shield, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { Menu, X, LayoutDashboard, Settings, Moon, Sun, Gauge, Bell, Zap, Lock, Map, Terminal, BarChart3, Shield, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface LayoutProps {
@@ -12,15 +12,10 @@ export default function Layout({ children }: LayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [emergencyKillActive, setEmergencyKillActive] = useState(false);
-  const [sidebarWidth, setSidebarWidth] = useState(256); // 64 * 4 = 256px (w-64)
-  const [isDragging, setIsDragging] = useState(false);
   const location = useLocation();
 
+  const DEFAULT_SIDEBAR_WIDTH = 256; // 64 * 4 = 256px (w-64)
   const COLLAPSED_WIDTH = 76; // Width when collapsed
-  const MIN_WIDTH = 150; // Minimum width before collapse when dragging
-  const MAX_WIDTH = 400; // Maximum width
-  const COLLAPSE_SNAP_THRESHOLD = 132;
 
   // Handle responsive behavior
   useEffect(() => {
@@ -49,59 +44,13 @@ export default function Layout({ children }: LayoutProps) {
     }
   }, [darkMode]);
 
-  // Handle sidebar dragging
-  const dragStartXRef = useRef(0);
-  const dragStartWidthRef = useRef(0);
-  const dragStartedCollapsedRef = useRef(false);
+  const contentScrollRef = useRef<HTMLDivElement>(null);
 
+  // Reset main content scroll on route navigation (internal scroll container, not window)
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isDragging || isMobile) return;
-
-      const deltaX = e.clientX - dragStartXRef.current;
-      const baseWidth = dragStartedCollapsedRef.current ? COLLAPSED_WIDTH : dragStartWidthRef.current;
-      const requestedWidth = baseWidth + deltaX;
-      const collapseThreshold = dragStartedCollapsedRef.current
-        ? COLLAPSED_WIDTH
-        : COLLAPSE_SNAP_THRESHOLD;
-
-      if (requestedWidth <= collapseThreshold) {
-        setSidebarOpen(false);
-        return;
-      }
-
-      const newWidth = Math.max(MIN_WIDTH, Math.min(requestedWidth, MAX_WIDTH));
-
-      setSidebarWidth(newWidth);
-      setSidebarOpen(true);
-    };
-
-    const handleMouseUp = () => {
-      dragStartedCollapsedRef.current = false;
-      setIsDragging(false);
-    };
-
-    if (isDragging) {
-      document.addEventListener("mousemove", handleMouseMove);
-      document.addEventListener("mouseup", handleMouseUp);
-      document.body.style.cursor = "col-resize";
-      document.body.style.userSelect = "none";
-    }
-
-    return () => {
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
-      document.body.style.cursor = "default";
-      document.body.style.userSelect = "auto";
-    };
-  }, [isDragging, isMobile]);
-
-  const handleDragStart = (e: React.MouseEvent) => {
-    dragStartXRef.current = e.clientX;
-    dragStartedCollapsedRef.current = !sidebarOpen;
-    dragStartWidthRef.current = sidebarOpen ? sidebarWidth : COLLAPSED_WIDTH;
-    setIsDragging(true);
-  };
+    if (!contentScrollRef.current) return;
+    contentScrollRef.current.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [location.pathname, location.search, location.hash]);
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
@@ -113,20 +62,32 @@ export default function Layout({ children }: LayoutProps) {
       path: "/analytics-management",
       label: "Analytics Management",
       icon: Gauge,
-      matchPaths: ["/analytics-management", "/analytics-home", "/voice-analytics", "/data-analytics"],
+      matchPaths: ["/analytics-management", "/analytics-home"],
     },
-    { path: "/alarm-management", label: "Alarm Management", icon: Bell, matchPaths: ["/alarm-management", "/network-alarms"] },
-    { path: "/automation-management", label: "Automation & AI", icon: Zap, matchPaths: ["/automation-management", "/ai-actions"] },
-    { path: "/topology-management", label: "Topology & Network", icon: Map, matchPaths: ["/topology-management", "/network", "/network-status"] },
+    { path: "/alarm-management", label: "Alarm Management", icon: Bell, matchPaths: ["/alarm-management"] },
+    { path: "/automation-management", label: "Automation & AI", icon: Zap, matchPaths: ["/automation-management"] },
+    { path: "/topology-management", label: "Topology & Network", icon: Map, matchPaths: ["/topology-management", "/network"] },
     { path: "/command-center", label: "Command Center", icon: Terminal, matchPaths: ["/command-center"] },
     { path: "/activity-audit", label: "Activity & Audit", icon: Shield, matchPaths: ["/activity-audit", "/activity-log"] },
-    { path: "/reports-module", label: "Reports", icon: BarChart3, matchPaths: ["/reports-module", "/reports"] },
+    { path: "/reports-module", label: "Reports", icon: BarChart3, matchPaths: ["/reports-module"] },
     { path: "/access-control", label: "Access Control", icon: Lock, matchPaths: ["/access-control"] },
     { path: "/settings-2", label: "Settings", icon: Settings, matchPaths: ["/settings-2", "/settings"] },
   ];
 
+  const dashboardDrilldownRoutes = new Set([
+    "/voice-analytics",
+    "/data-analytics",
+    "/network-alarms",
+    "/network-status",
+    "/reports",
+    "/ai-actions",
+  ]);
+
+  // Keep dashboard drill-down routes in Dashboard context only.
+  const resolvedPath = dashboardDrilldownRoutes.has(location.pathname) ? "/" : location.pathname;
+
   const isActive = (matchPaths: string[]) =>
-    matchPaths.some((path) => (path === "/" ? location.pathname === "/" : location.pathname.startsWith(path)));
+    matchPaths.some((path) => (path === "/" ? resolvedPath === "/" : resolvedPath.startsWith(path)));
 
   const SidebarContent = () => (
     <>
@@ -295,28 +256,10 @@ export default function Layout({ children }: LayoutProps) {
             "flex flex-col bg-sidebar border-r border-sidebar-border flex-shrink-0 transition-all duration-200 overflow-hidden",
             "relative h-screen"
           )}
-          style={{ width: sidebarOpen ? `${sidebarWidth}px` : `${COLLAPSED_WIDTH}px` }}
+          style={{ width: sidebarOpen ? `${DEFAULT_SIDEBAR_WIDTH}px` : `${COLLAPSED_WIDTH}px` }}
         >
           <SidebarContent />
         </aside>
-
-        {/* Draggable Handle */}
-        <div
-          onMouseDown={handleDragStart}
-          className={cn(
-            "hidden md:flex md:items-center md:justify-center absolute top-0 h-full cursor-col-resize transition-all z-40",
-            sidebarOpen
-              ? "right-0 w-3 translate-x-1/2 bg-transparent"
-              : "right-0 w-3 translate-x-1/2 bg-transparent"
-          )}
-          title="Drag left/right to resize sidebar"
-        >
-          <div className="flex flex-col gap-1.5 rounded-full px-1 py-2 hover:bg-primary/10">
-            <div className="w-1 h-3 bg-primary/25 rounded-full group-hover:bg-primary/60 transition-colors"></div>
-            <div className="w-1 h-3 bg-primary/25 rounded-full group-hover:bg-primary/60 transition-colors"></div>
-            <div className="w-1 h-3 bg-primary/25 rounded-full group-hover:bg-primary/60 transition-colors"></div>
-          </div>
-        </div>
       </div>
 
       {/* Mobile Overlay & Drawer */}
@@ -340,63 +283,18 @@ export default function Layout({ children }: LayoutProps) {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
-        <header className="h-10 border-b border-border bg-card flex items-center px-2 shadow-sm">
-          <div className="flex items-center justify-between w-full gap-3">
-            {isMobile && (
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-1.5 hover:bg-muted rounded-lg transition-colors flex-shrink-0"
-                aria-label="Toggle mobile menu"
-              >
-                <Menu className="w-4 h-4" />
-              </button>
-            )}
-            <Link
-              to="/"
-              className="flex items-center gap-2 group hover:opacity-80 transition-opacity flex-1 min-w-0 cursor-pointer"
-              title="Back to Dashboard"
-            >
-              <img
-                src="https://cdn.builder.io/api/v1/image/assets%2Fc13b4e0240ec42a0981c688ed8e4138d%2F764a7575ec7b41acab908367454597f1?format=webp&width=800"
-                alt="Open Valley"
-                className="h-8 md:h-10"
-              />
-            </Link>
-            <div className="text-xs text-muted-foreground whitespace-nowrap">
-              {new Date().toLocaleDateString("en-US", {
-                weekday: "short",
-                month: "short",
-                day: "numeric",
-              })}
-            </div>
-
-            {/* Emergency Kill Switch */}
-            <button
-              onClick={() => {
-                setEmergencyKillActive(!emergencyKillActive);
-                if (!emergencyKillActive) {
-                  alert('🚨 EMERGENCY KILL SWITCH ACTIVATED\n\nAll automations have been paused.\nManual intervention required to resume.');
-                }
-              }}
-              className={cn(
-                "px-2.5 py-1.5 rounded-lg font-semibold text-xs flex items-center gap-1.5 transition-all flex-shrink-0",
-                emergencyKillActive
-                  ? "bg-red-600 text-white hover:bg-red-700 animate-pulse"
-                  : "bg-red-100 text-red-700 hover:bg-red-200"
-              )}
-              title="Emergency Kill Switch - Stops all automations immediately (Auditor Required)"
-            >
-              <AlertTriangle className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">
-                {emergencyKillActive ? "🚨 KILL" : "Kill"}
-              </span>
-            </button>
-          </div>
-        </header>
+        {isMobile && (
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="fixed top-2 left-2 z-30 p-1.5 bg-card border border-border shadow-sm rounded-lg hover:bg-muted transition-colors md:hidden"
+            aria-label="Toggle mobile menu"
+          >
+            <Menu className="w-4 h-4" />
+          </button>
+        )}
 
         {/* Content Area */}
-        <div className="flex-1 overflow-auto">
+        <div ref={contentScrollRef} className="app-content-theme flex-1 overflow-auto">
           <div className="p-1.5 md:p-2">{children}</div>
         </div>
       </main>
