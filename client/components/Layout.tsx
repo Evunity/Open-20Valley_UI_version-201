@@ -119,28 +119,29 @@ export default function Layout({ children }: LayoutProps) {
       path: "/analytics-management",
       label: "Analytics Management",
       icon: Gauge,
-      matchPaths: ["/analytics-management", "/analytics-home", "/voice-analytics", "/data-analytics"],
+      matchPaths: ["/analytics-management", "/analytics-home"],
     },
-    { path: "/alarm-management", label: "Alarm Management", icon: Bell, matchPaths: ["/alarm-management", "/network-alarms"] },
-    { path: "/automation-management", label: "Automation & AI", icon: Zap, matchPaths: ["/automation-management", "/ai-actions"] },
-    { path: "/topology-management", label: "Topology & Network", icon: Map, matchPaths: ["/topology-management", "/network", "/network-status"] },
+    { path: "/alarm-management", label: "Alarm Management", icon: Bell, matchPaths: ["/alarm-management"] },
+    { path: "/automation-management", label: "Automation & AI", icon: Zap, matchPaths: ["/automation-management"] },
+    { path: "/topology-management", label: "Topology & Network", icon: Map, matchPaths: ["/topology-management", "/network"] },
     { path: "/command-center", label: "Command Center", icon: Terminal, matchPaths: ["/command-center"] },
     { path: "/activity-audit", label: "Activity & Audit", icon: Shield, matchPaths: ["/activity-audit", "/activity-log"] },
-    { path: "/reports-module", label: "Reports", icon: BarChart3, matchPaths: ["/reports-module", "/reports"] },
+    { path: "/reports-module", label: "Reports", icon: BarChart3, matchPaths: ["/reports-module"] },
     { path: "/access-control", label: "Access Control", icon: Lock, matchPaths: ["/access-control"] },
     { path: "/settings-2", label: "Settings", icon: Settings, matchPaths: ["/settings-2", "/settings"] },
   ];
 
-  const drilldownNavMap: Record<string, string> = {
-    "/voice-analytics": "/analytics-management",
-    "/data-analytics": "/analytics-management",
-    "/network-alarms": "/alarm-management",
-    "/network-status": "/topology-management",
-    "/ai-actions": "/automation-management",
-    "/reports": "/reports-module",
-  };
+  const dashboardDrilldownRoutes = new Set([
+    "/voice-analytics",
+    "/data-analytics",
+    "/network-alarms",
+    "/network-status",
+    "/reports",
+    "/ai-actions",
+  ]);
 
-  const resolvedPath = drilldownNavMap[location.pathname] ?? location.pathname;
+  // Keep dashboard drill-down routes in Dashboard context only.
+  const resolvedPath = dashboardDrilldownRoutes.has(location.pathname) ? "/" : location.pathname;
 
   const isActive = (matchPaths: string[]) =>
     matchPaths.some((path) => (path === "/" ? resolvedPath === "/" : resolvedPath.startsWith(path)));
