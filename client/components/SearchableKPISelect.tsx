@@ -61,7 +61,7 @@ export default function SearchableKPISelect({
       {/* Selected Tags & Input */}
       <div
         className={cn(
-          "w-full px-3 py-2 rounded-lg border bg-background text-xs transition-all flex items-center gap-2 cursor-text shadow-sm",
+          "w-full control-height px-3 rounded-lg border bg-background typo-input transition-all flex items-center gap-2 cursor-text shadow-sm",
           isOpen
             ? "border-primary ring-2 ring-primary/20 shadow-lg"
             : "border-border hover:border-primary/40 focus-within:ring-2 focus-within:ring-primary/40 focus-within:border-primary"
@@ -72,7 +72,7 @@ export default function SearchableKPISelect({
           {selectedKPIs.map((kpi) => (
             <div
               key={kpi.id}
-              className="flex items-center gap-1 px-2 py-1 rounded-md bg-primary/15 text-primary text-xs font-semibold hover:bg-primary/25 transition-colors border border-primary/20"
+              className="flex items-center gap-1 px-2 py-1 rounded-md bg-primary/15 text-primary typo-badge hover:bg-primary/25 transition-colors border border-primary/20"
             >
               {kpi.label}
               <button
@@ -105,7 +105,7 @@ export default function SearchableKPISelect({
             <input
               type="text"
               className={cn(
-                "bg-transparent outline-none text-foreground placeholder-muted-foreground text-xs font-medium",
+                "bg-transparent outline-none typo-input font-medium",
                 value.length === 0 ? "flex-1 min-w-[120px]" : "flex-1 min-w-[56px]"
               )}
               placeholder={
@@ -167,7 +167,7 @@ export default function SearchableKPISelect({
                       <div className={cn("font-medium text-sm", isSelected && "text-primary")}>
                         {kpi.label}
                       </div>
-                      <div className="text-xs text-muted-foreground line-clamp-1">
+                      <div className="typo-meta line-clamp-1">
                         {kpi.description}
                       </div>
                     </div>
@@ -179,7 +179,7 @@ export default function SearchableKPISelect({
             <div className="px-4 py-8 text-center text-sm text-muted-foreground">No KPIs found</div>
           )}
           {value.length >= maxItems && (
-            <div className="px-4 py-2 bg-muted/30 text-xs text-muted-foreground text-center border-t border-border">
+            <div className="px-4 py-2 bg-muted/30 typo-meta text-center border-t border-border">
               Max {maxItems} KPI{maxItems !== 1 ? "s" : ""} selected
             </div>
           )}

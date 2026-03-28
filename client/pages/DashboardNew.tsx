@@ -178,8 +178,6 @@ export default function DashboardNew() {
     "avg_latency",
     "network_health",
   ]);
-  const [showKPISelector, setShowKPISelector] = useState(false);
-
   // 4 Configurable Graph Cards states
   const [graphCards, setGraphCards] = useState<
     Array<{
@@ -654,19 +652,19 @@ export default function DashboardNew() {
   };
 
   return (
-    <div className="space-y-1.5 pb-2">
+    <div className="space-y-4 pb-4">
       {/* ===== HEADER SECTION ===== */}
-      <div className="space-y-1">
-        <div className="flex items-center justify-between gap-1.5 flex-wrap">
-          <div className="space-y-0">
-            <h1 className="text-lg font-bold text-foreground">Network Operations Dashboard</h1>
-            <p className="text-sm text-muted-foreground">
+      <div className="space-y-3">
+        <div className="layout-page-header">
+          <div className="space-y-1">
+            <h1 className="typo-page-title">Network Operations Dashboard</h1>
+            <p className="typo-body text-muted-foreground">
               Real-time monitoring and AI-driven insights across your infrastructure
             </p>
           </div>
           <button
             onClick={exportToExcel}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-border bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium"
+            className="inline-flex control-height items-center gap-2 px-4 rounded-lg border border-border bg-primary text-primary-foreground hover:bg-primary/90 transition-colors typo-button"
           >
             <Download className="w-4 h-4" />
             Export to Excel
@@ -678,11 +676,11 @@ export default function DashboardNew() {
       </div>
 
       {/* ===== KPI SECTION ===== */}
-      <div>
-        <div className="space-y-1 mb-2">
-          <div className="space-y-0">
-            <h2 className="text-base font-bold text-foreground">Key Performance Indicators</h2>
-            <p className="text-xs text-muted-foreground">
+      <div className="space-y-3">
+        <div className="space-y-2 mb-1">
+          <div className="space-y-1">
+            <h2 className="typo-section-title">Key Performance Indicators</h2>
+            <p className="typo-meta">
               Real-time metrics reflecting current filters ({selectedKPIIds.length} of{" "}
               {AVAILABLE_KPIS.length} displayed)
             </p>
@@ -698,7 +696,7 @@ export default function DashboardNew() {
         </div>
 
         {/* KPI Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1.5">
           {selectedKPIs.map((kpi) => {
             const kpiValue = calculateKPIValue(kpi.id, filters);
             const IconComponent = kpi.icon;
@@ -708,7 +706,7 @@ export default function DashboardNew() {
               <div
                 key={kpi.id}
                 className={cn(
-                  "p-3 rounded-lg border transition-all duration-300 hover:shadow-lg hover:border-primary/50",
+                  "p-2.5 rounded-lg border transition-all duration-200 hover:shadow-md hover:border-primary/50",
                   kpiValue.status === "healthy"
                     ? "border-status-healthy/20 bg-status-healthy/5"
                     : kpiValue.status === "critical"
@@ -716,10 +714,10 @@ export default function DashboardNew() {
                       : "border-border bg-card"
                 )}
               >
-                <div className="flex items-start justify-between gap-1.5 mb-1.5">
+                <div className="flex items-start justify-between gap-1.5 mb-1">
                   <div
                     className={cn(
-                      "p-1 rounded-lg w-fit",
+                      "p-1 rounded-md w-fit",
                       kpiValue.status === "healthy"
                         ? "bg-status-healthy/10"
                         : kpiValue.status === "critical"
@@ -729,7 +727,7 @@ export default function DashboardNew() {
                   >
                     <IconComponent
                       className={cn(
-                        "w-4 h-4",
+                        "w-3.5 h-3.5",
                         kpiValue.status === "healthy"
                           ? "text-status-healthy"
                           : kpiValue.status === "critical"
@@ -741,10 +739,10 @@ export default function DashboardNew() {
 
                   {activeFilters.count > 0 && (
                     <div className="text-right flex-1">
-                      <p className="text-xs font-semibold text-muted-foreground mb-1">
+                      <p className="typo-meta font-semibold mb-1">
                         {activeFilters.count} {activeFilters.count === 1 ? "filter" : "filters"}
                       </p>
-                      <p className="text-xs text-muted-foreground line-clamp-2">
+                      <p className="typo-meta line-clamp-2">
                         {activeFilters.names.join(", ")}
                       </p>
                     </div>
@@ -752,10 +750,10 @@ export default function DashboardNew() {
                 </div>
 
                 <div>
-                  <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
+                  <p className="typo-label mb-2">
                     {kpi.label}
                   </p>
-                  <p className={cn("text-3xl font-bold", getStatusColor(kpiValue.status))}>
+                  <p className={cn("text-2xl font-bold leading-tight", getStatusColor(kpiValue.status))}>
                     {kpiValue.value}
                   </p>
                 </div>
@@ -769,19 +767,19 @@ export default function DashboardNew() {
       <AnalyticsSections />
 
       {/* ===== AI ENGINE ACTIONS (2-COLUMN LAYOUT) ===== */}
-      <div id="ai-actions" className="card-elevated rounded-xl border border-border/50 p-3">
-        <div className="mb-2 space-y-0.5">
+      <div id="ai-actions" className="layout-card !p-3 space-y-3">
+        <div className="space-y-1">
           <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <h2 className="text-base font-bold text-foreground">AI Engine Actions</h2>
-              <p className="text-xs text-muted-foreground">
+            <div className="space-y-1">
+              <h2 className="typo-section-title">AI Engine Actions</h2>
+              <p className="typo-meta">
                 Automated network operations and resolution activities
               </p>
             </div>
             <select
               value={aiChartType}
               onChange={(e) => setAiChartType(e.target.value as ChartType)}
-              className="px-3 py-1 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50"
+              className="control-height px-3 rounded-lg border border-border bg-background typo-input focus:ring-2 focus:ring-primary/50"
             >
               <option value="bar">Bar Chart</option>
               <option value="line">Line Chart</option>
@@ -789,10 +787,10 @@ export default function DashboardNew() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-1.5">
           {/* LEFT: Chart Visualization */}
-          <div className="rounded-lg border border-border/50 bg-background p-3">
-            <ResponsiveContainer width="100%" height={250}>
+          <div className="rounded-lg border border-border/50 bg-background p-2">
+            <ResponsiveContainer width="100%" height={210}>
               {renderChart(aiChartType, aiActionsData, ["successful", "failed"])}
             </ResponsiveContainer>
           </div>
@@ -801,7 +799,7 @@ export default function DashboardNew() {
           <div className="space-y-1.5">
             {/* Severity Sorting Filter */}
             <div className="flex items-center gap-2">
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+              <label className="typo-label">
                 Sort by Severity:
               </label>
               <select
@@ -809,7 +807,7 @@ export default function DashboardNew() {
                 onChange={(e) =>
                   setActionsSortOrder(e.target.value as "low-to-high" | "high-to-low")
                 }
-                className="px-3 py-1 rounded-lg border border-border bg-background text-xs focus:ring-2 focus:ring-primary/50"
+                className="control-height px-3 rounded-lg border border-border bg-background typo-input focus:ring-2 focus:ring-primary/50"
               >
                 <option value="high-to-low">High → Low</option>
                 <option value="low-to-high">Low → High</option>
@@ -819,7 +817,7 @@ export default function DashboardNew() {
             {/* Actions List */}
             <div
               className="rounded-lg border border-border/50 bg-background p-2 overflow-y-auto space-y-1"
-              style={{ maxHeight: "240px" }}
+              style={{ maxHeight: "210px" }}
             >
               {aiActionsDetailList
                 .sort((a, b) => {
@@ -837,15 +835,15 @@ export default function DashboardNew() {
                   >
                     <div className="flex items-start justify-between gap-1">
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium text-foreground truncate">
+                        <p className="typo-card-title truncate">
                           {action.name}
                         </p>
-                        <p className="text-xs text-muted-foreground">{action.time}</p>
+                        <p className="typo-meta">{action.time}</p>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <span
                           className={cn(
-                            "px-2 py-1 rounded text-xs font-semibold whitespace-nowrap",
+                            "px-2 py-1 rounded typo-badge whitespace-nowrap",
                             action.severity === "HIGH"
                               ? "bg-status-critical/20 text-status-critical"
                               : action.severity === "MED"
@@ -860,7 +858,7 @@ export default function DashboardNew() {
                     <div className="flex items-center justify-between">
                       <span
                         className={cn(
-                          "text-xs font-medium px-2 py-1 rounded",
+                          "typo-badge px-2 py-1 rounded",
                           action.status === "Success"
                             ? "bg-status-healthy/20 text-status-healthy"
                             : action.status === "Failed"
@@ -879,21 +877,21 @@ export default function DashboardNew() {
       </div>
 
       {/* ===== 4 CONFIGURABLE GRAPH CARDS ===== */}
-      <div>
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-foreground">Analytics Graphs</h2>
-          <p className="text-sm text-muted-foreground">Configure up to 2 KPIs per card</p>
+      <div className="space-y-2">
+        <div className="mb-2">
+          <h2 className="typo-section-title">Analytics Graphs</h2>
+          <p className="typo-body text-muted-foreground">Configure up to 2 KPIs per card</p>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           {graphCards.map((card) => (
             <div
               key={card.id}
-              className="card-elevated rounded-xl border border-border/50 p-6 space-y-4"
+              className="card-elevated rounded-xl border border-border/50 p-3.5 space-y-3"
             >
               {/* Card Header with KPI Selection and Chart Type */}
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <div>
-                  <label className="block text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
+                  <label className="block typo-label mb-2">
                     KPI Selection (Max 2)
                   </label>
                   <SearchableKPISelect
@@ -909,11 +907,11 @@ export default function DashboardNew() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
+                  <label className="block typo-label mb-2">
                     Chart Type
                   </label>
                   <select
-                    className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                    className="w-full control-height px-3 rounded-lg border border-border bg-background typo-input focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
                     value={card.chartType}
                     onChange={(e) => {
                       setGraphCards((prev) =>
@@ -930,12 +928,12 @@ export default function DashboardNew() {
               </div>
 
               {/* Chart Visualization */}
-              <div className="rounded-lg border border-border/50 bg-background p-3">
-                <ResponsiveContainer width="100%" height={220}>
+              <div className="rounded-lg border border-border/50 bg-background p-2.5">
+                <ResponsiveContainer width="100%" height={180}>
                   {card.selectedKPIs.length > 0 ? (
                     renderChart(card.chartType, trafficData, card.selectedKPIs)
                   ) : (
-                    <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+                    <div className="flex items-center justify-center h-full typo-body text-muted-foreground">
                       Select KPIs to display chart
                     </div>
                   )}
@@ -947,15 +945,15 @@ export default function DashboardNew() {
       </div>
 
       {/* ===== SITES BY REGION ===== */}
-      <div className="card-elevated rounded-xl border border-border/50 p-3">
-        <div className="mb-2 space-y-0.5">
+      <div className="layout-card !p-3 space-y-2">
+        <div className="space-y-1">
           <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <h3 className="text-base font-bold text-foreground">Sites by Region</h3>
-              <p className="text-xs text-muted-foreground">Geographic distribution</p>
+            <div className="space-y-1">
+              <h3 className="typo-subsection-title">Sites by Region</h3>
+              <p className="typo-meta">Geographic distribution</p>
             </div>
             <select
-              className="px-3 py-1 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50"
+              className="control-height px-3 rounded-lg border border-border bg-background typo-input focus:ring-2 focus:ring-primary/50"
               value={regionChartType}
               onChange={(e) => setRegionChartType(e.target.value as ChartType)}
             >
@@ -964,21 +962,21 @@ export default function DashboardNew() {
             </select>
           </div>
         </div>
-        <ResponsiveContainer width="100%" height={250}>
+        <ResponsiveContainer width="100%" height={210}>
           {renderChart(regionChartType, regionData, ["sites"])}
         </ResponsiveContainer>
       </div>
 
       {/* ===== VENDOR DISTRIBUTION ===== */}
-      <div className="card-elevated rounded-xl border border-border/50 p-3">
-        <div className="mb-2 space-y-0.5">
+      <div className="layout-card !p-3 space-y-2">
+        <div className="space-y-1">
           <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <h3 className="text-sm font-bold text-foreground">Vendor Distribution</h3>
-              <p className="text-[9px] text-muted-foreground">Equipment manufacturer breakdown</p>
+            <div className="space-y-1">
+              <h3 className="typo-subsection-title">Vendor Distribution</h3>
+              <p className="typo-meta">Equipment manufacturer breakdown</p>
             </div>
             <select
-              className="px-3 py-1 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50"
+              className="control-height px-3 rounded-lg border border-border bg-background typo-input focus:ring-2 focus:ring-primary/50"
               value={vendorChartType}
               onChange={(e) => setVendorChartType(e.target.value as ChartType)}
             >
@@ -987,20 +985,20 @@ export default function DashboardNew() {
             </select>
           </div>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
           <div className={vendorChartType === "pie" ? "lg:col-span-2" : "lg:col-span-3"}>
-            <ResponsiveContainer width="100%" height={250}>
+            <ResponsiveContainer width="100%" height={210}>
               {renderChart(vendorChartType, vendorData, ["sites"])}
             </ResponsiveContainer>
           </div>
           {vendorChartType === "pie" && (
-            <div className="space-y-3 flex flex-col justify-center">
+            <div className="space-y-2 flex flex-col justify-center">
               {vendorData.map((vendor, idx) => (
                 <div key={idx} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50">
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: vendor.fill }} />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground">{vendor.vendor}</p>
-                    <p className="text-xs text-muted-foreground">{vendor.sites} sites</p>
+                    <p className="typo-subsection-title">{vendor.vendor}</p>
+                    <p className="typo-meta">{vendor.sites} sites</p>
                   </div>
                 </div>
               ))}
