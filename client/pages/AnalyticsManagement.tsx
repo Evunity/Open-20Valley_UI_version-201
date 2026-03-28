@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Save, Trash2, Download, Eye, EyeOff, ChevronDown, Search, X, RotateCcw, Calendar, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import * as XLSX from "xlsx";
@@ -37,7 +37,7 @@ export interface AnalyticsFilters {
 type TimeRangeType = "predefined" | "manual";
 
 export default function AnalyticsManagement() {
-  const [filters, setFilters] = useState<AnalyticsFilters>({
+  const initialFilters: AnalyticsFilters = {
     technologies: [],
     vendors: [],
     domains: [],
@@ -55,7 +55,10 @@ export default function AnalyticsManagement() {
       to: new Date().toISOString().split("T")[0],
     },
     granularity: "1D",
-  });
+  };
+
+  const [draftFilters, setDraftFilters] = useState<AnalyticsFilters>(initialFilters);
+  const [appliedFilters, setAppliedFilters] = useState<AnalyticsFilters>(initialFilters);
 
   const [kpiSearch, setKpiSearch] = useState("");
   const [selectedKPIs, setSelectedKPIs] = useState<KPI[]>([]);
@@ -95,18 +98,18 @@ export default function AnalyticsManagement() {
   const allCells = ["Cell-001", "Cell-002", "Cell-003", "Cell-004", "Cell-005"];
 
   const hasActiveFilters =
-    filters.technologies.length > 0 ||
-    filters.vendors.length > 0 ||
-    filters.domains.length > 0 ||
-    filters.categories.length > 0 ||
-    filters.scopes.length > 0 ||
-    filters.networks.length > 0 ||
-    filters.regions.length > 0 ||
-    filters.clusters.length > 0 ||
-    filters.sites.length > 0 ||
-    filters.cells.length > 0 ||
-    filters.countries.length > 0 ||
-    filters.granularityValues.length > 0;
+    draftFilters.technologies.length > 0 ||
+    draftFilters.vendors.length > 0 ||
+    draftFilters.domains.length > 0 ||
+    draftFilters.categories.length > 0 ||
+    draftFilters.scopes.length > 0 ||
+    draftFilters.networks.length > 0 ||
+    draftFilters.regions.length > 0 ||
+    draftFilters.clusters.length > 0 ||
+    draftFilters.sites.length > 0 ||
+    draftFilters.cells.length > 0 ||
+    draftFilters.countries.length > 0 ||
+    draftFilters.granularityValues.length > 0;
 
   const handlePredefinedRange = (range: string) => {
     const now = new Date();
@@ -133,8 +136,8 @@ export default function AnalyticsManagement() {
     setTimeRangeMode("predefined");
     setPredefinedRange(range);
     setShowCalendarPicker(false);
-    setFilters({
-      ...filters,
+    setDraftFilters({
+      ...draftFilters,
       timeRange: {
         from: from.toISOString().split("T")[0],
         to: now.toISOString().split("T")[0],
@@ -152,49 +155,52 @@ export default function AnalyticsManagement() {
   };
 
   const handleApplyFilter = () => {
+    setAppliedFilters(draftFilters);
+    setGeneratedTime(new Date());
+    setIsGenerated(true);
+    setShowKPIDropdown(false);
+  };
+
+  const handleRegenerate = () => {
     setGeneratedTime(new Date());
     setIsGenerated(true);
   };
 
-  const handleRegenerate = () => {
-    setIsGenerated(false);
-    setGeneratedTime(null);
-    setSelectedKPIs([]);
-    setSelectedNetwork(null);
-    setSelectedRegion(null);
-    setSelectedCluster(null);
-    setSelectedSite(null);
-    setSelectedCell(null);
-  };
-
   const handleClearAllFilters = () => {
-    setFilters({
-      technologies: [],
-      vendors: [],
-      domains: [],
-      categories: [],
-      scopes: [],
-      networks: [],
-      regions: [],
-      clusters: [],
-      sites: [],
-      cells: [],
-      countries: [],
-      granularityValues: [],
-      timeRange: filters.timeRange,
-      granularity: "1D",
+    setDraftFilters({
+      ...initialFilters,
+      timeRange: draftFilters.timeRange,
     });
   };
 
-  // Filter KPIs based on current filters AND search
-  const filteredKPIs = useMemo(() => {
-    let kpis = filterKPIs(KPI_CATALOG, {
-      technologies: filters.technologies,
-      vendors: filters.vendors,
-      domains: filters.domains,
-      categories: filters.categories,
-      scopes: filters.scopes,
+  const selectedScopeFromInstance = useMemo(() => {
+    if (selectedCell) return "Cell";
+    if (selectedSite) return "Site";
+    if (selectedCluster) return "Cluster";
+    if (selectedRegion) return "Region";
+    if (selectedNetwork) return "Network";
+    return null;
+  }, [selectedCell, selectedSite, selectedCluster, selectedRegion, selectedNetwork]);
+
+  // KPI source is derived ONLY from applied filters (+ selected instance scope when selected)
+  const availableKPIs = useMemo(() => {
+    const scopesFromAppliedFilters = [...appliedFilters.scopes];
+    if (selectedScopeFromInstance) {
+      scopesFromAppliedFilters.push(selectedScopeFromInstance);
+    }
+
+    return filterKPIs(KPI_CATALOG, {
+      technologies: appliedFilters.technologies as any,
+      vendors: appliedFilters.vendors as any,
+      domains: appliedFilters.domains as any,
+      categories: appliedFilters.categories as any,
+      scopes: [...new Set(scopesFromAppliedFilters)] as any,
     });
+  }, [appliedFilters, selectedScopeFromInstance]);
+
+  // Search only within currently available KPIs from applied state
+  const filteredKPIs = useMemo(() => {
+    let kpis = availableKPIs;
 
     if (kpiSearch.trim()) {
       const search = kpiSearch.toLowerCase();
@@ -207,7 +213,29 @@ export default function AnalyticsManagement() {
     }
 
     return kpis;
-  }, [filters, kpiSearch]);
+  }, [availableKPIs, kpiSearch]);
+
+  // Keep selected KPIs synchronized with valid KPI source
+  useEffect(() => {
+    setSelectedKPIs((previousSelectedKPIs) =>
+      previousSelectedKPIs.filter((kpi) => availableKPIs.some((availableKPI) => availableKPI.id === kpi.id))
+    );
+  }, [availableKPIs]);
+
+  useEffect(() => {
+    if (selectedNetwork && !appliedFilters.networks.includes(selectedNetwork)) setSelectedNetwork(null);
+    if (selectedRegion && !appliedFilters.regions.includes(selectedRegion)) setSelectedRegion(null);
+    if (selectedCluster && !appliedFilters.clusters.includes(selectedCluster)) setSelectedCluster(null);
+    if (selectedSite && !appliedFilters.sites.includes(selectedSite)) setSelectedSite(null);
+    if (selectedCell && !appliedFilters.cells.includes(selectedCell)) setSelectedCell(null);
+  }, [
+    appliedFilters,
+    selectedNetwork,
+    selectedRegion,
+    selectedCluster,
+    selectedSite,
+    selectedCell,
+  ]);
 
   // Generate chart data for all selected KPIs
   const chartDataMap = useMemo(() => {
@@ -239,7 +267,7 @@ export default function AnalyticsManagement() {
 
     const newView = saveView(
       saveViewName,
-      filters as any,
+      appliedFilters as any,
       selectedKPIs,
       currentScope,
       saveViewDescription
@@ -254,13 +282,17 @@ export default function AnalyticsManagement() {
   };
 
   const handleLoadView = (view: SavedView) => {
-    setFilters(view.filters as AnalyticsFilters);
+    const loadedFilters = view.filters as AnalyticsFilters;
+    setDraftFilters(loadedFilters);
+    setAppliedFilters(loadedFilters);
     setCurrentScope(view.scope);
 
     const restoredKPIs = view.kpis
       .map((kpiId) => KPI_CATALOG.find((k) => k.id === kpiId))
       .filter((k) => k !== undefined) as KPI[];
     setSelectedKPIs(restoredKPIs);
+    setGeneratedTime(new Date());
+    setIsGenerated(true);
 
     setShowSavedViews(false);
   };
@@ -513,7 +545,7 @@ export default function AnalyticsManagement() {
         </div>
 
         {/* KPI Search Results Dropdown */}
-        {showKPIDropdown && !isGenerated && filteredKPIs.length > 0 && (
+        {showKPIDropdown && (
           <>
             {/* Backdrop */}
             <div
@@ -522,41 +554,57 @@ export default function AnalyticsManagement() {
             />
             {/* Dropdown */}
             <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-primary/40 rounded-lg shadow-xl z-20 max-h-72 overflow-y-auto">
-              <div className="divide-y divide-border/30">
-                {filteredKPIs.map((kpi) => {
-                  const isSelected = selectedKPIs.find((k) => k.id === kpi.id);
-                  return (
-                    <button
-                      key={kpi.id}
-                      onClick={() => {
-                        if (isSelected) {
-                          setSelectedKPIs(selectedKPIs.filter((k) => k.id !== kpi.id));
-                        } else {
-                          setSelectedKPIs([...selectedKPIs, kpi]);
-                        }
-                      }}
-                      className={cn(
-                        "w-full text-left px-2 py-1.5 text-xs transition-all flex items-start gap-2",
-                        isSelected
-                          ? "bg-primary/10 border-l-2 border-l-primary"
-                          : "hover:bg-muted/40"
-                      )}
-                    >
-                      <div className={cn("w-4 h-4 rounded border-2 flex-shrink-0 mt-0.5 flex items-center justify-center", isSelected ? "bg-primary border-primary" : "border-border")}>
-                        {isSelected && <Check className="w-2.5 h-2.5 text-primary-foreground" />}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-xs text-foreground">{kpi.name}</div>
-                        <div className="text-[10px] text-muted-foreground mt-0.5">{kpi.category} • {kpi.technology}</div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
+              {filteredKPIs.length > 0 ? (
+                <div className="divide-y divide-border/30">
+                  {filteredKPIs.map((kpi) => {
+                    const isSelected = selectedKPIs.find((k) => k.id === kpi.id);
+                    return (
+                      <button
+                        key={kpi.id}
+                        onClick={() => {
+                          if (isSelected) {
+                            setSelectedKPIs(selectedKPIs.filter((k) => k.id !== kpi.id));
+                          } else {
+                            setSelectedKPIs([...selectedKPIs, kpi]);
+                          }
+                        }}
+                        className={cn(
+                          "w-full text-left px-2 py-1.5 text-xs transition-all flex items-start gap-2",
+                          isSelected
+                            ? "bg-primary/10 border-l-2 border-l-primary"
+                            : "hover:bg-muted/40"
+                        )}
+                      >
+                        <div className={cn("w-4 h-4 rounded border-2 flex-shrink-0 mt-0.5 flex items-center justify-center", isSelected ? "bg-primary border-primary" : "border-border")}>
+                          {isSelected && <Check className="w-2.5 h-2.5 text-primary-foreground" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-xs text-foreground">{kpi.name}</div>
+                          <div className="text-[10px] text-muted-foreground mt-0.5">{kpi.category} • {kpi.technology}</div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="px-3 py-3 text-xs text-muted-foreground">
+                  {availableKPIs.length === 0
+                    ? "No KPIs match the currently applied filters."
+                    : "No KPIs match your search term in the applied filter set."}
+                </div>
+              )}
             </div>
           </>
         )}
       </div>
+
+      {isGenerated && availableKPIs.length === 0 && (
+        <div className="bg-card border border-dashed border-border rounded-lg p-4">
+          <p className="text-sm text-muted-foreground">
+            No KPIs match the currently applied filters.
+          </p>
+        </div>
+      )}
 
       {/* Global Filter Bar - Redesigned */}
       <div className="bg-card border border-border rounded-lg p-2.5 md:p-3 space-y-3 text-xs shadow-sm">
@@ -668,11 +716,11 @@ export default function AnalyticsManagement() {
               >
                 <Calendar className="w-3.5 h-3.5" />
                 <span className="truncate">
-                  {filters.timeRange.from && filters.timeRange.to
-                    ? `${new Date(filters.timeRange.from).toLocaleDateString("en-US", {
+                  {draftFilters.timeRange.from && draftFilters.timeRange.to
+                    ? `${new Date(draftFilters.timeRange.from).toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
-                      })} - ${new Date(filters.timeRange.to).toLocaleDateString("en-US", {
+                      })} - ${new Date(draftFilters.timeRange.to).toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
                       })}`
@@ -704,28 +752,28 @@ export default function AnalyticsManagement() {
                   </button>
                 </div>
                 <DualMonthCalendar
-                  startDate={filters.timeRange.from}
-                  endDate={filters.timeRange.to}
+                  startDate={draftFilters.timeRange.from}
+                  endDate={draftFilters.timeRange.to}
                   onDateSelect={(date, isStart) => {
                     const isoDate = date.toISOString().split("T")[0];
                     if (isStart) {
-                      setFilters({
-                        ...filters,
+                      setDraftFilters({
+                        ...draftFilters,
                         timeRange: { from: isoDate, to: "" },
                       });
                     } else {
-                      setFilters({
-                        ...filters,
+                      setDraftFilters({
+                        ...draftFilters,
                         timeRange: {
-                          from: filters.timeRange.from,
+                          from: draftFilters.timeRange.from,
                           to: isoDate,
                         },
                       });
                     }
                   }}
                   onRangeComplete={(start, end) => {
-                    setFilters({
-                      ...filters,
+                    setDraftFilters({
+                      ...draftFilters,
                       timeRange: {
                         from: start.toISOString().split("T")[0],
                         to: end.toISOString().split("T")[0],
@@ -734,16 +782,16 @@ export default function AnalyticsManagement() {
                     setShowCalendarPicker(false);
                   }}
                 />
-                {filters.timeRange.from && filters.timeRange.to && (
+                {draftFilters.timeRange.from && draftFilters.timeRange.to && (
                   <div className="pt-2 border-t border-border/50 space-y-1">
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-xs text-muted-foreground truncate">
-                        <strong>Selected:</strong> {new Date(filters.timeRange.from).toLocaleDateString()}
+                        <strong>Selected:</strong> {new Date(draftFilters.timeRange.from).toLocaleDateString()}
                       </span>
                       <button
                         onClick={() => {
-                          setFilters({
-                            ...filters,
+                          setDraftFilters({
+                            ...draftFilters,
                             timeRange: { from: "", to: "" },
                           });
                         }}
@@ -753,7 +801,7 @@ export default function AnalyticsManagement() {
                       </button>
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      to {new Date(filters.timeRange.to).toLocaleDateString()}
+                      to {new Date(draftFilters.timeRange.to).toLocaleDateString()}
                     </div>
                   </div>
                 )}
@@ -767,88 +815,88 @@ export default function AnalyticsManagement() {
           <SearchableDropdown
             label="Country"
             options={["USA", "Canada", "UK", "Germany", "France", "Japan"]}
-            selected={filters.countries || []}
-            onChange={(selected) => setFilters({ ...filters, countries: selected })}
+            selected={draftFilters.countries || []}
+            onChange={(selected) => setDraftFilters({ ...draftFilters, countries: selected })}
             placeholder="Search countries..."
             compact
           />
           <SearchableDropdown
             label="Region"
             options={allRegions}
-            selected={filters.regions}
-            onChange={(selected) => setFilters({ ...filters, regions: selected })}
+            selected={draftFilters.regions}
+            onChange={(selected) => setDraftFilters({ ...draftFilters, regions: selected })}
             placeholder="Search regions..."
             compact
           />
           <SearchableDropdown
             label="Cluster"
             options={allClusters}
-            selected={filters.clusters}
-            onChange={(selected) => setFilters({ ...filters, clusters: selected })}
+            selected={draftFilters.clusters}
+            onChange={(selected) => setDraftFilters({ ...draftFilters, clusters: selected })}
             placeholder="Search clusters..."
             compact
           />
           <SearchableDropdown
             label="Vendor"
             options={allVendors}
-            selected={filters.vendors}
-            onChange={(selected) => setFilters({ ...filters, vendors: selected })}
+            selected={draftFilters.vendors}
+            onChange={(selected) => setDraftFilters({ ...draftFilters, vendors: selected })}
             placeholder="Search vendors..."
             compact
           />
           <SearchableDropdown
             label="Technology"
             options={allTechnologies}
-            selected={filters.technologies}
-            onChange={(selected) => setFilters({ ...filters, technologies: selected })}
+            selected={draftFilters.technologies}
+            onChange={(selected) => setDraftFilters({ ...draftFilters, technologies: selected })}
             placeholder="Search technologies..."
             compact
           />
           <SearchableDropdown
             label="Granularity"
             options={["Hourly", "Daily", "Weekly", "Monthly"]}
-            selected={filters.granularityValues}
-            onChange={(selected) => setFilters({ ...filters, granularityValues: selected })}
+            selected={draftFilters.granularityValues}
+            onChange={(selected) => setDraftFilters({ ...draftFilters, granularityValues: selected })}
             placeholder="Search granularity..."
             compact
           />
           <SearchableDropdown
             label="Network"
             options={allNetworks}
-            selected={filters.networks}
-            onChange={(selected) => setFilters({ ...filters, networks: selected })}
+            selected={draftFilters.networks}
+            onChange={(selected) => setDraftFilters({ ...draftFilters, networks: selected })}
             placeholder="Search networks..."
             compact
           />
           <SearchableDropdown
             label="Site"
             options={allSites}
-            selected={filters.sites}
-            onChange={(selected) => setFilters({ ...filters, sites: selected })}
+            selected={draftFilters.sites}
+            onChange={(selected) => setDraftFilters({ ...draftFilters, sites: selected })}
             placeholder="Search sites..."
             compact
           />
           <SearchableDropdown
             label="Cell"
             options={allCells}
-            selected={filters.cells}
-            onChange={(selected) => setFilters({ ...filters, cells: selected })}
+            selected={draftFilters.cells}
+            onChange={(selected) => setDraftFilters({ ...draftFilters, cells: selected })}
             placeholder="Search cells..."
             compact
           />
           <SearchableDropdown
             label="Domain"
             options={allDomains}
-            selected={filters.domains}
-            onChange={(selected) => setFilters({ ...filters, domains: selected })}
+            selected={draftFilters.domains}
+            onChange={(selected) => setDraftFilters({ ...draftFilters, domains: selected })}
             placeholder="Search domains..."
             compact
           />
           <SearchableDropdown
             label="Category"
             options={allCategories}
-            selected={filters.categories}
-            onChange={(selected) => setFilters({ ...filters, categories: selected })}
+            selected={draftFilters.categories}
+            onChange={(selected) => setDraftFilters({ ...draftFilters, categories: selected })}
             placeholder="Search categories..."
             compact
           />
@@ -891,11 +939,11 @@ export default function AnalyticsManagement() {
       )}
 
       {/* Analysis Scope - Only after generation */}
-      {isGenerated && (filters.networks.length > 0 || filters.regions.length > 0 || filters.clusters.length > 0 || filters.sites.length > 0 || filters.cells.length > 0) && (
+      {isGenerated && (appliedFilters.networks.length > 0 || appliedFilters.regions.length > 0 || appliedFilters.clusters.length > 0 || appliedFilters.sites.length > 0 || appliedFilters.cells.length > 0) && (
         <div className="bg-card border border-border rounded-lg p-4">
           <h3 className="text-sm font-semibold text-muted-foreground mb-3">Select Instance</h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
-            {filters.networks.length > 0 && (
+            {appliedFilters.networks.length > 0 && (
               <div className="relative">
                 <button
                   onClick={() => setOpenScopeDropdown(openScopeDropdown === "networks" ? null : "networks")}
@@ -909,7 +957,7 @@ export default function AnalyticsManagement() {
                 </button>
                 {openScopeDropdown === "networks" && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded shadow-lg z-10 max-h-32 overflow-y-auto">
-                    {filters.networks.map((network) => (
+                    {appliedFilters.networks.map((network) => (
                       <button
                         key={network}
                         onClick={() => {
@@ -928,7 +976,7 @@ export default function AnalyticsManagement() {
               </div>
             )}
 
-            {filters.regions.length > 0 && (
+            {appliedFilters.regions.length > 0 && (
               <div className="relative">
                 <button
                   onClick={() => setOpenScopeDropdown(openScopeDropdown === "regions" ? null : "regions")}
@@ -942,7 +990,7 @@ export default function AnalyticsManagement() {
                 </button>
                 {openScopeDropdown === "regions" && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded shadow-lg z-10 max-h-32 overflow-y-auto">
-                    {filters.regions.map((region) => (
+                    {appliedFilters.regions.map((region) => (
                       <button
                         key={region}
                         onClick={() => {
@@ -961,7 +1009,7 @@ export default function AnalyticsManagement() {
               </div>
             )}
 
-            {filters.clusters.length > 0 && (
+            {appliedFilters.clusters.length > 0 && (
               <div className="relative">
                 <button
                   onClick={() => setOpenScopeDropdown(openScopeDropdown === "clusters" ? null : "clusters")}
@@ -975,7 +1023,7 @@ export default function AnalyticsManagement() {
                 </button>
                 {openScopeDropdown === "clusters" && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded shadow-lg z-10 max-h-32 overflow-y-auto">
-                    {filters.clusters.map((cluster) => (
+                    {appliedFilters.clusters.map((cluster) => (
                       <button
                         key={cluster}
                         onClick={() => {
@@ -994,7 +1042,7 @@ export default function AnalyticsManagement() {
               </div>
             )}
 
-            {filters.sites.length > 0 && (
+            {appliedFilters.sites.length > 0 && (
               <div className="relative">
                 <button
                   onClick={() => setOpenScopeDropdown(openScopeDropdown === "sites" ? null : "sites")}
@@ -1008,7 +1056,7 @@ export default function AnalyticsManagement() {
                 </button>
                 {openScopeDropdown === "sites" && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded shadow-lg z-10 max-h-32 overflow-y-auto">
-                    {filters.sites.map((site) => (
+                    {appliedFilters.sites.map((site) => (
                       <button
                         key={site}
                         onClick={() => {
@@ -1027,7 +1075,7 @@ export default function AnalyticsManagement() {
               </div>
             )}
 
-            {filters.cells.length > 0 && (
+            {appliedFilters.cells.length > 0 && (
               <div className="relative">
                 <button
                   onClick={() => setOpenScopeDropdown(openScopeDropdown === "cells" ? null : "cells")}
@@ -1041,7 +1089,7 @@ export default function AnalyticsManagement() {
                 </button>
                 {openScopeDropdown === "cells" && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded shadow-lg z-10 max-h-32 overflow-y-auto">
-                    {filters.cells.map((cell) => (
+                    {appliedFilters.cells.map((cell) => (
                       <button
                         key={cell}
                         onClick={() => {
