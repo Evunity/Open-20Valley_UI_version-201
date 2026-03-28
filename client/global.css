@@ -1,5 +1,5 @@
 /** @import must precede all other statements */
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -131,9 +131,9 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     font-size: 0.9375rem;
-    line-height: 1.5;
+    line-height: 1.45;
   }
 
   :where(p, span, li, a, button, label, td, th) {
@@ -142,19 +142,19 @@
   }
 
   h1 {
-    @apply text-3xl font-bold leading-tight;
+    @apply text-[1.75rem] font-semibold leading-tight;
   }
 
   h2 {
-    @apply text-2xl font-bold leading-snug;
+    @apply text-[1.3rem] font-semibold leading-snug;
   }
 
   h3 {
-    @apply text-xl font-semibold leading-snug;
+    @apply text-[1.05rem] font-semibold leading-snug;
   }
 
   h4 {
-    @apply text-lg font-semibold;
+    @apply text-base font-semibold;
   }
 
   h5 {
@@ -166,7 +166,7 @@
   }
 
   p {
-    @apply text-base leading-relaxed;
+    @apply text-sm leading-6;
   }
 
   pre,
@@ -180,47 +180,47 @@
 @layer components {
   /* Typography tokens */
   .typo-page-title {
-    @apply text-[1.75rem] leading-tight font-semibold text-foreground;
+    @apply text-[1.55rem] leading-tight font-semibold text-foreground;
   }
 
   .typo-section-title {
-    @apply text-[1.25rem] leading-snug font-semibold text-foreground;
+    @apply text-[1.125rem] leading-snug font-semibold text-foreground;
   }
 
   .typo-subsection-title {
-    @apply text-base leading-snug font-semibold text-foreground;
+    @apply text-[0.95rem] leading-snug font-semibold text-foreground;
   }
 
   .typo-card-title {
-    @apply text-sm leading-snug font-semibold text-foreground;
+    @apply text-[0.875rem] leading-snug font-semibold text-foreground;
   }
 
   .typo-body {
-    @apply text-sm leading-6 text-foreground;
+    @apply text-[0.875rem] leading-5 text-foreground;
   }
 
   .typo-label {
-    @apply text-xs leading-5 font-semibold text-muted-foreground uppercase tracking-wide;
+    @apply text-[0.7rem] leading-4 font-semibold text-muted-foreground uppercase tracking-wide;
   }
 
   .typo-meta {
-    @apply text-xs leading-5 text-muted-foreground;
+    @apply text-[0.75rem] leading-4 text-muted-foreground;
   }
 
   .typo-button {
-    @apply text-sm leading-5 font-medium;
+    @apply text-[0.85rem] leading-5 font-medium;
   }
 
   .typo-input {
-    @apply text-sm leading-5 text-foreground placeholder:text-muted-foreground;
+    @apply text-[0.85rem] leading-5 text-foreground placeholder:text-muted-foreground;
   }
 
   .typo-tab {
-    @apply text-sm leading-5 font-medium;
+    @apply text-[0.85rem] leading-5 font-medium;
   }
 
   .typo-badge {
-    @apply text-xs leading-5 font-semibold;
+    @apply text-[0.7rem] leading-4 font-semibold;
   }
 
   /* Layout rhythm tokens */
@@ -306,6 +306,50 @@
     @apply w-full px-2 py-1 rounded-lg border border-border bg-input text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-200;
   }
 
+  /* Global table alignment system */
+  .app-content-theme table {
+    @apply w-full text-sm border-collapse;
+    table-layout: auto;
+  }
+
+  .app-content-theme table thead th {
+    @apply px-3 py-2 text-left align-middle font-semibold text-muted-foreground;
+    line-height: 1.25rem;
+    letter-spacing: 0.01em;
+  }
+
+  .app-content-theme table tbody td {
+    @apply px-3 py-2 align-middle text-foreground;
+    line-height: 1.25rem;
+  }
+
+  .app-content-theme table tbody tr {
+    @apply border-b border-border/50;
+  }
+
+  .app-content-theme table tbody tr:last-child {
+    @apply border-b-0;
+  }
+
+  .app-content-theme table :is(th, td).text-right {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .app-content-theme table :is(th, td).text-center {
+    text-align: center;
+  }
+
+  .app-content-theme table :is(th, td):has(.badge),
+  .app-content-theme table :is(th, td):has(.typo-badge) {
+    text-align: center;
+  }
+
+  .app-content-theme table td :is(.badge, .typo-badge) {
+    @apply inline-flex items-center justify-center;
+    min-width: 4.5rem;
+  }
+
   /* Scrollbar styling */
   @supports selector(::-webkit-scrollbar) {
     ::-webkit-scrollbar {
@@ -339,6 +383,118 @@
 }
 
 @layer utilities {
+  /* Global compact-density pass for all non-Analytics Management routes. */
+  .density-compact {
+    --compact-control-h: 2.125rem;
+    --compact-control-h-sm: 1.9rem;
+    --compact-card-pad: 0.9rem;
+    --compact-gap-xs: 0.35rem;
+    --compact-gap-sm: 0.5rem;
+    --compact-gap-md: 0.75rem;
+  }
+
+  .density-compact .density-compact-scope {
+    font-size: 0.94rem;
+  }
+
+  .density-compact .density-compact-scope h1 {
+    font-size: clamp(1.35rem, 1.1rem + 1vw, 1.75rem);
+    line-height: 1.25;
+  }
+
+  .density-compact .density-compact-scope h2 {
+    font-size: clamp(1.15rem, 1rem + 0.75vw, 1.45rem);
+    line-height: 1.3;
+  }
+
+  .density-compact .density-compact-scope .typo-page-title {
+    font-size: clamp(1.3rem, 1.05rem + 1vw, 1.625rem);
+  }
+
+  .density-compact .density-compact-scope .layout-page {
+    gap: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  .density-compact .density-compact-scope .layout-page-header {
+    gap: 0.65rem;
+  }
+
+  .density-compact .density-compact-scope .layout-section {
+    gap: var(--compact-gap-md);
+  }
+
+  .density-compact .density-compact-scope .layout-card {
+    padding: var(--compact-card-pad);
+  }
+
+  .density-compact .density-compact-scope :where(.card-elevated, .card-subtle) {
+    padding: 0.9rem;
+  }
+
+  .density-compact .density-compact-scope .layout-controls-row {
+    gap: var(--compact-gap-sm);
+  }
+
+  .density-compact .density-compact-scope :where(.typo-section-title) {
+    font-size: 1.15rem;
+    line-height: 1.3;
+  }
+
+  .density-compact .density-compact-scope :where(.typo-subsection-title) {
+    font-size: 0.95rem;
+    line-height: 1.3;
+  }
+
+  .density-compact .density-compact-scope :is(input, select, button, [role="combobox"]) {
+    min-height: var(--compact-control-h);
+  }
+
+  .density-compact .density-compact-scope :is(textarea) {
+    min-height: 4.25rem;
+  }
+
+  .density-compact :is(.density-compact-scope, [data-radix-popper-content-wrapper]) .control-height {
+    height: var(--compact-control-h);
+  }
+
+  .density-compact .density-compact-scope table th {
+    height: 2rem;
+  }
+
+  .density-compact .density-compact-scope table :is(th, td) {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .density-compact .density-compact-scope [role="tablist"] {
+    min-height: 2.125rem;
+    padding: 0.2rem;
+  }
+
+  .density-compact .density-compact-scope [role="tab"] {
+    min-height: var(--compact-control-h-sm);
+    padding-inline: 0.65rem;
+    padding-block: 0.2rem;
+  }
+
+  .density-compact [role="dialog"] {
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .density-compact [role="dialog"] [class*="space-y-1.5"] {
+    row-gap: 0.35rem;
+  }
+
+  .density-compact [role="dialog"] [class*="space-x-2"] {
+    column-gap: 0.4rem;
+  }
+
+  .density-compact .density-compact-scope [class*="rounded-xl"] {
+    border-radius: 0.65rem;
+  }
+
   /* Dark-mode parity patch for module content that still uses light utility classes */
   .dark .app-content-theme [class~="bg-white"],
   .dark .app-content-theme [class~="bg-gray-50"],
