@@ -339,6 +339,136 @@
 }
 
 @layer utilities {
+  /* Global compact-density pass for all non-Analytics Management routes. */
+  .density-compact {
+    --compact-control-h: 2.125rem;
+    --compact-control-h-sm: 1.9rem;
+    --compact-card-pad: 0.9rem;
+    --compact-gap-xs: 0.35rem;
+    --compact-gap-sm: 0.5rem;
+    --compact-gap-md: 0.75rem;
+  }
+
+  .density-compact .density-compact-scope {
+    font-size: 0.94rem;
+  }
+
+  .density-compact .density-compact-scope h1 {
+    font-size: clamp(1.35rem, 1.1rem + 1vw, 1.75rem);
+    line-height: 1.25;
+  }
+
+  .density-compact .density-compact-scope h2 {
+    font-size: clamp(1.15rem, 1rem + 0.75vw, 1.45rem);
+    line-height: 1.3;
+  }
+
+  .density-compact .density-compact-scope .typo-page-title {
+    font-size: clamp(1.3rem, 1.05rem + 1vw, 1.625rem);
+  }
+
+  .density-compact .density-compact-scope .layout-page {
+    gap: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  .density-compact .density-compact-scope .layout-page-header {
+    gap: 0.65rem;
+  }
+
+  .density-compact .density-compact-scope .layout-section {
+    gap: var(--compact-gap-md);
+  }
+
+  .density-compact .density-compact-scope .layout-card {
+    padding: var(--compact-card-pad);
+  }
+
+  .density-compact .density-compact-scope [class~="p-6"] {
+    padding: 1.15rem;
+  }
+
+  .density-compact .density-compact-scope [class~="p-5"] {
+    padding: 1rem;
+  }
+
+  .density-compact .density-compact-scope [class~="p-4"] {
+    padding: 0.85rem;
+  }
+
+  .density-compact .density-compact-scope [class*="space-y-6"] {
+    row-gap: 1rem;
+  }
+
+  .density-compact .density-compact-scope [class*="space-y-5"] {
+    row-gap: 0.85rem;
+  }
+
+  .density-compact .density-compact-scope [class*="space-y-4"] {
+    row-gap: 0.7rem;
+  }
+
+  .density-compact .density-compact-scope [class*="gap-6"] {
+    gap: 1rem;
+  }
+
+  .density-compact .density-compact-scope [class*="gap-5"] {
+    gap: 0.85rem;
+  }
+
+  .density-compact .density-compact-scope [class*="gap-4"] {
+    gap: 0.7rem;
+  }
+
+  .density-compact .density-compact-scope :is(input, select, button, [role="combobox"]) {
+    min-height: var(--compact-control-h);
+  }
+
+  .density-compact .density-compact-scope :is(textarea) {
+    min-height: 4.25rem;
+  }
+
+  .density-compact :is(.density-compact-scope, [data-radix-popper-content-wrapper]) .control-height {
+    height: var(--compact-control-h);
+  }
+
+  .density-compact .density-compact-scope table th {
+    height: 2rem;
+  }
+
+  .density-compact .density-compact-scope table :is(th, td) {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .density-compact .density-compact-scope [role="tablist"] {
+    min-height: 2.125rem;
+    padding: 0.2rem;
+  }
+
+  .density-compact .density-compact-scope [role="tab"] {
+    min-height: var(--compact-control-h-sm);
+    padding-inline: 0.65rem;
+    padding-block: 0.2rem;
+  }
+
+  .density-compact [role="dialog"] {
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .density-compact [role="dialog"] [class*="space-y-1.5"] {
+    row-gap: 0.35rem;
+  }
+
+  .density-compact [role="dialog"] [class*="space-x-2"] {
+    column-gap: 0.4rem;
+  }
+
+  .density-compact .density-compact-scope [class*="rounded-xl"] {
+    border-radius: 0.65rem;
+  }
+
   /* Dark-mode parity patch for module content that still uses light utility classes */
   .dark .app-content-theme [class~="bg-white"],
   .dark .app-content-theme [class~="bg-gray-50"],
