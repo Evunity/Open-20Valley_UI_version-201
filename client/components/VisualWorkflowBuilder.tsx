@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react';
 import {
   Plus, Trash2, Copy, Save, ZoomIn, ZoomOut, Maximize2, Circle, Square,
   Triangle, Clock, Zap, Database, GitBranch, Pause, Play, Check, X,
@@ -51,6 +51,8 @@ export const VisualWorkflowBuilder: React.FC<{
 }> = ({ onSave, onCancel }) => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
+  const outputHandleRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const inputHandleRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const [workflow, setWorkflow] = useState<WorkflowState>({
     id: `workflow_${Date.now()}`,
@@ -70,11 +72,69 @@ export const VisualWorkflowBuilder: React.FC<{
   const [showNodePalette, setShowNodePalette] = useState(false);
   const [showConfig, setShowConfig] = useState(false);
   const [workflowName, setWorkflowName] = useState(workflow.name);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [edgeGeometry, setEdgeGeometry] = useState<Record<string, { x1: number; y1: number; x2: number; y2: number }>>({});
+
+  const recalculateEdgeGeometry = useCallback(() => {
+    const canvasRect = canvasRef.current?.getBoundingClientRect();
+    if (!canvasRect) return;
+
+    const nextGeometry: Record<string, { x1: number; y1: number; x2: number; y2: number }> = {};
+
+    workflow.edges.forEach((edge) => {
+      const sourceHandle = outputHandleRefs.current[edge.from];
+      const targetHandle = inputHandleRefs.current[edge.to];
+      if (!sourceHandle || !targetHandle) return;
+
+      const sourceRect = sourceHandle.getBoundingClientRect();
+      const targetRect = targetHandle.getBoundingClientRect();
+
+      nextGeometry[edge.id] = {
+        x1: sourceRect.left + sourceRect.width / 2 - canvasRect.left,
+        y1: sourceRect.top + sourceRect.height / 2 - canvasRect.top,
+        x2: targetRect.left + targetRect.width / 2 - canvasRect.left,
+        y2: targetRect.top + targetRect.height / 2 - canvasRect.top,
+      };
+    });
+
+    setEdgeGeometry(nextGeometry);
+  }, [workflow.edges]);
+
+  useLayoutEffect(() => {
+    const frame = requestAnimationFrame(recalculateEdgeGeometry);
+    return () => cancelAnimationFrame(frame);
+  }, [workflow.nodes, workflow.edges, zoom, pan, recalculateEdgeGeometry]);
+
+  useEffect(() => {
+    const scheduleRecalc = () => requestAnimationFrame(recalculateEdgeGeometry);
+    const canvasEl = canvasRef.current;
+    const observer = new ResizeObserver(scheduleRecalc);
+    const mutationObserver = new MutationObserver(scheduleRecalc);
+
+    if (canvasEl) {
+      observer.observe(canvasEl);
+      mutationObserver.observe(canvasEl, { childList: true, subtree: true, attributes: true });
+    }
+
+    window.addEventListener('resize', scheduleRecalc);
+    return () => {
+      window.removeEventListener('resize', scheduleRecalc);
+      observer.disconnect();
+      mutationObserver.disconnect();
+    };
+  }, [recalculateEdgeGeometry]);
 
   // Canvas interaction
   const handleCanvasMouseMove = (e: React.MouseEvent) => {
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (rect) {
+      setMousePosition({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+      });
+    }
+
     if (draggingNode) {
-      const rect = canvasRef.current?.getBoundingClientRect();
       if (!rect) return;
       
       const x = (e.clientX - rect.left - pan.x) / zoom;
@@ -279,28 +339,24 @@ export const VisualWorkflowBuilder: React.FC<{
             style={{ pointerEvents: 'none' }}
           >
             {workflow.edges.map(edge => {
-              const fromNode = workflow.nodes.find(n => n.id === edge.from);
-              const toNode = workflow.nodes.find(n => n.id === edge.to);
-              if (!fromNode || !toNode) return null;
-
-              const x1 = (fromNode.x + 80) * zoom + pan.x;
-              const y1 = (fromNode.y + 40) * zoom + pan.y;
-              const x2 = toNode.x * zoom + pan.x;
-              const y2 = toNode.y * zoom + pan.y;
+              const geometry = edgeGeometry[edge.id];
+              if (!geometry) return null;
+              const { x1, y1, x2, y2 } = geometry;
 
               return (
                 <g key={edge.id}>
                   <defs>
                     <marker
                       id={`arrow_${edge.id}`}
-                      markerWidth="10"
-                      markerHeight="10"
-                      refX="9"
-                      refY="3"
+                      viewBox="0 0 10 10"
+                      markerWidth="8"
+                      markerHeight="8"
+                      refX="10"
+                      refY="5"
                       orient="auto"
-                      markerUnits="strokeWidth"
+                      markerUnits="userSpaceOnUse"
                     >
-                      <path d="M0,0 L0,6 L9,3 z" fill="hsl(var(--primary))" />
+                      <path d="M0,0 L10,5 L0,10 z" fill="hsl(var(--primary))" />
                     </marker>
                   </defs>
                   <path
@@ -317,10 +373,20 @@ export const VisualWorkflowBuilder: React.FC<{
             {/* Temporary connection line while dragging */}
             {draggingFrom && (
               <line
-                x1={(workflow.nodes.find(n => n.id === draggingFrom)?.x ?? 0 + 80) * zoom + pan.x}
-                y1={(workflow.nodes.find(n => n.id === draggingFrom)?.y ?? 0 + 40) * zoom + pan.y}
-                x2={canvasRef.current?.lastChild?.getBoundingClientRect().width ?? 0}
-                y2={canvasRef.current?.lastChild?.getBoundingClientRect().height ?? 0}
+                x1={(() => {
+                  const sourceRect = outputHandleRefs.current[draggingFrom]?.getBoundingClientRect();
+                  const canvasRect = canvasRef.current?.getBoundingClientRect();
+                  if (!sourceRect || !canvasRect) return 0;
+                  return sourceRect.left + sourceRect.width / 2 - canvasRect.left;
+                })()}
+                y1={(() => {
+                  const sourceRect = outputHandleRefs.current[draggingFrom]?.getBoundingClientRect();
+                  const canvasRect = canvasRef.current?.getBoundingClientRect();
+                  if (!sourceRect || !canvasRect) return 0;
+                  return sourceRect.top + sourceRect.height / 2 - canvasRect.top;
+                })()}
+                x2={mousePosition.x}
+                y2={mousePosition.y}
                 stroke="hsl(var(--muted-foreground))"
                 strokeWidth="2"
                 strokeDasharray="5,5"
@@ -347,45 +413,37 @@ export const VisualWorkflowBuilder: React.FC<{
               >
                 <div className="text-2xl">{NODE_CONFIGS[node.type].icon}</div>
                 <div className="text-xs font-bold mt-1 truncate">{node.label}</div>
+
+                <div
+                  ref={(el) => {
+                    inputHandleRefs.current[node.id] = el;
+                  }}
+                  className={cn(
+                    "absolute -left-1.5 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border-2 border-primary",
+                    draggingFrom && draggingFrom !== node.id ? "bg-primary" : "bg-primary/90"
+                  )}
+                  onMouseUp={(e) => {
+                    e.stopPropagation();
+                    if (draggingFrom && draggingFrom !== node.id) {
+                      connectNodes(draggingFrom, node.id);
+                    }
+                  }}
+                />
+
+                <div
+                  ref={(el) => {
+                    outputHandleRefs.current[node.id] = el;
+                  }}
+                  className="absolute -right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-primary border-2 border-card cursor-pointer hover:bg-primary/80"
+                  onMouseDown={(e) => {
+                    e.stopPropagation();
+                    setDraggingFrom(node.id);
+                  }}
+                  title="Drag to connect"
+                />
               </button>
             ))}
           </div>
-
-          {/* Output Ports - Separate from nodes */}
-          <div style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: '0 0', pointerEvents: 'auto' }}>
-            {workflow.nodes.map(node => (
-              <div
-                key={`port_${node.id}`}
-                className="absolute w-3 h-3 rounded-full bg-primary border border-card cursor-pointer hover:bg-primary/80"
-                style={{
-                  left: `${node.x + 80}px`,
-                  top: `${node.y + 32}px`,
-                  pointerEvents: 'auto'
-                }}
-                onMouseDown={(e) => {
-                  e.stopPropagation();
-                  setDraggingFrom(node.id);
-                }}
-                title="Drag to connect"
-              />
-            ))}
-          </div>
-
-          {/* Connection Target Indicator */}
-          {draggingFrom && (
-            <div className="absolute inset-0" style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: '0 0' }} pointerEvents="none">
-              {workflow.nodes.map(node => (
-                node.id !== draggingFrom && (
-                  <div
-                    key={`target_${node.id}`}
-                    className="absolute -left-3 top-1/4 w-3 h-3 rounded-full bg-primary/30 border-2 border-primary"
-                    style={{ left: `${node.x - 6}px`, top: `${node.y + 16}px` }}
-                    onMouseUp={() => connectNodes(draggingFrom, node.id)}
-                  />
-                )
-              ))}
-            </div>
-          )}
         </div>
       </div>
 
