@@ -541,7 +541,16 @@ export default function DashboardNew() {
   };
 
   // Helper function to render charts based on type with strict date formatting
-  const renderChart = (chartType: ChartType, data: any[], dataKeys: string[]) => {
+  const renderChart = (
+    chartType: ChartType,
+    data: any[],
+    dataKeys: string[],
+    options?: {
+      showPieLegend?: boolean;
+      pieOuterRadius?: number;
+      pieCy?: string;
+    }
+  ) => {
     // Transform all data to ensure dates are in YYYY-MM-DD format
     const formattedData = data.map((item: any) => {
       const formatted: any = { ...item };
@@ -624,19 +633,28 @@ export default function DashboardNew() {
           </BarChart>
         );
       case "pie":
+        const pieData = data.map((entry: any) => ({
+          ...entry,
+          name: entry.region || entry.vendor || "Unknown",
+        }));
+        const showPieLegend = options?.showPieLegend ?? true;
+        const pieOuterRadius = options?.pieOuterRadius ?? 80;
+        const pieCy = options?.pieCy ?? "46%";
+
         return (
-          <PieChart>
+          <PieChart margin={{ top: 12, right: 24, left: 24, bottom: 24 }}>
             <Pie
-              data={data}
+              data={pieData}
               cx="50%"
-              cy="50%"
+              cy={pieCy}
               labelLine={false}
-              label={({ region, vendor, sites }) => `${region || vendor}: ${sites}`}
-              outerRadius={100}
+              label={false}
+              outerRadius={pieOuterRadius}
               fill="#8884d8"
               dataKey="sites"
+              nameKey="name"
             >
-              {data.map((entry: any, index: number) => (
+              {pieData.map((entry: any, index: number) => (
                 <Cell
                   key={`cell-${index}`}
                   fill={
@@ -645,6 +663,18 @@ export default function DashboardNew() {
                 />
               ))}
             </Pie>
+            {showPieLegend && (
+              <Legend
+                align="center"
+                verticalAlign="bottom"
+                iconType="circle"
+                wrapperStyle={{ fontSize: "12px", paddingTop: "6px" }}
+                formatter={(value: string, _entry, index) => {
+                  const item = pieData[index];
+                  return item ? `${value}: ${item.sites}` : value;
+                }}
+              />
+            )}
             <Tooltip />
           </PieChart>
         );
@@ -652,9 +682,9 @@ export default function DashboardNew() {
   };
 
   return (
-    <div className="space-y-4 pb-4">
+    <div className="space-y-3 pb-3">
       {/* ===== HEADER SECTION ===== */}
-      <div className="space-y-3">
+      <div className="space-y-2.5">
         <div className="layout-page-header">
           <div className="space-y-1">
             <h1 className="typo-page-title">Network Operations Dashboard</h1>
@@ -676,8 +706,8 @@ export default function DashboardNew() {
       </div>
 
       {/* ===== KPI SECTION ===== */}
-      <div className="space-y-3">
-        <div className="space-y-2 mb-1">
+      <div className="space-y-2.5">
+        <div className="space-y-1.5 mb-1">
           <div className="space-y-1">
             <h2 className="typo-section-title">Key Performance Indicators</h2>
             <p className="typo-meta">
@@ -696,7 +726,7 @@ export default function DashboardNew() {
         </div>
 
         {/* KPI Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1.5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1">
           {selectedKPIs.map((kpi) => {
             const kpiValue = calculateKPIValue(kpi.id, filters);
             const IconComponent = kpi.icon;
@@ -705,8 +735,8 @@ export default function DashboardNew() {
             return (
               <div
                 key={kpi.id}
-                className={cn(
-                  "p-2.5 rounded-lg border transition-all duration-200 hover:shadow-md hover:border-primary/50",
+                  className={cn(
+                  "p-2 rounded-lg border transition-all duration-200 hover:shadow-sm hover:border-primary/50",
                   kpiValue.status === "healthy"
                     ? "border-status-healthy/20 bg-status-healthy/5"
                     : kpiValue.status === "critical"
@@ -714,7 +744,7 @@ export default function DashboardNew() {
                       : "border-border bg-card"
                 )}
               >
-                <div className="flex items-start justify-between gap-1.5 mb-1">
+                <div className="flex items-start justify-between gap-1 mb-0.5">
                   <div
                     className={cn(
                       "p-1 rounded-md w-fit",
@@ -727,7 +757,7 @@ export default function DashboardNew() {
                   >
                     <IconComponent
                       className={cn(
-                        "w-3.5 h-3.5",
+                        "w-3 h-3",
                         kpiValue.status === "healthy"
                           ? "text-status-healthy"
                           : kpiValue.status === "critical"
@@ -750,10 +780,10 @@ export default function DashboardNew() {
                 </div>
 
                 <div>
-                  <p className="typo-label mb-2">
+                  <p className="typo-label mb-1">
                     {kpi.label}
                   </p>
-                  <p className={cn("text-2xl font-bold leading-tight", getStatusColor(kpiValue.status))}>
+                  <p className={cn("text-[1.35rem] font-semibold leading-tight", getStatusColor(kpiValue.status))}>
                     {kpiValue.value}
                   </p>
                 </div>
@@ -767,38 +797,16 @@ export default function DashboardNew() {
       <AnalyticsSections />
 
       {/* ===== AI ENGINE ACTIONS (2-COLUMN LAYOUT) ===== */}
-      <div id="ai-actions" className="layout-card !p-3 space-y-3">
+      <div id="ai-actions" className="layout-card !p-2.5 space-y-1.5">
         <div className="space-y-1">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
             <div className="space-y-1">
               <h2 className="typo-section-title">AI Engine Actions</h2>
               <p className="typo-meta">
                 Automated network operations and resolution activities
               </p>
             </div>
-            <select
-              value={aiChartType}
-              onChange={(e) => setAiChartType(e.target.value as ChartType)}
-              className="control-height px-3 rounded-lg border border-border bg-background typo-input focus:ring-2 focus:ring-primary/50"
-            >
-              <option value="bar">Bar Chart</option>
-              <option value="line">Line Chart</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-1.5">
-          {/* LEFT: Chart Visualization */}
-          <div className="rounded-lg border border-border/50 bg-background p-2">
-            <ResponsiveContainer width="100%" height={210}>
-              {renderChart(aiChartType, aiActionsData, ["successful", "failed"])}
-            </ResponsiveContainer>
-          </div>
-
-          {/* RIGHT: AI Actions List */}
-          <div className="space-y-1.5">
-            {/* Severity Sorting Filter */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <label className="typo-label">
                 Sort by Severity:
               </label>
@@ -812,12 +820,35 @@ export default function DashboardNew() {
                 <option value="high-to-low">High → Low</option>
                 <option value="low-to-high">Low → High</option>
               </select>
+              <select
+                value={aiChartType}
+                onChange={(e) => setAiChartType(e.target.value as ChartType)}
+                className="control-height px-3 rounded-lg border border-border bg-background typo-input focus:ring-2 focus:ring-primary/50"
+              >
+                <option value="bar">Bar Chart</option>
+                <option value="line">Line Chart</option>
+              </select>
             </div>
+          </div>
+        </div>
 
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-1.5 items-stretch">
+          {/* LEFT: Chart Visualization */}
+          <div className="rounded-lg border border-border/50 bg-background p-2 h-[280px] flex flex-col">
+            <p className="typo-meta mb-1">Actions trend by hour</p>
+            <div className="flex-1 min-h-0">
+              <ResponsiveContainer width="100%" height="100%">
+                {renderChart(aiChartType, aiActionsData, ["successful", "failed"])}
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* RIGHT: AI Actions List */}
+          <div className="rounded-lg border border-border/50 bg-background p-2 h-[280px] flex flex-col">
+            <p className="typo-meta mb-1">Recent execution activity</p>
             {/* Actions List */}
             <div
-              className="rounded-lg border border-border/50 bg-background p-2 overflow-y-auto space-y-1"
-              style={{ maxHeight: "210px" }}
+              className="flex-1 min-h-0 overflow-y-auto space-y-1 pr-1"
             >
               {aiActionsDetailList
                 .sort((a, b) => {
@@ -831,7 +862,7 @@ export default function DashboardNew() {
                 .map((action) => (
                   <div
                     key={action.id}
-                    className="p-1.5 rounded-lg border border-border/30 bg-card hover:bg-card/80 transition-colors space-y-0.5"
+                    className="p-1 rounded-lg border border-border/30 bg-card hover:bg-card/80 transition-colors space-y-0.5"
                   >
                     <div className="flex items-start justify-between gap-1">
                       <div className="flex-1 min-w-0">
@@ -840,10 +871,10 @@ export default function DashboardNew() {
                         </p>
                         <p className="typo-meta">{action.time}</p>
                       </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
                         <span
                           className={cn(
-                            "px-2 py-1 rounded typo-badge whitespace-nowrap",
+                            "px-1.5 py-0.5 rounded typo-badge whitespace-nowrap",
                             action.severity === "HIGH"
                               ? "bg-status-critical/20 text-status-critical"
                               : action.severity === "MED"
@@ -858,7 +889,7 @@ export default function DashboardNew() {
                     <div className="flex items-center justify-between">
                       <span
                         className={cn(
-                          "typo-badge px-2 py-1 rounded",
+                          "typo-badge px-1.5 py-0.5 rounded",
                           action.status === "Success"
                             ? "bg-status-healthy/20 text-status-healthy"
                             : action.status === "Failed"
@@ -877,21 +908,21 @@ export default function DashboardNew() {
       </div>
 
       {/* ===== 4 CONFIGURABLE GRAPH CARDS ===== */}
-      <div className="space-y-2">
+      <div className="space-y-1.5">
         <div className="mb-2">
           <h2 className="typo-section-title">Analytics Graphs</h2>
           <p className="typo-body text-muted-foreground">Configure up to 2 KPIs per card</p>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
           {graphCards.map((card) => (
             <div
               key={card.id}
-              className="card-elevated rounded-xl border border-border/50 p-3.5 space-y-3"
+              className="card-elevated rounded-xl border border-border/50 p-2.5 space-y-2"
             >
               {/* Card Header with KPI Selection and Chart Type */}
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <div>
-                  <label className="block typo-label mb-2">
+                  <label className="block typo-label mb-1.5">
                     KPI Selection (Max 2)
                   </label>
                   <SearchableKPISelect
@@ -907,7 +938,7 @@ export default function DashboardNew() {
                 </div>
 
                 <div>
-                  <label className="block typo-label mb-2">
+                  <label className="block typo-label mb-1.5">
                     Chart Type
                   </label>
                   <select
@@ -928,8 +959,8 @@ export default function DashboardNew() {
               </div>
 
               {/* Chart Visualization */}
-              <div className="rounded-lg border border-border/50 bg-background p-2.5">
-                <ResponsiveContainer width="100%" height={180}>
+              <div className="rounded-lg border border-border/50 bg-background p-1.5">
+                <ResponsiveContainer width="100%" height={150}>
                   {card.selectedKPIs.length > 0 ? (
                     renderChart(card.chartType, trafficData, card.selectedKPIs)
                   ) : (
@@ -945,7 +976,7 @@ export default function DashboardNew() {
       </div>
 
       {/* ===== SITES BY REGION ===== */}
-      <div className="layout-card !p-3 space-y-2">
+      <div className="layout-card !p-2.5 space-y-1.5">
         <div className="space-y-1">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
@@ -968,7 +999,7 @@ export default function DashboardNew() {
       </div>
 
       {/* ===== VENDOR DISTRIBUTION ===== */}
-      <div className="layout-card !p-3 space-y-2">
+      <div className="layout-card !p-2.5 space-y-1.5">
         <div className="space-y-1">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
@@ -988,7 +1019,11 @@ export default function DashboardNew() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
           <div className={vendorChartType === "pie" ? "lg:col-span-2" : "lg:col-span-3"}>
             <ResponsiveContainer width="100%" height={210}>
-              {renderChart(vendorChartType, vendorData, ["sites"])}
+              {renderChart(vendorChartType, vendorData, ["sites"], {
+                showPieLegend: false,
+                pieOuterRadius: 76,
+                pieCy: "50%",
+              })}
             </ResponsiveContainer>
           </div>
           {vendorChartType === "pie" && (
