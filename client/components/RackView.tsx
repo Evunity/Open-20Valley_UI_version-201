@@ -80,10 +80,10 @@ export const RackView: React.FC<RackViewProps> = ({ onDeviceSelect }) => {
 
   const getHealthColor = (health: string) => {
     switch (health) {
-      case 'healthy': return 'bg-green-100 border-l-4 border-l-green-600';
-      case 'degraded': return 'bg-yellow-100 border-l-4 border-l-yellow-600';
-      case 'down': return 'bg-red-100 border-l-4 border-l-red-600';
-      default: return 'bg-gray-100 border-l-4 border-l-gray-400';
+      case 'healthy': return 'bg-green-100/70 dark:bg-green-950/30 border-l-4 border-l-green-600';
+      case 'degraded': return 'bg-yellow-100/70 dark:bg-yellow-950/30 border-l-4 border-l-yellow-600';
+      case 'down': return 'bg-red-100/70 dark:bg-red-950/30 border-l-4 border-l-red-600';
+      default: return 'bg-muted/50 border-l-4 border-l-border';
     }
   };
 
@@ -92,7 +92,7 @@ export const RackView: React.FC<RackViewProps> = ({ onDeviceSelect }) => {
       case 'healthy': return 'text-green-800';
       case 'degraded': return 'text-yellow-800';
       case 'down': return 'text-red-800';
-      default: return 'text-gray-600';
+      default: return 'text-muted-foreground';
     }
   };
 
@@ -110,12 +110,12 @@ export const RackView: React.FC<RackViewProps> = ({ onDeviceSelect }) => {
   };
 
   return (
-    <div className="w-full h-full flex flex-col gap-4 p-4 bg-gray-50 overflow-y-auto">
-      <h2 className="text-lg font-bold text-gray-900">Physical Site & Rack Visualization</h2>
+    <div className="w-full h-full flex flex-col gap-4 p-4 bg-background overflow-y-auto">
+      <h2 className="text-lg font-bold text-foreground">Physical Site & Rack Visualization</h2>
 
       {/* Cabinet Selector */}
-      <div className="bg-white rounded-lg border border-gray-200 p-3">
-        <p className="text-xs font-semibold text-gray-700 mb-2">Select Cabinet</p>
+      <div className="bg-card rounded-lg border border-border p-3">
+        <p className="text-xs font-semibold text-muted-foreground mb-2">Select Cabinet</p>
         <div className="flex gap-2">
           {cabinets.map((cab, idx) => (
             <button
@@ -123,8 +123,8 @@ export const RackView: React.FC<RackViewProps> = ({ onDeviceSelect }) => {
               onClick={() => setSelectedRack(idx)}
               className={`px-3 py-1.5 rounded text-xs font-semibold transition ${
                 selectedRack === idx
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
               }`}
             >
               {cab.name}
@@ -135,32 +135,32 @@ export const RackView: React.FC<RackViewProps> = ({ onDeviceSelect }) => {
 
       {/* Controls */}
       <div className="flex gap-2">
-        <label className="flex items-center gap-2 px-3 py-1.5 bg-white rounded border border-gray-200 text-xs cursor-pointer hover:bg-gray-50">
+        <label className="flex items-center gap-2 px-3 py-1.5 bg-card rounded border border-border text-xs cursor-pointer hover:bg-muted/40">
           <input
             type="checkbox"
             checked={showPower}
             onChange={(e) => setShowPower(e.target.checked)}
             className="w-3 h-3 rounded"
           />
-          <span className="font-semibold text-gray-700">Power</span>
+          <span className="font-semibold text-muted-foreground">Power</span>
         </label>
-        <label className="flex items-center gap-2 px-3 py-1.5 bg-white rounded border border-gray-200 text-xs cursor-pointer hover:bg-gray-50">
+        <label className="flex items-center gap-2 px-3 py-1.5 bg-card rounded border border-border text-xs cursor-pointer hover:bg-muted/40">
           <input
             type="checkbox"
             checked={showPorts}
             onChange={(e) => setShowPorts(e.target.checked)}
             className="w-3 h-3 rounded"
           />
-          <span className="font-semibold text-gray-700">Ports & Metrics</span>
+          <span className="font-semibold text-muted-foreground">Ports & Metrics</span>
         </label>
       </div>
 
       {/* Rack Visualization */}
-      <div className="flex-1 bg-white rounded-lg border border-gray-200 p-4 overflow-y-auto">
+      <div className="flex-1 bg-card rounded-lg border border-border p-4 overflow-y-auto">
         <div className="font-mono text-xs space-y-1">
           {/* U Scale */}
-          <div className="sticky top-0 bg-white border-b border-gray-200 pb-2 mb-2">
-            <p className="text-gray-600 font-bold text-center">
+          <div className="bg-card border-b border-border pb-2 mb-2">
+            <p className="text-muted-foreground font-bold text-center">
               {cabinet.name} • {cabinet.location}
             </p>
           </div>
@@ -173,9 +173,9 @@ export const RackView: React.FC<RackViewProps> = ({ onDeviceSelect }) => {
               className={`w-full text-left p-2 rounded transition ${getHealthColor(unit.health)} hover:shadow-md`}
             >
               <div className="flex items-center gap-2">
-                <span className="w-6 font-bold text-gray-700">[U{unit.u}]</span>
+                <span className="w-6 font-bold text-muted-foreground">[U{unit.u}]</span>
                 <span className="text-lg">{getDeviceIcon(unit.type)}</span>
-                <span className="flex-1 font-semibold text-gray-900">{unit.device}</span>
+                <span className="flex-1 font-semibold text-foreground">{unit.device}</span>
 
                 {/* Metrics */}
                 <div className="flex items-center gap-3 text-xs">
@@ -183,21 +183,21 @@ export const RackView: React.FC<RackViewProps> = ({ onDeviceSelect }) => {
                     <span className={`px-2 py-0.5 rounded font-bold ${
                       unit.health === 'down' ? 'bg-red-200 text-red-800' :
                       unit.health === 'degraded' ? 'bg-yellow-200 text-yellow-800' :
-                      'bg-gray-200 text-gray-800'
+                      'bg-muted text-foreground'
                     }`}>
                       {unit.alarmCount} alarms
                     </span>
                   )}
                   {showPower && unit.power && (
-                    <span className="text-gray-700">⚡ {unit.power}W</span>
+                    <span className="text-muted-foreground">⚡ {unit.power}W</span>
                   )}
                   {unit.temp && (
-                    <span className={`text-gray-700 ${unit.temp > 50 ? 'text-orange-600 font-bold' : ''}`}>
+                    <span className={`text-muted-foreground ${unit.temp > 50 ? 'text-orange-600 font-bold' : ''}`}>
                       🌡️ {unit.temp}°C
                     </span>
                   )}
                   {showPorts && unit.ports && (
-                    <span className="text-gray-700">{unit.ports}P</span>
+                    <span className="text-muted-foreground">{unit.ports}P</span>
                   )}
                   {showPorts && unit.errors && unit.errors > 0 && (
                     <span className="text-red-700 font-bold">⚠️ {unit.errors} err</span>
@@ -210,8 +210,8 @@ export const RackView: React.FC<RackViewProps> = ({ onDeviceSelect }) => {
       </div>
 
       {/* Legend */}
-      <div className="bg-white rounded-lg border border-gray-200 p-3">
-        <p className="text-xs font-semibold text-gray-700 mb-2">Device Types</p>
+      <div className="bg-card rounded-lg border border-border p-3">
+        <p className="text-xs font-semibold text-muted-foreground mb-2">Device Types</p>
         <div className="grid grid-cols-2 gap-2 text-xs">
           {[
             { icon: '📡', label: 'RRU (Radio Remote Unit)' },
@@ -221,7 +221,7 @@ export const RackView: React.FC<RackViewProps> = ({ onDeviceSelect }) => {
             { icon: '⚡', label: 'Power Distribution' },
             { icon: '🔌', label: 'Patch Panel' }
           ].map((item) => (
-            <div key={item.label} className="flex items-center gap-1 text-gray-700">
+            <div key={item.label} className="flex items-center gap-1 text-muted-foreground">
               <span>{item.icon}</span>
               <span>{item.label}</span>
             </div>
@@ -230,10 +230,10 @@ export const RackView: React.FC<RackViewProps> = ({ onDeviceSelect }) => {
       </div>
 
       {/* Field Engineer Info */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+      <div className="bg-primary/10 border border-primary/20 rounded-lg p-3">
         <div className="flex items-start gap-2">
           <Zap className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-          <div className="text-xs text-blue-900">
+          <div className="text-xs text-foreground">
             <p className="font-semibold mb-1">For Field Engineers:</p>
             <p>Click any device to see detailed specifications, alarms, and correlated topology objects.</p>
           </div>
