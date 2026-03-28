@@ -15,6 +15,8 @@ export default function Layout({ children }: LayoutProps) {
   const [sidebarWidth, setSidebarWidth] = useState(256); // 64 * 4 = 256px (w-64)
   const [isDragging, setIsDragging] = useState(false);
   const location = useLocation();
+  const analyticsNormalDensityRoutes = new Set(["/analytics-management", "/analytics-home"]);
+  const isCompactDensity = !analyticsNormalDensityRoutes.has(location.pathname);
 
   const COLLAPSED_WIDTH = 76; // Width when collapsed
   const MIN_WIDTH = 150; // Minimum width before collapse when dragging
@@ -48,10 +50,26 @@ export default function Layout({ children }: LayoutProps) {
     }
   }, [darkMode]);
 
+  // Global density mode: compact for all routes except Analytics Management module routes.
+  useEffect(() => {
+    if (typeof document === "undefined") {
+      return;
+    }
+
+    document.body.classList.toggle("density-compact", isCompactDensity);
+
+    return () => {
+      document.body.classList.remove("density-compact");
+    };
+  }, [isCompactDensity]);
+
   // Handle sidebar dragging
   const dragStartXRef = useRef(0);
   const dragStartWidthRef = useRef(0);
   const dragStartedCollapsedRef = useRef(false);
+  const dragLiveWidthRef = useRef(0);
+  const dragShouldOpenRef = useRef(true);
+  const sidebarRef = useRef<HTMLElement>(null);
   const contentScrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -66,18 +84,37 @@ export default function Layout({ children }: LayoutProps) {
         : COLLAPSE_SNAP_THRESHOLD;
 
       if (requestedWidth <= collapseThreshold) {
-        setSidebarOpen(false);
+        dragShouldOpenRef.current = false;
+        dragLiveWidthRef.current = COLLAPSED_WIDTH;
+        if (sidebarRef.current) {
+          sidebarRef.current.style.width = `${COLLAPSED_WIDTH}px`;
+        }
         return;
       }
 
       const newWidth = Math.max(MIN_WIDTH, Math.min(requestedWidth, MAX_WIDTH));
-
-      setSidebarWidth(newWidth);
-      setSidebarOpen(true);
+      dragShouldOpenRef.current = true;
+      dragLiveWidthRef.current = newWidth;
+      if (sidebarRef.current) {
+        sidebarRef.current.style.width = `${newWidth}px`;
+      }
     };
 
     const handleMouseUp = () => {
+      const shouldOpen = dragShouldOpenRef.current;
+      const finalWidth = dragLiveWidthRef.current || dragStartWidthRef.current;
+
+      setSidebarOpen(shouldOpen);
+      if (shouldOpen) {
+        setSidebarWidth(Math.max(MIN_WIDTH, Math.min(finalWidth, MAX_WIDTH)));
+      }
+
       dragStartedCollapsedRef.current = false;
+      dragLiveWidthRef.current = 0;
+      dragShouldOpenRef.current = true;
+      if (sidebarRef.current) {
+        sidebarRef.current.style.width = "";
+      }
       setIsDragging(false);
     };
 
@@ -106,6 +143,11 @@ export default function Layout({ children }: LayoutProps) {
     dragStartXRef.current = e.clientX;
     dragStartedCollapsedRef.current = !sidebarOpen;
     dragStartWidthRef.current = sidebarOpen ? sidebarWidth : COLLAPSED_WIDTH;
+    dragLiveWidthRef.current = dragStartWidthRef.current;
+    dragShouldOpenRef.current = sidebarOpen;
+    if (sidebarRef.current) {
+      sidebarRef.current.style.width = `${dragStartWidthRef.current}px`;
+    }
     setIsDragging(true);
   };
 
@@ -309,8 +351,10 @@ export default function Layout({ children }: LayoutProps) {
       {/* Desktop Sidebar */}
       <div className="hidden md:flex md:flex-col relative group">
         <aside
+          ref={sidebarRef}
           className={cn(
-            "flex flex-col bg-sidebar border-r border-sidebar-border flex-shrink-0 transition-all duration-200 overflow-hidden",
+            "flex flex-col bg-sidebar border-r border-sidebar-border flex-shrink-0 overflow-hidden",
+            isDragging ? "transition-none" : "transition-all duration-200",
             "relative h-screen"
           )}
           style={{ width: sidebarOpen ? `${sidebarWidth}px` : `${COLLAPSED_WIDTH}px` }}
@@ -369,7 +413,13 @@ export default function Layout({ children }: LayoutProps) {
         )}
 
         {/* Content Area */}
-        <div ref={contentScrollRef} className="app-content-theme flex-1 overflow-auto">
+        <div
+          ref={contentScrollRef}
+          className={cn(
+            "app-content-theme flex-1 overflow-auto",
+            isCompactDensity && "density-compact-scope"
+          )}
+        >
           <div className="p-1.5 md:p-2">{children}</div>
         </div>
       </main>
