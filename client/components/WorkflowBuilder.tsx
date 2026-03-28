@@ -94,6 +94,12 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
   onSave,
   onCancel
 }) => {
+  const NODE_WIDTH = 160;
+  const NODE_HEIGHT = 64;
+  const HANDLE_SIZE = 12;
+  const HANDLE_SIDE_OFFSET = 14;
+  const HANDLE_TOP_OFFSET = 8;
+
   const canvasRef = useRef<HTMLDivElement>(null);
   const [workflow, setWorkflow] = useState<Workflow>({
     id: `workflow_${Date.now()}`,
@@ -134,27 +140,32 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
     const handle = node.handles.find(h => h.id === handleId);
     if (!handle) return null;
 
-    const nodeWidth = 160;
-    const nodeHeight = 64;
-
     const inputHandles = node.handles.filter(h => h.type === 'input');
     const outputHandles = node.handles.filter(h => h.type === 'output');
 
     if (handle.type === 'input') {
       const index = inputHandles.indexOf(handle);
-      const spacing = nodeHeight / (inputHandles.length + 1);
+      const spacing = NODE_HEIGHT / (inputHandles.length + 1);
       return {
-        x: node.x,
-        y: node.y + spacing * (index + 1)
+        x: node.x - HANDLE_SIDE_OFFSET + HANDLE_SIZE / 2,
+        y: node.y + spacing * (index + 1) - HANDLE_TOP_OFFSET + HANDLE_SIZE / 2
       };
     } else {
       const index = outputHandles.indexOf(handle);
-      const spacing = nodeHeight / (outputHandles.length + 1);
+      const spacing = NODE_HEIGHT / (outputHandles.length + 1);
       return {
-        x: node.x + nodeWidth,
-        y: node.y + spacing * (index + 1)
+        x: node.x + NODE_WIDTH + HANDLE_SIDE_OFFSET - HANDLE_SIZE / 2,
+        y: node.y + spacing * (index + 1) - HANDLE_TOP_OFFSET + HANDLE_SIZE / 2
       };
     }
+  };
+
+  const getSmoothEdgePath = (x1: number, y1: number, x2: number, y2: number) => {
+    const delta = Math.abs(x2 - x1);
+    const control = Math.max(36, Math.min(140, delta * 0.45));
+    const c1x = x1 + control;
+    const c2x = x2 - control;
+    return `M ${x1} ${y1} C ${c1x} ${y1}, ${c2x} ${y2}, ${x2} ${y2}`;
   };
 
   const canConnectNodes = (sourceNodeId: string, sourceHandleId: string, targetNodeId: string, targetHandleId: string): boolean => {
@@ -453,36 +464,20 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
               className="absolute inset-0 w-full h-full"
               style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, pointerEvents: 'auto' }}
             >
-              {/* Arrow markers */}
-              <defs>
-                <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-                  <polygon points="0 0, 10 3, 0 6" fill="#3B82F6" />
-                </marker>
-                <marker id="arrowhead-selected" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-                  <polygon points="0 0, 10 3, 0 6" fill="#EF4444" />
-                </marker>
-                <marker id="arrowhead-preview" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-                  <polygon points="0 0, 10 3, 0 6" fill="#9CA3AF" />
-                </marker>
-              </defs>
-
               {/* Edges */}
               {workflow.edges.map(edge => {
                 const sourcePos = getHandlePosition(edge.sourceNodeId, edge.sourceHandleId);
                 const targetPos = getHandlePosition(edge.targetNodeId, edge.targetHandleId);
                 if (!sourcePos || !targetPos) return null;
 
-                // Adjust positions to connect to handle visual positions
-                // Output handles are positioned 14px to the right of node edge
-                // Input handles are positioned 14px to the left of node edge
-                const x1 = sourcePos.x + 14;
+                const x1 = sourcePos.x;
                 const y1 = sourcePos.y;
-                const x2 = targetPos.x - 14;
+                const x2 = targetPos.x;
                 const y2 = targetPos.y;
 
                 const isSelected = selectedEdgeId === edge.id;
 
-                const pathData = `M ${x1} ${y1} L ${(x1 + x2) / 2} ${y1} L ${(x1 + x2) / 2} ${y2} L ${x2} ${y2}`;
+                const pathData = getSmoothEdgePath(x1, y1, x2, y2);
 
                 // Calculate midpoint for delete button
                 const midX = (x1 + x2) / 2;
@@ -504,7 +499,7 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
                       stroke={isSelected ? '#EF4444' : '#3B82F6'}
                       strokeWidth={isSelected ? 3 : 2}
                       fill="none"
-                      markerEnd={isSelected ? "url(#arrowhead-selected)" : "url(#arrowhead)"}
+                      strokeLinecap="round"
                       pointerEvents="none"
                     />
                     {/* Delete button on edge */}
@@ -547,13 +542,12 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
                 const startPos = getHandlePosition(draggingEdge.fromNodeId, draggingEdge.fromHandleId);
                 if (!startPos) return null;
 
-                // Output handle is 14px to the right of node edge
-                const x1 = startPos.x + 14;
+                const x1 = startPos.x;
                 const y1 = startPos.y;
                 const x2 = draggingEdge.x;
                 const y2 = draggingEdge.y;
 
-                const pathData = `M ${x1} ${y1} L ${(x1 + x2) / 2} ${y1} L ${(x1 + x2) / 2} ${y2} L ${x2} ${y2}`;
+                const pathData = getSmoothEdgePath(x1, y1, x2, y2);
 
                 return (
                   <path
@@ -562,7 +556,7 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
                     strokeWidth="2"
                     fill="none"
                     strokeDasharray="5,5"
-                    markerEnd="url(#arrowhead-preview)"
+                    strokeLinecap="round"
                     pointerEvents="none"
                   />
                 );

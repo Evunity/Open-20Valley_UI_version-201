@@ -1117,7 +1117,7 @@ export default function DataAnalytics() {
                     <th className="text-right py-2 px-4">Success Rate</th>
                     <th className="text-right py-2 px-4">Stability</th>
                     <th className="text-right py-2 px-4">Sessions</th>
-                    <th className="text-right py-2 px-4">Status</th>
+                    <th className="text-center py-2 px-4">Status</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1134,11 +1134,13 @@ export default function DataAnalytics() {
                       const performanceRank = idx + 1;
                       return (
                         <tr key={vendor.name} className="border-b border-border/50 hover:bg-muted/50">
-                          <td className="py-2 px-4 font-medium flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
-                              #{performanceRank}
+                          <td className="py-2 px-4 font-medium">
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
+                                #{performanceRank}
+                              </div>
+                              {vendor.name}
                             </div>
-                            {vendor.name}
                           </td>
                           <td className="py-2 px-4 text-right font-semibold">
                             {vendor.call_success_rate.toFixed(2)}%
@@ -1597,7 +1599,15 @@ export default function DataAnalytics() {
           {/* Vendor Breakdown Table */}
           <div className="card-elevated rounded-xl border border-border/50 p-6 overflow-x-auto">
             <h3 className="text-lg font-bold text-foreground mb-4">By Vendor</h3>
-            <table className="w-full text-xs md:text-sm">
+            <table className="w-full text-xs md:text-sm table-fixed">
+              <colgroup>
+                <col style={{ width: "30%" }} />
+                <col style={{ width: "14%" }} />
+                <col style={{ width: "14%" }} />
+                <col style={{ width: "16%" }} />
+                <col style={{ width: "16%" }} />
+                <col style={{ width: "10%" }} />
+              </colgroup>
               <thead>
                 <tr className="border-b border-border text-muted-foreground font-semibold text-xs md:text-sm">
                   <th className="text-left py-3 px-2 md:px-4">Vendor</th>
@@ -1641,7 +1651,15 @@ export default function DataAnalytics() {
           {/* Technology Breakdown Table */}
           <div className="card-elevated rounded-xl border border-border/50 p-6 overflow-x-auto">
             <h3 className="text-lg font-bold text-foreground mb-4">By Technology</h3>
-            <table className="w-full text-xs md:text-sm">
+            <table className="w-full text-xs md:text-sm table-fixed">
+              <colgroup>
+                <col style={{ width: "30%" }} />
+                <col style={{ width: "14%" }} />
+                <col style={{ width: "14%" }} />
+                <col style={{ width: "16%" }} />
+                <col style={{ width: "16%" }} />
+                <col style={{ width: "10%" }} />
+              </colgroup>
               <thead>
                 <tr className="border-b border-border text-muted-foreground font-semibold text-xs md:text-sm">
                   <th className="text-left py-3 px-2 md:px-4">Technology</th>
