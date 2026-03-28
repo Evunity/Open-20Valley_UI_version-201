@@ -3,6 +3,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronDown, BarChart3, AlertTriangle, Globe, FileText, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { DASHBOARD_LAYOUT, DASHBOARD_TYPOGRAPHY } from "@/pages/dashboard-layout";
 
 interface Section {
   title: string;
@@ -56,15 +57,18 @@ export default function AnalyticsSections() {
   ];
 
   return (
-    <div className="layout-card !p-3 overflow-hidden">
+    <section className={cn("layout-card !p-3 overflow-hidden", DASHBOARD_LAYOUT.sectionContentGapClass)}>
       {/* Header */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-center justify-between px-1 py-2 hover:bg-muted/50 transition-colors duration-200"
       >
-        <div className="flex items-center gap-1.5">
-          <h3 className="typo-section-title">Analytics</h3>
-          <span className="typo-badge px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+        <div className={cn("flex items-start justify-between flex-1 pr-2", DASHBOARD_LAYOUT.sectionHeaderGapClass)}>
+          <div className={DASHBOARD_LAYOUT.sectionHeaderGapClass}>
+            <h3 className={DASHBOARD_TYPOGRAPHY.sectionTitleClass}>Analytics</h3>
+            <p className={DASHBOARD_TYPOGRAPHY.metaClass}>Operational analytics shortcuts</p>
+          </div>
+          <span className={cn("px-2 py-1 rounded-full bg-primary/10 text-primary", DASHBOARD_TYPOGRAPHY.metaClass)}>
             {sections.length}
           </span>
         </div>
@@ -78,24 +82,25 @@ export default function AnalyticsSections() {
 
       {/* Content */}
       {isOpen && (
-        <div className="border-t border-border/50 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0">
+        <div className={cn("border-t border-border/50 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 pt-3", DASHBOARD_LAYOUT.gridGapClass)}>
           {sections.map((section) => (
             <button
               key={section.path}
               onClick={() => navigate(section.path)}
               className={cn(
-                "flex flex-col items-start gap-2 p-4 hover:bg-primary/5 transition-all duration-200 text-left group border-border/30",
-                "border-b border-r"
+                DASHBOARD_LAYOUT.analyticsTileHeightClass,
+                DASHBOARD_LAYOUT.cardPaddingClass,
+                "flex flex-col items-start gap-2 rounded-lg hover:bg-primary/5 transition-all duration-200 text-left group border border-border/40"
               )}
             >
               <div className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-md bg-primary/10 group-hover:bg-primary/20 transition-colors">
                 {React.cloneElement(section.icon as React.ReactElement, { className: "w-4 h-4" })}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="typo-card-title group-hover:text-primary transition-colors">
+                <p className={cn(DASHBOARD_TYPOGRAPHY.cardTitleClass, "group-hover:text-primary transition-colors")}>
                   {section.title}
                 </p>
-                <p className="typo-meta mt-1">
+                <p className={cn(DASHBOARD_TYPOGRAPHY.metaClass, "mt-1")}>
                   {section.description}
                 </p>
               </div>
@@ -103,6 +108,6 @@ export default function AnalyticsSections() {
           ))}
         </div>
       )}
-    </div>
+    </section>
   );
 }
