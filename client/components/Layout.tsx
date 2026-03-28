@@ -15,6 +15,8 @@ export default function Layout({ children }: LayoutProps) {
   const [sidebarWidth, setSidebarWidth] = useState(256); // 64 * 4 = 256px (w-64)
   const [isDragging, setIsDragging] = useState(false);
   const location = useLocation();
+  const analyticsNormalDensityRoutes = new Set(["/analytics-management", "/analytics-home"]);
+  const isCompactDensity = !analyticsNormalDensityRoutes.has(location.pathname);
 
   const COLLAPSED_WIDTH = 76; // Width when collapsed
   const MIN_WIDTH = 150; // Minimum width before collapse when dragging
@@ -47,6 +49,19 @@ export default function Layout({ children }: LayoutProps) {
       document.documentElement.classList.remove("dark");
     }
   }, [darkMode]);
+
+  // Global density mode: compact for all routes except Analytics Management module routes.
+  useEffect(() => {
+    if (typeof document === "undefined") {
+      return;
+    }
+
+    document.body.classList.toggle("density-compact", isCompactDensity);
+
+    return () => {
+      document.body.classList.remove("density-compact");
+    };
+  }, [isCompactDensity]);
 
   // Handle sidebar dragging
   const dragStartXRef = useRef(0);
@@ -369,7 +384,13 @@ export default function Layout({ children }: LayoutProps) {
         )}
 
         {/* Content Area */}
-        <div ref={contentScrollRef} className="app-content-theme flex-1 overflow-auto">
+        <div
+          ref={contentScrollRef}
+          className={cn(
+            "app-content-theme flex-1 overflow-auto",
+            isCompactDensity && "density-compact-scope"
+          )}
+        >
           <div className="p-1.5 md:p-2">{children}</div>
         </div>
       </main>
