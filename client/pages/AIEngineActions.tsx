@@ -1,5 +1,4 @@
 import { useMemo, useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import { Download, Pause, Play, AlertCircle, Zap, TrendingUp, CheckCircle, X } from "lucide-react";
 import {
   LineChart,
@@ -18,6 +17,7 @@ import {
 } from "recharts";
 
 import FilterPanel from "@/components/FilterPanel";
+import DashboardDrilldownHeader from "@/components/DashboardDrilldownHeader";
 import KPICard from "@/components/KPICard";
 import SearchableDropdown from "@/components/SearchableDropdown";
 import ActionDrillInModal from "@/components/ActionDrillInModal";
@@ -248,22 +248,11 @@ export default function AIEngineActions() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="border-b border-border bg-card/50 backdrop-blur-sm">
-        <div className="px-8 py-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                <Link to="/" className="hover:text-foreground">
-                  Dashboard
-                </Link>
-                <span>/</span>
-                <span>AI & Automation Engine</span>
-              </div>
-              <h1 className="text-3xl font-bold text-foreground">AI & Automation Engine</h1>
-              <p className="text-muted-foreground">
-                Real-time AI-driven actions, recommendations, and automation performance
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
+        <DashboardDrilldownHeader
+          title="AI & Automation Engine"
+          description="Real-time AI-driven actions, recommendations, and automation performance"
+          actions={
+            <>
               <button
                 onClick={() => setIsAutoRefreshing(!isAutoRefreshing)}
                 className={cn(
@@ -292,9 +281,9 @@ export default function AIEngineActions() {
                 <Download className="w-4 h-4" />
                 Export
               </button>
-            </div>
-          </div>
-        </div>
+            </>
+          }
+        />
 
         {/* Global Filters */}
         <FilterPanel />

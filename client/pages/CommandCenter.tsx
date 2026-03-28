@@ -144,7 +144,7 @@ export const CommandCenter: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full gap-4 bg-background">
+    <div className="command-center-theme flex flex-col h-full gap-4 bg-background">
       {/* Target Selection Context */}
       {(selectedTarget.country || selectedTarget.region || selectedTarget.site || selectedTarget.node) && (
         <div className="bg-card border-b border-border rounded-lg p-4">
@@ -172,7 +172,7 @@ export const CommandCenter: React.FC = () => {
                 className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition ${
                   activeModule === module.id
                     ? 'border-blue-600 bg-blue-50 dark:bg-blue-950'
-                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 bg-card'
+                    : 'border-border hover:border-primary/40 bg-card'
                 }`}
                 title={module.description}
               >
