@@ -306,6 +306,50 @@
     @apply w-full px-2 py-1 rounded-lg border border-border bg-input text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-200;
   }
 
+  /* Global table alignment system */
+  .app-content-theme table {
+    @apply w-full text-sm border-collapse;
+    table-layout: auto;
+  }
+
+  .app-content-theme table thead th {
+    @apply px-3 py-2 text-left align-middle font-semibold text-muted-foreground;
+    line-height: 1.25rem;
+    letter-spacing: 0.01em;
+  }
+
+  .app-content-theme table tbody td {
+    @apply px-3 py-2 align-middle text-foreground;
+    line-height: 1.25rem;
+  }
+
+  .app-content-theme table tbody tr {
+    @apply border-b border-border/50;
+  }
+
+  .app-content-theme table tbody tr:last-child {
+    @apply border-b-0;
+  }
+
+  .app-content-theme table :is(th, td).text-right {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .app-content-theme table :is(th, td).text-center {
+    text-align: center;
+  }
+
+  .app-content-theme table :is(th, td):has(.badge),
+  .app-content-theme table :is(th, td):has(.typo-badge) {
+    text-align: center;
+  }
+
+  .app-content-theme table td :is(.badge, .typo-badge) {
+    @apply inline-flex items-center justify-center;
+    min-width: 4.5rem;
+  }
+
   /* Scrollbar styling */
   @supports selector(::-webkit-scrollbar) {
     ::-webkit-scrollbar {
