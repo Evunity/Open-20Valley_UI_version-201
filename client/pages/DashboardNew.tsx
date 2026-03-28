@@ -36,6 +36,7 @@ import {
   isHourlyGranularity,
 } from "@/utils/dashboardData";
 import { cn } from "@/lib/utils";
+import { DASHBOARD_LAYOUT, DASHBOARD_TYPOGRAPHY } from "@/pages/dashboard-spacing";
 
 interface KPIValue {
   value: string | number;
@@ -507,6 +508,7 @@ export default function DashboardNew() {
   };
 
   const selectedKPIs = selectedKPIIds.map((id) => getKPIById(id)).filter(Boolean);
+  const fixedKPIGrid = [...selectedKPIs, ...Array(Math.max(0, 6 - selectedKPIs.length)).fill(null)].slice(0, 6);
 
   // Format date for X-axis display (YYYY-MM-DD) - ALWAYS used, never day names
   const formatDateForAxis = (dateStr: string | number): string => {
@@ -569,9 +571,9 @@ export default function DashboardNew() {
               type="category"
               stroke="hsl(var(--muted-foreground))"
               style={{ fontSize: "12px" }}
-              tick={{ fontSize: 11 }}
+              tick={{ fontSize: 12 }}
             />
-            <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+            <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} tick={{ fontSize: 12 }} />
             <Tooltip
               contentStyle={{
                 backgroundColor: "hsl(var(--card))",
@@ -579,7 +581,7 @@ export default function DashboardNew() {
                 borderRadius: "8px",
               }}
             />
-            <Legend />
+            <Legend wrapperStyle={{ fontSize: "12px" }} />
             {validDataKeys.map((key, idx) => (
               <Line
                 key={key}
@@ -601,9 +603,9 @@ export default function DashboardNew() {
               type="category"
               stroke="hsl(var(--muted-foreground))"
               style={{ fontSize: "12px" }}
-              tick={{ fontSize: 11 }}
+              tick={{ fontSize: 12 }}
             />
-            <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+            <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} tick={{ fontSize: 12 }} />
             <Tooltip
               contentStyle={{
                 backgroundColor: "hsl(var(--card))",
@@ -611,7 +613,7 @@ export default function DashboardNew() {
                 borderRadius: "8px",
               }}
             />
-            <Legend />
+            <Legend wrapperStyle={{ fontSize: "12px" }} />
             {validDataKeys.map((key, idx) => (
               <Bar
                 key={key}
@@ -652,19 +654,19 @@ export default function DashboardNew() {
   };
 
   return (
-    <div className="space-y-4 pb-4">
+    <div className={cn(DASHBOARD_LAYOUT.sectionGapClass, "pb-4")}>
       {/* ===== HEADER SECTION ===== */}
-      <div className="space-y-3">
+      <div className={cn(DASHBOARD_LAYOUT.sectionContentGapClass)}>
         <div className="layout-page-header">
-          <div className="space-y-1">
-            <h1 className="typo-page-title">Network Operations Dashboard</h1>
-            <p className="typo-body text-muted-foreground">
+          <div className={DASHBOARD_LAYOUT.sectionHeaderGapClass}>
+            <h1 className={DASHBOARD_TYPOGRAPHY.pageTitleClass}>Network Operations Dashboard</h1>
+            <p className={cn(DASHBOARD_TYPOGRAPHY.bodyClass, "text-muted-foreground")}>
               Real-time monitoring and AI-driven insights across your infrastructure
             </p>
           </div>
           <button
             onClick={exportToExcel}
-            className="inline-flex control-height items-center gap-2 px-4 rounded-lg border border-border bg-primary text-primary-foreground hover:bg-primary/90 transition-colors typo-button"
+            className={cn("inline-flex items-center gap-2 px-4 rounded-lg border border-border bg-primary text-primary-foreground hover:bg-primary/90 transition-colors typo-button", DASHBOARD_LAYOUT.controlHeightClass)}
           >
             <Download className="w-4 h-4" />
             Export to Excel
@@ -672,15 +674,17 @@ export default function DashboardNew() {
         </div>
 
         {/* Global Filter Panel */}
-        <FilterPanel />
+        <div className={cn("layout-card !p-3 [&_.control-height]:h-9 [&_.control-height]:min-h-0 [&_.grid]:gap-2")}>
+          <FilterPanel />
+        </div>
       </div>
 
       {/* ===== KPI SECTION ===== */}
-      <div className="space-y-3">
-        <div className="space-y-2 mb-1">
-          <div className="space-y-1">
-            <h2 className="typo-section-title">Key Performance Indicators</h2>
-            <p className="typo-meta">
+      <section className={cn("layout-card !p-3", DASHBOARD_LAYOUT.sectionContentGapClass)}>
+        <div className={cn(DASHBOARD_LAYOUT.sectionContentGapClass)}>
+          <div className={DASHBOARD_LAYOUT.sectionHeaderGapClass}>
+            <h2 className={DASHBOARD_TYPOGRAPHY.sectionTitleClass}>Key Performance Indicators</h2>
+            <p className={DASHBOARD_TYPOGRAPHY.metaClass}>
               Real-time metrics reflecting current filters ({selectedKPIIds.length} of{" "}
               {AVAILABLE_KPIS.length} displayed)
             </p>
@@ -696,8 +700,16 @@ export default function DashboardNew() {
         </div>
 
         {/* KPI Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1.5">
-          {selectedKPIs.map((kpi) => {
+        <div className={cn("grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3", DASHBOARD_LAYOUT.gridGapClass)}>
+          {fixedKPIGrid.map((kpi, index) => {
+            if (!kpi) {
+              return (
+                <div
+                  key={`kpi-placeholder-${index}`}
+                  className={cn(DASHBOARD_LAYOUT.kpiCardHeightClass, "rounded-lg border border-dashed border-border/60 bg-muted/20")}
+                />
+              );
+            }
             const kpiValue = calculateKPIValue(kpi.id, filters);
             const IconComponent = kpi.icon;
             const activeFilters = getActiveFiltersSummary(filters);
@@ -706,7 +718,9 @@ export default function DashboardNew() {
               <div
                 key={kpi.id}
                 className={cn(
-                  "p-2.5 rounded-lg border transition-all duration-200 hover:shadow-md hover:border-primary/50",
+                  DASHBOARD_LAYOUT.kpiCardHeightClass,
+                  DASHBOARD_LAYOUT.cardPaddingClass,
+                  "rounded-lg border transition-all duration-200 hover:shadow-sm hover:border-primary/50 overflow-hidden",
                   kpiValue.status === "healthy"
                     ? "border-status-healthy/20 bg-status-healthy/5"
                     : kpiValue.status === "critical"
@@ -727,7 +741,7 @@ export default function DashboardNew() {
                   >
                     <IconComponent
                       className={cn(
-                        "w-3.5 h-3.5",
+                        "w-4 h-4",
                         kpiValue.status === "healthy"
                           ? "text-status-healthy"
                           : kpiValue.status === "critical"
@@ -739,10 +753,10 @@ export default function DashboardNew() {
 
                   {activeFilters.count > 0 && (
                     <div className="text-right flex-1">
-                      <p className="typo-meta font-semibold mb-1">
+                      <p className={cn(DASHBOARD_TYPOGRAPHY.metaClass, "font-semibold mb-1")}>
                         {activeFilters.count} {activeFilters.count === 1 ? "filter" : "filters"}
                       </p>
-                      <p className="typo-meta line-clamp-2">
+                      <p className={cn(DASHBOARD_TYPOGRAPHY.metaClass, "line-clamp-1")}>
                         {activeFilters.names.join(", ")}
                       </p>
                     </div>
@@ -750,10 +764,10 @@ export default function DashboardNew() {
                 </div>
 
                 <div>
-                  <p className="typo-label mb-2">
+                  <p className={cn(DASHBOARD_TYPOGRAPHY.labelClass, "mb-2")}>
                     {kpi.label}
                   </p>
-                  <p className={cn("text-2xl font-bold leading-tight", getStatusColor(kpiValue.status))}>
+                  <p className={cn(DASHBOARD_TYPOGRAPHY.valueClass, getStatusColor(kpiValue.status))}>
                     {kpiValue.value}
                   </p>
                 </div>
@@ -761,25 +775,25 @@ export default function DashboardNew() {
             );
           })}
         </div>
-      </div>
+      </section>
 
       {/* ===== ANALYTICS SECTIONS ===== */}
       <AnalyticsSections />
 
       {/* ===== AI ENGINE ACTIONS (2-COLUMN LAYOUT) ===== */}
-      <div id="ai-actions" className="layout-card !p-3 space-y-3">
-        <div className="space-y-1">
+      <section id="ai-actions" className={cn("layout-card !p-3", DASHBOARD_LAYOUT.sectionContentGapClass)}>
+        <div className={DASHBOARD_LAYOUT.sectionHeaderGapClass}>
           <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <h2 className="typo-section-title">AI Engine Actions</h2>
-              <p className="typo-meta">
+            <div className={DASHBOARD_LAYOUT.sectionHeaderGapClass}>
+              <h2 className={DASHBOARD_TYPOGRAPHY.sectionTitleClass}>AI Engine Actions</h2>
+              <p className={DASHBOARD_TYPOGRAPHY.metaClass}>
                 Automated network operations and resolution activities
               </p>
             </div>
             <select
               value={aiChartType}
               onChange={(e) => setAiChartType(e.target.value as ChartType)}
-              className="control-height px-3 rounded-lg border border-border bg-background typo-input focus:ring-2 focus:ring-primary/50"
+              className={cn(DASHBOARD_LAYOUT.controlHeightClass, "px-3 rounded-lg border border-border bg-background typo-input focus:ring-2 focus:ring-primary/50")}
             >
               <option value="bar">Bar Chart</option>
               <option value="line">Line Chart</option>
@@ -787,19 +801,19 @@ export default function DashboardNew() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-1.5">
+        <div className={cn("grid grid-cols-1 lg:grid-cols-2", DASHBOARD_LAYOUT.gridGapClass)}>
           {/* LEFT: Chart Visualization */}
-          <div className="rounded-lg border border-border/50 bg-background p-2">
-            <ResponsiveContainer width="100%" height={210}>
+          <div className={cn("rounded-lg border border-border/50 bg-background", DASHBOARD_LAYOUT.cardPaddingClass)}>
+            <ResponsiveContainer width="100%" height={DASHBOARD_LAYOUT.chartHeight}>
               {renderChart(aiChartType, aiActionsData, ["successful", "failed"])}
             </ResponsiveContainer>
           </div>
 
           {/* RIGHT: AI Actions List */}
-          <div className="space-y-1.5">
+          <div className="space-y-3">
             {/* Severity Sorting Filter */}
             <div className="flex items-center gap-2">
-              <label className="typo-label">
+              <label className={DASHBOARD_TYPOGRAPHY.labelClass}>
                 Sort by Severity:
               </label>
               <select
@@ -807,7 +821,7 @@ export default function DashboardNew() {
                 onChange={(e) =>
                   setActionsSortOrder(e.target.value as "low-to-high" | "high-to-low")
                 }
-                className="control-height px-3 rounded-lg border border-border bg-background typo-input focus:ring-2 focus:ring-primary/50"
+                className={cn(DASHBOARD_LAYOUT.controlHeightClass, "px-3 rounded-lg border border-border bg-background typo-input focus:ring-2 focus:ring-primary/50")}
               >
                 <option value="high-to-low">High → Low</option>
                 <option value="low-to-high">Low → High</option>
@@ -816,8 +830,8 @@ export default function DashboardNew() {
 
             {/* Actions List */}
             <div
-              className="rounded-lg border border-border/50 bg-background p-2 overflow-y-auto space-y-1"
-              style={{ maxHeight: "210px" }}
+              className={cn("rounded-lg border border-border/50 bg-background overflow-y-auto space-y-2", DASHBOARD_LAYOUT.cardPaddingClass)}
+              style={{ maxHeight: `${DASHBOARD_LAYOUT.chartHeight}px` }}
             >
               {aiActionsDetailList
                 .sort((a, b) => {
@@ -831,14 +845,14 @@ export default function DashboardNew() {
                 .map((action) => (
                   <div
                     key={action.id}
-                    className="p-1.5 rounded-lg border border-border/30 bg-card hover:bg-card/80 transition-colors space-y-0.5"
+                    className="p-2 rounded-lg border border-border/30 bg-card hover:bg-card/80 transition-colors space-y-1"
                   >
                     <div className="flex items-start justify-between gap-1">
                       <div className="flex-1 min-w-0">
-                        <p className="typo-card-title truncate">
+                        <p className={cn(DASHBOARD_TYPOGRAPHY.cardTitleClass, "truncate")}>
                           {action.name}
                         </p>
-                        <p className="typo-meta">{action.time}</p>
+                        <p className={DASHBOARD_TYPOGRAPHY.metaClass}>{action.time}</p>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <span
@@ -874,24 +888,24 @@ export default function DashboardNew() {
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* ===== 4 CONFIGURABLE GRAPH CARDS ===== */}
-      <div className="space-y-2">
-        <div className="mb-2">
-          <h2 className="typo-section-title">Analytics Graphs</h2>
-          <p className="typo-body text-muted-foreground">Configure up to 2 KPIs per card</p>
+      <section className={cn("layout-card !p-3", DASHBOARD_LAYOUT.sectionContentGapClass)}>
+        <div className={DASHBOARD_LAYOUT.sectionHeaderGapClass}>
+          <h2 className={DASHBOARD_TYPOGRAPHY.sectionTitleClass}>Analytics Graphs</h2>
+          <p className={DASHBOARD_TYPOGRAPHY.metaClass}>Configure up to 2 KPIs per card</p>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        <div className={cn("grid grid-cols-1 lg:grid-cols-2", DASHBOARD_LAYOUT.gridGapClass)}>
           {graphCards.map((card) => (
             <div
               key={card.id}
-              className="card-elevated rounded-xl border border-border/50 p-3.5 space-y-3"
+              className={cn("card-elevated rounded-xl border border-border/50", DASHBOARD_LAYOUT.cardPaddingClass, DASHBOARD_LAYOUT.sectionContentGapClass)}
             >
               {/* Card Header with KPI Selection and Chart Type */}
-              <div className="space-y-2">
+              <div className={cn("space-y-2")}>
                 <div>
-                  <label className="block typo-label mb-2">
+                  <label className={cn("block mb-2", DASHBOARD_TYPOGRAPHY.labelClass)}>
                     KPI Selection (Max 2)
                   </label>
                   <SearchableKPISelect
@@ -907,11 +921,11 @@ export default function DashboardNew() {
                 </div>
 
                 <div>
-                  <label className="block typo-label mb-2">
+                  <label className={cn("block mb-2", DASHBOARD_TYPOGRAPHY.labelClass)}>
                     Chart Type
                   </label>
                   <select
-                    className="w-full control-height px-3 rounded-lg border border-border bg-background typo-input focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                    className={cn("w-full px-3 rounded-lg border border-border bg-background typo-input focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all", DASHBOARD_LAYOUT.controlHeightClass)}
                     value={card.chartType}
                     onChange={(e) => {
                       setGraphCards((prev) =>
@@ -928,12 +942,12 @@ export default function DashboardNew() {
               </div>
 
               {/* Chart Visualization */}
-              <div className="rounded-lg border border-border/50 bg-background p-2.5">
-                <ResponsiveContainer width="100%" height={180}>
+              <div className={cn("rounded-lg border border-border/50 bg-background", DASHBOARD_LAYOUT.cardPaddingClass)}>
+                <ResponsiveContainer width="100%" height={DASHBOARD_LAYOUT.chartHeight}>
                   {card.selectedKPIs.length > 0 ? (
                     renderChart(card.chartType, trafficData, card.selectedKPIs)
                   ) : (
-                    <div className="flex items-center justify-center h-full typo-body text-muted-foreground">
+                    <div className={cn("flex items-center justify-center h-full text-muted-foreground", DASHBOARD_TYPOGRAPHY.bodyClass)}>
                       Select KPIs to display chart
                     </div>
                   )}
@@ -942,18 +956,18 @@ export default function DashboardNew() {
             </div>
           ))}
         </div>
-      </div>
+      </section>
 
       {/* ===== SITES BY REGION ===== */}
-      <div className="layout-card !p-3 space-y-2">
-        <div className="space-y-1">
+      <section className={cn("layout-card !p-3", DASHBOARD_LAYOUT.sectionContentGapClass)}>
+        <div className={DASHBOARD_LAYOUT.sectionHeaderGapClass}>
           <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <h3 className="typo-subsection-title">Sites by Region</h3>
-              <p className="typo-meta">Geographic distribution</p>
+            <div className={DASHBOARD_LAYOUT.sectionHeaderGapClass}>
+              <h3 className={DASHBOARD_TYPOGRAPHY.sectionTitleClass}>Sites by Region</h3>
+              <p className={DASHBOARD_TYPOGRAPHY.metaClass}>Geographic distribution</p>
             </div>
             <select
-              className="control-height px-3 rounded-lg border border-border bg-background typo-input focus:ring-2 focus:ring-primary/50"
+              className={cn(DASHBOARD_LAYOUT.controlHeightClass, "px-3 rounded-lg border border-border bg-background typo-input focus:ring-2 focus:ring-primary/50")}
               value={regionChartType}
               onChange={(e) => setRegionChartType(e.target.value as ChartType)}
             >
@@ -962,21 +976,21 @@ export default function DashboardNew() {
             </select>
           </div>
         </div>
-        <ResponsiveContainer width="100%" height={210}>
+        <ResponsiveContainer width="100%" height={DASHBOARD_LAYOUT.chartHeight}>
           {renderChart(regionChartType, regionData, ["sites"])}
         </ResponsiveContainer>
-      </div>
+      </section>
 
       {/* ===== VENDOR DISTRIBUTION ===== */}
-      <div className="layout-card !p-3 space-y-2">
-        <div className="space-y-1">
+      <section className={cn("layout-card !p-3", DASHBOARD_LAYOUT.sectionContentGapClass)}>
+        <div className={DASHBOARD_LAYOUT.sectionHeaderGapClass}>
           <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <h3 className="typo-subsection-title">Vendor Distribution</h3>
-              <p className="typo-meta">Equipment manufacturer breakdown</p>
+            <div className={DASHBOARD_LAYOUT.sectionHeaderGapClass}>
+              <h3 className={DASHBOARD_TYPOGRAPHY.sectionTitleClass}>Vendor Distribution</h3>
+              <p className={DASHBOARD_TYPOGRAPHY.metaClass}>Equipment manufacturer breakdown</p>
             </div>
             <select
-              className="control-height px-3 rounded-lg border border-border bg-background typo-input focus:ring-2 focus:ring-primary/50"
+              className={cn(DASHBOARD_LAYOUT.controlHeightClass, "px-3 rounded-lg border border-border bg-background typo-input focus:ring-2 focus:ring-primary/50")}
               value={vendorChartType}
               onChange={(e) => setVendorChartType(e.target.value as ChartType)}
             >
@@ -985,9 +999,9 @@ export default function DashboardNew() {
             </select>
           </div>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+        <div className={cn("grid grid-cols-1 lg:grid-cols-3", DASHBOARD_LAYOUT.gridGapClass)}>
           <div className={vendorChartType === "pie" ? "lg:col-span-2" : "lg:col-span-3"}>
-            <ResponsiveContainer width="100%" height={210}>
+            <ResponsiveContainer width="100%" height={DASHBOARD_LAYOUT.chartHeight}>
               {renderChart(vendorChartType, vendorData, ["sites"])}
             </ResponsiveContainer>
           </div>
@@ -997,15 +1011,15 @@ export default function DashboardNew() {
                 <div key={idx} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50">
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: vendor.fill }} />
                   <div className="flex-1 min-w-0">
-                    <p className="typo-subsection-title">{vendor.vendor}</p>
-                    <p className="typo-meta">{vendor.sites} sites</p>
+                    <p className={DASHBOARD_TYPOGRAPHY.cardTitleClass}>{vendor.vendor}</p>
+                    <p className={DASHBOARD_TYPOGRAPHY.metaClass}>{vendor.sites} sites</p>
                   </div>
                 </div>
               ))}
             </div>
           )}
         </div>
-      </div>
+      </section>
 
       {/* ===== VENDOR COMPARISON ===== */}
       {filters.vendors.length > 1 && vendorMetrics.length > 0 && (

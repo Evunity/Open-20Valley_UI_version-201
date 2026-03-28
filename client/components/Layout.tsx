@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X, LayoutDashboard, Settings, Moon, Sun, Gauge, Bell, Zap, Lock, Map, Terminal, BarChart3, Shield, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { DASHBOARD_LAYOUT } from "@/pages/dashboard-spacing";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -12,9 +13,10 @@ export default function Layout({ children }: LayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [sidebarWidth, setSidebarWidth] = useState(256); // 64 * 4 = 256px (w-64)
+  const [sidebarWidth, setSidebarWidth] = useState(DASHBOARD_LAYOUT.sidebarBaseWidth); // Reduced baseline width for better content balance
   const [isDragging, setIsDragging] = useState(false);
   const location = useLocation();
+  const isDashboardRoute = location.pathname === "/";
 
   const COLLAPSED_WIDTH = 76; // Width when collapsed
   const MIN_WIDTH = 150; // Minimum width before collapse when dragging
@@ -310,7 +312,8 @@ export default function Layout({ children }: LayoutProps) {
       <div className="hidden md:flex md:flex-col relative group">
         <aside
           className={cn(
-            "flex flex-col bg-sidebar border-r border-sidebar-border flex-shrink-0 transition-all duration-200 overflow-hidden",
+            "flex flex-col border-r border-sidebar-border flex-shrink-0 transition-all duration-200 overflow-hidden",
+            isDashboardRoute ? DASHBOARD_LAYOUT.sidebarDashboardIntensityClass : "bg-sidebar",
             "relative h-screen"
           )}
           style={{ width: sidebarOpen ? `${sidebarWidth}px` : `${COLLAPSED_WIDTH}px` }}
