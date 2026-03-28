@@ -797,7 +797,7 @@ export default function DashboardNew() {
       <AnalyticsSections />
 
       {/* ===== AI ENGINE ACTIONS (2-COLUMN LAYOUT) ===== */}
-      <div id="ai-actions" className="layout-card !p-2.5 space-y-2">
+      <div id="ai-actions" className="layout-card !p-2.5 space-y-1.5">
         <div className="space-y-1">
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div className="space-y-1">
@@ -834,9 +834,9 @@ export default function DashboardNew() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-1.5 items-stretch">
           {/* LEFT: Chart Visualization */}
-          <div className="rounded-lg border border-border/50 bg-background p-2 h-full flex flex-col">
-            <p className="typo-meta mb-1.5">Actions trend by hour</p>
-            <div className="flex-1 min-h-[180px]">
+          <div className="rounded-lg border border-border/50 bg-background p-2 h-[280px] flex flex-col">
+            <p className="typo-meta mb-1">Actions trend by hour</p>
+            <div className="flex-1 min-h-0">
               <ResponsiveContainer width="100%" height="100%">
                 {renderChart(aiChartType, aiActionsData, ["successful", "failed"])}
               </ResponsiveContainer>
@@ -844,11 +844,11 @@ export default function DashboardNew() {
           </div>
 
           {/* RIGHT: AI Actions List */}
-          <div className="rounded-lg border border-border/50 bg-background p-2 h-full flex flex-col">
-            <p className="typo-meta mb-1.5">Recent execution activity</p>
+          <div className="rounded-lg border border-border/50 bg-background p-2 h-[280px] flex flex-col">
+            <p className="typo-meta mb-1">Recent execution activity</p>
             {/* Actions List */}
             <div
-              className="flex-1 overflow-y-auto space-y-1 min-h-[180px]"
+              className="flex-1 min-h-0 overflow-y-auto space-y-1 pr-1"
             >
               {aiActionsDetailList
                 .sort((a, b) => {
@@ -917,12 +917,12 @@ export default function DashboardNew() {
           {graphCards.map((card) => (
             <div
               key={card.id}
-              className="card-elevated rounded-xl border border-border/50 p-3 space-y-2.5"
+              className="card-elevated rounded-xl border border-border/50 p-2.5 space-y-2"
             >
               {/* Card Header with KPI Selection and Chart Type */}
-              <div className="space-y-1.5">
+              <div className="space-y-1">
                 <div>
-                  <label className="block typo-label mb-2">
+                  <label className="block typo-label mb-1.5">
                     KPI Selection (Max 2)
                   </label>
                   <SearchableKPISelect
@@ -938,7 +938,7 @@ export default function DashboardNew() {
                 </div>
 
                 <div>
-                  <label className="block typo-label mb-2">
+                  <label className="block typo-label mb-1.5">
                     Chart Type
                   </label>
                   <select
@@ -959,8 +959,8 @@ export default function DashboardNew() {
               </div>
 
               {/* Chart Visualization */}
-              <div className="rounded-lg border border-border/50 bg-background p-2">
-                <ResponsiveContainer width="100%" height={180}>
+              <div className="rounded-lg border border-border/50 bg-background p-1.5">
+                <ResponsiveContainer width="100%" height={150}>
                   {card.selectedKPIs.length > 0 ? (
                     renderChart(card.chartType, trafficData, card.selectedKPIs)
                   ) : (
