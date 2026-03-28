@@ -52,6 +52,7 @@ export default function Layout({ children }: LayoutProps) {
   const dragStartXRef = useRef(0);
   const dragStartWidthRef = useRef(0);
   const dragStartedCollapsedRef = useRef(false);
+  const contentScrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -94,6 +95,12 @@ export default function Layout({ children }: LayoutProps) {
       document.body.style.userSelect = "auto";
     };
   }, [isDragging, isMobile]);
+
+  // Reset main content scroll on route navigation (internal scroll container, not window)
+  useEffect(() => {
+    if (!contentScrollRef.current) return;
+    contentScrollRef.current.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [location.pathname, location.search, location.hash]);
 
   const handleDragStart = (e: React.MouseEvent) => {
     dragStartXRef.current = e.clientX;
@@ -350,7 +357,7 @@ export default function Layout({ children }: LayoutProps) {
         )}
 
         {/* Content Area */}
-        <div className="app-content-theme flex-1 overflow-auto">
+        <div ref={contentScrollRef} className="app-content-theme flex-1 overflow-auto">
           <div className="p-1.5 md:p-2">{children}</div>
         </div>
       </main>
