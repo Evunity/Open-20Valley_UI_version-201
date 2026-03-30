@@ -205,7 +205,6 @@ export const RackView: React.FC<RackViewProps> = ({ topology, onDeviceSelect }) 
   return (
     <div className="w-full h-full flex flex-col gap-4 p-4 bg-background overflow-y-auto">
       <div className="flex items-center justify-between mb-2">
-        <h2 className="text-lg font-bold text-foreground">Physical Site & Rack Visualization</h2>
         <div className="flex gap-2">
           <label className="flex items-center gap-2 px-3 py-1.5 bg-card rounded border border-border text-xs cursor-pointer hover:bg-muted/40">
             <input

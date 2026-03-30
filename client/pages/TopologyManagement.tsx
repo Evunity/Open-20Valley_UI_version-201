@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Map, GitBranch, Network, Box, Layers, ZoomIn, Route, Clock, Eye, EyeOff } from 'lucide-react';
+import { Map, GitBranch, Network, Box, Layers, ZoomIn, Route, Clock, Eye, EyeOff, Edit2 } from 'lucide-react';
 import { RackView } from '../components/RackView';
 import { TransportPathView } from '../components/TransportPathView';
 import { ImpactAnalysisView } from '../components/ImpactAnalysisView';
@@ -53,6 +53,7 @@ const TopologyManagementContent: React.FC = () => {
   const [selectedTenant, setSelectedTenant] = useState<string | null>(null);
   const [showPredictiveRisks, setShowPredictiveRisks] = useState(true);
   const [showExportPanel, setShowExportPanel] = useState(false);
+  const [editMode, setEditMode] = useState(false);
   const [layers, setLayers] = useState<LayerSettings>({
     alarms: true,
     kpi: true,
@@ -124,66 +125,42 @@ const TopologyManagementContent: React.FC = () => {
 
 
   const renderMapView = () => (
-    <div className="w-full h-full flex flex-col gap-4 p-4 bg-background dark:bg-background overflow-y-auto">
-      <div className="flex items-center justify-between mb-2">
-        <div>
-          <h2 className="text-lg font-bold text-foreground">Global Geospatial Map - MENA Network</h2>
-          <div className="flex gap-2 mt-1">
-            {selectedCountry && (
-              <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 rounded font-semibold">
-                🌍 Country: {selectedCountry}
-              </span>
-            )}
-            {layers.ranOnly && (
-              <span className="text-xs px-2 py-1 bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300 rounded font-semibold">
-                📡 RAN Only
-              </span>
-            )}
-            {layers.transportOnly && (
-              <span className="text-xs px-2 py-1 bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 rounded font-semibold">
-                🔗 Transport Only
-              </span>
-            )}
-            {layers.alarms && (
-              <span className="text-xs px-2 py-1 bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300 rounded font-semibold">
-                🚨 Alarms Layer
-              </span>
-            )}
-            {filteredNodes.length < visibleNodes.length && (
-              <span className="text-xs px-2 py-1 bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 rounded font-semibold">
-                ✓ Filtered: {filteredNodes.length} of {visibleNodes.length} nodes
-              </span>
-            )}
-          </div>
+    <div className="w-full h-full flex flex-col bg-background dark:bg-background overflow-y-auto">
+      {/* Filter Status Indicators */}
+      {(selectedCountry || layers.ranOnly || layers.transportOnly || layers.alarms || filteredNodes.length < visibleNodes.length) && (
+        <div className="flex gap-2 px-4 pt-4 pb-2 flex-wrap">
+          {selectedCountry && (
+            <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 rounded font-semibold">
+              🌍 Country: {selectedCountry}
+            </span>
+          )}
+          {layers.ranOnly && (
+            <span className="text-xs px-2 py-1 bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300 rounded font-semibold">
+              📡 RAN Only
+            </span>
+          )}
+          {layers.transportOnly && (
+            <span className="text-xs px-2 py-1 bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 rounded font-semibold">
+              🔗 Transport Only
+            </span>
+          )}
+          {layers.alarms && (
+            <span className="text-xs px-2 py-1 bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300 rounded font-semibold">
+              🚨 Alarms Layer
+            </span>
+          )}
+          {filteredNodes.length < visibleNodes.length && (
+            <span className="text-xs px-2 py-1 bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 rounded font-semibold">
+              ✓ Filtered: {filteredNodes.length} of {visibleNodes.length} nodes
+            </span>
+          )}
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setShowExportPanel(!showExportPanel)}
-            className={`px-3 py-1 rounded text-xs font-semibold transition ${
-              showExportPanel
-                ? 'bg-blue-600 text-white dark:bg-blue-700'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-            }`}
-            title="Export options"
-          >
-            Export
-          </button>
-          <label className="flex items-center gap-2 text-xs cursor-pointer px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition">
-            <input
-              type="checkbox"
-              checked={showPredictiveRisks}
-              onChange={(e) => setShowPredictiveRisks(e.target.checked)}
-              className="w-4 h-4 rounded"
-            />
-            <span>Predictive AI</span>
-          </label>
-        </div>
-      </div>
+      )}
 
-      {/* Main content grid - Map on left, Controls on right */}
-      <div className="grid grid-cols-4 gap-4 flex-1">
-        {/* Main map area - Left side (3 columns) */}
-        <div className="col-span-3">
+      {/* Main content grid - Map fills width with responsive sidebar */}
+      <div className="flex flex-1 gap-4 p-4">
+        {/* Main map area - Takes available space */}
+        <div className="flex-1 min-w-0">
           <GeospatialNetworkMap
             topology={filteredNodes}
             layers={layers}
@@ -193,8 +170,8 @@ const TopologyManagementContent: React.FC = () => {
           />
         </div>
 
-        {/* Right sidebar - Layers & Multi-Tenant Controls */}
-        <div className="space-y-3 overflow-y-auto max-h-[calc(100vh-250px)]">
+        {/* Right sidebar - Layers & Multi-Tenant Controls - Fixed width */}
+        <div className="w-64 space-y-3 overflow-y-auto max-h-[calc(100vh-250px)]">
           {/* Layers Control Panel - Inline */}
           <div className="flex flex-col bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-3">
             <h3 className="font-semibold text-sm text-gray-900 dark:text-gray-100 mb-3">Layers</h3>
@@ -295,6 +272,8 @@ const TopologyManagementContent: React.FC = () => {
   const renderTreeView = () => (
     <EditableTreeView
       topology={filteredNodes}
+      editMode={editMode}
+      onEditModeChange={setEditMode}
       onTopologyChange={(updatedTopology) => {
         // Handle topology changes if needed
         console.log('Topology updated:', updatedTopology);
@@ -329,8 +308,9 @@ const TopologyManagementContent: React.FC = () => {
 
   return (
     <div className="topology-theme flex flex-col h-screen bg-background">
-      {/* View Selector */}
-      <div className="bg-card border-b border-border p-4">
+      {/* Toolbar with View Selector and Controls */}
+      <div className="bg-card border-b border-border p-4 space-y-3">
+        {/* View Selector Grid */}
         <div className="grid grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-2 auto-rows-max">
           {VIEWS.map(view => {
             const Icon = view.icon;
@@ -350,6 +330,44 @@ const TopologyManagementContent: React.FC = () => {
               </button>
             );
           })}
+        </div>
+
+        {/* Controls Row - Export, Predictive AI, and Edit Mode (for Tree View) */}
+        <div className="flex gap-2 items-center">
+          <button
+            onClick={() => setShowExportPanel(!showExportPanel)}
+            className={`px-3 py-1.5 rounded text-xs font-semibold transition ${
+              showExportPanel
+                ? 'bg-blue-600 text-white dark:bg-blue-700'
+                : 'bg-input text-foreground border border-border hover:border-primary/40'
+            }`}
+            title="Export options"
+          >
+            Export
+          </button>
+          <label className="flex items-center gap-2 text-xs cursor-pointer px-3 py-1.5 bg-input border border-border rounded hover:border-primary/40 transition">
+            <input
+              type="checkbox"
+              checked={showPredictiveRisks}
+              onChange={(e) => setShowPredictiveRisks(e.target.checked)}
+              className="w-4 h-4 rounded"
+            />
+            <span>Predictive AI</span>
+          </label>
+          {activeView === 'tree' && (
+            <button
+              onClick={() => setEditMode(!editMode)}
+              className={`px-3 py-1.5 rounded text-xs font-semibold transition flex items-center gap-2 ${
+                editMode
+                  ? 'bg-blue-600 text-white dark:bg-blue-700'
+                  : 'bg-input text-foreground border border-border hover:border-primary/40'
+              }`}
+              title="Toggle edit mode"
+            >
+              {editMode ? <Edit2 className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+              {editMode ? 'Edit Mode' : 'View Mode'}
+            </button>
+          )}
         </div>
       </div>
 

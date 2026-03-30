@@ -107,14 +107,6 @@ export const TransportPathView: React.FC<TransportPathViewProps> = ({ onPathSele
 
   return (
     <div className="w-full h-full flex flex-col gap-4 p-4 bg-background overflow-y-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-2">
-        <h2 className="text-lg font-bold text-foreground">Transport & Path Visualization</h2>
-        <div className="flex items-center gap-2 text-muted-foreground text-xs">
-          <Network className="w-4 h-4" />
-          <span>Network Topology Management</span>
-        </div>
-      </div>
 
       {/* Topology Pattern Selector */}
       <div className="bg-card rounded-lg border border-border p-4">

@@ -178,11 +178,6 @@ export const ImpactAnalysisView: React.FC<ImpactAnalysisViewProps> = ({ onImpact
 
   return (
     <div className="w-full h-full flex flex-col p-6 bg-background overflow-y-auto">
-      {/* Header */}
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-foreground">Impact Analysis</h2>
-        <p className="text-sm text-muted-foreground mt-2">Analyze failure scenarios and their cascading effects</p>
-      </div>
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-3 gap-6 flex-1">

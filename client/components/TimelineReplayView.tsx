@@ -167,11 +167,6 @@ export const TimelineReplayView: React.FC<TimelineReplayViewProps> = ({ onEventS
 
   return (
     <div className="w-full h-full flex flex-col p-6 bg-background overflow-y-auto">
-      {/* Header */}
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-foreground">Event Timeline</h2>
-        <p className="text-sm text-muted-foreground mt-2">Analyze network events in chronological order</p>
-      </div>
 
       {/* Time Window Selection */}
       <div className="mb-8 space-y-4">

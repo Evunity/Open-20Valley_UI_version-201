@@ -5,6 +5,8 @@ import { HierarchyManager, HierarchyValidator, VALID_CHILDREN } from '../utils/h
 
 interface EditableTreeViewProps {
   topology: TopologyObject[];
+  editMode?: boolean;
+  onEditModeChange?: (mode: boolean) => void;
   onTopologyChange?: (topology: TopologyObject[]) => void;
 }
 
@@ -23,9 +25,15 @@ interface RenameModalState {
 
 export const EditableTreeView: React.FC<EditableTreeViewProps> = ({
   topology,
+  editMode: parentEditMode = false,
+  onEditModeChange,
   onTopologyChange
 }) => {
-  const [editMode, setEditMode] = useState(false);
+  const [editMode, setEditMode] = useState(parentEditMode);
+
+  React.useEffect(() => {
+    setEditMode(parentEditMode);
+  }, [parentEditMode]);
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set(['global']));
   const [draggedNode, setDraggedNode] = useState<string | null>(null);
   const [dragOverNode, setDragOverNode] = useState<string | null>(null);
@@ -301,30 +309,6 @@ export const EditableTreeView: React.FC<EditableTreeViewProps> = ({
 
   return (
     <div className="w-full flex flex-col h-full gap-4 p-4 bg-background dark:bg-background overflow-y-auto">
-      {/* Header with mode toggle */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold text-foreground">Hierarchical Tree View</h2>
-        <button
-          onClick={() => setEditMode(!editMode)}
-          className={`px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-2 ${
-            editMode
-              ? 'bg-blue-600 text-white dark:bg-blue-700'
-              : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-          }`}
-        >
-          {editMode ? (
-            <>
-              <Edit2 className="w-4 h-4" />
-              Edit Mode
-            </>
-          ) : (
-            <>
-              <Eye className="w-4 h-4" />
-              View Mode
-            </>
-          )}
-        </button>
-      </div>
 
       {/* Error Message */}
       {error && (

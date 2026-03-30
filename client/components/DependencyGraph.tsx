@@ -283,12 +283,9 @@ export const DependencyGraph: React.FC<DependencyGraphProps> = ({
 
   return (
     <div className="w-full flex flex-col h-full gap-4 p-4 bg-background dark:bg-background overflow-hidden">
-      <div className="flex items-center justify-between mb-2">
-        <h2 className="text-lg font-bold text-foreground">Logical Dependency Graph</h2>
-        <p className="text-xs text-muted-foreground">
-          {nodes.length} nodes • {edges.length} relationships
-        </p>
-      </div>
+      <p className="text-xs text-muted-foreground">
+        {nodes.length} nodes • {edges.length} relationships
+      </p>
 
       {/* Controls */}
       <div className="flex items-center gap-3 flex-wrap">
