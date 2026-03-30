@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowRight, Download, Check } from 'lucide-react';
+import SearchableDropdown from './SearchableDropdown';
 
 interface DiffViewProps {
   selectedTarget: any;
@@ -77,8 +78,8 @@ const MOCK_DIFFS: ConfigDiff[] = [
 export const DiffView: React.FC<DiffViewProps> = () => {
   const [diffs] = useState<ConfigDiff[]>(MOCK_DIFFS);
   const [compareType, setCompareType] = useState<'different-sites' | 'same-site'>('different-sites');
-  const [leftSite, setLeftSite] = useState('Cairo-Site-1');
-  const [rightSite, setRightSite] = useState('Cairo-Site-2');
+  const [leftSite, setLeftSite] = useState<string[]>(['Cairo-Site-1']);
+  const [rightSite, setRightSite] = useState<string[]>(['Cairo-Site-2']);
   const [selectedParameters, setSelectedParameters] = useState<Set<string>>(new Set(PARAMETER_OPTIONS));
 
   const filteredDiffs = diffs.filter(d => selectedParameters.has(d.parameter));
@@ -116,13 +117,13 @@ export const DiffView: React.FC<DiffViewProps> = () => {
   return (
     <div className="flex flex-col h-full gap-4 p-4">
       {/* Comparison Type */}
-      <div className="flex gap-4">
+      <div className="flex gap-3">
         <button
           onClick={() => setCompareType('different-sites')}
           className={`flex-1 px-4 py-2 rounded-lg font-semibold transition border-2 ${
             compareType === 'different-sites'
-              ? 'border-blue-600 bg-blue-50 text-blue-900'
-              : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+              ? 'border-primary bg-primary/10 text-primary'
+              : 'border-border bg-card text-muted-foreground hover:border-primary/40'
           }`}
         >
           Compare Different Sites
@@ -131,8 +132,8 @@ export const DiffView: React.FC<DiffViewProps> = () => {
           onClick={() => setCompareType('same-site')}
           className={`flex-1 px-4 py-2 rounded-lg font-semibold transition border-2 ${
             compareType === 'same-site'
-              ? 'border-blue-600 bg-blue-50 text-blue-900'
-              : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+              ? 'border-primary bg-primary/10 text-primary'
+              : 'border-border bg-card text-muted-foreground hover:border-primary/40'
           }`}
         >
           Compare Within Site (Time)
@@ -140,42 +141,38 @@ export const DiffView: React.FC<DiffViewProps> = () => {
       </div>
 
       {/* Site Selection */}
-      <div className="grid grid-cols-3 gap-4 items-end">
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">{compareType === 'same-site' ? 'Site' : 'Left Site'}</label>
-          <select
-            value={leftSite}
-            onChange={(e) => setLeftSite(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            {SITE_OPTIONS.map(site => (
-              <option key={site} value={site}>{site}</option>
-            ))}
-          </select>
-        </div>
+      <div className="grid grid-cols-3 gap-3 items-end">
+        <SearchableDropdown
+          label={compareType === 'same-site' ? 'Site' : 'Left Site'}
+          options={SITE_OPTIONS}
+          selected={leftSite}
+          onChange={setLeftSite}
+          placeholder={compareType === 'same-site' ? 'Select site...' : 'Select left site...'}
+          multiSelect={false}
+          searchable={true}
+          compact={true}
+        />
 
         <div className="flex justify-center">
-          <ArrowRight className="w-5 h-5 text-gray-400" />
+          <ArrowRight className="w-5 h-5 text-muted-foreground" />
         </div>
 
         {compareType === 'different-sites' && (
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Right Site</label>
-            <select
-              value={rightSite}
-              onChange={(e) => setRightSite(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {SITE_OPTIONS.map(site => (
-                <option key={site} value={site}>{site}</option>
-              ))}
-            </select>
-          </div>
+          <SearchableDropdown
+            label="Right Site"
+            options={SITE_OPTIONS}
+            selected={rightSite}
+            onChange={setRightSite}
+            placeholder="Select right site..."
+            multiSelect={false}
+            searchable={true}
+            compact={true}
+          />
         )}
         {compareType === 'same-site' && (
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Time Period</label>
-            <select className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">Time Period</label>
+            <select className="w-full px-3 py-1.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground">
               <option>Current vs Previous Hour</option>
               <option>Current vs Today</option>
               <option>Today vs Yesterday</option>
@@ -186,19 +183,19 @@ export const DiffView: React.FC<DiffViewProps> = () => {
       </div>
 
       {/* Parameter Selection */}
-      <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+      <div className="bg-card rounded-lg p-4 border border-border space-y-3">
         <div className="flex items-center justify-between">
-          <label className="block text-sm font-semibold text-gray-700">Select Parameters</label>
+          <label className="block text-sm font-semibold text-foreground">Select Parameters</label>
           <div className="flex gap-2">
             <button
               onClick={selectAllParameters}
-              className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 font-semibold"
+              className="text-xs px-3 py-1.5 bg-primary/10 hover:bg-primary/20 border border-primary/30 rounded-lg text-primary font-semibold transition"
             >
               Select All
             </button>
             <button
               onClick={clearAllParameters}
-              className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 font-semibold"
+              className="text-xs px-3 py-1.5 bg-destructive/10 hover:bg-destructive/20 border border-destructive/30 rounded-lg text-destructive font-semibold transition"
             >
               Clear All
             </button>
@@ -206,32 +203,34 @@ export const DiffView: React.FC<DiffViewProps> = () => {
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {PARAMETER_OPTIONS.map(param => (
-            <label key={param} className="flex items-center gap-2 cursor-pointer hover:bg-white p-2 rounded transition">
-              <input
-                type="checkbox"
-                checked={selectedParameters.has(param)}
-                onChange={() => toggleParameter(param)}
-                className="w-4 h-4 rounded border-gray-300"
-              />
-              <span className="text-sm text-gray-700">{param}</span>
-            </label>
+            <button
+              key={param}
+              onClick={() => toggleParameter(param)}
+              className={`px-3 py-2 rounded-lg border-2 font-semibold text-sm transition ${
+                selectedParameters.has(param)
+                  ? 'border-primary bg-primary/10 text-primary'
+                  : 'border-border bg-card text-muted-foreground hover:border-primary/50 hover:bg-muted'
+              }`}
+            >
+              {param}
+            </button>
           ))}
         </div>
       </div>
 
       {/* Diff Summary */}
-      <div className="grid grid-cols-3 gap-3 p-3 bg-gray-50 rounded-lg">
+      <div className="grid grid-cols-3 gap-3 p-4 bg-card rounded-lg border border-border">
         <div>
-          <p className="text-xs text-green-600">Identical</p>
-          <p className="text-2xl font-bold text-green-900">{identicalCount}</p>
+          <p className="text-xs font-semibold text-green-600 dark:text-green-400">Identical</p>
+          <p className="text-2xl font-bold text-green-700 dark:text-green-300 mt-1">{identicalCount}</p>
         </div>
         <div>
-          <p className="text-xs text-red-600">Different</p>
-          <p className="text-2xl font-bold text-red-900">{differentCount}</p>
+          <p className="text-xs font-semibold text-red-600 dark:text-red-400">Different</p>
+          <p className="text-2xl font-bold text-red-700 dark:text-red-300 mt-1">{differentCount}</p>
         </div>
         <div>
-          <p className="text-xs text-gray-600">Total Parameters</p>
-          <p className="text-2xl font-bold text-gray-900">{filteredDiffs.length}</p>
+          <p className="text-xs font-semibold text-muted-foreground">Total Parameters</p>
+          <p className="text-2xl font-bold text-foreground mt-1">{filteredDiffs.length}</p>
         </div>
       </div>
 
