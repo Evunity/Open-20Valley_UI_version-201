@@ -11,7 +11,7 @@ export default function CrossSystemIncidentTimeline() {
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
 
       {/* Timeline Visualization */}
       <div className="rounded-xl border border-border/50 p-6 bg-card/50">

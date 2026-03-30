@@ -136,7 +136,7 @@ export default function UnifiedActivityStream() {
   });
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
 
       {/* Advanced Table Controls */}
       <div className="rounded-xl border border-border/50 p-4 bg-card/50 space-y-4">
