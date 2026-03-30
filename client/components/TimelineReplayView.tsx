@@ -179,11 +179,11 @@ export const TimelineReplayView: React.FC<TimelineReplayViewProps> = ({ onEventS
           </div>
 
           {/* Time Range Inputs */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-stretch gap-3">
             {/* Start Time */}
-            <div className="flex-1">
+            <div className="flex-1 flex flex-col">
               <label className="block text-xs font-semibold text-muted-foreground mb-2">From</label>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-1">
                 <Clock className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                 <input
                   type="time"
@@ -195,14 +195,14 @@ export const TimelineReplayView: React.FC<TimelineReplayViewProps> = ({ onEventS
             </div>
 
             {/* Separator - Centered Arrow */}
-            <div className="flex flex-col items-center -mt-5">
-              <div className="text-primary font-bold text-lg">↔</div>
+            <div className="flex items-center justify-center px-2">
+              <div className="text-primary font-bold text-xl">↔</div>
             </div>
 
             {/* End Time */}
-            <div className="flex-1">
+            <div className="flex-1 flex flex-col">
               <label className="block text-xs font-semibold text-muted-foreground mb-2">To</label>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-1">
                 <Clock className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                 <input
                   type="time"
