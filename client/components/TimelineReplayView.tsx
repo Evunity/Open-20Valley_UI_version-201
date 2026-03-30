@@ -172,34 +172,45 @@ export const TimelineReplayView: React.FC<TimelineReplayViewProps> = ({ onEventS
       {/* Time Window Selection - Modern Time Range Picker */}
       <div className="mb-8 space-y-4">
         <div className="bg-card rounded-lg border border-border p-4">
-          {/* Time Range Header */}
-          <p className="text-sm font-semibold text-foreground mb-4">Select Time Window</p>
+          {/* Time Range Header with Clock Icon */}
+          <div className="flex items-center gap-2 mb-4">
+            <Clock className="w-4 h-4 text-primary" />
+            <p className="text-sm font-semibold text-foreground">Select Time Window</p>
+          </div>
 
           {/* Time Range Inputs */}
-          <div className="flex items-end gap-3">
+          <div className="flex items-center gap-2">
             {/* Start Time */}
             <div className="flex-1">
               <label className="block text-xs font-semibold text-muted-foreground mb-2">From</label>
-              <input
-                type="time"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                className="w-full px-3 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm font-mono"
-              />
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                <input
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  className="flex-1 px-3 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm font-mono"
+                />
+              </div>
             </div>
 
-            {/* Separator */}
-            <div className="text-muted-foreground font-semibold">→</div>
+            {/* Separator - Centered Arrow */}
+            <div className="flex flex-col items-center -mt-5">
+              <div className="text-primary font-bold text-lg">↔</div>
+            </div>
 
             {/* End Time */}
             <div className="flex-1">
               <label className="block text-xs font-semibold text-muted-foreground mb-2">To</label>
-              <input
-                type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                className="w-full px-3 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm font-mono"
-              />
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                <input
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className="flex-1 px-3 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm font-mono"
+                />
+              </div>
             </div>
           </div>
 
