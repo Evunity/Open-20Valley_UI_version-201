@@ -170,9 +170,20 @@ const TopologyManagementContent: React.FC = () => {
         </div>
       </div>
 
-      {/* Main content grid */}
+      {/* Main content grid - Map on left, Controls on right */}
       <div className="grid grid-cols-4 gap-4 flex-1">
-        {/* Left sidebar - Layers & Multi-Tenant Controls */}
+        {/* Main map area - Left side (3 columns) */}
+        <div className="col-span-3">
+          <GeospatialNetworkMap
+            topology={filteredNodes}
+            layers={layers}
+            selectedObject={selectedNode}
+            onObjectSelect={(node) => selectNode(node.id)}
+            showPredictiveRisks={showPredictiveRisks}
+          />
+        </div>
+
+        {/* Right sidebar - Layers & Multi-Tenant Controls */}
         <div className="space-y-3 overflow-y-auto max-h-[calc(100vh-250px)]">
           {/* Layers Control Panel - Inline */}
           <div className="flex flex-col bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-3">
@@ -189,11 +200,11 @@ const TopologyManagementContent: React.FC = () => {
                 ) : (
                   <EyeOff className="w-4 h-4 text-gray-400" />
                 )}
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">RAN Only</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Filter to RAN equipment</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">RAN Only</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">RAN equipment</p>
                 </div>
-                <div className={`w-5 h-5 rounded border-2 transition ${
+                <div className={`w-5 h-5 rounded border-2 transition flex-shrink-0 ${
                   layers.ranOnly
                     ? 'bg-blue-600 border-blue-600'
                     : 'border-gray-300 dark:border-gray-600'
@@ -209,11 +220,11 @@ const TopologyManagementContent: React.FC = () => {
                 ) : (
                   <EyeOff className="w-4 h-4 text-gray-400" />
                 )}
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Transport Only</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Filter to transport layer</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">Transport Only</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">Transport layer</p>
                 </div>
-                <div className={`w-5 h-5 rounded border-2 transition ${
+                <div className={`w-5 h-5 rounded border-2 transition flex-shrink-0 ${
                   layers.transportOnly
                     ? 'bg-blue-600 border-blue-600'
                     : 'border-gray-300 dark:border-gray-600'
@@ -229,11 +240,11 @@ const TopologyManagementContent: React.FC = () => {
                 ) : (
                   <EyeOff className="w-4 h-4 text-gray-400" />
                 )}
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Alarms</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Show active alarms</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">Alarms</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">Active alarms</p>
                 </div>
-                <div className={`w-5 h-5 rounded border-2 transition ${
+                <div className={`w-5 h-5 rounded border-2 transition flex-shrink-0 ${
                   layers.alarms
                     ? 'bg-blue-600 border-blue-600'
                     : 'border-gray-300 dark:border-gray-600'
@@ -259,17 +270,6 @@ const TopologyManagementContent: React.FC = () => {
               filters={{ country: selectedCountry, tenant: selectedTenant }}
             />
           )}
-        </div>
-
-        {/* Main map area */}
-        <div className="col-span-3">
-          <GeospatialNetworkMap
-            topology={filteredNodes}
-            layers={layers}
-            selectedObject={selectedNode}
-            onObjectSelect={(node) => selectNode(node.id)}
-            showPredictiveRisks={showPredictiveRisks}
-          />
         </div>
       </div>
 
