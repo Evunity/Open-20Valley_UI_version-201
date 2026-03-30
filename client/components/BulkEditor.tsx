@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { AlertCircle } from 'lucide-react';
+import SearchableDropdown from './SearchableDropdown';
 
 interface BulkEditorProps {
   selectedTarget: any;
@@ -24,13 +25,16 @@ const MOCK_BULK_CHANGES: BulkChange[] = [
 
 export const BulkEditor: React.FC<BulkEditorProps> = () => {
   const [content, setContent] = useState('site,parameter,old_value,new_value\nCairo-Site-1,TX Power,43,40\nCairo-Site-2,TX Power,43,40\nGiza-Site-1,TX Power,43,40');
-  const [selectedVendor, setSelectedVendor] = useState('');
-  const [selectedTechnology, setSelectedTechnology] = useState('');
+  const [selectedVendor, setSelectedVendor] = useState<string[]>([]);
+  const [selectedTechnology, setSelectedTechnology] = useState<string[]>([]);
   const [changes, setChanges] = useState<BulkChange[]>(MOCK_BULK_CHANGES);
 
+  const vendors = ['Huawei', 'Ericsson', 'Nokia', 'ZTE', 'ORAN'];
+  const technologies = ['2G', '3G', '4G', '5G', 'O-RAN'];
+
   const filteredChanges = changes.filter(change => {
-    const vendorMatch = !selectedVendor || change.site.toLowerCase().includes(selectedVendor.toLowerCase());
-    const techMatch = !selectedTechnology || change.parameter.toLowerCase().includes(selectedTechnology.toLowerCase());
+    const vendorMatch = !selectedVendor.length || change.site.toLowerCase().includes(selectedVendor[0].toLowerCase());
+    const techMatch = !selectedTechnology.length || change.parameter.toLowerCase().includes(selectedTechnology[0].toLowerCase());
     return vendorMatch && techMatch;
   });
 
@@ -65,38 +69,28 @@ export const BulkEditor: React.FC<BulkEditorProps> = () => {
   return (
     <div className="flex flex-col h-full gap-4 p-4">
       {/* Filters & Controls */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-3 rounded-lg border border-border bg-card">
-        <div>
-          <label className="block text-xs font-semibold text-muted-foreground mb-1">Vendor</label>
-          <select
-            value={selectedVendor}
-            onChange={(e) => setSelectedVendor(e.target.value)}
-            className="w-full px-3 py-1.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm"
-          >
-            <option value="">All Vendors</option>
-            <option value="Huawei">Huawei</option>
-            <option value="Ericsson">Ericsson</option>
-            <option value="Nokia">Nokia</option>
-            <option value="ZTE">ZTE</option>
-            <option value="ORAN">ORAN</option>
-          </select>
-        </div>
+      <div className="grid grid-cols-2 gap-3">
+        <SearchableDropdown
+          label="Vendor"
+          options={vendors}
+          selected={selectedVendor}
+          onChange={setSelectedVendor}
+          placeholder="All Vendors"
+          multiSelect={false}
+          searchable={true}
+          compact={true}
+        />
 
-        <div>
-          <label className="block text-xs font-semibold text-muted-foreground mb-1">Technology</label>
-          <select
-            value={selectedTechnology}
-            onChange={(e) => setSelectedTechnology(e.target.value)}
-            className="w-full px-3 py-1.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm"
-          >
-            <option value="">All Technologies</option>
-            <option value="2G">2G</option>
-            <option value="3G">3G</option>
-            <option value="4G">4G</option>
-            <option value="5G">5G</option>
-            <option value="ORAN">O-RAN</option>
-          </select>
-        </div>
+        <SearchableDropdown
+          label="Technology"
+          options={technologies}
+          selected={selectedTechnology}
+          onChange={setSelectedTechnology}
+          placeholder="All Technologies"
+          multiSelect={false}
+          searchable={true}
+          compact={true}
+        />
       </div>
 
       {/* Configuration Input */}
