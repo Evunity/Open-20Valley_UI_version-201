@@ -50,11 +50,6 @@ export default function SessionIntelligenceCenter() {
                 </div>
               </div>
 
-              {session.riskLevel !== 'low' && (
-                <div className="p-2 bg-orange-500/5 border border-orange-500/20 rounded text-xs text-orange-700">
-                  Unusual activity pattern detected. Review actions and behavioral anomalies.
-                </div>
-              )}
             </div>
           ))}
         </div>
@@ -69,16 +64,10 @@ export default function SessionIntelligenceCenter() {
         <div className="space-y-3">
           <div className="p-3 bg-muted/30 rounded-lg border border-border/30">
             <p className="text-sm font-semibold text-foreground mb-1">rf_engineer - Unusual Pattern</p>
-            <p className="text-xs text-muted-foreground">
-              Escalated to admin role at 14:32. Unusual for this user. 6 privileged actions executed within 45 minutes.
-            </p>
           </div>
 
           <div className="p-3 bg-muted/30 rounded-lg border border-border/30">
             <p className="text-sm font-semibold text-foreground mb-1">transport_analyst - Long Session</p>
-            <p className="text-xs text-muted-foreground">
-              Connected for 22+ hours continuously. Unusual for typical shift patterns. Review access logs.
-            </p>
           </div>
         </div>
       </div>

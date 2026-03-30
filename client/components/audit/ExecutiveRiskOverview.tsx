@@ -89,14 +89,6 @@ export default function ExecutiveRiskOverview() {
               </div>
             </div>
           </div>
-          <div className="mt-6 pt-6 border-t border-border/50">
-            <p className="text-xs text-muted-foreground mb-3">Risk Factors Contributing:</p>
-            <ul className="space-y-2 text-xs text-muted-foreground">
-              <li>• Failed logins: +8 points</li>
-              <li>• Privilege escalations: +10 points</li>
-              <li>• Automation overrides: +9 points</li>
-            </ul>
-          </div>
         </div>
 
         {/* Risk Assessment */}
@@ -182,9 +174,6 @@ export default function ExecutiveRiskOverview() {
             <div>
               <div>
                 <p className="text-sm font-semibold text-orange-700">Warning: Automation Override Detected</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Automation 'Load Balancing Policy' was manually overridden by 'ops_manager'. Review guardrails.
-                </p>
                 <button className="mt-2 text-xs px-3 py-1 bg-orange-500/20 text-orange-700 rounded hover:bg-orange-500/30 transition-colors font-medium">
                   Investigate
                 </button>
@@ -196,9 +185,6 @@ export default function ExecutiveRiskOverview() {
             <div>
               <div>
                 <p className="text-sm font-semibold text-yellow-700">Notice: Configuration Drift Detected</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  3 RF parameters deviated from baseline configuration. Likely caused by manual changes 2 hours ago.
-                </p>
                 <button className="mt-2 text-xs px-3 py-1 bg-yellow-500/20 text-yellow-700 rounded hover:bg-yellow-500/30 transition-colors font-medium">
                   View Drift
                 </button>
@@ -217,17 +203,14 @@ export default function ExecutiveRiskOverview() {
         <div className="space-y-2">
           <div className="p-3 bg-muted/30 rounded-lg border border-border/30 text-sm">
             <p className="font-medium text-foreground mb-1">1. Enable MFA for privileged accounts</p>
-            <p className="text-xs text-muted-foreground">Would reduce privilege escalation attempts by 87%</p>
           </div>
 
           <div className="p-3 bg-muted/30 rounded-lg border border-border/30 text-sm">
             <p className="font-medium text-foreground mb-1">2. Implement automation override approval workflow</p>
-            <p className="text-xs text-muted-foreground">Prevents unauthorized automation policy modifications</p>
           </div>
 
           <div className="p-3 bg-muted/30 rounded-lg border border-border/30 text-sm">
             <p className="font-medium text-foreground mb-1">3. Enable configuration change notifications</p>
-            <p className="text-xs text-muted-foreground">Real-time alerts on parameter deviations from baseline</p>
           </div>
         </div>
       </div>

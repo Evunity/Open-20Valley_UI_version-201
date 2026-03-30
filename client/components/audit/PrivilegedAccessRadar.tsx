@@ -81,16 +81,10 @@ export default function PrivilegedAccessRadar() {
         <div className="space-y-3">
           <div className="p-4 bg-orange-500/5 border border-orange-500/20 rounded-lg">
             <p className="text-sm font-bold text-orange-700 mb-1">Automation Override Without Approval</p>
-            <p className="text-xs text-muted-foreground">
-              User 'ops_manager' manually overrode Load Balancing automation policy at 14:32:45. No approval workflow triggered.
-            </p>
           </div>
 
           <div className="p-4 bg-red-500/5 border border-red-500/20 rounded-lg">
             <p className="text-sm font-bold text-red-700 mb-1">Unauthorized Export Attempt</p>
-            <p className="text-xs text-muted-foreground">
-              User attempted to bulk export Alarm Summary dataset. Blocked by DLP policy. Incident logged for investigation.
-            </p>
           </div>
         </div>
       </div>

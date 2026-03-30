@@ -99,23 +99,14 @@ export default function RiskActivityHeatmap() {
         <div className="space-y-3">
           <div className="p-4 bg-red-500/5 border border-red-500/20 rounded-lg">
             <p className="text-sm font-bold text-red-700 mb-1">Critical Peak: 14:00 (2 PM)</p>
-            <p className="text-xs text-muted-foreground">
-              Risk Score: 92/100 • 90 events logged • 45 critical actions • Privilege escalation detected
-            </p>
           </div>
 
           <div className="p-4 bg-orange-500/5 border border-orange-500/20 rounded-lg">
             <p className="text-sm font-bold text-orange-700 mb-1">High Activity: 13:00 (1 PM)</p>
-            <p className="text-xs text-muted-foreground">
-              Risk Score: 85/100 • 85 events logged • 38 critical actions • Configuration changes detected
-            </p>
           </div>
 
           <div className="p4 bg-yellow-500/5 border border-yellow-500/20 rounded-lg">
             <p className="text-sm font-bold text-yellow-700 mb-1">Elevated Activity: 08:00-12:00 (Morning Peak)</p>
-            <p className="text-xs text-muted-foreground">
-              Sustained high-risk activity throughout morning hours. 4-hour duration suggests coordinated actions.
-            </p>
           </div>
         </div>
       </div>
