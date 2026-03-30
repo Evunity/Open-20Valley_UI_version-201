@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { RotateCcw, Eye, Download } from 'lucide-react';
+import SearchableDropdown from './SearchableDropdown';
 
 interface AuditRollbackCenterProps {
   selectedTarget: any;
@@ -96,14 +97,14 @@ export const AuditRollbackCenter: React.FC<AuditRollbackCenterProps> = () => {
   const [entries, setEntries] = useState<AuditEntry[]>(MOCK_AUDIT);
   const [selectedEntry, setSelectedEntry] = useState<string | null>(null);
   const [detailedViewId, setDetailedViewId] = useState<string | null>(null);
-  const [selectedSite, setSelectedSite] = useState('');
-  const [selectedTechnology, setSelectedTechnology] = useState('');
-  const [selectedVendor, setSelectedVendor] = useState('');
+  const [selectedSite, setSelectedSite] = useState<string[]>([]);
+  const [selectedTechnology, setSelectedTechnology] = useState<string[]>([]);
+  const [selectedVendor, setSelectedVendor] = useState<string[]>([]);
 
   const filteredEntries = entries.filter(entry => {
-    const siteMatch = !selectedSite || entry.site === selectedSite;
-    const techMatch = !selectedTechnology || entry.technology === selectedTechnology;
-    const vendorMatch = !selectedVendor || entry.vendor === selectedVendor;
+    const siteMatch = !selectedSite.length || entry.site === selectedSite[0];
+    const techMatch = !selectedTechnology.length || entry.technology === selectedTechnology[0];
+    const vendorMatch = !selectedVendor.length || entry.vendor === selectedVendor[0];
     return siteMatch && techMatch && vendorMatch;
   });
 
@@ -127,48 +128,39 @@ export const AuditRollbackCenter: React.FC<AuditRollbackCenterProps> = () => {
   return (
     <div className="flex flex-col h-full gap-4 p-4">
       {/* Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 rounded-lg border border-border bg-card">
-        <div>
-          <label className="block text-xs font-semibold text-muted-foreground mb-1">Site</label>
-          <select
-            value={selectedSite}
-            onChange={(e) => setSelectedSite(e.target.value)}
-            className="w-full px-3 py-1.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm"
-          >
-            <option value="">All Sites</option>
-            {SITE_OPTIONS.map(site => (
-              <option key={site} value={site}>{site}</option>
-            ))}
-          </select>
-        </div>
+      <div className="grid grid-cols-3 gap-3">
+        <SearchableDropdown
+          label="Site"
+          options={SITE_OPTIONS}
+          selected={selectedSite}
+          onChange={setSelectedSite}
+          placeholder="All Sites"
+          multiSelect={false}
+          searchable={true}
+          compact={true}
+        />
 
-        <div>
-          <label className="block text-xs font-semibold text-muted-foreground mb-1">Technology</label>
-          <select
-            value={selectedTechnology}
-            onChange={(e) => setSelectedTechnology(e.target.value)}
-            className="w-full px-3 py-1.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm"
-          >
-            <option value="">All Technologies</option>
-            {TECHNOLOGY_OPTIONS.map(tech => (
-              <option key={tech} value={tech}>{tech}</option>
-            ))}
-          </select>
-        </div>
+        <SearchableDropdown
+          label="Technology"
+          options={TECHNOLOGY_OPTIONS}
+          selected={selectedTechnology}
+          onChange={setSelectedTechnology}
+          placeholder="All Technologies"
+          multiSelect={false}
+          searchable={true}
+          compact={true}
+        />
 
-        <div>
-          <label className="block text-xs font-semibold text-muted-foreground mb-1">Vendor</label>
-          <select
-            value={selectedVendor}
-            onChange={(e) => setSelectedVendor(e.target.value)}
-            className="w-full px-3 py-1.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm"
-          >
-            <option value="">All Vendors</option>
-            {VENDOR_OPTIONS.map(vendor => (
-              <option key={vendor} value={vendor}>{vendor}</option>
-            ))}
-          </select>
-        </div>
+        <SearchableDropdown
+          label="Vendor"
+          options={VENDOR_OPTIONS}
+          selected={selectedVendor}
+          onChange={setSelectedVendor}
+          placeholder="All Vendors"
+          multiSelect={false}
+          searchable={true}
+          compact={true}
+        />
       </div>
 
       {/* Audit Log */}
