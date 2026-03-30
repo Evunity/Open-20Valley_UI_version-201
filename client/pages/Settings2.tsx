@@ -73,7 +73,7 @@ export default function Settings2() {
 
       {/* Content Area */}
       <div className="flex-1 overflow-y-auto">
-        <div className="p-4 md:p-4 max-w-6xl mx-auto">
+        <div className="p-2 md:p-2 max-w-full">
 
           {/* 1. System Configuration */}
           {activeTab === 'system-config' && (
