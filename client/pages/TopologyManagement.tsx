@@ -333,7 +333,7 @@ const TopologyManagementContent: React.FC = () => {
         </div>
 
         {/* Controls Row - Export, Predictive AI, and Edit Mode (for Tree View) */}
-        <div className="flex gap-2 items-center flex-wrap">
+        <div className="flex gap-2 items-center ml-auto">
           <button
             onClick={() => setShowExportPanel(!showExportPanel)}
             className={`px-3 py-1.5 h-9 flex items-center justify-center rounded text-xs font-semibold transition ${
