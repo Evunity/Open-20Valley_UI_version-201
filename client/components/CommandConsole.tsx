@@ -390,8 +390,8 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
                 }}
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                 onFocus={() => command.trim().length > 0 && setShowSuggestions(true)}
-                placeholder={`Enter ${selectedVendor} command (e.g., LST CELL;)`}
-                className={`w-full px-3 py-2 border-2 rounded-lg font-mono text-sm focus:outline-none transition ${
+                placeholder={`Enter ${selectedVendor} command in UPPERCASE (e.g., LST CELL;)`}
+                className={`w-full px-3 py-2 border-2 rounded-lg font-mono text-sm focus:outline-none transition uppercase tracking-wide ${
                   command.trim() && isValid
                     ? 'border-green-500 bg-green-50 dark:bg-green-950/30 text-foreground'
                     : command.trim()
