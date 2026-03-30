@@ -99,6 +99,15 @@ export const ScriptLibrary: React.FC<ScriptLibraryProps> = () => {
   const [showForm, setShowForm] = useState(false);
   const [showExecution, setShowExecution] = useState<string | null>(null);
   const [parameters, setParameters] = useState<Record<string, string>>({});
+  const [isCreating, setIsCreating] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    category: 'RF Optimization' as any,
+    description: '',
+    content: '',
+    vendor: 'Huawei',
+    riskLevel: 'low' as 'low' | 'medium' | 'high'
+  });
 
   const filteredScripts = selectedCategory
     ? scripts.filter(s => s.category === selectedCategory)
@@ -141,6 +150,63 @@ export const ScriptLibrary: React.FC<ScriptLibraryProps> = () => {
     }
   };
 
+  const createScript = async () => {
+    // Validate form
+    if (!formData.name.trim()) {
+      alert('Please enter a script name');
+      return;
+    }
+    if (!formData.description.trim()) {
+      alert('Please enter a description');
+      return;
+    }
+    if (!formData.content.trim()) {
+      alert('Please enter script content');
+      return;
+    }
+
+    setIsCreating(true);
+    try {
+      // Create new script object
+      const newScript: Script = {
+        id: String(scripts.length + 1),
+        name: formData.name,
+        description: formData.description,
+        category: formData.category,
+        vendor: formData.vendor,
+        commands: formData.content.split('\n').filter(line => line.trim()),
+        parameters: [],
+        requiredPermissions: [],
+        riskLevel: formData.riskLevel,
+        rollbackInstructions: 'Manual rollback required',
+        created: new Date().toISOString().split('T')[0],
+        lastModified: new Date().toISOString().split('T')[0],
+        executionCount: 0,
+        successRate: 0
+      };
+
+      // Add to scripts
+      setScripts([...scripts, newScript]);
+
+      // Reset form
+      setFormData({
+        name: '',
+        category: 'RF Optimization',
+        description: '',
+        content: '',
+        vendor: 'Huawei',
+        riskLevel: 'low'
+      });
+      setShowForm(false);
+      alert('Script created successfully!');
+    } catch (error) {
+      console.error('Error creating script:', error);
+      alert('Failed to create script');
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full gap-4 p-4">
       {/* Header */}
@@ -170,11 +236,21 @@ export const ScriptLibrary: React.FC<ScriptLibraryProps> = () => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">Script Name</label>
-              <input type="text" placeholder="e.g., Reset Cell Configuration" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="e.g., Reset Cell Configuration"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              />
             </div>
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">Category</label>
-              <select className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+              <select
+                value={formData.category}
+                onChange={(e) => setFormData({ ...formData, category: e.target.value as any })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              >
                 {SCRIPT_CATEGORIES.map(cat => (
                   <option key={cat} value={cat}>{cat}</option>
                 ))}
@@ -184,7 +260,13 @@ export const ScriptLibrary: React.FC<ScriptLibraryProps> = () => {
 
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">Description</label>
-            <textarea placeholder="What does this script do?" rows={2} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+            <textarea
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              placeholder="What does this script do?"
+              rows={2}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+            />
           </div>
 
           <div>
@@ -200,8 +282,7 @@ export const ScriptLibrary: React.FC<ScriptLibraryProps> = () => {
                       const reader = new FileReader();
                       reader.onload = (event) => {
                         const text = event.target?.result as string;
-                        // You would set this to a state variable in your form
-                        console.log('Script content loaded:', text);
+                        setFormData({ ...formData, content: text });
                       };
                       reader.readAsText(file);
                     }
@@ -211,31 +292,58 @@ export const ScriptLibrary: React.FC<ScriptLibraryProps> = () => {
                 📁 Upload Script File
               </label>
             </div>
-            <textarea placeholder="Enter script commands, one per line..." rows={6} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono" />
+            <textarea
+              value={formData.content}
+              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+              placeholder="Enter script commands, one per line..."
+              rows={6}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono"
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">Vendor</label>
-              <select className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+              <select
+                value={formData.vendor}
+                onChange={(e) => setFormData({ ...formData, vendor: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              >
                 <option>Huawei</option>
                 <option>Nokia</option>
                 <option>Ericsson</option>
+                <option>ZTE</option>
               </select>
             </div>
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">Risk Level</label>
-              <select className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                <option>Low</option>
-                <option>Medium</option>
-                <option>High</option>
+              <select
+                value={formData.riskLevel}
+                onChange={(e) => setFormData({ ...formData, riskLevel: e.target.value as 'low' | 'medium' | 'high' })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              >
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
               </select>
             </div>
           </div>
 
-          <button className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold">
-            Create Script
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={createScript}
+              disabled={isCreating}
+              className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed transition"
+            >
+              {isCreating ? 'Creating...' : 'Create Script'}
+            </button>
+            <button
+              onClick={() => setShowForm(false)}
+              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-semibold transition"
+            >
+              Cancel
+            </button>
+          </div>
         </div>
       )}
 
