@@ -65,6 +65,9 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
   const [selectedVendor, setSelectedVendor] = useState<string>('Huawei');
   const [mode, setMode] = useState<'raw' | 'guided' | 'script'>('raw');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [customCommands, setCustomCommands] = useState<Record<string, string[]>>({});
+  const [showAddCommand, setShowAddCommand] = useState(false);
+  const [newCommandInput, setNewCommandInput] = useState('');
   const consoleEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -110,6 +113,33 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
 
   const pasteCommand = (cmd: string) => {
     setCommand(cmd);
+  };
+
+  const addCustomCommand = () => {
+    if (!newCommandInput.trim()) return;
+
+    setCustomCommands(prev => ({
+      ...prev,
+      [selectedVendor]: [
+        ...(prev[selectedVendor] || []),
+        newCommandInput.trim()
+      ]
+    }));
+    setNewCommandInput('');
+    setShowAddCommand(false);
+  };
+
+  const removeCustomCommand = (index: number) => {
+    setCustomCommands(prev => ({
+      ...prev,
+      [selectedVendor]: prev[selectedVendor]?.filter((_, i) => i !== index) || []
+    }));
+  };
+
+  const getQuickCommands = () => {
+    const custom = customCommands[selectedVendor] || [];
+    const defaults = VENDOR_COMMANDS[selectedVendor as keyof typeof VENDOR_COMMANDS] || [];
+    return [...custom, ...defaults].slice(0, 6);
   };
 
   const { isValid } = getCommandSyntaxValidation(command);
@@ -161,21 +191,85 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
 
       {/* Quick Commands */}
       <div>
-        <label className="block text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1">
-          <Lightbulb className="w-4 h-4 text-yellow-600" />
-          Quick Commands ({selectedVendor})
-        </label>
-        <div className="grid grid-cols-3 gap-2">
-          {VENDOR_COMMANDS[selectedVendor as keyof typeof VENDOR_COMMANDS]?.slice(0, 6).map((cmd, i) => (
+        <div className="flex items-center justify-between mb-2">
+          <label className="block text-xs font-semibold text-muted-foreground flex items-center gap-1">
+            <Lightbulb className="w-4 h-4 text-yellow-600" />
+            Quick Commands ({selectedVendor})
+          </label>
+          <button
+            onClick={() => setShowAddCommand(!showAddCommand)}
+            className="text-xs px-2 py-1 bg-primary/10 hover:bg-primary/20 border border-primary/30 rounded text-primary font-medium transition"
+          >
+            + Add
+          </button>
+        </div>
+
+        {showAddCommand && (
+          <div className="mb-3 p-2 bg-muted/40 border border-border rounded flex gap-2">
+            <input
+              type="text"
+              value={newCommandInput}
+              onChange={(e) => setNewCommandInput(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  addCustomCommand();
+                }
+              }}
+              placeholder={`Add custom ${selectedVendor} command...`}
+              className="flex-1 px-2 py-1 text-xs border border-border rounded bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+              autoFocus
+            />
             <button
-              key={i}
-              onClick={() => pasteCommand(cmd)}
-              className="px-2 py-1 text-xs bg-muted/60 hover:bg-muted border border-border rounded transition font-mono text-left text-foreground"
-              title={`Paste: ${cmd}`}
+              onClick={addCustomCommand}
+              disabled={!newCommandInput.trim()}
+              className="px-2 py-1 text-xs bg-primary text-primary-foreground rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/90 transition"
             >
-              {cmd.length > 20 ? cmd.substring(0, 17) + '...' : cmd}
+              Save
             </button>
-          ))}
+            <button
+              onClick={() => {
+                setShowAddCommand(false);
+                setNewCommandInput('');
+              }}
+              className="px-2 py-1 text-xs bg-muted hover:bg-muted/80 border border-border rounded transition"
+            >
+              Cancel
+            </button>
+          </div>
+        )}
+
+        <div className="grid grid-cols-3 gap-2">
+          {getQuickCommands().map((cmd, i) => {
+            const isCustom = i < (customCommands[selectedVendor]?.length || 0);
+            return (
+              <div
+                key={i}
+                className="relative group"
+              >
+                <button
+                  onClick={() => pasteCommand(cmd)}
+                  className={`w-full px-2 py-1 text-xs border rounded transition font-mono text-left ${
+                    isCustom
+                      ? 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/50'
+                      : 'bg-muted/60 hover:bg-muted border-border'
+                  } text-foreground`}
+                  title={`Paste: ${cmd}`}
+                >
+                  {cmd.length > 20 ? cmd.substring(0, 17) + '...' : cmd}
+                </button>
+                {isCustom && (
+                  <button
+                    onClick={() => removeCustomCommand(i)}
+                    className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-xs hover:bg-red-600"
+                    title="Remove custom command"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 

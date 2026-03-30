@@ -105,14 +105,6 @@ export const CommandCenter: React.FC = () => {
 
   const activeModuleConfig = MODULES.find(m => m.id === activeModule)!;
 
-  const getRiskColor = (level: string) => {
-    const colors = {
-      'read-only': 'bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-800',
-      'safe': 'bg-green-100 dark:bg-green-950 text-green-800 dark:text-green-300 border-green-300 dark:border-green-800',
-      'dangerous': 'bg-red-100 dark:bg-red-950 text-red-800 dark:text-red-300 border-red-300 dark:border-red-800'
-    };
-    return colors[level as keyof typeof colors] || colors['safe'];
-  };
 
   const renderModule = () => {
     const props = { selectedTarget, onTargetChange: setSelectedTarget };
@@ -178,9 +170,6 @@ export const CommandCenter: React.FC = () => {
               >
                 <Icon className={`w-4 h-4 ${activeModule === module.id ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
                 <span className="text-xs font-semibold text-center text-foreground">{module.label}</span>
-                <span className={`text-xs px-1.5 py-0.5 rounded border ${getRiskColor(module.riskLevel)}`}>
-                  {module.riskLevel}
-                </span>
               </button>
             );
           })}
