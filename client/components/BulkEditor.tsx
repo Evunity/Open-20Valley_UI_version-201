@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, Copy, Check, AlertCircle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 
 interface BulkEditorProps {
   selectedTarget: any;
@@ -27,8 +27,6 @@ export const BulkEditor: React.FC<BulkEditorProps> = () => {
   const [selectedVendor, setSelectedVendor] = useState('');
   const [selectedTechnology, setSelectedTechnology] = useState('');
   const [changes, setChanges] = useState<BulkChange[]>(MOCK_BULK_CHANGES);
-  const [showPreview, setShowPreview] = useState(false);
-  const [copied, setCopied] = useState(false);
 
   const filteredChanges = changes.filter(change => {
     const vendorMatch = !selectedVendor || change.site.toLowerCase().includes(selectedVendor.toLowerCase());
@@ -47,12 +45,6 @@ export const BulkEditor: React.FC<BulkEditorProps> = () => {
       status: i % 3 === 0 ? 'failed' : 'validated',
       error: i % 3 === 0 ? 'Conflict: Cell already has similar parameter' : undefined
     })));
-  };
-
-  const copyCommand = (cmd: string) => {
-    navigator.clipboard.writeText(cmd);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
   };
 
   const downloadCSVTemplate = () => {
@@ -161,45 +153,7 @@ export const BulkEditor: React.FC<BulkEditorProps> = () => {
         >
           Dry Run
         </button>
-        <button
-          onClick={() => setShowPreview(!showPreview)}
-          className="flex-1 px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 font-semibold flex items-center justify-center gap-2 transition"
-        >
-          <ChevronDown className={`w-4 h-4 transition ${showPreview ? 'rotate-180' : ''}`} />
-          Preview
-        </button>
       </div>
-
-      {/* Diff Preview */}
-      {showPreview && (
-        <div className="border border-border rounded-lg overflow-hidden">
-          <div className="bg-muted px-4 py-2 font-semibold text-sm">Diff Preview (Changes to be applied)</div>
-          <div className="p-4 bg-background space-y-2 max-h-48 overflow-y-auto">
-            <div className="grid grid-cols-5 gap-2 text-xs font-semibold text-muted-foreground mb-2">
-              <div>Site</div>
-              <div>Parameter</div>
-              <div className="text-red-600">Old Value</div>
-              <div className="text-green-600">New Value</div>
-              <div>Impact</div>
-            </div>
-            {filteredChanges.map((change, i) => (
-              <div key={i} className="grid grid-cols-5 gap-2 text-xs p-2 bg-card rounded border border-border">
-                <div className="font-mono">{change.site}</div>
-                <div>{change.parameter}</div>
-                <div className="text-red-600 line-through font-mono">{change.oldValue}</div>
-                <div className="text-green-600 font-mono font-bold">{change.newValue}</div>
-                <div className={`px-2 py-0.5 rounded font-semibold ${
-                  change.status === 'failed' ? 'bg-red-100 dark:bg-red-950 text-red-800 dark:text-red-300' :
-                  change.status === 'validated' ? 'bg-green-100 dark:bg-green-950 text-green-800 dark:text-green-300' :
-                  'bg-yellow-100 dark:bg-yellow-950 text-yellow-800 dark:text-yellow-300'
-                }`}>
-                  {change.status}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Execution Table */}
       <div className="border border-border rounded-lg overflow-hidden">
