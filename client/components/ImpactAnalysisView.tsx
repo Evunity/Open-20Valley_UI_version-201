@@ -154,176 +154,156 @@ export const ImpactAnalysisView: React.FC<ImpactAnalysisViewProps> = ({ onImpact
 
   const impact = impactScenarios[selectedObject];
 
-  const getHealthColor = (health: string) => {
+  const getHealthIndicator = (health: string) => {
     switch (health) {
       case 'down':
-        return 'bg-red-50 dark:bg-red-950/20 text-red-800 dark:text-red-300 border-l-4 border-l-red-600';
+        return 'bg-red-600';
       case 'degraded':
-        return 'bg-yellow-50 dark:bg-yellow-950/20 text-yellow-800 dark:text-yellow-300 border-l-4 border-l-yellow-600';
+        return 'bg-amber-600';
       default:
-        return 'bg-gray-50 dark:bg-gray-800/30 text-gray-800 dark:text-gray-300 border-l-4 border-l-gray-400';
+        return 'bg-gray-400';
     }
   };
 
-  const getHealthStatusColor = (health: string) => {
+  const getHealthLabel = (health: string) => {
     switch (health) {
       case 'down':
-        return 'text-red-600 dark:text-red-400';
+        return 'Critical';
       case 'degraded':
-        return 'text-yellow-600 dark:text-yellow-400';
+        return 'Degraded';
       default:
-        return 'text-green-600 dark:text-green-400';
+        return 'Healthy';
     }
   };
 
   return (
-    <div className="w-full h-full flex flex-col gap-6 p-4 bg-background overflow-y-auto">
+    <div className="w-full h-full flex flex-col p-6 bg-background overflow-y-auto">
       {/* Header */}
-      <div>
-        <h2 className="text-lg font-bold text-foreground">Impact & Blast Radius Analysis</h2>
-        <p className="text-xs text-muted-foreground mt-1">Analyze failure scenarios and their downstream impact</p>
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold text-foreground">Impact Analysis</h2>
+        <p className="text-sm text-muted-foreground mt-2">Analyze failure scenarios and their cascading effects</p>
       </div>
 
-      {/* Failure Scenario Selector */}
-      <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-foreground">Select Failure Scenario</h3>
-        <div className="space-y-2">
-          {Object.entries(impactScenarios).map(([key, scenario]) => (
-            <button
-              key={key}
-              onClick={() => setSelectedObject(key)}
-              className={`w-full text-left px-4 py-3 rounded-lg border transition ${
-                selectedObject === key
-                  ? 'bg-blue-50 dark:bg-blue-950/20 border-blue-300 dark:border-blue-700'
-                  : 'bg-card border-border hover:bg-muted/50'
-              }`}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-foreground">{scenario.triggeredBy}</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {scenario.totalSubscribersAffected.toLocaleString()} subscribers affected • ${scenario.estimatedRevenueImpact.toLocaleString()} impact
-                  </p>
-                </div>
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Impact Propagation Chain */}
-      <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-foreground">Impact Propagation Chain</h3>
-        <div className="space-y-2">
-          {impact.impactChain.map((step, idx) => (
-            <div key={idx}>
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-3 gap-6 flex-1">
+        {/* Left: Scenario Selector */}
+        <div className="col-span-1 border-r border-border pr-6">
+          <h3 className="text-sm font-semibold text-foreground mb-4">Failure Scenarios</h3>
+          <div className="space-y-2">
+            {Object.entries(impactScenarios).map(([key, scenario]) => (
               <button
-                onClick={() => onImpactSelect?.(step.object)}
-                className={`w-full text-left px-4 py-3 rounded-lg transition ${getHealthColor(step.health)}`}
+                key={key}
+                onClick={() => setSelectedObject(key)}
+                className={`w-full text-left px-3 py-3 rounded border transition ${
+                  selectedObject === key
+                    ? 'bg-blue-50 dark:bg-blue-950/30 border-blue-300 dark:border-blue-600'
+                    : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'
+                }`}
               >
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-baseline gap-2">
-                      <p className="text-xs font-semibold text-muted-foreground">Level {step.level}</p>
-                      <p className="font-semibold text-foreground">{step.object}</p>
-                    </div>
-                    <p className="text-sm text-foreground mt-1">{step.impact}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{step.type}</p>
-                  </div>
-                  <div className="text-right flex-shrink-0">
-                    <p className="text-2xl font-bold text-foreground">{step.count}</p>
-                  </div>
-                </div>
+                <p className="text-sm font-medium text-foreground line-clamp-2">{scenario.triggeredBy}</p>
+                <p className="text-xs text-muted-foreground mt-2">
+                  {scenario.totalSubscribersAffected.toLocaleString()} affected
+                </p>
               </button>
-              {idx < impact.impactChain.length - 1 && (
-                <div className="flex justify-center py-2">
-                  <div className="text-muted-foreground text-sm">↓</div>
+            ))}
+          </div>
+        </div>
+
+        {/* Right: Impact Details */}
+        <div className="col-span-2 flex flex-col gap-8">
+          {/* Impact Chain */}
+          <div>
+            <h3 className="text-sm font-semibold text-foreground mb-4">Impact Chain</h3>
+            <div className="space-y-3">
+              {impact.impactChain.map((step, idx) => (
+                <div key={idx}>
+                  <div
+                    onClick={() => onImpactSelect?.(step.object)}
+                    className="p-3 rounded border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 cursor-pointer transition"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <div className={`w-2 h-2 rounded-full ${getHealthIndicator(step.health)}`}></div>
+                          <span className="text-xs font-semibold text-muted-foreground">Level {step.level}</span>
+                          <span className="text-xs font-medium text-foreground">{getHealthLabel(step.health)}</span>
+                        </div>
+                        <p className="text-sm font-semibold text-foreground mt-1">{step.object}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{step.impact}</p>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <p className="text-lg font-bold text-foreground">{step.count}</p>
+                        <p className="text-xs text-muted-foreground">{step.type}</p>
+                      </div>
+                    </div>
+                  </div>
+                  {idx < impact.impactChain.length - 1 && (
+                    <div className="flex justify-center py-1">
+                      <div className="w-0.5 h-3 bg-gray-300 dark:bg-gray-700"></div>
+                    </div>
+                  )}
                 </div>
-              )}
+              ))}
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Key Metrics */}
-      <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-foreground">Key Impact Metrics</h3>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="p-3 bg-card rounded-lg border border-border">
-            <div className="flex items-center gap-2 mb-2">
-              <Users className="w-4 h-4 text-muted-foreground" />
-              <p className="text-xs font-semibold text-muted-foreground">Subscribers Affected</p>
-            </div>
-            <p className="text-2xl font-bold text-foreground">
-              {(impact.totalSubscribersAffected / 1000).toFixed(0)}K
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              {impact.totalSubscribersAffected.toLocaleString()} total
-            </p>
           </div>
 
-          <div className="p-3 bg-card rounded-lg border border-border">
-            <div className="flex items-center gap-2 mb-2">
-              <DollarSign className="w-4 h-4 text-muted-foreground" />
-              <p className="text-xs font-semibold text-muted-foreground">Revenue Impact</p>
-            </div>
-            <p className="text-2xl font-bold text-foreground">
-              ${(impact.estimatedRevenueImpact / 1000).toFixed(0)}K
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Estimated loss
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Affected Services */}
-      <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-foreground">Affected Services</h3>
-        <div className="flex flex-wrap gap-2">
-          {impact.affectedServices.map((service, idx) => (
-            <span
-              key={idx}
-              className="px-3 py-1 bg-blue-100 dark:bg-blue-950/30 text-blue-800 dark:text-blue-300 text-xs rounded-full font-semibold"
-            >
-              {service}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {/* KPI Degradation */}
-      <div className="space-y-4">
-        <h3 className="text-sm font-semibold text-foreground">KPI Degradation</h3>
-        <div className="space-y-4">
-          {Object.entries(impact.kpiDegradation).map(([kpi, degradation]) => (
-            <div key={kpi}>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-semibold text-foreground">{kpi}</span>
-                <span className={`text-sm font-bold ${getHealthStatusColor('down')}`}>-{degradation}%</span>
+          {/* Metrics */}
+          <div>
+            <h3 className="text-sm font-semibold text-foreground mb-4">Key Metrics</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-3 rounded border border-gray-200 dark:border-gray-800">
+                <p className="text-xs text-muted-foreground font-medium">Subscribers Affected</p>
+                <p className="text-2xl font-bold text-foreground mt-2">
+                  {(impact.totalSubscribersAffected / 1000).toFixed(0)}K
+                </p>
               </div>
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
-                <div
-                  className="bg-red-600 dark:bg-red-500 rounded-full h-full transition-all"
-                  style={{ width: `${Math.min(degradation, 100)}%` }}
-                />
+              <div className="p-3 rounded border border-gray-200 dark:border-gray-800">
+                <p className="text-xs text-muted-foreground font-medium">Revenue Impact</p>
+                <p className="text-2xl font-bold text-foreground mt-2">
+                  ${(impact.estimatedRevenueImpact / 1000).toFixed(0)}K
+                </p>
               </div>
             </div>
-          ))}
+          </div>
+
+          {/* Services & KPIs */}
+          <div className="grid grid-cols-2 gap-6">
+            {/* Affected Services */}
+            <div>
+              <h4 className="text-xs font-semibold text-foreground uppercase tracking-wide mb-3">Services</h4>
+              <div className="flex flex-wrap gap-2">
+                {impact.affectedServices.map((service, idx) => (
+                  <span
+                    key={idx}
+                    className="px-2.5 py-1 rounded text-xs font-medium bg-gray-100 dark:bg-gray-800 text-foreground"
+                  >
+                    {service}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* KPI Summary */}
+            <div>
+              <h4 className="text-xs font-semibold text-foreground uppercase tracking-wide mb-3">KPI Impact</h4>
+              <div className="space-y-2">
+                {Object.entries(impact.kpiDegradation).slice(0, 2).map(([kpi, degradation]) => (
+                  <div key={kpi} className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">{kpi}</span>
+                    <span className="text-xs font-semibold text-red-600 dark:text-red-400">-{degradation}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Information Box */}
-      <div className="p-4 bg-gray-50 dark:bg-gray-800/30 border border-gray-200 dark:border-gray-700 rounded-lg">
-        <div className="flex items-start gap-3">
-          <AlertTriangle className="w-4 h-4 text-yellow-600 dark:text-yellow-500 flex-shrink-0 mt-0.5" />
-          <div className="text-xs text-foreground space-y-1">
-            <p className="font-semibold">About Impact Analysis</p>
-            <p className="text-muted-foreground">
-              This analysis simulates the cascading effects of infrastructure failures. Use this to understand blast radius and prioritize recovery actions.
-            </p>
-          </div>
-        </div>
+      {/* Info Footer */}
+      <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-800">
+        <p className="text-xs text-muted-foreground">
+          <span className="font-semibold">Note:</span> Impact analysis simulates cascading failures. Results are based on current topology and configuration.
+        </p>
       </div>
     </div>
   );
