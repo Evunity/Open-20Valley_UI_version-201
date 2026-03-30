@@ -68,30 +68,38 @@ const TopologyManagementContent: React.FC = () => {
   const filteredNodes = React.useMemo(() => {
     let filtered = [...visibleNodes];
 
-    // Apply tenant/country filter
+    // Apply country/tenant filter FIRST
     if (selectedCountry) {
       filtered = filtered.filter(node => node.country === selectedCountry);
     }
 
-    // Apply layer filters
-    if (layers.alarms) {
-      filtered = filtered.filter(node =>
-        node.alarmSummary.critical > 0 || node.alarmSummary.major > 0 ||
-        node.alarmSummary.minor > 0 || node.type !== 'site'
-      );
-    }
+    // Apply layer filters - these are visibility toggles
+    // If both ranOnly and transportOnly are false, show all nodes (with country filter)
+    // If ranOnly is true, show only RAN equipment
+    // If transportOnly is true, show only transport equipment
 
-    if (layers.ranOnly) {
+    if (layers.ranOnly && layers.transportOnly) {
+      // Show both RAN and transport
+      filtered = filtered.filter(node =>
+        (node.type === 'cell' || node.type === 'sector' || node.type === 'site') ||
+        (node.type === 'link' || node.type === 'equipment')
+      );
+    } else if (layers.ranOnly) {
+      // Show only RAN equipment
       filtered = filtered.filter(node =>
         node.type === 'cell' || node.type === 'sector' || node.type === 'site'
       );
-    }
-
-    if (layers.transportOnly) {
+    } else if (layers.transportOnly) {
+      // Show only transport equipment
       filtered = filtered.filter(node =>
-        node.type === 'link' || node.type === 'equipment' || node.parentId
+        node.type === 'link' || node.type === 'equipment' || (node.parentId && node.type !== 'cell' && node.type !== 'sector' && node.type !== 'site')
       );
     }
+    // else: show all (with country filter applied above)
+
+    // Alarms filter - if enabled, highlight nodes with alarms (visual layer, not visibility)
+    // This doesn't filter nodes, just shows alarms as a layer
+    // The alarms are always included in the map, but can be toggled for visibility
 
     return filtered;
   }, [visibleNodes, selectedCountry, layers]);
@@ -109,7 +117,36 @@ const TopologyManagementContent: React.FC = () => {
   const renderMapView = () => (
     <div className="w-full h-full flex flex-col gap-4 p-4 bg-background dark:bg-background overflow-y-auto">
       <div className="flex items-center justify-between mb-2">
-        <h2 className="text-lg font-bold text-foreground">Global Geospatial Map - MENA Network</h2>
+        <div>
+          <h2 className="text-lg font-bold text-foreground">Global Geospatial Map - MENA Network</h2>
+          <div className="flex gap-2 mt-1">
+            {selectedCountry && (
+              <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 rounded font-semibold">
+                🌍 Country: {selectedCountry}
+              </span>
+            )}
+            {layers.ranOnly && (
+              <span className="text-xs px-2 py-1 bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300 rounded font-semibold">
+                📡 RAN Only
+              </span>
+            )}
+            {layers.transportOnly && (
+              <span className="text-xs px-2 py-1 bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 rounded font-semibold">
+                🔗 Transport Only
+              </span>
+            )}
+            {layers.alarms && (
+              <span className="text-xs px-2 py-1 bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300 rounded font-semibold">
+                🚨 Alarms Layer
+              </span>
+            )}
+            {filteredNodes.length < visibleNodes.length && (
+              <span className="text-xs px-2 py-1 bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 rounded font-semibold">
+                ✓ Filtered: {filteredNodes.length} of {visibleNodes.length} nodes
+              </span>
+            )}
+          </div>
+        </div>
         <div className="flex gap-2">
           <button
             onClick={() => setShowLayerPanel(!showLayerPanel)}
