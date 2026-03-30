@@ -128,7 +128,7 @@ const TopologyManagementContent: React.FC = () => {
     <div className="w-full h-full flex flex-col bg-background dark:bg-background overflow-y-auto">
       {/* Filter Status Indicators */}
       {(selectedCountry || layers.ranOnly || layers.transportOnly || layers.alarms || filteredNodes.length < visibleNodes.length) && (
-        <div className="flex gap-2 px-4 pt-4 pb-2 flex-wrap">
+        <div className="flex gap-2 px-4 py-2 flex-wrap">
           {selectedCountry && (
             <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 rounded font-semibold">
               🌍 Country: {selectedCountry}
@@ -158,7 +158,7 @@ const TopologyManagementContent: React.FC = () => {
       )}
 
       {/* Main content grid - Map fills width with responsive sidebar */}
-      <div className="flex flex-1 gap-4 p-4">
+      <div className="flex flex-1 gap-3 p-3">
         {/* Main map area - Takes available space */}
         <div className="flex-1 min-w-0">
           <GeospatialNetworkMap
