@@ -123,50 +123,6 @@ export default function BehavioralAnalyticsLayer() {
         </div>
       </div>
 
-      {/* ML Model Insights */}
-      <div className="rounded-xl border border-border/50 p-6 bg-card/50">
-        <h3 className="font-bold text-foreground mb-4">
-          ML Model Insights
-        </h3>
-
-        <div className="space-y-3 text-sm">
-          <div className="p-3 bg-muted/30 rounded-lg border border-border/30">
-            <p className="font-semibold text-foreground">Model Accuracy</p>
-          </div>
-
-          <div className="p-3 bg-muted/30 rounded-lg border border-border/30">
-            <p className="font-semibold text-foreground">False Positive Rate</p>
-          </div>
-
-          <div className="p-3 bg-muted/30 rounded-lg border border-border/30">
-            <p className="font-semibold text-foreground">Training Data</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Response Actions */}
-      <div className="rounded-xl border border-border/50 p-6 bg-card/50">
-        <h3 className="font-bold text-foreground mb-4">Automated Response Actions</h3>
-
-        <div className="space-y-2">
-          <label className="flex items-center gap-3 p-2 cursor-pointer hover:bg-muted/30 rounded transition-colors">
-            <input type="checkbox" defaultChecked />
-            <span className="text-sm text-foreground">Alert security team on high-risk anomalies</span>
-          </label>
-          <label className="flex items-center gap-3 p-2 cursor-pointer hover:bg-muted/30 rounded transition-colors">
-            <input type="checkbox" defaultChecked />
-            <span className="text-sm text-foreground">Rate-limit API clients exceeding thresholds</span>
-          </label>
-          <label className="flex items-center gap-3 p-2 cursor-pointer hover:bg-muted/30 rounded transition-colors">
-            <input type="checkbox" />
-            <span className="text-sm text-foreground">Force re-authentication for escalated access</span>
-          </label>
-          <label className="flex items-center gap-3 p-2 cursor-pointer hover:bg-muted/30 rounded transition-colors">
-            <input type="checkbox" />
-            <span className="text-sm text-foreground">Revoke access token immediately on critical anomaly</span>
-          </label>
-        </div>
-      </div>
     </div>
   );
 }
