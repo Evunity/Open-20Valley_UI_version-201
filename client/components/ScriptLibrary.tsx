@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Copy, Trash2, Play, Tag, Lock, AlertTriangle, Zap, Clock } from 'lucide-react';
+import { Plus, Copy, Trash2, Play, Tag, AlertTriangle, Zap, Clock } from 'lucide-react';
 
 interface ScriptLibraryProps {
   selectedTarget: any;
@@ -411,15 +411,8 @@ export const ScriptLibrary: React.FC<ScriptLibraryProps> = () => {
                 ))}
               </div>
 
-              {/* Permissions & Rollback */}
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="p-2 bg-blue-50 rounded flex items-start gap-1">
-                  <Lock className="w-3 h-3 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="font-semibold text-blue-900">Permissions:</p>
-                    <p className="text-blue-700">{script.requiredPermissions.join(', ')}</p>
-                  </div>
-                </div>
+              {/* Rollback */}
+              <div className="text-xs">
                 <div className="p-2 bg-amber-50 rounded flex items-start gap-1">
                   <AlertTriangle className="w-3 h-3 text-amber-600 mt-0.5 flex-shrink-0" />
                   <div>
