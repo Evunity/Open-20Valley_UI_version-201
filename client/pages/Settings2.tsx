@@ -32,18 +32,18 @@ export default function Settings2() {
   };
 
   const tabs = [
-    { id: 'system-config', label: '1. System Configuration', icon: Settings },
-    { id: 'module-config', label: '2. Module Configuration', icon: Sliders },
-    { id: 'integration', label: '3. Integration Settings', icon: Zap },
-    { id: 'data-retention', label: '4. Data & Retention', icon: Database },
-    { id: 'performance', label: '5. Performance & Limits', icon: Gauge },
-    { id: 'notifications', label: '6. Notifications', icon: Bell },
-    { id: 'automation', label: '7. Automation Guardrails', icon: Shield },
-    { id: 'environment', label: '8. Environment & Deploy', icon: Cloud },
-    { id: 'backup', label: '9. Backup & Recovery', icon: RotateCcw },
-    { id: 'branding', label: '10. Branding & UI', icon: Palette },
-    { id: 'audit', label: '11. Audit & Control', icon: FileText },
-    { id: 'permissions', label: '12. Permissions', icon: Lock }
+    { id: 'system-config', label: 'System Configuration', icon: Settings },
+    { id: 'module-config', label: 'Module Configuration', icon: Sliders },
+    { id: 'integration', label: 'Integration Settings', icon: Zap },
+    { id: 'data-retention', label: 'Data & Retention', icon: Database },
+    { id: 'performance', label: 'Performance & Limits', icon: Gauge },
+    { id: 'notifications', label: 'Notifications', icon: Bell },
+    { id: 'automation', label: 'Automation Guardrails', icon: Shield },
+    { id: 'environment', label: 'Environment & Deploy', icon: Cloud },
+    { id: 'backup', label: 'Backup & Recovery', icon: RotateCcw },
+    { id: 'branding', label: 'Branding & UI', icon: Palette },
+    { id: 'audit', label: 'Audit & Control', icon: FileText },
+    { id: 'permissions', label: 'Permissions', icon: Lock }
   ];
 
   return (
