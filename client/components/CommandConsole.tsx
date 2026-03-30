@@ -220,16 +220,19 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
 
           {/* Vendor Selection */}
           <div>
-            <label className="block text-xs font-semibold text-muted-foreground mb-1">Vendor <span className="text-red-500">*</span></label>
-            <select
-              value={selectedVendor}
-              onChange={(e) => setSelectedVendor(e.target.value)}
-              className="w-full px-3 py-1.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm"
-            >
-              {Object.keys(VENDOR_COMMANDS).map(vendor => (
-                <option key={vendor} value={vendor}>{vendor}</option>
-              ))}
-            </select>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">
+              Vendor <span className="text-red-500">*</span>
+            </label>
+            <SearchableDropdown
+              label=""
+              options={Object.keys(VENDOR_COMMANDS)}
+              selected={selectedVendor ? [selectedVendor] : []}
+              onChange={(selected) => setSelectedVendor(selected[0] || '')}
+              placeholder="Select vendor..."
+              multiSelect={false}
+              searchable={true}
+              compact={true}
+            />
           </div>
         </div>
 
@@ -238,15 +241,23 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
           {/* Mode Selection */}
           <div>
             <label className="block text-xs font-semibold text-muted-foreground mb-1">Mode</label>
-            <select
-              value={mode}
-              onChange={(e) => setMode(e.target.value as any)}
-              className="w-full px-3 py-1.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm"
-            >
-              <option value="raw">Raw Mode (Native)</option>
-              <option value="guided">Guided Mode (Form-Based)</option>
-              <option value="script">Script Mode (Multi-line)</option>
-            </select>
+            <SearchableDropdown
+              label=""
+              options={['Raw Mode (Native)', 'Guided Mode (Form-Based)', 'Script Mode (Multi-line)']}
+              selected={mode === 'raw' ? ['Raw Mode (Native)'] : mode === 'guided' ? ['Guided Mode (Form-Based)'] : ['Script Mode (Multi-line)']}
+              onChange={(selected) => {
+                const modeMap: Record<string, 'raw' | 'guided' | 'script'> = {
+                  'Raw Mode (Native)': 'raw',
+                  'Guided Mode (Form-Based)': 'guided',
+                  'Script Mode (Multi-line)': 'script'
+                };
+                setMode(modeMap[selected[0]] || 'raw');
+              }}
+              placeholder="Select mode..."
+              multiSelect={false}
+              searchable={true}
+              compact={true}
+            />
           </div>
 
           {/* Context */}
