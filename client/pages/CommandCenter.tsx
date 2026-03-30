@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
-import { Terminal, Code, Zap, FileText, Eye, RotateCcw, Package, AlertTriangle, GitCompare, Clock } from 'lucide-react';
+import { Terminal, Code, Zap, FileText, Eye, RotateCcw, AlertTriangle, GitCompare, Clock } from 'lucide-react';
 import { CommandConsole } from '../components/CommandConsole';
 import { ParameterExplorer } from '../components/ParameterExplorer';
 import { BulkEditor } from '../components/BulkEditor';
 import { ScriptLibrary } from '../components/ScriptLibrary';
 import { ExecutionMonitor } from '../components/ExecutionMonitor';
 import { AuditRollbackCenter } from '../components/AuditRollbackCenter';
-import { SandboxMode } from '../components/SandboxMode';
 import { RollbackVersionControl } from '../components/RollbackVersionControl';
 import { DiffView } from '../components/DiffView';
 
-type ModuleView = 'console' | 'parameters' | 'bulk' | 'scripts' | 'monitor' | 'audit' | 'sandbox' | 'rollback' | 'diff';
+type ModuleView = 'console' | 'parameters' | 'bulk' | 'scripts' | 'monitor' | 'audit' | 'rollback' | 'diff';
 
 interface ModuleConfig {
   id: ModuleView;
@@ -55,13 +54,6 @@ const MODULES: ModuleConfig[] = [
     icon: Zap,
     description: 'Real-time monitoring with pause/resume/retry controls',
     riskLevel: 'read-only'
-  },
-  {
-    id: 'sandbox',
-    label: 'Sandbox Mode',
-    icon: Package,
-    description: 'Test commands and scripts safely',
-    riskLevel: 'safe'
   },
   {
     id: 'diff',
@@ -112,8 +104,6 @@ export const CommandCenter: React.FC = () => {
         return <ScriptLibrary {...props} />;
       case 'monitor':
         return <ExecutionMonitor {...props} />;
-      case 'sandbox':
-        return <SandboxMode {...props} />;
       case 'diff':
         return <DiffView {...props} />;
       case 'rollback':
