@@ -11,8 +11,7 @@ export default function SessionIntelligenceCenter() {
     <div className="space-y-8">
       {/* Description */}
       <div className="bg-green-500/5 border border-green-500/20 rounded-xl p-6">
-        <h3 className="font-bold text-foreground mb-2 flex items-center gap-2">
-          <Users className="w-5 h-5 text-green-600" />
+        <h3 className="font-bold text-foreground mb-2">
           Session Intelligence Center
         </h3>
         <p className="text-sm text-muted-foreground">
@@ -72,8 +71,7 @@ export default function SessionIntelligenceCenter() {
 
       {/* Behavioral Patterns */}
       <div className="rounded-xl border border-border/50 p-6 bg-card/50">
-        <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
-          <Activity className="w-5 h-5" />
+        <h3 className="font-bold text-foreground mb-4">
           Behavioral Analysis
         </h3>
 
@@ -96,8 +94,7 @@ export default function SessionIntelligenceCenter() {
 
       {/* Risk Indicators */}
       <div className="rounded-xl border border-border/50 p-6 bg-card/50">
-        <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
-          <AlertTriangle className="w-5 h-5 text-orange-600" />
+        <h3 className="font-bold text-foreground mb-4">
           Session Risk Indicators
         </h3>
 

@@ -436,8 +436,7 @@ export default function BlastCorrelationEngine() {
 
       {/* Impact Summary */}
       <div className="rounded-xl border border-border/50 p-6 bg-card/50">
-        <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
-          <TrendingUp className="w-4 h-4" />
+        <h3 className="font-bold text-foreground mb-4">
           Blast Impact Analysis
         </h3>
 
@@ -465,8 +464,7 @@ export default function BlastCorrelationEngine() {
 
       {/* Mitigation Recommendations */}
       <div className="rounded-xl border border-border/50 p-6 bg-card/50">
-        <h3 className="font-bold text-foreground mb-3 flex items-center gap-2">
-          <AlertTriangle className="w-4 h-4" />
+        <h3 className="font-bold text-foreground mb-3">
           Mitigation Strategy
         </h3>
 

@@ -273,18 +273,7 @@ export default function ActivityAudit() {
           {/* Workspace Header */}
           <div className="border-b border-border bg-card/30 px-8 py-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                {activeConfig && (
-                  <>
-                    <div className={cn(
-                      "p-2 rounded-lg bg-gradient-to-br",
-                      activeConfig.color
-                    )}>
-                      <activeConfig.icon className="w-5 h-5 text-white" />
-                    </div>
-                  </>
-                )}
-              </div>
+              <div></div>
               <div className="text-xs px-2 py-1 rounded bg-muted text-muted-foreground font-semibold capitalize">
                 {activeConfig?.domain}
               </div>

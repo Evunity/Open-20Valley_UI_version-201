@@ -14,8 +14,7 @@ export default function CrossSystemIncidentTimeline() {
     <div className="space-y-8">
       {/* Description */}
       <div className="bg-orange-500/5 border border-orange-500/20 rounded-xl p-6">
-        <h3 className="font-bold text-foreground mb-2 flex items-center gap-2">
-          <GitBranch className="w-5 h-5 text-orange-600" />
+        <h3 className="font-bold text-foreground mb-2">
           Cross-System Incident Timeline
         </h3>
         <p className="text-sm text-muted-foreground">

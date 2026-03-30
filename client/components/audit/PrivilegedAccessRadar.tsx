@@ -12,8 +12,7 @@ export default function PrivilegedAccessRadar() {
     <div className="space-y-8">
       {/* Description */}
       <div className="bg-red-500/5 border border-red-500/20 rounded-xl p-6">
-        <h3 className="font-bold text-foreground mb-2 flex items-center gap-2">
-          <Lock className="w-5 h-5 text-red-600" />
+        <h3 className="font-bold text-foreground mb-2">
           Privileged Access Radar
         </h3>
         <p className="text-sm text-muted-foreground">
@@ -84,8 +83,7 @@ export default function PrivilegedAccessRadar() {
 
       {/* Policy Violations */}
       <div className="rounded-xl border border-border/50 p-6 bg-card/50">
-        <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
-          <AlertTriangle className="w-5 h-5 text-orange-600" />
+        <h3 className="font-bold text-foreground mb-4">
           Recent Policy Violations
         </h3>
 

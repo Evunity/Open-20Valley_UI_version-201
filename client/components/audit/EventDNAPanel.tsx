@@ -144,15 +144,13 @@ export default function EventDNAPanel() {
 
       {/* Risk Flags */}
       <div className="rounded-xl border border-border/50 p-6 bg-card/50">
-        <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
-          <AlertTriangle className="w-5 h-5 text-orange-600" />
+        <h3 className="font-bold text-foreground mb-4">
           Risk Flags
         </h3>
 
         <div className="space-y-2">
           {eventDNA.riskFlags.map((flag, idx) => (
-            <div key={idx} className="p-3 bg-orange-500/5 border border-orange-500/20 rounded-lg flex items-start gap-2">
-              <AlertTriangle className="w-4 h-4 text-orange-600 flex-shrink-0 mt-0.5" />
+            <div key={idx} className="p-3 bg-orange-500/5 border border-orange-500/20 rounded-lg">
               <p className="text-sm text-muted-foreground">{flag}</p>
             </div>
           ))}

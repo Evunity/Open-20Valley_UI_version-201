@@ -148,18 +148,9 @@ export default function ExecutiveRiskOverview() {
                     : 'bg-yellow-500/5 border-yellow-500/20'
               )}
             >
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                  <h4 className="font-bold text-foreground text-sm">{card.title}</h4>
-                  <p className="text-xs text-muted-foreground mt-1">{card.description}</p>
-                </div>
-                {card.severity === 'critical' ? (
-                  <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0" />
-                ) : card.severity === 'high' ? (
-                  <AlertTriangle className="w-5 h-5 text-orange-600 flex-shrink-0" />
-                ) : (
-                  <TrendingUp className="w-5 h-5 text-yellow-600 flex-shrink-0" />
-                )}
+              <div className="mb-3">
+                <h4 className="font-bold text-foreground text-sm">{card.title}</h4>
+                <p className="text-xs text-muted-foreground mt-1">{card.description}</p>
               </div>
 
               <div className="flex items-baseline gap-2 mb-2">
@@ -177,16 +168,14 @@ export default function ExecutiveRiskOverview() {
 
       {/* Risk Thresholds and Alerts */}
       <div className="rounded-xl border border-border/50 p-6 bg-card/50">
-        <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
-          <AlertTriangle className="w-5 h-5 text-orange-600" />
+        <h3 className="font-bold text-foreground mb-4">
           Active Risk Alerts
         </h3>
 
         <div className="space-y-3">
           <div className="p-4 bg-red-500/5 border border-red-500/20 rounded-lg">
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
+            <div>
+              <div>
                 <p className="text-sm font-semibold text-red-700">Critical: Privilege Escalation Detected</p>
                 <p className="text-xs text-muted-foreground mt-1">
                   User 'rf_engineer' escalated to admin role at 14:32:15 UTC. Manual action required for policy compliance.
@@ -199,9 +188,8 @@ export default function ExecutiveRiskOverview() {
           </div>
 
           <div className="p-4 bg-orange-500/5 border border-orange-500/20 rounded-lg">
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
+            <div>
+              <div>
                 <p className="text-sm font-semibold text-orange-700">Warning: Automation Override Detected</p>
                 <p className="text-xs text-muted-foreground mt-1">
                   Automation 'Load Balancing Policy' was manually overridden by 'ops_manager'. Review guardrails.
@@ -214,9 +202,8 @@ export default function ExecutiveRiskOverview() {
           </div>
 
           <div className="p-4 bg-yellow-500/5 border border-yellow-500/20 rounded-lg">
-            <div className="flex items-start gap-3">
-              <TrendingUp className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
+            <div>
+              <div>
                 <p className="text-sm font-semibold text-yellow-700">Notice: Configuration Drift Detected</p>
                 <p className="text-xs text-muted-foreground mt-1">
                   3 RF parameters deviated from baseline configuration. Likely caused by manual changes 2 hours ago.
@@ -232,8 +219,7 @@ export default function ExecutiveRiskOverview() {
 
       {/* Risk Mitigation Actions */}
       <div className="rounded-xl border border-border/50 p-6 bg-card/50">
-        <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
-          <CheckCircle className="w-5 h-5 text-green-600" />
+        <h3 className="font-bold text-foreground mb-4">
           Recommended Risk Mitigations
         </h3>
 

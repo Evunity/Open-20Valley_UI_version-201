@@ -11,8 +11,7 @@ export default function BehavioralAnalyticsLayer() {
     <div className="space-y-8">
       {/* Description */}
       <div className="bg-indigo-500/5 border border-indigo-500/20 rounded-xl p-6">
-        <h3 className="font-bold text-foreground mb-2 flex items-center gap-2">
-          <TrendingUp className="w-5 h-5 text-indigo-600" />
+        <h3 className="font-bold text-foreground mb-2">
           Behavioral Analytics Layer
         </h3>
         <p className="text-sm text-muted-foreground">
@@ -96,8 +95,7 @@ export default function BehavioralAnalyticsLayer() {
 
       {/* Insider Threat Scoring */}
       <div className="rounded-xl border border-border/50 p-6 bg-card/50">
-        <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
-          <AlertTriangle className="w-5 h-5 text-orange-600" />
+        <h3 className="font-bold text-foreground mb-4">
           Insider Threat Risk Scores
         </h3>
 

@@ -391,8 +391,7 @@ export default function BehavioralBaselinesPanel() {
 
       {/* Baseline Metrics */}
       <div className="rounded-xl border border-border/50 p-6 bg-card/50">
-        <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
-          <TrendingUp className="w-4 h-4" />
+        <h3 className="font-bold text-foreground mb-4">
           Baseline Metrics & Deviations
         </h3>
 
@@ -438,8 +437,7 @@ export default function BehavioralBaselinesPanel() {
       {/* Learning Phase Explanation */}
       {currentUser.status === 'learning' && (
         <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/5 p-6">
-          <h3 className="font-bold text-yellow-700 mb-3 flex items-center gap-2">
-            <Clock className="w-4 h-4" />
+          <h3 className="font-bold text-yellow-700 mb-3">
             Learning Phase in Progress
           </h3>
           <p className="text-sm text-yellow-600 mb-3">
