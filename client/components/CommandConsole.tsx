@@ -428,7 +428,7 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
           <button
             onClick={executeCommand}
             disabled={!command.trim()}
-            className="px-6 py-2.5 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary transition-all flex items-center gap-2 font-semibold text-sm shadow-md hover:shadow-lg whitespace-nowrap flex-shrink-0"
+            className="px-6 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary transition-all flex items-center gap-2 font-semibold text-sm shadow-md hover:shadow-lg whitespace-nowrap flex-shrink-0"
           >
             <Send className="w-4 h-4" />
             Execute
