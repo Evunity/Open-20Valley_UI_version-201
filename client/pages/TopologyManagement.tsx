@@ -309,7 +309,7 @@ const TopologyManagementContent: React.FC = () => {
   return (
     <div className="topology-theme flex flex-col h-screen bg-background">
       {/* Toolbar with View Selector and Controls */}
-      <div className="bg-card border-b border-border p-4 space-y-3">
+      <div className="bg-card border-b border-border p-4 flex flex-col gap-3">
         {/* View Selector Grid */}
         <div className="grid grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-2 auto-rows-max">
           {VIEWS.map(view => {
@@ -333,7 +333,7 @@ const TopologyManagementContent: React.FC = () => {
         </div>
 
         {/* Controls Row - Export, Predictive AI, and Edit Mode (for Tree View) */}
-        <div className="flex gap-2 items-center ml-auto">
+        <div className="flex gap-2 items-center justify-end">
           <button
             onClick={() => setShowExportPanel(!showExportPanel)}
             className={`px-3 py-1.5 h-9 flex items-center justify-center rounded text-xs font-semibold transition ${
