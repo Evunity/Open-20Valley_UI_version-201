@@ -26,7 +26,25 @@ export default function Settings2() {
   const [activeTab, setActiveTab] = useState('system-config');
   const [savedStatus, setSavedStatus] = useState<string | null>(null);
 
+  // System Configuration State
+  const [systemConfig, setSystemConfig] = useState({
+    systemName: 'OSS Platform',
+    timezone: 'UTC',
+    dateFormat: 'YYYY-MM-DD HH:mm:ss',
+    language: 'English',
+    maintenanceMode: false
+  });
+
+  const handleConfigChange = (field: string, value: any) => {
+    setSystemConfig(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
   const handleSave = () => {
+    // Save system config to localStorage
+    localStorage.setItem('systemConfig', JSON.stringify(systemConfig));
     setSavedStatus('Settings saved successfully');
     setTimeout(() => setSavedStatus(null), 3000);
   };
@@ -87,11 +105,20 @@ export default function Settings2() {
                   <div className="space-y-2">
                     <div>
                       <label className="block text-sm font-semibold text-foreground mb-2">System Name</label>
-                      <input type="text" defaultValue="OSS Platform" className="w-full rounded-lg border border-border px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50 bg-card text-foreground" />
+                      <input
+                        type="text"
+                        value={systemConfig.systemName}
+                        onChange={(e) => handleConfigChange('systemName', e.target.value)}
+                        className="w-full rounded-lg border border-border px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50 bg-card text-foreground"
+                      />
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-foreground mb-2">Default Timezone</label>
-                      <select className="w-full rounded-lg border border-border px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50 bg-card text-foreground">
+                      <select
+                        value={systemConfig.timezone}
+                        onChange={(e) => handleConfigChange('timezone', e.target.value)}
+                        className="w-full rounded-lg border border-border px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50 bg-card text-foreground"
+                      >
                         <option>UTC</option>
                         <option>America/New_York</option>
                         <option>Europe/London</option>
@@ -100,7 +127,11 @@ export default function Settings2() {
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-foreground mb-2">System-wide Date/Time Format</label>
-                      <select className="w-full rounded-lg border border-border px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50 bg-card text-foreground">
+                      <select
+                        value={systemConfig.dateFormat}
+                        onChange={(e) => handleConfigChange('dateFormat', e.target.value)}
+                        className="w-full rounded-lg border border-border px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50 bg-card text-foreground"
+                      >
                         <option>YYYY-MM-DD HH:mm:ss</option>
                         <option>DD/MM/YYYY HH:mm:ss</option>
                         <option>MM/DD/YYYY HH:mm:ss</option>
@@ -108,7 +139,11 @@ export default function Settings2() {
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-foreground mb-2">Default Language</label>
-                      <select className="w-full rounded-lg border border-border px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50 bg-card text-foreground">
+                      <select
+                        value={systemConfig.language}
+                        onChange={(e) => handleConfigChange('language', e.target.value)}
+                        className="w-full rounded-lg border border-border px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50 bg-card text-foreground"
+                      >
                         <option>English</option>
                         <option>Spanish</option>
                         <option>French</option>
@@ -117,7 +152,12 @@ export default function Settings2() {
                     </div>
                     <div className="border-t border-border pt-2">
                       <label className="flex items-center gap-3 p-4 rounded-lg bg-muted border border-border cursor-pointer">
-                        <input type="checkbox" className="h-4 w-4" />
+                        <input
+                          type="checkbox"
+                          checked={systemConfig.maintenanceMode}
+                          onChange={(e) => handleConfigChange('maintenanceMode', e.target.checked)}
+                          className="h-4 w-4"
+                        />
                         <div>
                           <p className="font-semibold text-foreground">System Maintenance Mode</p>
                           <p className="text-sm text-muted-foreground">Prevents automation & script execution, allows read-only viewing</p>
@@ -127,35 +167,6 @@ export default function Settings2() {
                   </div>
                 </div>
 
-                {/* Global Kill Switches */}
-                <div className="rounded-lg border border-border bg-card p-4">
-                  <h3 className="mb-2 text-xl font-semibold text-foreground flex items-center gap-2">
-                    <AlertTriangle className="w-5 h-5 text-red-600" />
-                    4.2 Global Kill Switches (Emergency Controls)
-                  </h3>
-                  <div className="space-y-3">
-                    {[
-                      { name: 'Disable all automation execution', risk: 'critical' },
-                      { name: 'Disable command execution (Command Center)', risk: 'critical' },
-                      { name: 'Disable report generation', risk: 'high' },
-                      { name: 'Disable external exports', risk: 'high' },
-                      { name: 'Force system read-only', risk: 'critical' }
-                    ].map(sw => (
-                      <div key={sw.name} className="flex items-center justify-between rounded-lg bg-card border border-border p-4">
-                        <div>
-                          <p className="font-semibold text-foreground">{sw.name}</p>
-                          <p className={`text-xs font-semibold mt-1 ${sw.risk === 'critical' ? 'text-red-600' : 'text-orange-600'}`}>
-                            Risk Level: {sw.risk.toUpperCase()}
-                          </p>
-                        </div>
-                        <label className="relative inline-flex cursor-pointer items-center">
-                          <input type="checkbox" className="sr-only peer" />
-                          <div className="peer h-6 w-11 rounded-full bg-gray-300 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all peer-checked:bg-red-600 peer-checked:after:translate-x-full"></div>
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
               </div>
             </div>
           )}
