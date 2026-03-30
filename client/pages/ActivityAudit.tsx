@@ -130,8 +130,8 @@ export default function ActivityAudit() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-40">
-        <div className="px-8 py-6">
-          <div className="flex items-center justify-between mb-4">
+        <div className="px-8 py-3">
+          <div className="flex items-center justify-between">
             <div></div>
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-2 px-3 py-2 h-10 rounded-lg border border-border bg-background">
@@ -160,9 +160,9 @@ export default function ActivityAudit() {
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row h-[calc(100vh-140px)]">
+      <div className="flex flex-col lg:flex-row h-[calc(100vh-100px)]">
         {/* Workspace Navigator Sidebar */}
-        <div className="w-full lg:w-72 border-b lg:border-b-0 lg:border-r border-border bg-card/50">
+        <div className="w-full lg:w-56 border-b lg:border-b-0 lg:border-r border-border bg-card/50">
           <div className="p-4 space-y-2 h-full overflow-y-auto">
             <div className="mb-4">
               <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
