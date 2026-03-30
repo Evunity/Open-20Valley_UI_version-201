@@ -174,17 +174,15 @@ export const TimelineReplayView: React.FC<TimelineReplayViewProps> = ({ onEventS
       </div>
 
       {/* Time Window Selection */}
-      <div className="mb-8 p-4 rounded border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950/30">
-        <h3 className="text-sm font-semibold text-foreground mb-4">Select Analysis Window</h3>
-
-        <div className="grid grid-cols-4 gap-4">
-          {/* Start Time */}
+      <div className="mb-8 space-y-4">
+        <div className="grid grid-cols-4 gap-3">
+          {/* Start Hour */}
           <div>
-            <label className="block text-xs font-semibold text-muted-foreground mb-2">Start Hour</label>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">Start Hour</label>
             <select
               value={selectedStartHour}
               onChange={(e) => setSelectedStartHour(parseInt(e.target.value))}
-              className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-1.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm"
             >
               {hours.map(h => (
                 <option key={h} value={h}>
@@ -194,12 +192,13 @@ export const TimelineReplayView: React.FC<TimelineReplayViewProps> = ({ onEventS
             </select>
           </div>
 
+          {/* Start Minute */}
           <div>
-            <label className="block text-xs font-semibold text-muted-foreground mb-2">Start Minute</label>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">Start Minute</label>
             <select
               value={selectedStartMinute}
               onChange={(e) => setSelectedStartMinute(parseInt(e.target.value))}
-              className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-1.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm"
             >
               {minutes.map(m => (
                 <option key={m} value={m}>
@@ -209,13 +208,13 @@ export const TimelineReplayView: React.FC<TimelineReplayViewProps> = ({ onEventS
             </select>
           </div>
 
-          {/* End Time */}
+          {/* End Hour */}
           <div>
-            <label className="block text-xs font-semibold text-muted-foreground mb-2">End Hour</label>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">End Hour</label>
             <select
               value={selectedEndHour}
               onChange={(e) => setSelectedEndHour(parseInt(e.target.value))}
-              className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-1.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm"
             >
               {hours.map(h => (
                 <option key={h} value={h}>
@@ -225,12 +224,13 @@ export const TimelineReplayView: React.FC<TimelineReplayViewProps> = ({ onEventS
             </select>
           </div>
 
+          {/* End Minute */}
           <div>
-            <label className="block text-xs font-semibold text-muted-foreground mb-2">End Minute</label>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">End Minute</label>
             <select
               value={selectedEndMinute}
               onChange={(e) => setSelectedEndMinute(parseInt(e.target.value))}
-              className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-1.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm"
             >
               {minutes.map(m => (
                 <option key={m} value={m}>
@@ -242,7 +242,7 @@ export const TimelineReplayView: React.FC<TimelineReplayViewProps> = ({ onEventS
         </div>
 
         {/* Window Summary */}
-        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
+        <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-semibold text-foreground">
               {selectedStartHour.toString().padStart(2, '0')}:{selectedStartMinute.toString().padStart(2, '0')} – {selectedEndHour.toString().padStart(2, '0')}:{selectedEndMinute.toString().padStart(2, '0')}
