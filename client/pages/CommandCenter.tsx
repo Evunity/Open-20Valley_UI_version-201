@@ -71,7 +71,7 @@ const MODULES: ModuleConfig[] = [
   },
   {
     id: 'audit',
-    label: 'Audit & Rollback',
+    label: 'Audit',
     icon: AlertTriangle,
     description: 'Complete audit trail with exportable logs',
     riskLevel: 'read-only'
