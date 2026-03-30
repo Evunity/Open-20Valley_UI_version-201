@@ -73,18 +73,18 @@ export default function Settings2() {
 
       {/* Content Area */}
       <div className="flex-1 overflow-y-auto">
-        <div className="p-4 md:p-6 max-w-6xl mx-auto">
+        <div className="p-4 md:p-4 max-w-6xl mx-auto">
 
           {/* 1. System Configuration */}
           {activeTab === 'system-config' && (
-            <div className="space-y-4">
+            <div className="space-y-2">
               <h2 className="text-3xl font-bold text-foreground">System Configuration</h2>
 
-              <div className="space-y-4">
+              <div className="space-y-2">
                 {/* General Platform Settings */}
-                <div className="rounded-lg border border-border bg-card p-6">
-                  <h3 className="mb-4 text-xl font-semibold text-foreground">4.1 General Platform Settings</h3>
-                  <div className="space-y-4">
+                <div className="rounded-lg border border-border bg-card p-4">
+                  <h3 className="mb-2 text-xl font-semibold text-foreground">4.1 General Platform Settings</h3>
+                  <div className="space-y-2">
                     <div>
                       <label className="block text-sm font-semibold text-foreground mb-2">System Name</label>
                       <input type="text" defaultValue="OSS Platform" className="w-full rounded-lg border border-border px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50 bg-card text-foreground" />
@@ -115,7 +115,7 @@ export default function Settings2() {
                         <option>German</option>
                       </select>
                     </div>
-                    <div className="border-t border-border pt-4">
+                    <div className="border-t border-border pt-2">
                       <label className="flex items-center gap-3 p-4 rounded-lg bg-muted border border-border cursor-pointer">
                         <input type="checkbox" className="h-4 w-4" />
                         <div>
@@ -128,8 +128,8 @@ export default function Settings2() {
                 </div>
 
                 {/* Global Kill Switches */}
-                <div className="rounded-lg border border-border bg-card p-6">
-                  <h3 className="mb-4 text-xl font-semibold text-foreground flex items-center gap-2">
+                <div className="rounded-lg border border-border bg-card p-4">
+                  <h3 className="mb-2 text-xl font-semibold text-foreground flex items-center gap-2">
                     <AlertTriangle className="w-5 h-5 text-red-600" />
                     4.2 Global Kill Switches (Emergency Controls)
                   </h3>
@@ -162,13 +162,13 @@ export default function Settings2() {
 
           {/* 2. Module Configuration */}
           {activeTab === 'module-config' && (
-            <div className="space-y-4">
+            <div className="space-y-2">
               <h2 className="text-3xl font-bold text-foreground">Module Configuration</h2>
 
               {/* Alarm Module */}
-              <div className="rounded-lg border border-border bg-card p-6">
-                <h3 className="mb-4 text-xl font-semibold text-foreground">5.1 Alarm Module Settings</h3>
-                <div className="space-y-4">
+              <div className="rounded-lg border border-border bg-card p-4">
+                <h3 className="mb-2 text-xl font-semibold text-foreground">5.1 Alarm Module Settings</h3>
+                <div className="space-y-2">
                   <label className="flex items-center gap-2">
                     <input type="checkbox" defaultChecked className="h-4 w-4" />
                     <span className="font-semibold text-foreground">Alarm correlation rules toggle</span>
@@ -185,9 +185,9 @@ export default function Settings2() {
               </div>
 
               {/* Analytics Module */}
-              <div className="rounded-lg border border-border bg-card p-6">
-                <h3 className="mb-4 text-xl font-semibold text-foreground">5.2 Analytics Module Settings</h3>
-                <div className="space-y-4">
+              <div className="rounded-lg border border-border bg-card p-4">
+                <h3 className="mb-2 text-xl font-semibold text-foreground">5.2 Analytics Module Settings</h3>
+                <div className="space-y-2">
                   <div>
                     <label className="text-sm font-semibold text-foreground">Default KPI aggregation window</label>
                     <select className="mt-1 w-full rounded-lg border border-border px-4 py-2 bg-card text-foreground">
@@ -213,9 +213,9 @@ export default function Settings2() {
               </div>
 
               {/* Automation Module */}
-              <div className="rounded-lg border border-border bg-card p-6">
-                <h3 className="mb-4 text-xl font-semibold text-foreground">5.3 Automation & AI Settings</h3>
-                <div className="space-y-4">
+              <div className="rounded-lg border border-border bg-card p-4">
+                <h3 className="mb-2 text-xl font-semibold text-foreground">5.3 Automation & AI Settings</h3>
+                <div className="space-y-2">
                   <label className="flex items-center gap-2">
                     <input type="checkbox" className="h-4 w-4" />
                     <span className="font-semibold text-foreground">Autonomous mode enabled</span>
@@ -236,9 +236,9 @@ export default function Settings2() {
               </div>
 
               {/* Topology Settings */}
-              <div className="rounded-lg border border-border bg-card p-6">
-                <h3 className="mb-4 text-xl font-semibold text-foreground">5.4 Topology Settings</h3>
-                <div className="space-y-4">
+              <div className="rounded-lg border border-border bg-card p-4">
+                <h3 className="mb-2 text-xl font-semibold text-foreground">5.4 Topology Settings</h3>
+                <div className="space-y-2">
                   <div>
                     <label className="text-sm font-semibold text-foreground">Default map view</label>
                     <select className="mt-1 w-full rounded-lg border border-border px-4 py-2 bg-card text-foreground">
@@ -259,9 +259,9 @@ export default function Settings2() {
               </div>
 
               {/* Reports Settings */}
-              <div className="rounded-lg border border-border bg-card p-6">
-                <h3 className="mb-4 text-xl font-semibold text-foreground">5.5 Reports Settings</h3>
-                <div className="space-y-4">
+              <div className="rounded-lg border border-border bg-card p-4">
+                <h3 className="mb-2 text-xl font-semibold text-foreground">5.5 Reports Settings</h3>
+                <div className="space-y-2">
                   <div>
                     <label className="text-sm font-semibold text-foreground">Default export format</label>
                     <select className="mt-1 w-full rounded-lg border border-border px-4 py-2 bg-card text-foreground">
@@ -278,9 +278,9 @@ export default function Settings2() {
               </div>
 
               {/* Command Center Settings */}
-              <div className="rounded-lg border border-border bg-card p-6">
-                <h3 className="mb-4 text-xl font-semibold text-foreground">5.6 Command Center Settings</h3>
-                <div className="space-y-4">
+              <div className="rounded-lg border border-border bg-card p-4">
+                <h3 className="mb-2 text-xl font-semibold text-foreground">5.6 Command Center Settings</h3>
+                <div className="space-y-2">
                   <div>
                     <label className="text-sm font-semibold text-foreground">Max bulk execution size</label>
                     <input type="number" defaultValue={500} className="mt-1 w-full rounded-lg border border-border px-4 py-2" />
@@ -304,11 +304,11 @@ export default function Settings2() {
 
           {/* 3. Integration Settings */}
           {activeTab === 'integration' && (
-            <div className="space-y-4">
+            <div className="space-y-2">
               <h2 className="text-3xl font-bold text-foreground">Integration Settings</h2>
 
-              <div className="rounded-lg border border-border bg-card p-6">
-                <h3 className="mb-4 text-xl font-semibold text-foreground">6.1 Northbound Integrations</h3>
+              <div className="rounded-lg border border-border bg-card p-4">
+                <h3 className="mb-2 text-xl font-semibold text-foreground">6.1 Northbound Integrations</h3>
                 <div className="mb-6 space-y-3">
                   {['ServiceNow ITSM', 'Splunk SIEM', 'Email Server', 'Webhook Endpoint'].map(int => (
                     <div key={int} className="flex items-center justify-between rounded-lg bg-muted p-4">
@@ -322,8 +322,8 @@ export default function Settings2() {
                 </div>
               </div>
 
-              <div className="rounded-lg border border-border bg-card p-6">
-                <h3 className="mb-4 text-xl font-semibold text-foreground">6.2 Southbound Integrations (Network)</h3>
+              <div className="rounded-lg border border-border bg-card p-4">
+                <h3 className="mb-2 text-xl font-semibold text-foreground">6.2 Southbound Integrations (Network)</h3>
                 <div className="space-y-3">
                   {['SNMP', 'NETCONF', 'SSH', 'REST'].map(proto => (
                     <div key={proto} className="flex items-center justify-between rounded-lg bg-muted p-4">
@@ -341,12 +341,12 @@ export default function Settings2() {
 
           {/* 4. Data & Retention */}
           {activeTab === 'data-retention' && (
-            <div className="space-y-4">
+            <div className="space-y-2">
               <h2 className="text-3xl font-bold text-foreground">Data & Retention Policies</h2>
 
-              <div className="rounded-lg border border-border bg-card p-6">
-                <h3 className="mb-4 text-xl font-semibold text-foreground">7.1 Data Retention</h3>
-                <div className="space-y-4">
+              <div className="rounded-lg border border-border bg-card p-4">
+                <h3 className="mb-2 text-xl font-semibold text-foreground">7.1 Data Retention</h3>
+                <div className="space-y-2">
                   {['Alarms', 'KPIs', 'Logs', 'Audit Records', 'Automation History', 'Command Execution Logs', 'Report Snapshots'].map(dataType => (
                     <div key={dataType} className="grid grid-cols-3 gap-4 rounded-lg bg-muted p-4">
                       <div>
@@ -369,9 +369,9 @@ export default function Settings2() {
                 </div>
               </div>
 
-              <div className="rounded-lg border border-border bg-card p-6">
-                <h3 className="mb-4 text-xl font-semibold text-foreground">7.2 Data Archiving</h3>
-                <div className="space-y-4">
+              <div className="rounded-lg border border-border bg-card p-4">
+                <h3 className="mb-2 text-xl font-semibold text-foreground">7.2 Data Archiving</h3>
+                <div className="space-y-2">
                   <div>
                     <label className="text-sm font-semibold text-foreground">Archive frequency</label>
                     <select className="mt-1 w-full rounded-lg border border-border px-4 py-2 bg-card text-foreground">
@@ -395,12 +395,12 @@ export default function Settings2() {
 
           {/* 5. Performance & Limits */}
           {activeTab === 'performance' && (
-            <div className="space-y-4">
+            <div className="space-y-2">
               <h2 className="text-3xl font-bold text-foreground">Performance & System Limits</h2>
 
-              <div className="rounded-lg border border-border bg-card p-6">
-                <h3 className="mb-4 text-xl font-semibold text-foreground">8.1 Resource Limits</h3>
-                <div className="space-y-4">
+              <div className="rounded-lg border border-border bg-card p-4">
+                <h3 className="mb-2 text-xl font-semibold text-foreground">8.1 Resource Limits</h3>
+                <div className="space-y-2">
                   <div>
                     <label className="text-sm font-semibold text-foreground">Max concurrent automations</label>
                     <input type="number" defaultValue={50} className="mt-1 w-full rounded-lg border border-border px-4 py-2" />
@@ -424,9 +424,9 @@ export default function Settings2() {
                 </div>
               </div>
 
-              <div className="rounded-lg border border-border bg-card p-6">
-                <h3 className="mb-4 text-xl font-semibold text-foreground">8.2 Load Protection</h3>
-                <div className="space-y-4">
+              <div className="rounded-lg border border-border bg-card p-4">
+                <h3 className="mb-2 text-xl font-semibold text-foreground">8.2 Load Protection</h3>
+                <div className="space-y-2">
                   <label className="flex items-center gap-2">
                     <input type="checkbox" defaultChecked className="h-4 w-4" />
                     <span className="font-semibold text-foreground">Rate limiting enabled</span>
@@ -450,11 +450,11 @@ export default function Settings2() {
 
           {/* 6. Notifications */}
           {activeTab === 'notifications' && (
-            <div className="space-y-4">
+            <div className="space-y-2">
               <h2 className="text-3xl font-bold text-foreground">Notifications & Communication Settings</h2>
 
-              <div className="rounded-lg border border-border bg-card p-6">
-                <h3 className="mb-4 text-xl font-semibold text-foreground">9.1 Notification Channels</h3>
+              <div className="rounded-lg border border-border bg-card p-4">
+                <h3 className="mb-2 text-xl font-semibold text-foreground">9.1 Notification Channels</h3>
                 <div className="space-y-3">
                   {['Email', 'SMS', 'In-app Notification', 'Webhook', 'Push'].map(channel => (
                     <div key={channel} className="flex items-center justify-between rounded-lg bg-muted p-4">
@@ -468,8 +468,8 @@ export default function Settings2() {
                 </div>
               </div>
 
-              <div className="rounded-lg border border-border bg-card p-6">
-                <h3 className="mb-4 text-xl font-semibold text-foreground">9.2 Alert/Notification Routing Defaults</h3>
+              <div className="rounded-lg border border-border bg-card p-4">
+                <h3 className="mb-2 text-xl font-semibold text-foreground">9.2 Alert/Notification Routing Defaults</h3>
                 <div className="space-y-3">
                   {[
                     { alert: 'Critical alarms', route: 'NOC Team' },
@@ -495,11 +495,11 @@ export default function Settings2() {
 
           {/* 7. Automation Guardrails */}
           {activeTab === 'automation' && (
-            <div className="space-y-4">
+            <div className="space-y-2">
               <h2 className="text-3xl font-bold text-foreground">Automation Guardrails</h2>
 
-              <div className="rounded-lg border border-border bg-card p-6">
-                <div className="space-y-4">
+              <div className="rounded-lg border border-border bg-card p-4">
+                <div className="space-y-2">
                   <label className="flex items-center gap-3 p-4 rounded-lg bg-muted">
                     <input type="checkbox" defaultChecked className="h-4 w-4" />
                     <span className="font-semibold text-foreground">No automation during blackout windows</span>
@@ -523,11 +523,11 @@ export default function Settings2() {
 
           {/* 8. Environment & Deployment */}
           {activeTab === 'environment' && (
-            <div className="space-y-4">
+            <div className="space-y-2">
               <h2 className="text-3xl font-bold text-foreground">Environment & Deployment Settings</h2>
 
-              <div className="rounded-lg border border-border bg-card p-6">
-                <h3 className="mb-4 text-xl font-semibold text-foreground">11.1 Feature Flags</h3>
+              <div className="rounded-lg border border-border bg-card p-4">
+                <h3 className="mb-2 text-xl font-semibold text-foreground">11.1 Feature Flags</h3>
                 <div className="space-y-3">
                   {['AI experimental features', 'New topology rendering engine', 'Beta report builder', 'Advanced scripting mode'].map(flag => (
                     <div key={flag} className="flex items-center justify-between rounded-lg bg-muted p-4">
@@ -545,12 +545,12 @@ export default function Settings2() {
 
           {/* 9. Backup & Recovery */}
           {activeTab === 'backup' && (
-            <div className="space-y-4">
+            <div className="space-y-2">
               <h2 className="text-3xl font-bold text-foreground">Backup & Recovery Settings</h2>
 
-              <div className="rounded-lg border border-border bg-card p-6">
-                <h3 className="mb-4 text-xl font-semibold text-foreground">12.1 Backup Configuration</h3>
-                <div className="space-y-4">
+              <div className="rounded-lg border border-border bg-card p-4">
+                <h3 className="mb-2 text-xl font-semibold text-foreground">12.1 Backup Configuration</h3>
+                <div className="space-y-2">
                   <div>
                     <label className="text-sm font-semibold text-foreground">Backup frequency</label>
                     <select className="mt-1 w-full rounded-lg border border-border px-4 py-2 bg-card text-foreground">
@@ -578,9 +578,9 @@ export default function Settings2() {
                 </div>
               </div>
 
-              <div className="rounded-lg border border-border bg-card p-6">
-                <h3 className="mb-4 text-xl font-semibold text-foreground">12.2 Disaster Recovery Mode</h3>
-                <div className="space-y-4">
+              <div className="rounded-lg border border-border bg-card p-4">
+                <h3 className="mb-2 text-xl font-semibold text-foreground">12.2 Disaster Recovery Mode</h3>
+                <div className="space-y-2">
                   <div>
                     <label className="text-sm font-semibold text-foreground">Secondary site configuration</label>
                     <input type="text" defaultValue="dr-site-us-west" className="mt-1 w-full rounded-lg border border-border px-4 py-2" />
@@ -597,12 +597,12 @@ export default function Settings2() {
 
           {/* 10. Branding & UI */}
           {activeTab === 'branding' && (
-            <div className="space-y-4">
+            <div className="space-y-2">
               <h2 className="text-3xl font-bold text-foreground">Branding & UI Customization</h2>
 
-              <div className="rounded-lg border border-border bg-card p-6">
-                <h3 className="mb-4 text-xl font-semibold text-foreground">13. Branding & UI Customization</h3>
-                <div className="space-y-4">
+              <div className="rounded-lg border border-border bg-card p-4">
+                <h3 className="mb-2 text-xl font-semibold text-foreground">13. Branding & UI Customization</h3>
+                <div className="space-y-2">
                   <div>
                     <label className="text-sm font-semibold text-foreground">Logo</label>
                     <input type="text" defaultValue="/logo.png" className="mt-1 w-full rounded-lg border border-border px-4 py-2" />
@@ -629,11 +629,11 @@ export default function Settings2() {
 
           {/* 11. Audit & Change Control */}
           {activeTab === 'audit' && (
-            <div className="space-y-4">
+            <div className="space-y-2">
               <h2 className="text-3xl font-bold text-foreground">Audit & Change Control</h2>
 
-              <div className="rounded-lg border border-border bg-card p-6">
-                <h3 className="mb-4 text-xl font-semibold text-foreground">14. Settings Audit & Change Control</h3>
+              <div className="rounded-lg border border-border bg-card p-4">
+                <h3 className="mb-2 text-xl font-semibold text-foreground">14. Settings Audit & Change Control</h3>
                 <div className="mb-6 space-y-3">
                   <p className="text-sm text-muted-foreground">Every setting change logs:</p>
                   <ul className="space-y-2 text-sm text-foreground list-disc list-inside">
@@ -646,7 +646,7 @@ export default function Settings2() {
                   </ul>
                 </div>
 
-                <h4 className="mb-4 font-semibold text-foreground">Recent Changes</h4>
+                <h4 className="mb-2 font-semibold text-foreground">Recent Changes</h4>
                 <div className="space-y-2">
                   {[
                     { user: 'Admin User', action: 'Modified System Name', time: '2 hours ago', status: 'approved' },
@@ -672,7 +672,7 @@ export default function Settings2() {
 
           {/* 12. Permissions & Access */}
           {activeTab === 'permissions' && (
-            <div className="space-y-4">
+            <div className="space-y-2">
               <h2 className="text-3xl font-bold text-foreground">Permissions & Access Control</h2>
 
               <div className="rounded-lg border border-border bg-card overflow-x-auto">
@@ -713,7 +713,7 @@ export default function Settings2() {
           )}
 
           {/* Footer */}
-          <div className="mt-6 flex gap-3 border-t border-border pt-4">
+          <div className="mt-3 flex gap-2 border-t border-border pt-2">
             <button
               onClick={handleSave}
               className="flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-2 text-white hover:bg-blue-700"
