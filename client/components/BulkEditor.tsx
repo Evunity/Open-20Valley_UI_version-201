@@ -55,6 +55,17 @@ export const BulkEditor: React.FC<BulkEditorProps> = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const downloadCSVTemplate = () => {
+    const template = 'site,parameter,old_value,new_value';
+    const element = document.createElement('a');
+    element.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(template));
+    element.setAttribute('download', 'bulk-changes-template.csv');
+    element.style.display = 'none';
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+  };
+
   const successCount = filteredChanges.filter(c => c.status === 'success').length;
   const failedCount = filteredChanges.filter(c => c.status === 'failed').length;
   const validatedCount = filteredChanges.filter(c => c.status === 'validated').length;
@@ -101,6 +112,12 @@ export const BulkEditor: React.FC<BulkEditorProps> = () => {
         <div className="flex items-center justify-between">
           <label className="block text-xs font-semibold text-muted-foreground">CSV Configuration</label>
           <div className="flex items-center gap-2">
+            <button
+              onClick={downloadCSVTemplate}
+              className="text-xs font-semibold text-muted-foreground cursor-pointer hover:text-foreground transition"
+            >
+              ⬇️ Download Template
+            </button>
             <label className="text-xs font-semibold text-muted-foreground cursor-pointer hover:text-foreground transition">
               <input
                 type="file"
