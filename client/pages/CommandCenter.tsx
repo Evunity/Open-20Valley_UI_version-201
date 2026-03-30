@@ -64,7 +64,7 @@ const MODULES: ModuleConfig[] = [
   },
   {
     id: 'rollback',
-    label: 'Rollback & Version',
+    label: 'Rollback',
     icon: RotateCcw,
     description: 'Version control and rollback with full/partial/selective modes',
     riskLevel: 'dangerous'
