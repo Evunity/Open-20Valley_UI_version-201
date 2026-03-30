@@ -24,7 +24,6 @@ const MOCK_BULK_CHANGES: BulkChange[] = [
 
 export const BulkEditor: React.FC<BulkEditorProps> = () => {
   const [content, setContent] = useState('site,parameter,old_value,new_value\nCairo-Site-1,TX Power,43,40\nCairo-Site-2,TX Power,43,40\nGiza-Site-1,TX Power,43,40');
-  const [scope, setScope] = useState('region');
   const [selectedVendor, setSelectedVendor] = useState('');
   const [selectedTechnology, setSelectedTechnology] = useState('');
   const [changes, setChanges] = useState<BulkChange[]>(MOCK_BULK_CHANGES);
@@ -63,20 +62,7 @@ export const BulkEditor: React.FC<BulkEditorProps> = () => {
   return (
     <div className="flex flex-col h-full gap-4 p-4">
       {/* Filters & Controls */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 rounded-lg border border-border bg-card">
-        <div>
-          <label className="block text-xs font-semibold text-muted-foreground mb-1">Scope</label>
-          <select
-            value={scope}
-            onChange={(e) => setScope(e.target.value)}
-            className="w-full px-3 py-1.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm"
-          >
-            <option value="all">All Sites</option>
-            <option value="region">Selected Region</option>
-            <option value="cluster">Selected Cluster</option>
-          </select>
-        </div>
-
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-3 rounded-lg border border-border bg-card">
         <div>
           <label className="block text-xs font-semibold text-muted-foreground mb-1">Vendor</label>
           <select
