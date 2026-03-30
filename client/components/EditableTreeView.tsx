@@ -113,7 +113,9 @@ export const EditableTreeView: React.FC<EditableTreeViewProps> = ({
       if (node.id === targetId) {
         return {
           ...node,
-          childrenIds: [...node.childrenIds, draggedNode]
+          childrenIds: node.childrenIds.includes(draggedNode)
+            ? node.childrenIds
+            : [...node.childrenIds, draggedNode]
         };
       }
       if (node.parentId === draggedNode && node.id !== draggedNode_obj.parentId) {
@@ -191,13 +193,12 @@ export const EditableTreeView: React.FC<EditableTreeViewProps> = ({
     };
 
     const updated = [
-      ...localTopology,
-      newNode,
       ...localTopology.map(node =>
         node.id === addNodeModal.parentId
           ? { ...node, childrenIds: [...node.childrenIds, newNode.id] }
           : node
-      )
+      ),
+      newNode
     ];
 
     setLocalTopology(updated);
