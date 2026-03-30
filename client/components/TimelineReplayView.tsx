@@ -19,10 +19,8 @@ interface TimelineReplayViewProps {
 }
 
 export const TimelineReplayView: React.FC<TimelineReplayViewProps> = ({ onEventSelect }) => {
-  const [selectedStartHour, setSelectedStartHour] = useState(9);
-  const [selectedStartMinute, setSelectedStartMinute] = useState(12);
-  const [selectedEndHour, setSelectedEndHour] = useState(9);
-  const [selectedEndMinute, setSelectedEndMinute] = useState(15);
+  const [startTime, setStartTime] = useState('09:12');
+  const [endTime, setEndTime] = useState('09:15');
   const [expandedEvent, setExpandedEvent] = useState<number | null>(null);
 
   // Mock timeline events with proper timestamps
@@ -125,9 +123,14 @@ export const TimelineReplayView: React.FC<TimelineReplayViewProps> = ({ onEventS
     }
   ];
 
-  // Calculate time window in seconds
-  const timeWindowStartSeconds = selectedStartHour * 3600 + selectedStartMinute * 60;
-  const timeWindowEndSeconds = selectedEndHour * 3600 + selectedEndMinute * 60;
+  // Calculate time window in seconds from HH:MM format
+  const parseTimeToSeconds = (timeStr: string) => {
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    return hours * 3600 + minutes * 60;
+  };
+
+  const timeWindowStartSeconds = parseTimeToSeconds(startTime);
+  const timeWindowEndSeconds = parseTimeToSeconds(endTime);
 
   // Filter events within selected time window
   const eventsInWindow = useMemo(() => {
@@ -135,7 +138,7 @@ export const TimelineReplayView: React.FC<TimelineReplayViewProps> = ({ onEventS
       const eventSeconds = event.hour * 3600 + event.minute * 60 + event.second;
       return eventSeconds >= timeWindowStartSeconds && eventSeconds <= timeWindowEndSeconds;
     });
-  }, [selectedStartHour, selectedStartMinute, selectedEndHour, selectedEndMinute]);
+  }, [startTime, endTime]);
 
   const getEventIcon = (type: string) => {
     switch (type) {
@@ -162,87 +165,55 @@ export const TimelineReplayView: React.FC<TimelineReplayViewProps> = ({ onEventS
     return labels[type as keyof typeof labels] || 'Event';
   };
 
-  const hours = Array.from({ length: 24 }, (_, i) => i);
-  const minutes = Array.from({ length: 60 }, (_, i) => i);
 
   return (
     <div className="w-full h-full flex flex-col p-6 bg-background overflow-y-auto">
 
-      {/* Time Window Selection */}
+      {/* Time Window Selection - Modern Time Range Picker */}
       <div className="mb-8 space-y-4">
-        <div className="grid grid-cols-4 gap-3">
-          {/* Start Hour */}
-          <div>
-            <label className="block text-xs font-semibold text-muted-foreground mb-1">Start Hour</label>
-            <select
-              value={selectedStartHour}
-              onChange={(e) => setSelectedStartHour(parseInt(e.target.value))}
-              className="w-full px-3 py-1.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm"
-            >
-              {hours.map(h => (
-                <option key={h} value={h}>
-                  {h.toString().padStart(2, '0')}:00
-                </option>
-              ))}
-            </select>
+        <div className="bg-card rounded-lg border border-border p-4">
+          {/* Time Range Header */}
+          <p className="text-sm font-semibold text-foreground mb-4">Select Time Window</p>
+
+          {/* Time Range Inputs */}
+          <div className="flex items-end gap-3">
+            {/* Start Time */}
+            <div className="flex-1">
+              <label className="block text-xs font-semibold text-muted-foreground mb-2">From</label>
+              <input
+                type="time"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                className="w-full px-3 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm font-mono"
+              />
+            </div>
+
+            {/* Separator */}
+            <div className="text-muted-foreground font-semibold">→</div>
+
+            {/* End Time */}
+            <div className="flex-1">
+              <label className="block text-xs font-semibold text-muted-foreground mb-2">To</label>
+              <input
+                type="time"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                className="w-full px-3 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm font-mono"
+              />
+            </div>
           </div>
 
-          {/* Start Minute */}
-          <div>
-            <label className="block text-xs font-semibold text-muted-foreground mb-1">Start Minute</label>
-            <select
-              value={selectedStartMinute}
-              onChange={(e) => setSelectedStartMinute(parseInt(e.target.value))}
-              className="w-full px-3 py-1.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm"
-            >
-              {minutes.map(m => (
-                <option key={m} value={m}>
-                  :{m.toString().padStart(2, '0')}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* End Hour */}
-          <div>
-            <label className="block text-xs font-semibold text-muted-foreground mb-1">End Hour</label>
-            <select
-              value={selectedEndHour}
-              onChange={(e) => setSelectedEndHour(parseInt(e.target.value))}
-              className="w-full px-3 py-1.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm"
-            >
-              {hours.map(h => (
-                <option key={h} value={h}>
-                  {h.toString().padStart(2, '0')}:00
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* End Minute */}
-          <div>
-            <label className="block text-xs font-semibold text-muted-foreground mb-1">End Minute</label>
-            <select
-              value={selectedEndMinute}
-              onChange={(e) => setSelectedEndMinute(parseInt(e.target.value))}
-              className="w-full px-3 py-1.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm"
-            >
-              {minutes.map(m => (
-                <option key={m} value={m}>
-                  :{m.toString().padStart(2, '0')}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* Window Summary */}
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-semibold text-foreground">
-              {selectedStartHour.toString().padStart(2, '0')}:{selectedStartMinute.toString().padStart(2, '0')} – {selectedEndHour.toString().padStart(2, '0')}:{selectedEndMinute.toString().padStart(2, '0')}
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">{eventsInWindow.length} events in this window</p>
+          {/* Window Summary */}
+          <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-foreground">
+                {startTime} – {endTime}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">{eventsInWindow.length} events in this window</p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs text-muted-foreground">Duration: {Math.abs(parseInt(endTime.split(':')[0]) * 60 + parseInt(endTime.split(':')[1]) - parseInt(startTime.split(':')[0]) * 60 - parseInt(startTime.split(':')[1]))} minutes</p>
+            </div>
           </div>
         </div>
       </div>
