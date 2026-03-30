@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { RotateCcw, Eye, Download, Filter } from 'lucide-react';
+import { RotateCcw, Eye, Download } from 'lucide-react';
 
 interface AuditRollbackCenterProps {
   selectedTarget: any;
@@ -12,10 +12,17 @@ interface AuditEntry {
   user: string;
   action: string;
   object: string;
+  site: string;
+  technology: string;
+  vendor: string;
   status: 'completed' | 'failed' | 'rolled-back';
   changeDetails: string;
   reversible: boolean;
 }
+
+const SITE_OPTIONS = ['Cairo-Site-1', 'Cairo-Site-2', 'Cairo-Site-3', 'Giza-Site-1', 'Giza-Site-2', 'Alexandria-Site-1', 'Suez-Site-1'];
+const TECHNOLOGY_OPTIONS = ['2G', '3G', '4G', '5G', 'O-RAN'];
+const VENDOR_OPTIONS = ['Huawei', 'Ericsson', 'Nokia', 'ZTE'];
 
 const MOCK_AUDIT: AuditEntry[] = [
   {
@@ -24,6 +31,9 @@ const MOCK_AUDIT: AuditEntry[] = [
     user: 'Engineer.A',
     action: 'Modified TX Power',
     object: 'Cairo-Site-1',
+    site: 'Cairo-Site-1',
+    technology: '4G',
+    vendor: 'Huawei',
     status: 'completed',
     changeDetails: 'TX Power: 43 → 40 dBm',
     reversible: true
@@ -33,7 +43,10 @@ const MOCK_AUDIT: AuditEntry[] = [
     timestamp: '2024-12-02 13:45',
     user: 'Engineer.B',
     action: 'Bulk Config Update',
-    object: 'Cairo Region',
+    object: 'Cairo-Site-2',
+    site: 'Cairo-Site-2',
+    technology: '5G',
+    vendor: 'Ericsson',
     status: 'completed',
     changeDetails: '12 sites updated',
     reversible: true
@@ -43,9 +56,38 @@ const MOCK_AUDIT: AuditEntry[] = [
     timestamp: '2024-12-02 12:10',
     user: 'System',
     action: 'Automation Execution',
-    object: 'Dubai-Cluster-1',
+    object: 'Giza-Site-1',
+    site: 'Giza-Site-1',
+    technology: '4G',
+    vendor: 'Nokia',
     status: 'rolled-back',
     changeDetails: 'Failed validation check',
+    reversible: false
+  },
+  {
+    id: '4',
+    timestamp: '2024-12-02 11:20',
+    user: 'Engineer.A',
+    action: 'DL Bandwidth Update',
+    object: 'Alexandria-Site-1',
+    site: 'Alexandria-Site-1',
+    technology: '3G',
+    vendor: 'ZTE',
+    status: 'completed',
+    changeDetails: 'DL Bandwidth: 20 → 25 MHz',
+    reversible: true
+  },
+  {
+    id: '5',
+    timestamp: '2024-12-02 10:15',
+    user: 'Engineer.B',
+    action: 'Cell Barring Enable',
+    object: 'Suez-Site-1',
+    site: 'Suez-Site-1',
+    technology: '2G',
+    vendor: 'Huawei',
+    status: 'failed',
+    changeDetails: 'Cell already barred',
     reversible: false
   }
 ];
@@ -53,68 +95,92 @@ const MOCK_AUDIT: AuditEntry[] = [
 export const AuditRollbackCenter: React.FC<AuditRollbackCenterProps> = () => {
   const [entries] = useState<AuditEntry[]>(MOCK_AUDIT);
   const [selectedEntry, setSelectedEntry] = useState<string | null>(null);
-  const [dateFilter, setDateFilter] = useState('today');
+  const [selectedSite, setSelectedSite] = useState('');
+  const [selectedTechnology, setSelectedTechnology] = useState('');
+  const [selectedVendor, setSelectedVendor] = useState('');
+
+  const filteredEntries = entries.filter(entry => {
+    const siteMatch = !selectedSite || entry.site === selectedSite;
+    const techMatch = !selectedTechnology || entry.technology === selectedTechnology;
+    const vendorMatch = !selectedVendor || entry.vendor === selectedVendor;
+    return siteMatch && techMatch && vendorMatch;
+  });
 
   return (
     <div className="flex flex-col h-full gap-4 p-4">
       {/* Filters */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 rounded-lg border border-border bg-card">
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Date Range</label>
+          <label className="block text-xs font-semibold text-muted-foreground mb-1">Site</label>
           <select
-            value={dateFilter}
-            onChange={(e) => setDateFilter(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+            value={selectedSite}
+            onChange={(e) => setSelectedSite(e.target.value)}
+            className="w-full px-3 py-1.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm"
           >
-            <option value="today">Today</option>
-            <option value="week">Last 7 Days</option>
-            <option value="month">Last 30 Days</option>
-            <option value="all">All Time</option>
+            <option value="">All Sites</option>
+            {SITE_OPTIONS.map(site => (
+              <option key={site} value={site}>{site}</option>
+            ))}
           </select>
         </div>
+
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Action Type</label>
-          <select className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-            <option>All Actions</option>
-            <option>Modifications</option>
-            <option>Rollbacks</option>
-            <option>Bulk Changes</option>
+          <label className="block text-xs font-semibold text-muted-foreground mb-1">Technology</label>
+          <select
+            value={selectedTechnology}
+            onChange={(e) => setSelectedTechnology(e.target.value)}
+            className="w-full px-3 py-1.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm"
+          >
+            <option value="">All Technologies</option>
+            {TECHNOLOGY_OPTIONS.map(tech => (
+              <option key={tech} value={tech}>{tech}</option>
+            ))}
           </select>
         </div>
+
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">User</label>
-          <select className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-            <option>All Users</option>
-            <option>Engineer.A</option>
-            <option>Engineer.B</option>
-            <option>System</option>
+          <label className="block text-xs font-semibold text-muted-foreground mb-1">Vendor</label>
+          <select
+            value={selectedVendor}
+            onChange={(e) => setSelectedVendor(e.target.value)}
+            className="w-full px-3 py-1.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm"
+          >
+            <option value="">All Vendors</option>
+            {VENDOR_OPTIONS.map(vendor => (
+              <option key={vendor} value={vendor}>{vendor}</option>
+            ))}
           </select>
         </div>
       </div>
 
       {/* Audit Log */}
       <div className="flex-1 overflow-y-auto space-y-2">
-        {entries.map((entry) => (
+        {filteredEntries.length === 0 ? (
+          <div className="flex items-center justify-center h-full text-muted-foreground">
+            <p>No audit entries found matching your filters</p>
+          </div>
+        ) : (
+          filteredEntries.map((entry) => (
           <div
             key={entry.id}
             onClick={() => setSelectedEntry(selectedEntry === entry.id ? null : entry.id)}
-            className="border border-gray-200 rounded-lg p-4 cursor-pointer hover:bg-gray-50 transition"
+            className="border border-border rounded-lg p-4 cursor-pointer hover:bg-muted/50 transition"
           >
             <div className="flex items-start justify-between mb-2">
               <div className="flex-1">
-                <p className="font-semibold text-gray-900">{entry.action}</p>
-                <p className="text-sm text-gray-600">{entry.object}</p>
+                <p className="font-semibold text-foreground">{entry.action}</p>
+                <p className="text-sm text-muted-foreground">{entry.object}</p>
               </div>
               <span className={`text-xs px-2 py-1 rounded font-semibold ${
-                entry.status === 'completed' ? 'bg-green-100 text-green-800' :
-                entry.status === 'failed' ? 'bg-red-100 text-red-800' :
-                'bg-yellow-100 text-yellow-800'
+                entry.status === 'completed' ? 'bg-green-100 dark:bg-green-950 text-green-800 dark:text-green-300' :
+                entry.status === 'failed' ? 'bg-red-100 dark:bg-red-950 text-red-800 dark:text-red-300' :
+                'bg-yellow-100 dark:bg-yellow-950 text-yellow-800 dark:text-yellow-300'
               }`}>
                 {entry.status}
               </span>
             </div>
 
-            <div className="flex items-center justify-between text-xs text-gray-600">
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
               <div>{entry.timestamp} • {entry.user}</div>
               {entry.reversible && (
                 <div className="flex items-center gap-1 text-blue-600">
@@ -125,19 +191,19 @@ export const AuditRollbackCenter: React.FC<AuditRollbackCenterProps> = () => {
             </div>
 
             {selectedEntry === entry.id && (
-              <div className="mt-3 pt-3 border-t border-gray-200 space-y-3">
-                <div className="p-3 bg-gray-50 rounded">
-                  <p className="text-xs font-semibold text-gray-700 mb-1">Change Details</p>
-                  <p className="text-sm font-mono text-gray-900">{entry.changeDetails}</p>
+              <div className="mt-3 pt-3 border-t border-border space-y-3">
+                <div className="p-3 bg-muted rounded">
+                  <p className="text-xs font-semibold text-muted-foreground mb-1">Change Details</p>
+                  <p className="text-sm font-mono text-foreground">{entry.changeDetails}</p>
                 </div>
 
                 <div className="flex gap-2">
-                  <button className="flex-1 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 font-semibold text-sm flex items-center justify-center gap-2 transition">
+                  <button className="flex-1 px-3 py-2 bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900 font-semibold text-sm flex items-center justify-center gap-2 transition">
                     <Eye className="w-4 h-4" />
                     View Full Details
                   </button>
                   {entry.reversible && (
-                    <button className="flex-1 px-3 py-2 bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 font-semibold text-sm flex items-center justify-center gap-2 transition">
+                    <button className="flex-1 px-3 py-2 bg-orange-100 dark:bg-orange-950 text-orange-700 dark:text-orange-300 rounded-lg hover:bg-orange-200 dark:hover:bg-orange-900 font-semibold text-sm flex items-center justify-center gap-2 transition">
                       <RotateCcw className="w-4 h-4" />
                       Rollback
                     </button>
@@ -146,11 +212,12 @@ export const AuditRollbackCenter: React.FC<AuditRollbackCenterProps> = () => {
               </div>
             )}
           </div>
-        ))}
+        ))
+        )}
       </div>
 
       {/* Export */}
-      <button className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-semibold flex items-center justify-center gap-2 transition">
+      <button className="w-full px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 font-semibold flex items-center justify-center gap-2 transition">
         <Download className="w-4 h-4" />
         Export Audit Log
       </button>
