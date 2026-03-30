@@ -161,10 +161,10 @@ export function generateMockTopologyHierarchy(): TopologyObject[] {
     });
   });
 
-  // Clusters per region (3-6 per region for more data)
+  // Clusters per region (5-10 per region for more data)
   Array.from(regionMap.entries()).forEach(([regionName, regionId]) => {
     const regionObj = objects.find(o => o.id === regionId)!;
-    const clusterCount = 3 + Math.floor(Math.random() * 4);
+    const clusterCount = 5 + Math.floor(Math.random() * 6);
 
     for (let i = 0; i < clusterCount; i++) {
       const id = `cluster_${regionName}_${i}`;
@@ -206,33 +206,36 @@ export function generateMockTopologyHierarchy(): TopologyObject[] {
     }
   });
 
-  // Sites per cluster (5-12 per cluster for more data)
+  // Sites per cluster (8-18 per cluster for more data)
   const clusters = objects.filter(o => o.type === 'cluster');
   clusters.forEach((cluster, clusterIdx) => {
-    const siteCount = 5 + Math.floor(Math.random() * 8);
+    const siteCount = 8 + Math.floor(Math.random() * 11);
     const technologies: Technology[] = ['2G', '3G', '4G', '5G'];
 
     for (let i = 0; i < siteCount; i++) {
-      const id = `site_${cluster.name}_${i}`;
-      cluster.childrenIds.push(id);
+      const siteId = `site_${cluster.name}_${i}`;
+      cluster.childrenIds.push(siteId);
 
       const siteHealth = Math.random();
       const offsetLat = (Math.random() - 0.5) * 1.2;
       const offsetLon = (Math.random() - 0.5) * 1.2;
 
-      objects.push({
-        id,
+      const siteLat = (cluster.geoCoordinates?.latitude || 25) + offsetLat;
+      const siteLon = (cluster.geoCoordinates?.longitude || 50) + offsetLon;
+
+      const siteObj = {
+        id: siteId,
         name: `${cluster.name}-Site-${i + 1}`,
-        type: 'site',
+        type: 'site' as const,
         vendor: cluster.vendor,
         technology: technologies[Math.floor(Math.random() * technologies.length)],
         parentId: cluster.id,
-        childrenIds: [],
+        childrenIds: [] as string[],
         geoCoordinates: {
-          latitude: (cluster.geoCoordinates?.latitude || 25) + offsetLat,
-          longitude: (cluster.geoCoordinates?.longitude || 50) + offsetLon
+          latitude: siteLat,
+          longitude: siteLon
         },
-        healthState: siteHealth > 0.93 ? 'down' : siteHealth > 0.80 ? 'degraded' : 'healthy',
+        healthState: siteHealth > 0.93 ? 'down' as const : siteHealth > 0.80 ? 'degraded' as const : 'healthy' as const,
         alarmSummary: {
           critical: siteHealth > 0.93 ? Math.floor(Math.random() * 7 + 2) : Math.floor(Math.random() * 3),
           major: Math.floor(Math.random() * 8),
@@ -249,7 +252,87 @@ export function generateMockTopologyHierarchy(): TopologyObject[] {
         automationLocked: Math.random() > 0.92,
         lastStateChange: new Date(Date.now() - Math.random() * 900000).toISOString(),
         description: `${cluster.name}-Site-${i + 1}`
-      });
+      };
+
+      objects.push(siteObj);
+
+      // Add cells/sectors under each site (2-4 per site)
+      const cellCount = 2 + Math.floor(Math.random() * 3);
+      for (let c = 0; c < cellCount; c++) {
+        const cellId = `cell_${siteId}_${c}`;
+        siteObj.childrenIds.push(cellId);
+
+        const cellHealth = Math.random();
+        objects.push({
+          id: cellId,
+          name: `${cluster.name}-Site-${i + 1}-Cell-${c + 1}`,
+          type: 'cell',
+          vendor: cluster.vendor,
+          technology: siteObj.technology,
+          parentId: siteId,
+          childrenIds: [],
+          geoCoordinates: {
+            latitude: siteLat + (Math.random() - 0.5) * 0.2,
+            longitude: siteLon + (Math.random() - 0.5) * 0.2
+          },
+          healthState: cellHealth > 0.91 ? 'down' : cellHealth > 0.78 ? 'degraded' : 'healthy',
+          alarmSummary: {
+            critical: cellHealth > 0.91 ? Math.floor(Math.random() * 5 + 1) : Math.floor(Math.random() * 2),
+            major: Math.floor(Math.random() * 6),
+            minor: Math.floor(Math.random() * 12),
+            warning: Math.floor(Math.random() * 20)
+          },
+          kpiSummary: {
+            availability: 99.5 - Math.random() * 3,
+            dropRate: Math.random() * 0.5,
+            throughput: 88 + Math.random() * 12,
+            latency: 8 + Math.random() * 12,
+            utilization: 45 + Math.random() * 45
+          },
+          automationLocked: Math.random() > 0.95,
+          lastStateChange: new Date(Date.now() - Math.random() * 600000).toISOString(),
+          description: `Cell-${c + 1} at ${cluster.name}-Site-${i + 1}`
+        });
+      }
+
+      // Add equipment/nodes under each site (3-5 per site)
+      const equipCount = 3 + Math.floor(Math.random() * 3);
+      for (let e = 0; e < equipCount; e++) {
+        const equipId = `equipment_${siteId}_${e}`;
+        siteObj.childrenIds.push(equipId);
+
+        const equipHealth = Math.random();
+        objects.push({
+          id: equipId,
+          name: `${cluster.name}-Site-${i + 1}-Equip-${e + 1}`,
+          type: 'equipment',
+          vendor: cluster.vendor,
+          technology: 'Transport',
+          parentId: siteId,
+          childrenIds: [],
+          geoCoordinates: {
+            latitude: siteLat + (Math.random() - 0.5) * 0.15,
+            longitude: siteLon + (Math.random() - 0.5) * 0.15
+          },
+          healthState: equipHealth > 0.90 ? 'degraded' : 'healthy',
+          alarmSummary: {
+            critical: equipHealth > 0.90 ? Math.floor(Math.random() * 2) : 0,
+            major: Math.floor(Math.random() * 4),
+            minor: Math.floor(Math.random() * 10),
+            warning: Math.floor(Math.random() * 18)
+          },
+          kpiSummary: {
+            availability: 99.6 - Math.random() * 2.5,
+            dropRate: Math.random() * 0.4,
+            throughput: 89 + Math.random() * 11,
+            latency: 5 + Math.random() * 8,
+            utilization: 40 + Math.random() * 50
+          },
+          automationLocked: false,
+          lastStateChange: new Date(Date.now() - Math.random() * 500000).toISOString(),
+          description: `Equipment-${e + 1} at ${cluster.name}-Site-${i + 1}`
+        });
+      }
     }
 
     // Add transport links between sites in cluster
