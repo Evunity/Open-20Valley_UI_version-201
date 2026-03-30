@@ -80,6 +80,7 @@ export const DiffView: React.FC<DiffViewProps> = () => {
   const [compareType, setCompareType] = useState<'different-sites' | 'same-site'>('different-sites');
   const [leftSite, setLeftSite] = useState<string[]>(['Cairo-Site-1']);
   const [rightSite, setRightSite] = useState<string[]>(['Cairo-Site-2']);
+  const [timePeriod, setTimePeriod] = useState<string[]>(['Current vs Previous Hour']);
   const [selectedParameters, setSelectedParameters] = useState<Set<string>>(new Set(PARAMETER_OPTIONS));
 
   const filteredDiffs = diffs.filter(d => selectedParameters.has(d.parameter));
@@ -170,15 +171,16 @@ export const DiffView: React.FC<DiffViewProps> = () => {
           />
         )}
         {compareType === 'same-site' && (
-          <div>
-            <label className="block text-xs font-semibold text-muted-foreground mb-1">Time Period</label>
-            <select className="w-full px-3 py-1.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground">
-              <option>Current vs Previous Hour</option>
-              <option>Current vs Today</option>
-              <option>Today vs Yesterday</option>
-              <option>This Week vs Last Week</option>
-            </select>
-          </div>
+          <SearchableDropdown
+            label="Time Period"
+            options={['Current vs Previous Hour', 'Current vs Today', 'Today vs Yesterday', 'This Week vs Last Week']}
+            selected={timePeriod}
+            onChange={setTimePeriod}
+            placeholder="Select time period..."
+            multiSelect={false}
+            searchable={true}
+            compact={true}
+          />
         )}
       </div>
 
