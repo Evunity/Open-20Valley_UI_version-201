@@ -301,7 +301,7 @@ const TopologyManagementContent: React.FC = () => {
     />
   );
 
-  const renderRackView = () => <RackView onDeviceSelect={(device) => console.log(device)} />;
+  const renderRackView = () => <RackView topology={filteredNodes} onDeviceSelect={(device) => console.log(device)} />;
 
   const renderTransportView = () => <TransportPathView onPathSelect={(path) => console.log(path)} />;
 
