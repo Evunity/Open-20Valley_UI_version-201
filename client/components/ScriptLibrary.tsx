@@ -187,7 +187,7 @@ export const ScriptLibrary: React.FC<ScriptLibraryProps> = () => {
             <textarea placeholder="What does this script do?" rows={2} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">Vendor</label>
               <select className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
@@ -203,10 +203,6 @@ export const ScriptLibrary: React.FC<ScriptLibraryProps> = () => {
                 <option>Medium</option>
                 <option>High</option>
               </select>
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Required Permissions</label>
-              <input type="text" placeholder="e.g., RF_MODIFY, BULK_EXECUTE" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
             </div>
           </div>
 
