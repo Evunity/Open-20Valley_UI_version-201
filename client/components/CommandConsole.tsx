@@ -68,6 +68,9 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
   const [customCommands, setCustomCommands] = useState<Record<string, string[]>>({});
   const [showAddCommand, setShowAddCommand] = useState(false);
   const [newCommandInput, setNewCommandInput] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedSite, setSelectedSite] = useState<string>('');
+  const [selectedTechnology, setSelectedTechnology] = useState<string>('');
   const consoleEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -85,11 +88,45 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
     return { isValid: matchedKeyword !== undefined, matchedKeyword };
   };
 
+  const getAutocompleteSuggestions = (input: string): string[] => {
+    const upperInput = input.trim().toUpperCase();
+    if (!upperInput) return [];
+
+    const allCommands = [
+      ...getQuickCommands(),
+      ...(VENDOR_COMMANDS[selectedVendor as keyof typeof VENDOR_COMMANDS] || [])
+    ];
+
+    const uniqueCommands = Array.from(new Set(allCommands));
+    return uniqueCommands
+      .filter(cmd => cmd.toUpperCase().includes(upperInput))
+      .slice(0, 5);
+  };
+
   const executeCommand = () => {
     if (!command.trim()) return;
 
+    // Validate required selections
+    if (!selectedSite || !selectedTechnology || !selectedVendor) {
+      const missing = [];
+      if (!selectedSite) missing.push('Site');
+      if (!selectedTechnology) missing.push('Technology');
+      if (!selectedVendor) missing.push('Vendor');
+
+      const errorEntry: CommandHistory = {
+        id: `cmd_${Date.now()}`,
+        command: command.trim(),
+        timestamp: new Date().toLocaleTimeString(),
+        status: 'error',
+        vendor: selectedVendor,
+        output: `[ERROR] Please select: ${missing.join(', ')} before executing commands`
+      };
+      setHistory([...history, errorEntry]);
+      return;
+    }
+
     const { isValid, matchedKeyword } = getCommandSyntaxValidation(command);
-    
+
     const newEntry: CommandHistory = {
       id: `cmd_${Date.now()}`,
       command: command.trim(),
@@ -103,6 +140,7 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
 
     setHistory([...history, newEntry]);
     setCommand('');
+    setShowSuggestions(false);
   };
 
   const copyCommand = (cmd: string, id: string) => {
@@ -147,45 +185,85 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
   return (
     <div className="flex flex-col h-full gap-2 p-4">
       {/* Control Panel */}
-      <div className="grid grid-cols-3 gap-3">
-        {/* Vendor Selection */}
-        <div>
-          <label className="block text-xs font-semibold text-muted-foreground mb-1">Vendor</label>
-          <select
-            value={selectedVendor}
-            onChange={(e) => setSelectedVendor(e.target.value)}
-            className="w-full px-3 py-1.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm"
-          >
-            {Object.keys(VENDOR_COMMANDS).map(vendor => (
-              <option key={vendor} value={vendor}>{vendor}</option>
-            ))}
-          </select>
+      <div className="space-y-3">
+        {/* Required Selection Row */}
+        <div className="grid grid-cols-3 gap-3">
+          {/* Site Selection */}
+          <div>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">Site <span className="text-red-500">*</span></label>
+            <select
+              value={selectedSite}
+              onChange={(e) => setSelectedSite(e.target.value)}
+              className={`w-full px-3 py-1.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm ${
+                !selectedSite ? 'border-red-500 dark:border-red-500' : 'border-border'
+              }`}
+            >
+              <option value="">Select Site...</option>
+              <option value="Site-A">Site-A</option>
+              <option value="Site-B">Site-B</option>
+              <option value="Site-C">Site-C</option>
+            </select>
+          </div>
+
+          {/* Technology Selection */}
+          <div>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">Technology <span className="text-red-500">*</span></label>
+            <select
+              value={selectedTechnology}
+              onChange={(e) => setSelectedTechnology(e.target.value)}
+              className={`w-full px-3 py-1.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm ${
+                !selectedTechnology ? 'border-red-500 dark:border-red-500' : 'border-border'
+              }`}
+            >
+              <option value="">Select Technology...</option>
+              <option value="4G">4G</option>
+              <option value="5G">5G</option>
+              <option value="Fiber">Fiber</option>
+            </select>
+          </div>
+
+          {/* Vendor Selection */}
+          <div>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">Vendor <span className="text-red-500">*</span></label>
+            <select
+              value={selectedVendor}
+              onChange={(e) => setSelectedVendor(e.target.value)}
+              className="w-full px-3 py-1.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm"
+            >
+              {Object.keys(VENDOR_COMMANDS).map(vendor => (
+                <option key={vendor} value={vendor}>{vendor}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
-        {/* Mode Selection */}
-        <div>
-          <label className="block text-xs font-semibold text-muted-foreground mb-1">Mode</label>
-          <select
-            value={mode}
-            onChange={(e) => setMode(e.target.value as any)}
-            className="w-full px-3 py-1.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm"
-          >
-            <option value="raw">Raw Mode (Native)</option>
-            <option value="guided">Guided Mode (Form-Based)</option>
-            <option value="script">Script Mode (Multi-line)</option>
-          </select>
-        </div>
+        {/* Optional Selection Row */}
+        <div className="grid grid-cols-2 gap-3">
+          {/* Mode Selection */}
+          <div>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">Mode</label>
+            <select
+              value={mode}
+              onChange={(e) => setMode(e.target.value as any)}
+              className="w-full px-3 py-1.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm"
+            >
+              <option value="raw">Raw Mode (Native)</option>
+              <option value="guided">Guided Mode (Form-Based)</option>
+              <option value="script">Script Mode (Multi-line)</option>
+            </select>
+          </div>
 
-        {/* Context */}
-        <div>
-          <label className="block text-xs font-semibold text-muted-foreground mb-1">Target Context</label>
-          <input
-            type="text"
-            placeholder="Global → Country → Region → Site"
-            value={selectedTarget.site ? `${selectedTarget.site}` : 'Global'}
-            readOnly
-            className="w-full px-3 py-1.5 border border-border rounded-lg bg-input text-foreground text-sm"
-          />
+          {/* Context */}
+          <div>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">Target Context</label>
+            <input
+              type="text"
+              placeholder="Global → Country → Region"
+              value={selectedTarget.site ? `${selectedTarget.site}` : 'Global'}
+              readOnly
+              className="w-full px-3 py-1.5 border border-border rounded-lg bg-input text-foreground text-sm"
+            />
+          </div>
         </div>
       </div>
 
@@ -301,25 +379,51 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
       <div className="space-y-1">
         <div className="flex gap-2">
           <div className="flex-1">
-            <textarea
-              value={command}
-              onChange={(e) => setCommand(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  executeCommand();
-                }
-              }}
-              placeholder={`Enter ${selectedVendor} command (e.g., LST CELL;)`}
-              className={`w-full px-3 py-2 border-2 rounded-lg font-mono text-sm focus:outline-none transition ${
-                command.trim() && isValid
-                  ? 'border-green-500 bg-green-50 dark:bg-green-950/30 text-foreground'
-                  : command.trim()
-                  ? 'border-red-500 bg-red-50 dark:bg-red-950/30 text-foreground'
-                  : 'border-border bg-input text-foreground'
-              }`}
-              rows={2}
-            />
+            <div className="relative flex-1">
+              <textarea
+                value={command}
+                onChange={(e) => {
+                  const upperValue = e.target.value.toUpperCase();
+                  setCommand(upperValue);
+                  setShowSuggestions(upperValue.trim().length > 0);
+                }}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    executeCommand();
+                  }
+                }}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                onFocus={() => command.trim().length > 0 && setShowSuggestions(true)}
+                placeholder={`Enter ${selectedVendor} command (e.g., LST CELL;)`}
+                className={`w-full px-3 py-2 border-2 rounded-lg font-mono text-sm focus:outline-none transition ${
+                  command.trim() && isValid
+                    ? 'border-green-500 bg-green-50 dark:bg-green-950/30 text-foreground'
+                    : command.trim()
+                    ? 'border-red-500 bg-red-50 dark:bg-red-950/30 text-foreground'
+                    : 'border-border bg-input text-foreground'
+                }`}
+                rows={2}
+              />
+
+              {/* Autocomplete Suggestions */}
+              {showSuggestions && getAutocompleteSuggestions(command).length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-10 max-h-40 overflow-y-auto">
+                  {getAutocompleteSuggestions(command).map((suggestion, index) => (
+                    <button
+                      key={index}
+                      onClick={() => {
+                        setCommand(suggestion);
+                        setShowSuggestions(false);
+                      }}
+                      className="w-full text-left px-3 py-2 text-sm font-mono hover:bg-muted border-b border-border last:border-b-0 text-foreground transition"
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
           <button
             onClick={executeCommand}

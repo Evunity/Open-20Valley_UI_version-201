@@ -183,14 +183,6 @@ export const CommandCenter: React.FC = () => {
           {renderModule()}
         </div>
       </div>
-
-      {/* Safety Notice */}
-      <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
-        <p className="text-xs text-amber-800 dark:text-amber-300">
-          <strong>⚠️ Important:</strong> All commands are vendor-native and fully audited. Changes are transactional with rollback capability. 
-          Never execute commands on production without testing in Sandbox Mode first.
-        </p>
-      </div>
     </div>
   );
 };
