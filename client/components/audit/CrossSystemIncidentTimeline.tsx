@@ -11,17 +11,7 @@ export default function CrossSystemIncidentTimeline() {
   ];
 
   return (
-    <div className="space-y-8">
-      {/* Description */}
-      <div className="bg-orange-500/5 border border-orange-500/20 rounded-xl p-6">
-        <h3 className="font-bold text-foreground mb-2 flex items-center gap-2">
-          <GitBranch className="w-5 h-5 text-orange-600" />
-          Cross-System Incident Timeline
-        </h3>
-        <p className="text-sm text-muted-foreground">
-          Reconstruct multi-module incidents with precise timing and causal relationships. Understand how actions in one module triggered events in others.
-        </p>
-      </div>
+    <div className="space-y-2">
 
       {/* Timeline Visualization */}
       <div className="rounded-xl border border-border/50 p-6 bg-card/50">
@@ -80,23 +70,14 @@ export default function CrossSystemIncidentTimeline() {
         <div className="space-y-3">
           <div className="p-4 bg-red-500/5 border border-red-500/20 rounded-lg">
             <p className="text-sm font-bold text-red-700 mb-1">Root Cause: Manual Privilege Escalation</p>
-            <p className="text-xs text-muted-foreground">
-              rf_engineer initiated privilege escalation at 14:32:15, authorized via MFA. This granted admin rights to execute commands directly.
-            </p>
           </div>
 
           <div className="p-4 bg-orange-500/5 border border-orange-500/20 rounded-lg">
             <p className="text-sm font-bold text-orange-700 mb-1">Direct Impact: Automation Override</p>
-            <p className="text-xs text-muted-foreground">
-              30 seconds later, the new admin user manually overrode Load Balancing automation policy, bypassing approval workflow.
-            </p>
           </div>
 
           <div className="p-4 bg-yellow-500/5 border border-yellow-500/20 rounded-lg">
             <p className="text-sm font-bold text-yellow-700 mb-1">Cascading Effect: Configuration Change</p>
-            <p className="text-xs text-muted-foreground">
-              Command center pushed configuration to network, triggering alerts in topology and alarm modules. 2-minute total latency for full impact.
-            </p>
           </div>
         </div>
       </div>
@@ -121,9 +102,6 @@ Automation Override (14:32:45)
 
       {/* Export Report */}
       <div className="rounded-xl border border-border/50 p-6 bg-card/50">
-        <p className="text-sm text-muted-foreground mb-4">
-          This timeline is suitable for postmortem analysis and compliance reporting:
-        </p>
         <button className="w-full px-4 py-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors text-sm font-medium">
           Generate Incident Report
         </button>

@@ -9,17 +9,7 @@ export default function PrivilegedAccessRadar() {
   ];
 
   return (
-    <div className="space-y-8">
-      {/* Description */}
-      <div className="bg-red-500/5 border border-red-500/20 rounded-xl p-6">
-        <h3 className="font-bold text-foreground mb-2 flex items-center gap-2">
-          <Lock className="w-5 h-5 text-red-600" />
-          Privileged Access Radar
-        </h3>
-        <p className="text-sm text-muted-foreground">
-          Track all admin-level actions, privilege escalations, and policy violations. Detect and alert on unauthorized access attempts.
-        </p>
-      </div>
+    <div className="space-y-2">
 
       {/* Privileged Actions Today */}
       <div className="rounded-xl border border-border/50 p-6 bg-card/50">
@@ -84,24 +74,17 @@ export default function PrivilegedAccessRadar() {
 
       {/* Policy Violations */}
       <div className="rounded-xl border border-border/50 p-6 bg-card/50">
-        <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
-          <AlertTriangle className="w-5 h-5 text-orange-600" />
+        <h3 className="font-bold text-foreground mb-4">
           Recent Policy Violations
         </h3>
 
         <div className="space-y-3">
           <div className="p-4 bg-orange-500/5 border border-orange-500/20 rounded-lg">
             <p className="text-sm font-bold text-orange-700 mb-1">Automation Override Without Approval</p>
-            <p className="text-xs text-muted-foreground">
-              User 'ops_manager' manually overrode Load Balancing automation policy at 14:32:45. No approval workflow triggered.
-            </p>
           </div>
 
           <div className="p-4 bg-red-500/5 border border-red-500/20 rounded-lg">
             <p className="text-sm font-bold text-red-700 mb-1">Unauthorized Export Attempt</p>
-            <p className="text-xs text-muted-foreground">
-              User attempted to bulk export Alarm Summary dataset. Blocked by DLP policy. Incident logged for investigation.
-            </p>
           </div>
         </div>
       </div>

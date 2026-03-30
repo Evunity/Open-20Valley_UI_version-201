@@ -68,16 +68,6 @@ export default function ForensicInvestigationExplorer() {
 
   const renderInvestigation = () => (
     <>
-      {/* Description */}
-      <div className="bg-purple-500/5 border border-purple-500/20 rounded-xl p-6">
-        <h3 className="font-bold text-foreground mb-2 flex items-center gap-2">
-          <SearchCode className="w-5 h-5 text-purple-600" />
-          Forensic Investigation Explorer
-        </h3>
-        <p className="text-sm text-muted-foreground">
-          Deep-dive analysis tools for security incidents and compliance reviews. Reconstruct events, analyze patterns, and generate forensic reports for legal discovery.
-        </p>
-      </div>
 
       {/* Advanced Forensic Tools */}
       <div className="rounded-xl border border-border/50 p-6 bg-card/50">
@@ -235,7 +225,7 @@ export default function ForensicInvestigationExplorer() {
   );
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-2">
       {/* Navigation Tabs for Forensic Tools */}
       {activeView !== 'investigation' && (
         <div className="flex items-center gap-2 border-b border-border pb-4 -mx-8 px-8">

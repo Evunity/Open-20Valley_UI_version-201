@@ -295,17 +295,7 @@ export default function BlastCorrelationEngine() {
   };
 
   return (
-    <div className="space-y-8">
-      {/* Description */}
-      <div className="bg-red-500/5 border border-red-500/20 rounded-xl p-6">
-        <h3 className="font-bold text-foreground mb-2 flex items-center gap-2">
-          <Zap className="w-5 h-5 text-red-600" />
-          Blast Correlation Engine
-        </h3>
-        <p className="text-sm text-muted-foreground">
-          Automatically link event chains to reveal causal relationships. Track how a single action cascades into major incidents affecting revenue and network stability.
-        </p>
-      </div>
+    <div className="space-y-2">
 
       {/* Chain Selection */}
       <div className="space-y-3">
@@ -436,8 +426,7 @@ export default function BlastCorrelationEngine() {
 
       {/* Impact Summary */}
       <div className="rounded-xl border border-border/50 p-6 bg-card/50">
-        <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
-          <TrendingUp className="w-4 h-4" />
+        <h3 className="font-bold text-foreground mb-4">
           Blast Impact Analysis
         </h3>
 
@@ -456,44 +445,32 @@ export default function BlastCorrelationEngine() {
           <div className="p-4 bg-blue-500/5 border border-blue-500/20 rounded-lg">
             <p className="text-xs text-blue-700 mb-2">Root Cause</p>
             <p className="text-sm text-blue-700 font-semibold">{currentChain.rootCause}</p>
-            <p className="text-xs text-blue-600 mt-2">
-              This single action triggered a cascading failure affecting {currentChain.eventCount} critical systems within {currentChain.timeWindow}.
-            </p>
           </div>
         </div>
       </div>
 
       {/* Mitigation Recommendations */}
       <div className="rounded-xl border border-border/50 p-6 bg-card/50">
-        <h3 className="font-bold text-foreground mb-3 flex items-center gap-2">
-          <AlertTriangle className="w-4 h-4" />
+        <h3 className="font-bold text-foreground mb-3">
           Mitigation Strategy
         </h3>
 
         <div className="space-y-2 text-sm">
           <div className="flex items-start gap-2">
             <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-1.5" />
-            <p className="text-muted-foreground">
-              <span className="font-semibold text-foreground">Require approval workflows</span> for privilege escalations with mandatory review period
-            </p>
+            <p className="text-foreground font-semibold">Require approval workflows</p>
           </div>
           <div className="flex items-start gap-2">
             <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-1.5" />
-            <p className="text-muted-foreground">
-              <span className="font-semibold text-foreground">Implement policy change gates</span> with automated impact prediction
-            </p>
+            <p className="text-foreground font-semibold">Implement policy change gates</p>
           </div>
           <div className="flex items-start gap-2">
             <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-1.5" />
-            <p className="text-muted-foreground">
-              <span className="font-semibold text-foreground">Add automation circuit breakers</span> to prevent cascade failures
-            </p>
+            <p className="text-foreground font-semibold">Add automation circuit breakers</p>
           </div>
           <div className="flex items-start gap-2">
             <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-1.5" />
-            <p className="text-muted-foreground">
-              <span className="font-semibold text-foreground">Validate all frequency changes</span> against interference prediction models
-            </p>
+            <p className="text-foreground font-semibold">Validate all frequency changes</p>
           </div>
         </div>
       </div>

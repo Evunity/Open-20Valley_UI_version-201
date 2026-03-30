@@ -149,17 +149,7 @@ export default function ActivityNormalizationRules() {
   ];
 
   return (
-    <div className="space-y-8">
-      {/* Description */}
-      <div className="bg-purple-500/5 border border-purple-500/20 rounded-xl p-6">
-        <h3 className="font-bold text-foreground mb-2 flex items-center gap-2">
-          <Filter className="w-5 h-5 text-purple-600" />
-          Activity Normalization Rules
-        </h3>
-        <p className="text-sm text-muted-foreground">
-          Events MUST be categorized into standard taxonomies. Normalization ensures consistent audit trails across all system components for forensic accuracy and compliance.
-        </p>
-      </div>
+    <div className="space-y-2">
 
       {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

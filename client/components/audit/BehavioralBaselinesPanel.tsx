@@ -299,17 +299,7 @@ export default function BehavioralBaselinesPanel() {
   };
 
   return (
-    <div className="space-y-8">
-      {/* Description */}
-      <div className="bg-cyan-500/5 border border-cyan-500/20 rounded-xl p-6">
-        <h3 className="font-bold text-foreground mb-2 flex items-center gap-2">
-          <Brain className="w-5 h-5 text-cyan-600" />
-          Behavioral Baselines
-        </h3>
-        <p className="text-sm text-muted-foreground">
-          Learn normal behavior patterns for each user. Flag deviations quietly but powerfully. Detect insider threats and compromised accounts by comparing current activity against established baselines.
-        </p>
-      </div>
+    <div className="space-y-2">
 
       {/* User Selection */}
       <div className="space-y-3">
@@ -391,8 +381,7 @@ export default function BehavioralBaselinesPanel() {
 
       {/* Baseline Metrics */}
       <div className="rounded-xl border border-border/50 p-6 bg-card/50">
-        <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
-          <TrendingUp className="w-4 h-4" />
+        <h3 className="font-bold text-foreground mb-4">
           Baseline Metrics & Deviations
         </h3>
 
@@ -438,8 +427,7 @@ export default function BehavioralBaselinesPanel() {
       {/* Learning Phase Explanation */}
       {currentUser.status === 'learning' && (
         <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/5 p-6">
-          <h3 className="font-bold text-yellow-700 mb-3 flex items-center gap-2">
-            <Clock className="w-4 h-4" />
+          <h3 className="font-bold text-yellow-700 mb-3">
             Learning Phase in Progress
           </h3>
           <p className="text-sm text-yellow-600 mb-3">

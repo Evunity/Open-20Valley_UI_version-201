@@ -39,17 +39,7 @@ export default function RiskActivityHeatmap() {
   };
 
   return (
-    <div className="space-y-8">
-      {/* Description */}
-      <div className="bg-red-500/5 border border-red-500/20 rounded-xl p-6">
-        <h3 className="font-bold text-foreground mb-2 flex items-center gap-2">
-          <AlertTriangle className="w-5 h-5 text-red-600" />
-          Risk Activity Heatmap
-        </h3>
-        <p className="text-sm text-muted-foreground">
-          Visualize time-based security risk spikes. Security teams instantly detect patterns and anomalies in activity timing.
-        </p>
-      </div>
+    <div className="space-y-2">
 
       {/* Hourly Heatmap */}
       <div className="rounded-xl border border-border/50 p-6 bg-card/50">
@@ -102,31 +92,21 @@ export default function RiskActivityHeatmap() {
 
       {/* Peak Times Analysis */}
       <div className="rounded-xl border border-border/50 p-6 bg-card/50">
-        <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
-          <TrendingUp className="w-5 h-5" />
+        <h3 className="font-bold text-foreground mb-4">
           Peak Activity Analysis
         </h3>
 
         <div className="space-y-3">
           <div className="p-4 bg-red-500/5 border border-red-500/20 rounded-lg">
             <p className="text-sm font-bold text-red-700 mb-1">Critical Peak: 14:00 (2 PM)</p>
-            <p className="text-xs text-muted-foreground">
-              Risk Score: 92/100 • 90 events logged • 45 critical actions • Privilege escalation detected
-            </p>
           </div>
 
           <div className="p-4 bg-orange-500/5 border border-orange-500/20 rounded-lg">
             <p className="text-sm font-bold text-orange-700 mb-1">High Activity: 13:00 (1 PM)</p>
-            <p className="text-xs text-muted-foreground">
-              Risk Score: 85/100 • 85 events logged • 38 critical actions • Configuration changes detected
-            </p>
           </div>
 
           <div className="p4 bg-yellow-500/5 border border-yellow-500/20 rounded-lg">
             <p className="text-sm font-bold text-yellow-700 mb-1">Elevated Activity: 08:00-12:00 (Morning Peak)</p>
-            <p className="text-xs text-muted-foreground">
-              Sustained high-risk activity throughout morning hours. 4-hour duration suggests coordinated actions.
-            </p>
           </div>
         </div>
       </div>

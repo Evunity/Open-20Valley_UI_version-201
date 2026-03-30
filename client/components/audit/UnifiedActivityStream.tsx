@@ -24,6 +24,54 @@ export default function UnifiedActivityStream() {
   const [groupBy, setGroupBy] = useState<string>('none');
   const [useRegex, setUseRegex] = useState(false);
   const [highlightRules, setHighlightRules] = useState<string[]>(['critical']);
+  const [viewName, setViewName] = useState('');
+
+  const handleSaveView = () => {
+    if (!viewName.trim()) {
+      alert('Please enter a view name');
+      return;
+    }
+    const viewConfig = {
+      name: viewName,
+      filterSeverity,
+      timeRange,
+      groupBy,
+      pinnedColumns,
+      useRegex,
+      highlightRules
+    };
+    const savedViews = JSON.parse(localStorage.getItem('auditViews') || '{}');
+    savedViews[viewName] = viewConfig;
+    localStorage.setItem('auditViews', JSON.stringify(savedViews));
+    alert(`View "${viewName}" saved successfully`);
+    setViewName('');
+  };
+
+  const handleExport = () => {
+    const csvContent = [
+      ['Event ID', 'Timestamp', 'Actor', 'Action', 'Target', 'Result', 'Severity', 'Details'].join(','),
+      ...filteredEvents.map(event => [
+        event.eventId,
+        event.timestamp,
+        event.actor,
+        event.action,
+        event.target,
+        event.result,
+        event.severity,
+        `"${event.details}"`
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `audit-events-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  };
 
   const events: AuditEvent[] = [
     {
@@ -136,23 +184,28 @@ export default function UnifiedActivityStream() {
   });
 
   return (
-    <div className="space-y-8">
-      {/* Description */}
-      <div className="bg-blue-500/5 border border-blue-500/20 rounded-xl p-6">
-        <h3 className="font-bold text-foreground mb-2">Unified Activity Stream</h3>
-        <p className="text-sm text-muted-foreground">
-          Complete immutable log of all platform events. Every action is timestamped to nanosecond precision, correlated, and forensically complete.
-        </p>
-      </div>
+    <div className="space-y-2">
 
       {/* Advanced Table Controls */}
       <div className="rounded-xl border border-border/50 p-4 bg-card/50 space-y-4">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-bold text-foreground">Advanced Table Features</h3>
-          <button className="text-xs px-2 py-1 bg-primary/10 text-primary rounded hover:bg-primary/20 transition-colors flex items-center gap-1">
-            <Save className="w-3 h-3" />
-            Save View
-          </button>
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              placeholder="View name..."
+              value={viewName}
+              onChange={(e) => setViewName(e.target.value)}
+              className="text-xs px-2 py-1 rounded border border-border bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+            <button
+              onClick={handleSaveView}
+              className="text-xs px-2 py-1 bg-primary/10 text-primary rounded hover:bg-primary/20 transition-colors flex items-center gap-1"
+            >
+              <Save className="w-3 h-3" />
+              Save View
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -260,7 +313,10 @@ export default function UnifiedActivityStream() {
             <option value="30d">Last 30 Days</option>
           </select>
 
-          <button className="px-3 py-2 rounded-lg border border-border hover:bg-muted transition-colors text-sm flex items-center gap-2">
+          <button
+            onClick={handleExport}
+            className="px-3 py-2 rounded-lg border border-border hover:bg-muted transition-colors text-sm flex items-center gap-2"
+          >
             <Download className="w-4 h-4" />
             Export
           </button>
@@ -337,13 +393,6 @@ export default function UnifiedActivityStream() {
         ))}
       </div>
 
-      {/* Immutability Note */}
-      <div className="rounded-xl border border-border/50 p-4 bg-card/50">
-        <p className="text-xs text-muted-foreground flex items-start gap-2">
-          <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-          All events are cryptographically signed and immutable. Audit trail cannot be modified, deleted, or backdated without detection.
-        </p>
-      </div>
     </div>
   );
 }

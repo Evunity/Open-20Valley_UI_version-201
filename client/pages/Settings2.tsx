@@ -35,6 +35,23 @@ export default function Settings2() {
     maintenanceMode: false
   });
 
+  // Integration State
+  const [northboundIntegrations, setNorthboundIntegrations] = useState({
+    'ServiceNow ITSM': { status: 'Configured', apiKey: '', endpoint: '', enabled: true },
+    'Splunk SIEM': { status: 'Configured', apiKey: '', endpoint: '', enabled: true },
+    'Email Server': { status: 'Configured', apiKey: '', endpoint: '', enabled: true },
+    'Webhook Endpoint': { status: 'Configured', apiKey: '', endpoint: '', enabled: true }
+  });
+
+  const [southboundIntegrations, setSouthboundIntegrations] = useState({
+    'SNMP': { status: 'Active', community: 'public', port: 161, enabled: true },
+    'NETCONF': { status: 'Active', port: 830, username: '', enabled: true },
+    'SSH': { status: 'Active', port: 22, username: '', enabled: true },
+    'REST': { status: 'Active', endpoint: '', port: 8080, enabled: true }
+  });
+
+  const [editingIntegration, setEditingIntegration] = useState<{ type: 'northbound' | 'southbound', name: string } | null>(null);
+
   const handleConfigChange = (field: string, value: any) => {
     setSystemConfig(prev => ({
       ...prev,
@@ -47,6 +64,69 @@ export default function Settings2() {
     localStorage.setItem('systemConfig', JSON.stringify(systemConfig));
     setSavedStatus('Settings saved successfully');
     setTimeout(() => setSavedStatus(null), 3000);
+  };
+
+  const handleEditNorthbound = (name: string) => {
+    setEditingIntegration({ type: 'northbound', name });
+  };
+
+  const handleConfigureSouthbound = (name: string) => {
+    setEditingIntegration({ type: 'southbound', name });
+  };
+
+  const handleUpdateIntegration = (field: string, value: any) => {
+    if (!editingIntegration) return;
+
+    if (editingIntegration.type === 'northbound') {
+      setNorthboundIntegrations(prev => ({
+        ...prev,
+        [editingIntegration.name]: {
+          ...prev[editingIntegration.name as keyof typeof prev],
+          [field]: value
+        }
+      }));
+    } else {
+      setSouthboundIntegrations(prev => ({
+        ...prev,
+        [editingIntegration.name]: {
+          ...prev[editingIntegration.name as keyof typeof prev],
+          [field]: value
+        }
+      }));
+    }
+  };
+
+  const handleCloseModal = () => {
+    setEditingIntegration(null);
+  };
+
+  const handleSaveIntegration = async () => {
+    if (!editingIntegration) return;
+
+    try {
+      const config = editingIntegration.type === 'northbound'
+        ? northboundIntegrations[editingIntegration.name as keyof typeof northboundIntegrations]
+        : southboundIntegrations[editingIntegration.name as keyof typeof southboundIntegrations];
+
+      // Save to backend
+      const response = await fetch('/api/integrations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: editingIntegration.type,
+          name: editingIntegration.name,
+          config
+        })
+      });
+
+      if (response.ok) {
+        setSavedStatus(`${editingIntegration.name} saved successfully`);
+        setTimeout(() => setSavedStatus(null), 3000);
+        handleCloseModal();
+      }
+    } catch (error) {
+      console.error('Failed to save integration:', error);
+    }
   };
 
   const tabs = [
@@ -96,8 +176,6 @@ export default function Settings2() {
           {/* 1. System Configuration */}
           {activeTab === 'system-config' && (
             <div className="space-y-2">
-              <h2 className="text-3xl font-bold text-foreground">System Configuration</h2>
-
               <div className="space-y-2">
                 {/* General Platform Settings */}
                 <div className="rounded-lg border border-border bg-card p-4">
@@ -174,8 +252,6 @@ export default function Settings2() {
           {/* 2. Module Configuration */}
           {activeTab === 'module-config' && (
             <div className="space-y-2">
-              <h2 className="text-3xl font-bold text-foreground">Module Configuration</h2>
-
               {/* Alarm Module */}
               <div className="rounded-lg border border-border bg-card p-4">
                 <h3 className="mb-2 text-xl font-semibold text-foreground">Alarm Module Settings</h3>
@@ -316,18 +392,21 @@ export default function Settings2() {
           {/* 3. Integration Settings */}
           {activeTab === 'integration' && (
             <div className="space-y-2">
-              <h2 className="text-3xl font-bold text-foreground">Integration Settings</h2>
-
               <div className="rounded-lg border border-border bg-card p-4">
                 <h3 className="mb-2 text-xl font-semibold text-foreground">Northbound Integrations</h3>
                 <div className="mb-6 space-y-3">
-                  {['ServiceNow ITSM', 'Splunk SIEM', 'Email Server', 'Webhook Endpoint'].map(int => (
+                  {Object.entries(northboundIntegrations).map(([int, config]) => (
                     <div key={int} className="flex items-center justify-between rounded-lg bg-muted p-4">
                       <div>
                         <p className="font-semibold text-foreground">{int}</p>
-                        <p className="text-xs text-muted-foreground">Status: Configured</p>
+                        <p className="text-xs text-muted-foreground">Status: {config.status}</p>
                       </div>
-                      <button className="rounded px-3 py-1 text-sm text-primary hover:bg-primary/5">Edit</button>
+                      <button
+                        onClick={() => handleEditNorthbound(int)}
+                        className="rounded px-3 py-1 text-sm text-primary hover:bg-primary/5 font-medium"
+                      >
+                        Edit
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -336,25 +415,132 @@ export default function Settings2() {
               <div className="rounded-lg border border-border bg-card p-4">
                 <h3 className="mb-2 text-xl font-semibold text-foreground">Southbound Integrations (Network)</h3>
                 <div className="space-y-3">
-                  {['SNMP', 'NETCONF', 'SSH', 'REST'].map(proto => (
+                  {Object.entries(southboundIntegrations).map(([proto, config]) => (
                     <div key={proto} className="flex items-center justify-between rounded-lg bg-muted p-4">
                       <div>
                         <p className="font-semibold text-foreground">{proto} Protocol Adapter</p>
-                        <p className="text-xs text-muted-foreground">Status: Active</p>
+                        <p className="text-xs text-muted-foreground">Status: {config.status}</p>
                       </div>
-                      <button className="rounded px-3 py-1 text-sm text-primary hover:bg-primary/5">Configure</button>
+                      <button
+                        onClick={() => handleConfigureSouthbound(proto)}
+                        className="rounded px-3 py-1 text-sm text-primary hover:bg-primary/5 font-medium"
+                      >
+                        Configure
+                      </button>
                     </div>
                   ))}
                 </div>
               </div>
+
+              {/* Integration Edit/Configure Modal */}
+              {editingIntegration && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                  <div className="bg-card border border-border rounded-lg shadow-lg max-w-md w-full p-6 max-h-96 overflow-y-auto">
+                    <h2 className="text-xl font-bold text-foreground mb-4">
+                      {editingIntegration.type === 'northbound' ? 'Edit ' : 'Configure '}{editingIntegration.name}
+                    </h2>
+
+                    {editingIntegration.type === 'northbound' ? (
+                      // Northbound integration form
+                      <div className="space-y-4">
+                        <div>
+                          <label className="text-sm font-semibold text-foreground block mb-1">API Endpoint</label>
+                          <input
+                            type="text"
+                            placeholder="https://api.example.com"
+                            value={northboundIntegrations[editingIntegration.name as keyof typeof northboundIntegrations].endpoint}
+                            onChange={(e) => handleUpdateIntegration('endpoint', e.target.value)}
+                            className="w-full rounded border border-border px-3 py-2 bg-background text-foreground text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm font-semibold text-foreground block mb-1">API Key</label>
+                          <input
+                            type="password"
+                            placeholder="••••••••"
+                            value={northboundIntegrations[editingIntegration.name as keyof typeof northboundIntegrations].apiKey}
+                            onChange={(e) => handleUpdateIntegration('apiKey', e.target.value)}
+                            className="w-full rounded border border-border px-3 py-2 bg-background text-foreground text-sm"
+                          />
+                        </div>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={northboundIntegrations[editingIntegration.name as keyof typeof northboundIntegrations].enabled}
+                            onChange={(e) => handleUpdateIntegration('enabled', e.target.checked)}
+                            className="h-4 w-4"
+                          />
+                          <span className="text-sm font-medium text-foreground">Enabled</span>
+                        </label>
+                      </div>
+                    ) : (
+                      // Southbound integration form
+                      <div className="space-y-4">
+                        <div>
+                          <label className="text-sm font-semibold text-foreground block mb-1">Port</label>
+                          <input
+                            type="number"
+                            value={southboundIntegrations[editingIntegration.name as keyof typeof southboundIntegrations].port}
+                            onChange={(e) => handleUpdateIntegration('port', parseInt(e.target.value))}
+                            className="w-full rounded border border-border px-3 py-2 bg-background text-foreground text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm font-semibold text-foreground block mb-1">Username</label>
+                          <input
+                            type="text"
+                            placeholder="admin"
+                            value={southboundIntegrations[editingIntegration.name as keyof typeof southboundIntegrations].username || ''}
+                            onChange={(e) => handleUpdateIntegration('username', e.target.value)}
+                            className="w-full rounded border border-border px-3 py-2 bg-background text-foreground text-sm"
+                          />
+                        </div>
+                        {editingIntegration.name === 'SNMP' && (
+                          <div>
+                            <label className="text-sm font-semibold text-foreground block mb-1">Community String</label>
+                            <input
+                              type="text"
+                              value={southboundIntegrations[editingIntegration.name as keyof typeof southboundIntegrations].community || ''}
+                              onChange={(e) => handleUpdateIntegration('community', e.target.value)}
+                              className="w-full rounded border border-border px-3 py-2 bg-background text-foreground text-sm"
+                            />
+                          </div>
+                        )}
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={southboundIntegrations[editingIntegration.name as keyof typeof southboundIntegrations].enabled}
+                            onChange={(e) => handleUpdateIntegration('enabled', e.target.checked)}
+                            className="h-4 w-4"
+                          />
+                          <span className="text-sm font-medium text-foreground">Enabled</span>
+                        </label>
+                      </div>
+                    )}
+
+                    <div className="flex gap-2 mt-6">
+                      <button
+                        onClick={handleSaveIntegration}
+                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded px-4 py-2 text-sm font-medium"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={handleCloseModal}
+                        className="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-foreground rounded px-4 py-2 text-sm font-medium"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
           {/* 4. Data & Retention */}
           {activeTab === 'data-retention' && (
             <div className="space-y-2">
-              <h2 className="text-3xl font-bold text-foreground">Data & Retention Policies</h2>
-
               <div className="rounded-lg border border-border bg-card p-4">
                 <h3 className="mb-2 text-xl font-semibold text-foreground">Data Retention</h3>
                 <div className="space-y-2">
@@ -407,8 +593,6 @@ export default function Settings2() {
           {/* 5. Performance & Limits */}
           {activeTab === 'performance' && (
             <div className="space-y-2">
-              <h2 className="text-3xl font-bold text-foreground">Performance & System Limits</h2>
-
               <div className="rounded-lg border border-border bg-card p-4">
                 <h3 className="mb-2 text-xl font-semibold text-foreground">Resource Limits</h3>
                 <div className="space-y-2">
@@ -462,8 +646,6 @@ export default function Settings2() {
           {/* 6. Notifications */}
           {activeTab === 'notifications' && (
             <div className="space-y-2">
-              <h2 className="text-3xl font-bold text-foreground">Notifications & Communication Settings</h2>
-
               <div className="rounded-lg border border-border bg-card p-4">
                 <h3 className="mb-2 text-xl font-semibold text-foreground">Notification Channels</h3>
                 <div className="space-y-3">
@@ -507,8 +689,6 @@ export default function Settings2() {
           {/* 7. Automation Guardrails */}
           {activeTab === 'automation' && (
             <div className="space-y-2">
-              <h2 className="text-3xl font-bold text-foreground">Automation Guardrails</h2>
-
               <div className="rounded-lg border border-border bg-card p-4">
                 <div className="space-y-2">
                   <label className="flex items-center gap-3 p-4 rounded-lg bg-muted">
@@ -535,8 +715,6 @@ export default function Settings2() {
           {/* 8. Environment & Deployment */}
           {activeTab === 'environment' && (
             <div className="space-y-2">
-              <h2 className="text-3xl font-bold text-foreground">Environment & Deployment Settings</h2>
-
               <div className="rounded-lg border border-border bg-card p-4">
                 <h3 className="mb-2 text-xl font-semibold text-foreground">Feature Flags</h3>
                 <div className="space-y-3">
@@ -557,8 +735,6 @@ export default function Settings2() {
           {/* 9. Backup & Recovery */}
           {activeTab === 'backup' && (
             <div className="space-y-2">
-              <h2 className="text-3xl font-bold text-foreground">Backup & Recovery Settings</h2>
-
               <div className="rounded-lg border border-border bg-card p-4">
                 <h3 className="mb-2 text-xl font-semibold text-foreground">Backup Configuration</h3>
                 <div className="space-y-2">
@@ -609,8 +785,6 @@ export default function Settings2() {
           {/* 10. Branding & UI */}
           {activeTab === 'branding' && (
             <div className="space-y-2">
-              <h2 className="text-3xl font-bold text-foreground">Branding & UI Customization</h2>
-
               <div className="rounded-lg border border-border bg-card p-4">
                 <h3 className="mb-2 text-xl font-semibold text-foreground">Branding & UI Customization</h3>
                 <div className="space-y-2">
@@ -641,8 +815,6 @@ export default function Settings2() {
           {/* 11. Audit & Change Control */}
           {activeTab === 'audit' && (
             <div className="space-y-2">
-              <h2 className="text-3xl font-bold text-foreground">Audit & Change Control</h2>
-
               <div className="rounded-lg border border-border bg-card p-4">
                 <h3 className="mb-2 text-xl font-semibold text-foreground">Settings Audit & Change Control</h3>
                 <div className="mb-6 space-y-3">
@@ -684,8 +856,6 @@ export default function Settings2() {
           {/* 12. Permissions & Access */}
           {activeTab === 'permissions' && (
             <div className="space-y-2">
-              <h2 className="text-3xl font-bold text-foreground">Permissions & Access Control</h2>
-
               <div className="rounded-lg border border-border bg-card overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
