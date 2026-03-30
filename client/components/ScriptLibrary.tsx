@@ -229,7 +229,7 @@ export const ScriptLibrary: React.FC<ScriptLibraryProps> = () => {
                       {script.riskLevel}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-600 mb-1">{script.description}</p>
+                  <p className="text-sm text-gray-600 mb-1 whitespace-pre-wrap break-words">{script.description}</p>
 
                   <div className="flex items-center gap-3 text-xs text-gray-500 flex-wrap mt-2">
                     <div className="flex items-center gap-1">
