@@ -96,8 +96,6 @@ export default function Settings2() {
           {/* 1. System Configuration */}
           {activeTab === 'system-config' && (
             <div className="space-y-2">
-              <h2 className="text-3xl font-bold text-foreground">System Configuration</h2>
-
               <div className="space-y-2">
                 {/* General Platform Settings */}
                 <div className="rounded-lg border border-border bg-card p-4">
@@ -174,8 +172,6 @@ export default function Settings2() {
           {/* 2. Module Configuration */}
           {activeTab === 'module-config' && (
             <div className="space-y-2">
-              <h2 className="text-3xl font-bold text-foreground">Module Configuration</h2>
-
               {/* Alarm Module */}
               <div className="rounded-lg border border-border bg-card p-4">
                 <h3 className="mb-2 text-xl font-semibold text-foreground">Alarm Module Settings</h3>
@@ -316,8 +312,6 @@ export default function Settings2() {
           {/* 3. Integration Settings */}
           {activeTab === 'integration' && (
             <div className="space-y-2">
-              <h2 className="text-3xl font-bold text-foreground">Integration Settings</h2>
-
               <div className="rounded-lg border border-border bg-card p-4">
                 <h3 className="mb-2 text-xl font-semibold text-foreground">Northbound Integrations</h3>
                 <div className="mb-6 space-y-3">
@@ -353,8 +347,6 @@ export default function Settings2() {
           {/* 4. Data & Retention */}
           {activeTab === 'data-retention' && (
             <div className="space-y-2">
-              <h2 className="text-3xl font-bold text-foreground">Data & Retention Policies</h2>
-
               <div className="rounded-lg border border-border bg-card p-4">
                 <h3 className="mb-2 text-xl font-semibold text-foreground">Data Retention</h3>
                 <div className="space-y-2">
@@ -407,8 +399,6 @@ export default function Settings2() {
           {/* 5. Performance & Limits */}
           {activeTab === 'performance' && (
             <div className="space-y-2">
-              <h2 className="text-3xl font-bold text-foreground">Performance & System Limits</h2>
-
               <div className="rounded-lg border border-border bg-card p-4">
                 <h3 className="mb-2 text-xl font-semibold text-foreground">Resource Limits</h3>
                 <div className="space-y-2">
@@ -462,8 +452,6 @@ export default function Settings2() {
           {/* 6. Notifications */}
           {activeTab === 'notifications' && (
             <div className="space-y-2">
-              <h2 className="text-3xl font-bold text-foreground">Notifications & Communication Settings</h2>
-
               <div className="rounded-lg border border-border bg-card p-4">
                 <h3 className="mb-2 text-xl font-semibold text-foreground">Notification Channels</h3>
                 <div className="space-y-3">
@@ -507,8 +495,6 @@ export default function Settings2() {
           {/* 7. Automation Guardrails */}
           {activeTab === 'automation' && (
             <div className="space-y-2">
-              <h2 className="text-3xl font-bold text-foreground">Automation Guardrails</h2>
-
               <div className="rounded-lg border border-border bg-card p-4">
                 <div className="space-y-2">
                   <label className="flex items-center gap-3 p-4 rounded-lg bg-muted">
@@ -535,8 +521,6 @@ export default function Settings2() {
           {/* 8. Environment & Deployment */}
           {activeTab === 'environment' && (
             <div className="space-y-2">
-              <h2 className="text-3xl font-bold text-foreground">Environment & Deployment Settings</h2>
-
               <div className="rounded-lg border border-border bg-card p-4">
                 <h3 className="mb-2 text-xl font-semibold text-foreground">Feature Flags</h3>
                 <div className="space-y-3">
@@ -557,8 +541,6 @@ export default function Settings2() {
           {/* 9. Backup & Recovery */}
           {activeTab === 'backup' && (
             <div className="space-y-2">
-              <h2 className="text-3xl font-bold text-foreground">Backup & Recovery Settings</h2>
-
               <div className="rounded-lg border border-border bg-card p-4">
                 <h3 className="mb-2 text-xl font-semibold text-foreground">Backup Configuration</h3>
                 <div className="space-y-2">
@@ -609,8 +591,6 @@ export default function Settings2() {
           {/* 10. Branding & UI */}
           {activeTab === 'branding' && (
             <div className="space-y-2">
-              <h2 className="text-3xl font-bold text-foreground">Branding & UI Customization</h2>
-
               <div className="rounded-lg border border-border bg-card p-4">
                 <h3 className="mb-2 text-xl font-semibold text-foreground">Branding & UI Customization</h3>
                 <div className="space-y-2">
@@ -641,8 +621,6 @@ export default function Settings2() {
           {/* 11. Audit & Change Control */}
           {activeTab === 'audit' && (
             <div className="space-y-2">
-              <h2 className="text-3xl font-bold text-foreground">Audit & Change Control</h2>
-
               <div className="rounded-lg border border-border bg-card p-4">
                 <h3 className="mb-2 text-xl font-semibold text-foreground">Settings Audit & Change Control</h3>
                 <div className="mb-6 space-y-3">
@@ -684,8 +662,6 @@ export default function Settings2() {
           {/* 12. Permissions & Access */}
           {activeTab === 'permissions' && (
             <div className="space-y-2">
-              <h2 className="text-3xl font-bold text-foreground">Permissions & Access Control</h2>
-
               <div className="rounded-lg border border-border bg-card overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
