@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Search, Filter, ChevronDown, Clock, User } from 'lucide-react';
-import { SearchableDropdown } from './SearchableDropdown';
+import SearchableDropdown from './SearchableDropdown';
 
 interface ParameterExplorerProps {
   selectedTarget: any;
@@ -79,21 +79,21 @@ const MOCK_PARAMETERS: Parameter[] = [
 
 export const ParameterExplorer: React.FC<ParameterExplorerProps> = ({ selectedTarget }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const [selectedTechnology, setSelectedTechnology] = useState<string>('');
-  const [selectedVendor, setSelectedVendor] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] = useState<string[]>([]);
+  const [selectedTechnology, setSelectedTechnology] = useState<string[]>([]);
+  const [selectedVendor, setSelectedVendor] = useState<string[]>([]);
   const [expandedParam, setExpandedParam] = useState<string | null>(null);
 
-  const categories = ['RF', 'Transport', 'IP', 'Power', 'System'] as const;
-  const technologies = ['2G', '3G', '4G', '5G', 'ORAN'] as const;
-  const vendors = ['Huawei', 'Nokia', 'Ericsson', 'ZTE'] as const;
+  const categories = ['RF', 'Transport', 'IP', 'Power', 'System'];
+  const technologies = ['2G', '3G', '4G', '5G', 'ORAN'];
+  const vendors = ['Huawei', 'Nokia', 'Ericsson', 'ZTE'];
 
   const filteredParams = MOCK_PARAMETERS.filter(param => {
     const matchesSearch = param.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          param.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = !selectedCategory || param.category === selectedCategory;
-    const matchesTechnology = !selectedTechnology || param.technology === selectedTechnology;
-    const matchesVendor = !selectedVendor || param.vendor === selectedVendor;
+    const matchesCategory = !selectedCategory.length || param.category === selectedCategory[0];
+    const matchesTechnology = !selectedTechnology.length || param.technology === selectedTechnology[0];
+    const matchesVendor = !selectedVendor.length || param.vendor === selectedVendor[0];
     return matchesSearch && matchesCategory && matchesTechnology && matchesVendor;
   });
 
@@ -115,9 +115,9 @@ export const ParameterExplorer: React.FC<ParameterExplorerProps> = ({ selectedTa
         <div className="grid grid-cols-3 gap-3">
           <SearchableDropdown
             label="All Categories"
-            options={categories.map(cat => ({ label: cat, value: cat }))}
+            options={categories}
             selected={selectedCategory}
-            onChange={(selected) => setSelectedCategory(selected || '')}
+            onChange={setSelectedCategory}
             placeholder="All Categories"
             multiSelect={false}
             searchable={true}
@@ -126,9 +126,9 @@ export const ParameterExplorer: React.FC<ParameterExplorerProps> = ({ selectedTa
 
           <SearchableDropdown
             label="All Technologies"
-            options={technologies.map(tech => ({ label: tech, value: tech }))}
+            options={technologies}
             selected={selectedTechnology}
-            onChange={(selected) => setSelectedTechnology(selected || '')}
+            onChange={setSelectedTechnology}
             placeholder="All Technologies"
             multiSelect={false}
             searchable={true}
@@ -137,9 +137,9 @@ export const ParameterExplorer: React.FC<ParameterExplorerProps> = ({ selectedTa
 
           <SearchableDropdown
             label="All Vendors"
-            options={vendors.map(vendor => ({ label: vendor, value: vendor }))}
+            options={vendors}
             selected={selectedVendor}
-            onChange={(selected) => setSelectedVendor(selected || '')}
+            onChange={setSelectedVendor}
             placeholder="All Vendors"
             multiSelect={false}
             searchable={true}
