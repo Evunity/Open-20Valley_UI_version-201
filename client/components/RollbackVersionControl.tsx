@@ -65,9 +65,41 @@ export const RollbackVersionControl: React.FC<RollbackVersionControlProps> = () 
   const [snapshots, setSnapshots] = useState<ChangeSnapshot[]>(MOCK_SNAPSHOTS);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [selectedMode, setSelectedMode] = useState<'full' | 'partial' | 'selective'>('full');
+  const [selectedObjects, setSelectedObjects] = useState<Set<string>>(new Set());
+  const [selectedParameters, setSelectedParameters] = useState<Set<string>>(new Set());
+
+  const PARAMETER_OPTIONS = ['TX Power', 'DL Bandwidth', 'Cell Barring', 'IP Address', 'VLAN ID'];
+
+  const toggleObject = (objectId: string) => {
+    const newSelected = new Set(selectedObjects);
+    if (newSelected.has(objectId)) {
+      newSelected.delete(objectId);
+    } else {
+      newSelected.add(objectId);
+    }
+    setSelectedObjects(newSelected);
+  };
+
+  const toggleParameter = (param: string) => {
+    const newSelected = new Set(selectedParameters);
+    if (newSelected.has(param)) {
+      newSelected.delete(param);
+    } else {
+      newSelected.add(param);
+    }
+    setSelectedParameters(newSelected);
+  };
 
   const executeRollback = (snapshotId: string, mode: string) => {
-    setSnapshots(snapshots.map(s => 
+    if (mode === 'Partial' && selectedObjects.size === 0) {
+      alert('Please select at least one object to rollback');
+      return;
+    }
+    if (mode === 'Selective' && selectedParameters.size === 0) {
+      alert('Please select at least one parameter to rollback');
+      return;
+    }
+    setSnapshots(snapshots.map(s =>
       s.id === snapshotId ? { ...s, status: 'rolled_back' } : s
     ));
     alert(`Rollback executed for snapshot ${snapshotId} in ${mode} mode`);
@@ -160,6 +192,48 @@ export const RollbackVersionControl: React.FC<RollbackVersionControlProps> = () 
                   </div>
                 </div>
 
+                {/* Partial Rollback - Object Selection */}
+                {selectedMode === 'partial' && (
+                  <div>
+                    <p className="font-semibold text-gray-900 text-sm mb-2">Select Objects to Rollback</p>
+                    <div className="space-y-2 bg-white p-3 rounded border border-gray-200">
+                      {snapshot.objectIds.map(obj => (
+                        <label key={obj} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded transition">
+                          <input
+                            type="checkbox"
+                            checked={selectedObjects.has(obj)}
+                            onChange={() => toggleObject(obj)}
+                            className="w-4 h-4 rounded border-gray-300"
+                          />
+                          <span className="text-sm text-gray-700">{obj}</span>
+                        </label>
+                      ))}
+                    </div>
+                    <p className="text-xs text-gray-600 mt-2">{selectedObjects.size} of {snapshot.objectIds.length} selected</p>
+                  </div>
+                )}
+
+                {/* Selective Rollback - Parameter Selection */}
+                {selectedMode === 'selective' && (
+                  <div>
+                    <p className="font-semibold text-gray-900 text-sm mb-2">Select Parameters to Rollback</p>
+                    <div className="grid grid-cols-2 gap-2 bg-white p-3 rounded border border-gray-200">
+                      {PARAMETER_OPTIONS.map(param => (
+                        <label key={param} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded transition">
+                          <input
+                            type="checkbox"
+                            checked={selectedParameters.has(param)}
+                            onChange={() => toggleParameter(param)}
+                            className="w-4 h-4 rounded border-gray-300"
+                          />
+                          <span className="text-sm text-gray-700">{param}</span>
+                        </label>
+                      ))}
+                    </div>
+                    <p className="text-xs text-gray-600 mt-2">{selectedParameters.size} of {PARAMETER_OPTIONS.length} selected</p>
+                  </div>
+                )}
+
                 {/* Rollback Actions */}
                 {snapshot.status === 'active' && (
                   <div className="flex gap-2">
@@ -174,22 +248,22 @@ export const RollbackVersionControl: React.FC<RollbackVersionControlProps> = () 
                     )}
 
                     {selectedMode === 'partial' && (
-                      <>
-                        <button
-                          onClick={() => executeRollback(snapshot.id, 'Partial')}
-                          className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 font-semibold text-sm transition"
-                        >
-                          Rollback Selected
-                        </button>
-                      </>
+                      <button
+                        onClick={() => executeRollback(snapshot.id, 'Partial')}
+                        disabled={selectedObjects.size === 0}
+                        className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 font-semibold text-sm transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+                      >
+                        Rollback {selectedObjects.size} Object{selectedObjects.size !== 1 ? 's' : ''}
+                      </button>
                     )}
 
                     {selectedMode === 'selective' && (
                       <button
                         onClick={() => executeRollback(snapshot.id, 'Selective')}
-                        className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 font-semibold text-sm transition"
+                        disabled={selectedParameters.size === 0}
+                        className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 font-semibold text-sm transition disabled:bg-gray-400 disabled:cursor-not-allowed"
                       >
-                        Selective Rollback
+                        Rollback {selectedParameters.size} Parameter{selectedParameters.size !== 1 ? 's' : ''}
                       </button>
                     )}
                   </div>
