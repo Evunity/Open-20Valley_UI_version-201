@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Search, Filter, ChevronDown, Clock, User } from 'lucide-react';
+import { SearchableDropdown } from './SearchableDropdown';
 
 interface ParameterExplorerProps {
   selectedTarget: any;
@@ -111,42 +112,39 @@ export const ParameterExplorer: React.FC<ParameterExplorerProps> = ({ selectedTa
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-          <div className="flex gap-2">
-            <Filter className="w-5 h-5 text-gray-400 self-center flex-shrink-0" />
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-            >
-              <option value="">All Categories</option>
-              {categories.map(cat => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
-            </select>
-          </div>
+        <div className="grid grid-cols-3 gap-3">
+          <SearchableDropdown
+            label="All Categories"
+            options={categories.map(cat => ({ label: cat, value: cat }))}
+            selected={selectedCategory}
+            onChange={(selected) => setSelectedCategory(selected || '')}
+            placeholder="All Categories"
+            multiSelect={false}
+            searchable={true}
+            compact={true}
+          />
 
-          <select
-            value={selectedTechnology}
-            onChange={(e) => setSelectedTechnology(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-          >
-            <option value="">All Technologies</option>
-            {technologies.map(tech => (
-              <option key={tech} value={tech}>{tech}</option>
-            ))}
-          </select>
+          <SearchableDropdown
+            label="All Technologies"
+            options={technologies.map(tech => ({ label: tech, value: tech }))}
+            selected={selectedTechnology}
+            onChange={(selected) => setSelectedTechnology(selected || '')}
+            placeholder="All Technologies"
+            multiSelect={false}
+            searchable={true}
+            compact={true}
+          />
 
-          <select
-            value={selectedVendor}
-            onChange={(e) => setSelectedVendor(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-          >
-            <option value="">All Vendors</option>
-            {vendors.map(vendor => (
-              <option key={vendor} value={vendor}>{vendor}</option>
-            ))}
-          </select>
+          <SearchableDropdown
+            label="All Vendors"
+            options={vendors.map(vendor => ({ label: vendor, value: vendor }))}
+            selected={selectedVendor}
+            onChange={(selected) => setSelectedVendor(selected || '')}
+            placeholder="All Vendors"
+            multiSelect={false}
+            searchable={true}
+            compact={true}
+          />
         </div>
       </div>
 
