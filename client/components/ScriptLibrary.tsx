@@ -100,6 +100,7 @@ export const ScriptLibrary: React.FC<ScriptLibraryProps> = () => {
   const [showExecution, setShowExecution] = useState<string | null>(null);
   const [parameters, setParameters] = useState<Record<string, string>>({});
   const [isCreating, setIsCreating] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     category: 'RF Optimization' as any,
@@ -204,6 +205,37 @@ export const ScriptLibrary: React.FC<ScriptLibraryProps> = () => {
       alert('Failed to create script');
     } finally {
       setIsCreating(false);
+    }
+  };
+
+  const copyScript = (script: Script) => {
+    try {
+      const scriptJson = JSON.stringify({
+        name: script.name,
+        description: script.description,
+        category: script.category,
+        vendor: script.vendor,
+        commands: script.commands,
+        riskLevel: script.riskLevel,
+        rollbackInstructions: script.rollbackInstructions
+      }, null, 2);
+
+      navigator.clipboard.writeText(scriptJson);
+      setCopiedId(script.id);
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch (error) {
+      console.error('Error copying script:', error);
+      alert('Failed to copy script');
+    }
+  };
+
+  const deleteScript = (scriptId: string) => {
+    const script = scripts.find(s => s.id === scriptId);
+    if (window.confirm(`Are you sure you want to delete "${script?.name}"?`)) {
+      setScripts(scripts.filter(s => s.id !== scriptId));
+      if (showExecution === scriptId) {
+        setShowExecution(null);
+      }
     }
   };
 
@@ -392,10 +424,15 @@ export const ScriptLibrary: React.FC<ScriptLibraryProps> = () => {
                   >
                     <Play className="w-4 h-4 text-blue-600" />
                   </button>
-                  <button className="p-2 hover:bg-gray-200 rounded transition" title="Copy script">
-                    <Copy className="w-4 h-4 text-gray-600" />
+                  <button
+                    onClick={() => copyScript(script)}
+                    className={`p-2 rounded transition ${copiedId === script.id ? 'bg-green-100' : 'hover:bg-gray-200'}`}
+                    title={copiedId === script.id ? 'Copied!' : 'Copy script'}
+                  >
+                    <Copy className={`w-4 h-4 ${copiedId === script.id ? 'text-green-600' : 'text-gray-600'}`} />
                   </button>
                   <button
+                    onClick={() => deleteScript(script.id)}
                     className="p-2 hover:bg-red-100 rounded transition"
                     title="Delete script"
                   >
