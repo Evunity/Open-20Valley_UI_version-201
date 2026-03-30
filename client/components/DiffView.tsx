@@ -54,7 +54,6 @@ const MOCK_DIFFS: ConfigDiff[] = [
 
 export const DiffView: React.FC<DiffViewProps> = () => {
   const [diffs] = useState<ConfigDiff[]>(MOCK_DIFFS);
-  const [compareMode, setCompareMode] = useState<'sites' | 'before_after' | 'vs_baseline'>('sites');
   const [leftObject, setLeftObject] = useState('Cairo-Site-1');
   const [rightObject, setRightObject] = useState('Cairo-Site-2');
 
@@ -73,25 +72,6 @@ export const DiffView: React.FC<DiffViewProps> = () => {
 
   return (
     <div className="flex flex-col h-full gap-4 p-4">
-      {/* Comparison Mode */}
-      <div className="grid grid-cols-3 gap-2">
-        {['sites', 'before_after', 'vs_baseline'].map(mode => (
-          <button
-            key={mode}
-            onClick={() => setCompareMode(mode as any)}
-            className={`px-3 py-2 rounded-lg text-sm font-semibold transition border-2 ${
-              compareMode === mode
-                ? 'border-blue-600 bg-blue-50'
-                : 'border-gray-200 hover:border-gray-300'
-            }`}
-          >
-            {mode === 'sites' && 'Site A vs B'}
-            {mode === 'before_after' && 'Before vs After'}
-            {mode === 'vs_baseline' && 'vs Baseline'}
-          </button>
-        ))}
-      </div>
-
       {/* Object Selection */}
       <div className="grid grid-cols-3 gap-4 items-end">
         <div>
