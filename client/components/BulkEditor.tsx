@@ -72,9 +72,10 @@ export const BulkEditor: React.FC<BulkEditorProps> = () => {
           >
             <option value="">All Vendors</option>
             <option value="Huawei">Huawei</option>
-            <option value="Nokia">Nokia</option>
             <option value="Ericsson">Ericsson</option>
+            <option value="Nokia">Nokia</option>
             <option value="ZTE">ZTE</option>
+            <option value="ORAN">ORAN</option>
           </select>
         </div>
 
