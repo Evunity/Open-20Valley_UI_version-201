@@ -390,9 +390,14 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
                 }}
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                 onFocus={() => command.trim().length > 0 && setShowSuggestions(true)}
-                placeholder={`Enter ${selectedVendor} command in UPPERCASE (e.g., LST CELL;)`}
-                className={`w-full px-3 py-2 border-2 rounded-lg font-mono text-sm focus:outline-none transition uppercase tracking-wide ${
-                  command.trim() && isValid
+                disabled={selectedSite.length === 0 || selectedTechnology.length === 0 || !selectedVendor}
+                placeholder={selectedSite.length === 0 || selectedTechnology.length === 0 || !selectedVendor
+                  ? 'Please select Site, Technology & Vendor first'
+                  : `Enter ${selectedVendor} command in UPPERCASE (e.g., LST CELL;)`}
+                className={`w-full px-3 py-2 border-2 rounded-lg font-mono text-sm focus:outline-none transition uppercase tracking-wide disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-muted/30 ${
+                  selectedSite.length === 0 || selectedTechnology.length === 0 || !selectedVendor
+                    ? 'border-amber-300 dark:border-amber-700 text-muted-foreground'
+                    : command.trim() && isValid
                     ? 'border-green-500 bg-green-50 dark:bg-green-950/30 text-foreground'
                     : command.trim()
                     ? 'border-red-500 bg-red-50 dark:bg-red-950/30 text-foreground'
