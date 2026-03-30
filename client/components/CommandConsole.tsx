@@ -145,16 +145,16 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
   const { isValid } = getCommandSyntaxValidation(command);
 
   return (
-    <div className="flex flex-col h-full gap-4 p-4">
+    <div className="flex flex-col h-full gap-2 p-4">
       {/* Control Panel */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-3">
         {/* Vendor Selection */}
         <div>
-          <label className="block text-sm font-semibold text-muted-foreground mb-2">Vendor</label>
+          <label className="block text-xs font-semibold text-muted-foreground mb-1">Vendor</label>
           <select
             value={selectedVendor}
             onChange={(e) => setSelectedVendor(e.target.value)}
-            className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm"
+            className="w-full px-3 py-1.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm"
           >
             {Object.keys(VENDOR_COMMANDS).map(vendor => (
               <option key={vendor} value={vendor}>{vendor}</option>
@@ -164,11 +164,11 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
 
         {/* Mode Selection */}
         <div>
-          <label className="block text-sm font-semibold text-muted-foreground mb-2">Mode</label>
+          <label className="block text-xs font-semibold text-muted-foreground mb-1">Mode</label>
           <select
             value={mode}
             onChange={(e) => setMode(e.target.value as any)}
-            className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm"
+            className="w-full px-3 py-1.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm"
           >
             <option value="raw">Raw Mode (Native)</option>
             <option value="guided">Guided Mode (Form-Based)</option>
@@ -178,20 +178,20 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
 
         {/* Context */}
         <div>
-          <label className="block text-sm font-semibold text-muted-foreground mb-2">Target Context</label>
+          <label className="block text-xs font-semibold text-muted-foreground mb-1">Target Context</label>
           <input
             type="text"
             placeholder="Global → Country → Region → Site"
             value={selectedTarget.site ? `${selectedTarget.site}` : 'Global'}
             readOnly
-            className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground text-sm"
+            className="w-full px-3 py-1.5 border border-border rounded-lg bg-input text-foreground text-sm"
           />
         </div>
       </div>
 
       {/* Quick Commands */}
       <div>
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center justify-between mb-1">
           <label className="block text-xs font-semibold text-muted-foreground flex items-center gap-1">
             <Lightbulb className="w-4 h-4 text-yellow-600" />
             Quick Commands ({selectedVendor})
@@ -205,7 +205,7 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
         </div>
 
         {showAddCommand && (
-          <div className="mb-3 p-2 bg-muted/40 border border-border rounded flex gap-2">
+          <div className="mb-2 p-2 bg-muted/40 border border-border rounded flex gap-2">
             <input
               type="text"
               value={newCommandInput}
@@ -239,7 +239,7 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
           </div>
         )}
 
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-1.5">
           {getQuickCommands().map((cmd, i) => {
             const isCustom = i < (customCommands[selectedVendor]?.length || 0);
             return (
@@ -298,7 +298,7 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
       </div>
 
       {/* Command Input */}
-      <div className="space-y-2">
+      <div className="space-y-1">
         <div className="flex gap-2">
           <div className="flex-1">
             <textarea
@@ -318,7 +318,7 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
                   ? 'border-red-500 bg-red-50 dark:bg-red-950/30 text-foreground'
                   : 'border-border bg-input text-foreground'
               }`}
-              rows={3}
+              rows={2}
             />
           </div>
           <button
@@ -349,8 +349,8 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
 
       {/* Recent Commands */}
       {history.length > 0 && (
-        <div className="mt-4">
-          <p className="text-xs font-semibold text-muted-foreground mb-2">Recent Commands</p>
+        <div className="mt-2">
+          <p className="text-xs font-semibold text-muted-foreground mb-1">Recent Commands</p>
           <div className="space-y-1 max-h-20 overflow-y-auto">
             {history.slice(-5).reverse().map((entry) => (
               <button
