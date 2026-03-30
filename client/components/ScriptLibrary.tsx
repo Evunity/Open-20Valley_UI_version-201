@@ -187,6 +187,33 @@ export const ScriptLibrary: React.FC<ScriptLibraryProps> = () => {
             <textarea placeholder="What does this script do?" rows={2} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
           </div>
 
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-sm font-semibold text-gray-700">Script Content</label>
+              <label className="text-xs font-semibold text-blue-600 cursor-pointer hover:text-blue-700">
+                <input
+                  type="file"
+                  accept=".sh,.txt,.sql,.py,.js"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = (event) => {
+                        const text = event.target?.result as string;
+                        // You would set this to a state variable in your form
+                        console.log('Script content loaded:', text);
+                      };
+                      reader.readAsText(file);
+                    }
+                  }}
+                  className="hidden"
+                />
+                📁 Upload Script File
+              </label>
+            </div>
+            <textarea placeholder="Enter script commands, one per line..." rows={6} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono" />
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">Vendor</label>
