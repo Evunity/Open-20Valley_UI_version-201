@@ -254,13 +254,17 @@ export function generateUnifiedTopologyGraph(): TopologyGraph {
   });
   nodes.set(globalNode.id, globalNode);
 
-  // Create Countries
-  const countries = ['Egypt', 'Saudi Arabia', 'UAE'];
+  // Create Countries with geo-coordinates
+  const countryCoordinates: Record<string, [number, number]> = {
+    'Egypt': [26.8, 30.8],
+    'Saudi Arabia': [23.9, 45.0],
+    'UAE': [23.4, 53.8]
+  };
   const countryNodeMap: Record<string, string> = {};
 
-  countries.forEach(country => {
+  Object.entries(countryCoordinates).forEach(([country, [lat, lon]]) => {
     const countryNode = createNode(country, 'country', globalNode.id, {
-      geoCoordinates: { latitude: 25 + Math.random() * 5, longitude: 30 + Math.random() * 20 },
+      geoCoordinates: { latitude: lat, longitude: lon },
       country,
       description: `${country} network region`
     });
@@ -269,21 +273,37 @@ export function generateUnifiedTopologyGraph(): TopologyGraph {
     countryNodeMap[country] = countryNode.id;
   });
 
-  // Create Regions per Country - BALANCED FOR PERFORMANCE
-  const regionsByCountry: Record<string, string[]> = {
-    'Egypt': ['Cairo', 'Alexandria', 'Giza', 'Aswan'],
-    'Saudi Arabia': ['Riyadh', 'Jeddah', 'Dammam'],
-    'UAE': ['Dubai', 'Abu Dhabi', 'Sharjah']
+  // Create Regions per Country with actual geographic coordinates
+  const regionCoordinates: Record<string, Record<string, [number, number]>> = {
+    'Egypt': {
+      'Cairo': [30.0444, 31.2357],
+      'Alexandria': [31.2001, 29.9187],
+      'Giza': [30.0131, 31.1989],
+      'Aswan': [24.0889, 32.9061]
+    },
+    'Saudi Arabia': {
+      'Riyadh': [24.7136, 46.6753],
+      'Jeddah': [21.5433, 39.1725],
+      'Dammam': [26.4124, 50.1971]
+    },
+    'UAE': {
+      'Dubai': [25.2048, 55.2708],
+      'Abu Dhabi': [24.4539, 54.3773],
+      'Sharjah': [25.3548, 55.3915]
+    }
   };
 
   const regionMap: Record<string, string> = {};
 
-  Object.entries(regionsByCountry).forEach(([countryName, regions]) => {
+  Object.entries(regionCoordinates).forEach(([countryName, regionCoords]) => {
     const countryNode = nodes.get(countryNodeMap[countryName])!;
 
-    regions.forEach((region, regionIdx) => {
+    Object.entries(regionCoords).forEach(([region, [lat, lon]]) => {
       const regionNode = createNode(region, 'region', countryNode.id, {
-        geoCoordinates: { latitude: (countryNode.geoCoordinates?.latitude || 25) + (Math.random() - 0.5) * 3, longitude: (countryNode.geoCoordinates?.longitude || 40) + (Math.random() - 0.5) * 3 },
+        geoCoordinates: {
+          latitude: lat + (Math.random() - 0.5) * 0.5,
+          longitude: lon + (Math.random() - 0.5) * 0.5
+        },
         country: countryName,
         region,
         description: `${region} region - ${countryName}`

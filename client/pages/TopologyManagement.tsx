@@ -82,9 +82,18 @@ const TopologyManagementContent: React.FC = () => {
   const filteredNodes = React.useMemo(() => {
     let filtered = [...visibleNodes];
 
-    // Apply country/tenant filter FIRST
+    // Apply country/tenant filter FIRST (but keep parent nodes visible)
     if (selectedCountry) {
       filtered = filtered.filter(node => {
+        // Keep global, country, and region nodes always visible
+        if (['global', 'country', 'region'].includes(node.type)) {
+          // Only filter country nodes if they don't match
+          if (node.type === 'country' && node.name !== selectedCountry) {
+            return false;
+          }
+          return true;
+        }
+        // For other nodes, check if they belong to the selected country
         const nodeCountry = getCountryAncestor(node);
         return nodeCountry === selectedCountry;
       });
