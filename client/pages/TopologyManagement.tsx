@@ -64,55 +64,55 @@ const TopologyManagementContent: React.FC = () => {
     ranOnly: false
   });
 
+  // Helper function to get the country ancestor of a node
+  const getCountryAncestor = React.useCallback((node: typeof visibleNodes[0]): string | null => {
+    let current = node;
+    while (current) {
+      if (current.type === 'country') {
+        return current.name;
+      }
+      if (!current.parentId) break;
+      current = visibleNodes.find(n => n.id === current.parentId) || null;
+      if (!current) break;
+    }
+    return null;
+  }, [visibleNodes]);
+
   // Apply layer and tenant filters to topology
   const filteredNodes = React.useMemo(() => {
     let filtered = [...visibleNodes];
 
     // Apply country/tenant filter FIRST
     if (selectedCountry) {
-      filtered = filtered.filter(node => node.country === selectedCountry);
+      filtered = filtered.filter(node => {
+        const nodeCountry = getCountryAncestor(node);
+        return nodeCountry === selectedCountry;
+      });
     }
 
     // Apply layer filters - these are visibility toggles
-    // If both ranOnly and transportOnly are false, show all nodes (with country filter)
-    // If ranOnly is true, show only RAN equipment
-    // If transportOnly is true, show only transport equipment
+    // RAN equipment: cell, sector, site, ran, rru, bbu, cluster, region
+    // Transport equipment: transport, interface, port, board, shelf, cabinet, rack
+    const RAN_TYPES = ['cell', 'sector', 'site', 'ran', 'rru', 'bbu', 'cluster', 'region'];
+    const TRANSPORT_TYPES = ['transport', 'interface', 'port', 'board', 'shelf', 'cabinet', 'rack', 'link'];
 
     if (layers.ranOnly && layers.transportOnly) {
       // Show both RAN and transport
       filtered = filtered.filter(node =>
-        (node.type === 'cell' || node.type === 'sector' || node.type === 'site') ||
-        (node.type === 'link' || node.type === 'equipment')
+        RAN_TYPES.includes(node.type) || TRANSPORT_TYPES.includes(node.type)
       );
     } else if (layers.ranOnly) {
       // Show only RAN equipment
-      filtered = filtered.filter(node =>
-        node.type === 'cell' || node.type === 'sector' || node.type === 'site'
-      );
+      filtered = filtered.filter(node => RAN_TYPES.includes(node.type));
     } else if (layers.transportOnly) {
       // Show only transport equipment
-      filtered = filtered.filter(node =>
-        node.type === 'link' || node.type === 'equipment' || (node.parentId && node.type !== 'cell' && node.type !== 'sector' && node.type !== 'site')
-      );
+      filtered = filtered.filter(node => TRANSPORT_TYPES.includes(node.type));
     }
     // else: show all (with country filter applied above)
 
-    // Alarms filter - if enabled, highlight nodes with alarms (visual layer, not visibility)
-    // This doesn't filter nodes, just shows alarms as a layer
-    // The alarms are always included in the map, but can be toggled for visibility
-
     return filtered;
-  }, [visibleNodes, selectedCountry, layers]);
+  }, [visibleNodes, selectedCountry, layers, getCountryAncestor]);
 
-  const toggleNode = (id: string) => {
-    const newExpanded = new Set(expandedNodes);
-    if (newExpanded.has(id)) {
-      newExpanded.delete(id);
-    } else {
-      newExpanded.add(id);
-    }
-    setExpandedNodes(newExpanded);
-  };
 
   const renderMapView = () => (
     <div className="w-full h-full flex flex-col gap-4 p-4 bg-background dark:bg-background overflow-y-auto">
