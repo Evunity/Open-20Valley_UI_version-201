@@ -126,33 +126,61 @@ const TopologyManagementContent: React.FC = () => {
 
   const renderMapView = () => (
     <div className="w-full h-full flex flex-col bg-background dark:bg-background overflow-y-auto">
-      {/* Filter Status Indicators */}
-      {(selectedCountry || layers.ranOnly || layers.transportOnly || layers.alarms || filteredNodes.length < visibleNodes.length) && (
-        <div className="flex gap-2 px-4 py-2 flex-wrap">
-          {selectedCountry && (
-            <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 rounded font-semibold">
-              🌍 Country: {selectedCountry}
-            </span>
-          )}
-          {layers.ranOnly && (
-            <span className="text-xs px-2 py-1 bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300 rounded font-semibold">
-              📡 RAN Only
-            </span>
-          )}
-          {layers.transportOnly && (
-            <span className="text-xs px-2 py-1 bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 rounded font-semibold">
-              🔗 Transport Only
-            </span>
-          )}
-          {layers.alarms && (
-            <span className="text-xs px-2 py-1 bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300 rounded font-semibold">
-              🚨 Alarms Layer
-            </span>
-          )}
-          {filteredNodes.length < visibleNodes.length && (
-            <span className="text-xs px-2 py-1 bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 rounded font-semibold">
-              ✓ Filtered: {filteredNodes.length} of {visibleNodes.length} nodes
-            </span>
+      {/* Filter Status Indicators with Controls */}
+      {(selectedCountry || layers.ranOnly || layers.transportOnly || layers.alarms || filteredNodes.length < visibleNodes.length || activeView === 'map') && (
+        <div className="flex gap-2 px-4 py-2 flex-wrap items-center justify-between">
+          <div className="flex gap-2 flex-wrap items-center">
+            {selectedCountry && (
+              <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 rounded font-semibold">
+                🌍 Country: {selectedCountry}
+              </span>
+            )}
+            {layers.ranOnly && (
+              <span className="text-xs px-2 py-1 bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300 rounded font-semibold">
+                📡 RAN Only
+              </span>
+            )}
+            {layers.transportOnly && (
+              <span className="text-xs px-2 py-1 bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 rounded font-semibold">
+                🔗 Transport Only
+              </span>
+            )}
+            {layers.alarms && (
+              <span className="text-xs px-2 py-1 bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300 rounded font-semibold">
+                🚨 Alarms Layer
+              </span>
+            )}
+            {filteredNodes.length < visibleNodes.length && (
+              <span className="text-xs px-2 py-1 bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 rounded font-semibold">
+                ✓ Filtered: {filteredNodes.length} of {visibleNodes.length} nodes
+              </span>
+            )}
+          </div>
+
+          {/* Controls on the same row */}
+          {activeView === 'map' && (
+            <div className="flex gap-2 items-center">
+              <button
+                onClick={() => setShowExportPanel(!showExportPanel)}
+                className={`px-3 py-1.5 h-9 flex items-center justify-center rounded text-xs font-semibold transition ${
+                  showExportPanel
+                    ? 'bg-blue-600 text-white dark:bg-blue-700'
+                    : 'bg-input text-foreground border border-border hover:border-primary/40'
+                }`}
+                title="Export options"
+              >
+                Export
+              </button>
+              <label className="flex items-center gap-2 h-9 text-xs cursor-pointer px-3 bg-input border border-border rounded hover:border-primary/40 transition">
+                <input
+                  type="checkbox"
+                  checked={showPredictiveRisks}
+                  onChange={(e) => setShowPredictiveRisks(e.target.checked)}
+                  className="w-4 h-4 rounded flex-shrink-0"
+                />
+                <span className="whitespace-nowrap">Predictive AI</span>
+              </label>
+            </div>
           )}
         </div>
       )}
@@ -332,29 +360,9 @@ const TopologyManagementContent: React.FC = () => {
           })}
         </div>
 
-        {/* Controls Row - Export, Predictive AI, and Edit Mode (for Tree View) */}
-        <div className="flex gap-2 items-center justify-end">
-          <button
-            onClick={() => setShowExportPanel(!showExportPanel)}
-            className={`px-3 py-1.5 h-9 flex items-center justify-center rounded text-xs font-semibold transition ${
-              showExportPanel
-                ? 'bg-blue-600 text-white dark:bg-blue-700'
-                : 'bg-input text-foreground border border-border hover:border-primary/40'
-            }`}
-            title="Export options"
-          >
-            Export
-          </button>
-          <label className="flex items-center gap-2 h-9 text-xs cursor-pointer px-3 bg-input border border-border rounded hover:border-primary/40 transition">
-            <input
-              type="checkbox"
-              checked={showPredictiveRisks}
-              onChange={(e) => setShowPredictiveRisks(e.target.checked)}
-              className="w-4 h-4 rounded flex-shrink-0"
-            />
-            <span className="whitespace-nowrap">Predictive AI</span>
-          </label>
-          {activeView === 'tree' && (
+        {/* Edit Mode Control (for Tree View only) */}
+        {activeView === 'tree' && (
+          <div className="flex gap-2 items-center justify-end">
             <button
               onClick={() => setEditMode(!editMode)}
               className={`px-3 py-1.5 h-9 flex items-center justify-center gap-2 rounded text-xs font-semibold transition ${
@@ -367,8 +375,8 @@ const TopologyManagementContent: React.FC = () => {
               {editMode ? <Edit2 className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
               <span className="whitespace-nowrap">{editMode ? 'Edit Mode' : 'View Mode'}</span>
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Content Area */}
