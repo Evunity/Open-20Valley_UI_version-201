@@ -10,6 +10,7 @@ import { ExportPanel } from '../components/ExportPanel';
 import { MultiTenantAwareness } from '../components/MultiTenantAwareness';
 import { GeospatialNetworkMap } from '../components/GeospatialNetworkMap';
 import { EditableTreeView } from '../components/EditableTreeView';
+import { DependencyGraph } from '../components/DependencyGraph';
 import { TopologyProvider, useTopology } from '../contexts/TopologyContext';
 
 type ViewType = 'map' | 'tree' | 'dependency' | 'rack' | 'transport' | 'impact' | 'timeline';
@@ -293,26 +294,11 @@ const TopologyManagementContent: React.FC = () => {
   );
 
   const renderDependencyView = () => (
-    <div className="w-full h-full flex flex-col gap-4 p-4 bg-background dark:bg-background overflow-y-auto">
-      <h2 className="text-lg font-bold text-foreground">Logical Dependency Graph</h2>
-      <div className="flex-1 bg-card rounded-lg border border-border p-4 flex items-center justify-center">
-        <div className="text-center max-w-md">
-          <Network className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-3 opacity-50" />
-          <p className="text-sm font-semibold text-muted-foreground mb-2">Dependency Relationships</p>
-          <p className="text-xs text-gray-500 dark:text-gray-500 mb-4">
-            Visualizes upstream/downstream dependencies. Click a node to see its impact chain.
-          </p>
-          {selectedNode && (
-            <div className="text-left bg-gray-50 dark:bg-gray-800 rounded p-3 mt-4">
-              <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">Selected: {selectedNode.name}</p>
-              <p className="text-xs text-muted-foreground">
-                {selectedNode.childrenIds.length} downstream dependencies
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+    <DependencyGraph
+      topology={filteredNodes}
+      selectedNode={selectedNode}
+      onNodeSelect={(node) => selectNode(node.id)}
+    />
   );
 
   const renderRackView = () => <RackView onDeviceSelect={(device) => console.log(device)} />;
