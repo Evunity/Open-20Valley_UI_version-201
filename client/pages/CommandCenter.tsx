@@ -161,15 +161,15 @@ export const CommandCenter: React.FC = () => {
               <button
                 key={module.id}
                 onClick={() => setActiveModule(module.id)}
-                className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition ${
+                className={`flex flex-col items-center justify-center gap-2 p-3 rounded-lg border-2 transition h-24 ${
                   activeModule === module.id
                     ? 'border-blue-600 bg-blue-50 dark:bg-blue-950'
                     : 'border-border hover:border-primary/40 bg-card'
                 }`}
                 title={module.description}
               >
-                <Icon className={`w-4 h-4 ${activeModule === module.id ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
-                <span className="text-xs font-semibold text-center text-foreground">{module.label}</span>
+                <Icon className={`w-4 h-4 flex-shrink-0 ${activeModule === module.id ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
+                <span className="text-xs font-semibold text-center text-foreground line-clamp-2">{module.label}</span>
               </button>
             );
           })}
