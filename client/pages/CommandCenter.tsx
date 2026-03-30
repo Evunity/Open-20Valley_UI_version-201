@@ -178,17 +178,6 @@ export const CommandCenter: React.FC = () => {
 
       {/* Active Module */}
       <div className="flex-1 bg-card rounded-lg border border-border overflow-hidden flex flex-col">
-        {/* Module Header */}
-        <div className="px-6 py-4 border-b border-border">
-          <div className="flex items-center gap-3">
-            {React.createElement(activeModuleConfig.icon, { className: 'w-5 h-5 text-blue-600 dark:text-blue-400' })}
-            <div>
-              <h2 className="text-lg font-bold text-foreground">{activeModuleConfig.label}</h2>
-              <p className="text-sm text-muted-foreground">{activeModuleConfig.description}</p>
-            </div>
-          </div>
-        </div>
-
         {/* Module Content */}
         <div className="flex-1 overflow-y-auto">
           {renderModule()}
