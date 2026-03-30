@@ -134,21 +134,21 @@ export const CommandCenter: React.FC = () => {
 
       {/* Module Selector */}
       <div className="bg-card border-b border-border rounded-lg p-4">
-        <div className="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-9 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
           {MODULES.map(module => {
             const Icon = module.icon;
             return (
               <button
                 key={module.id}
                 onClick={() => setActiveModule(module.id)}
-                className={`flex flex-col items-center justify-center gap-2 p-3 rounded-lg border-2 transition h-24 ${
+                className={`flex flex-col items-center justify-center gap-2 p-4 rounded-lg border-2 transition h-28 ${
                   activeModule === module.id
                     ? 'border-blue-600 bg-blue-50 dark:bg-blue-950'
                     : 'border-border hover:border-primary/40 bg-card'
                 }`}
                 title={module.description}
               >
-                <Icon className={`w-4 h-4 flex-shrink-0 ${activeModule === module.id ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
+                <Icon className={`w-5 h-5 flex-shrink-0 ${activeModule === module.id ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
                 <span className="text-xs font-semibold text-center text-foreground line-clamp-2">{module.label}</span>
               </button>
             );
