@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, Copy, Trash2, Play, Tag, AlertTriangle, Zap, Clock } from 'lucide-react';
+import SearchableDropdown from './SearchableDropdown';
 
 interface ScriptLibraryProps {
   selectedTarget: any;
@@ -242,7 +243,7 @@ export const ScriptLibrary: React.FC<ScriptLibraryProps> = () => {
   return (
     <div className="flex flex-col h-full gap-4 p-4">
       {/* Header */}
-      <div className="flex gap-4">
+      <div className="flex gap-4 items-end">
         <button
           onClick={() => setShowForm(!showForm)}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold flex items-center gap-2"
@@ -251,60 +252,64 @@ export const ScriptLibrary: React.FC<ScriptLibraryProps> = () => {
           Create New Script
         </button>
 
-        <select
-          value={selectedCategory}
-          onChange={(e) => setSelectedCategory(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-        >
-          <option value="">All Categories</option>
-          {SCRIPT_CATEGORIES.map(cat => (
-            <option key={cat} value={cat}>{cat}</option>
-          ))}
-        </select>
+        <div className="w-64">
+          <SearchableDropdown
+            label="Category"
+            options={['All Categories', ...SCRIPT_CATEGORIES]}
+            selected={selectedCategory === '' ? ['All Categories'] : [selectedCategory]}
+            onChange={(selected) => {
+              setSelectedCategory(selected[0] === 'All Categories' ? '' : selected[0]);
+            }}
+            placeholder="Select category..."
+            multiSelect={false}
+            searchable={true}
+            compact={true}
+          />
+        </div>
       </div>
 
       {showForm && (
         <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Script Name</label>
+              <label className="block text-xs font-semibold text-muted-foreground mb-1">Script Name</label>
               <input
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="e.g., Reset Cell Configuration"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                className="w-full px-3 py-1.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Category</label>
-              <select
-                value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value as any })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-              >
-                {SCRIPT_CATEGORIES.map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-              </select>
+              <SearchableDropdown
+                label="Category"
+                options={[...SCRIPT_CATEGORIES]}
+                selected={[formData.category]}
+                onChange={(selected) => setFormData({ ...formData, category: selected[0] as any })}
+                placeholder="Select category..."
+                multiSelect={false}
+                searchable={true}
+                compact={true}
+              />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Description</label>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">Description</label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="What does this script do?"
               rows={2}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              className="w-full px-3 py-1.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
             />
           </div>
 
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="block text-sm font-semibold text-gray-700">Script Content</label>
-              <label className="text-xs font-semibold text-blue-600 cursor-pointer hover:text-blue-700">
+              <label className="block text-xs font-semibold text-muted-foreground">Script Content</label>
+              <label className="text-xs font-semibold text-primary cursor-pointer hover:text-primary/90">
                 <input
                   type="file"
                   accept=".sh,.txt,.sql,.py,.js"
@@ -329,35 +334,41 @@ export const ScriptLibrary: React.FC<ScriptLibraryProps> = () => {
               onChange={(e) => setFormData({ ...formData, content: e.target.value })}
               placeholder="Enter script commands, one per line..."
               rows={6}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono"
+              className="w-full px-3 py-1.5 border border-border rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary/50"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Vendor</label>
-              <select
-                value={formData.vendor}
-                onChange={(e) => setFormData({ ...formData, vendor: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-              >
-                <option>Huawei</option>
-                <option>Nokia</option>
-                <option>Ericsson</option>
-                <option>ZTE</option>
-              </select>
+              <SearchableDropdown
+                label="Vendor"
+                options={['Huawei', 'Nokia', 'Ericsson', 'ZTE']}
+                selected={[formData.vendor]}
+                onChange={(selected) => setFormData({ ...formData, vendor: selected[0] })}
+                placeholder="Select vendor..."
+                multiSelect={false}
+                searchable={true}
+                compact={true}
+              />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Risk Level</label>
-              <select
-                value={formData.riskLevel}
-                onChange={(e) => setFormData({ ...formData, riskLevel: e.target.value as 'low' | 'medium' | 'high' })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-              >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-              </select>
+              <SearchableDropdown
+                label="Risk Level"
+                options={['Low', 'Medium', 'High']}
+                selected={[formData.riskLevel === 'low' ? 'Low' : formData.riskLevel === 'medium' ? 'Medium' : 'High']}
+                onChange={(selected) => {
+                  const riskMap: Record<string, 'low' | 'medium' | 'high'> = {
+                    'Low': 'low',
+                    'Medium': 'medium',
+                    'High': 'high'
+                  };
+                  setFormData({ ...formData, riskLevel: riskMap[selected[0]] });
+                }}
+                placeholder="Select risk level..."
+                multiSelect={false}
+                searchable={true}
+                compact={true}
+              />
             </div>
           </div>
 
