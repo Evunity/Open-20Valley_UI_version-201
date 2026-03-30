@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Map, GitBranch, Network, Box, Layers, ZoomIn, Route, Clock } from 'lucide-react';
+import { Map, GitBranch, Network, Box, Layers, ZoomIn, Route, Clock, Eye, EyeOff } from 'lucide-react';
 import { RackView } from '../components/RackView';
 import { TransportPathView } from '../components/TransportPathView';
 import { ImpactAnalysisView } from '../components/ImpactAnalysisView';
 import { TimelineReplayView } from '../components/TimelineReplayView';
-import { LayerControlPanel, LayerSettings } from '../components/LayerControlPanel';
+import { LayerSettings } from '../components/LayerControlPanel';
 import { PredictiveRiskHighlight } from '../components/PredictiveRiskHighlight';
 import { ExportPanel } from '../components/ExportPanel';
 import { MultiTenantAwareness } from '../components/MultiTenantAwareness';
@@ -51,9 +51,7 @@ const TopologyManagementContent: React.FC = () => {
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [selectedTenant, setSelectedTenant] = useState<string | null>(null);
   const [showPredictiveRisks, setShowPredictiveRisks] = useState(true);
-  const [showLayerPanel, setShowLayerPanel] = useState(true);
   const [showExportPanel, setShowExportPanel] = useState(false);
-  const [showTenantPanel, setShowTenantPanel] = useState(false);
   const [layers, setLayers] = useState<LayerSettings>({
     alarms: true,
     kpi: true,
@@ -150,29 +148,6 @@ const TopologyManagementContent: React.FC = () => {
         </div>
         <div className="flex gap-2">
           <button
-            onClick={() => setShowLayerPanel(!showLayerPanel)}
-            className={`px-3 py-1 rounded text-xs font-semibold transition ${
-              showLayerPanel
-                ? 'bg-blue-600 text-white dark:bg-blue-700'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-            }`}
-            title="Toggle layer controls"
-          >
-            <Layers className="w-3 h-3 inline mr-1" />
-            Layers
-          </button>
-          <button
-            onClick={() => setShowTenantPanel(!showTenantPanel)}
-            className={`px-3 py-1 rounded text-xs font-semibold transition ${
-              showTenantPanel
-                ? 'bg-blue-600 text-white dark:bg-blue-700'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-            }`}
-            title="Toggle tenant/country controls"
-          >
-            Multi-Tenant
-          </button>
-          <button
             onClick={() => setShowExportPanel(!showExportPanel)}
             className={`px-3 py-1 rounded text-xs font-semibold transition ${
               showExportPanel
@@ -197,22 +172,86 @@ const TopologyManagementContent: React.FC = () => {
 
       {/* Main content grid */}
       <div className="grid grid-cols-4 gap-4 flex-1">
-        {/* Left sidebar - Controls */}
-        <div className="space-y-4 overflow-y-auto max-h-[calc(100vh-250px)]">
-          {showLayerPanel && (
-            <LayerControlPanel layers={layers} onLayerChange={setLayers} />
-          )}
+        {/* Left sidebar - Layers & Multi-Tenant Controls */}
+        <div className="space-y-3 overflow-y-auto max-h-[calc(100vh-250px)]">
+          {/* Layers Control Panel - Inline */}
+          <div className="flex flex-col bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+            <h3 className="font-semibold text-sm text-gray-900 dark:text-gray-100 mb-3">Layers</h3>
 
-          {showTenantPanel && (
-            <MultiTenantAwareness
-              topology={filteredNodes}
-              selectedCountry={selectedCountry}
-              selectedTenant={selectedTenant}
-              onCountryChange={setSelectedCountry}
-              onTenantChange={setSelectedTenant}
-            />
-          )}
+            {/* Filter Layers */}
+            <div className="space-y-2">
+              <button
+                onClick={() => setLayers({ ...layers, ranOnly: !layers.ranOnly, transportOnly: false })}
+                className="w-full text-left flex items-center gap-3 p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition group"
+              >
+                {layers.ranOnly ? (
+                  <Eye className="w-4 h-4 text-blue-600" />
+                ) : (
+                  <EyeOff className="w-4 h-4 text-gray-400" />
+                )}
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">RAN Only</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Filter to RAN equipment</p>
+                </div>
+                <div className={`w-5 h-5 rounded border-2 transition ${
+                  layers.ranOnly
+                    ? 'bg-blue-600 border-blue-600'
+                    : 'border-gray-300 dark:border-gray-600'
+                }`} />
+              </button>
 
+              <button
+                onClick={() => setLayers({ ...layers, transportOnly: !layers.transportOnly, ranOnly: false })}
+                className="w-full text-left flex items-center gap-3 p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition group"
+              >
+                {layers.transportOnly ? (
+                  <Eye className="w-4 h-4 text-blue-600" />
+                ) : (
+                  <EyeOff className="w-4 h-4 text-gray-400" />
+                )}
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Transport Only</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Filter to transport layer</p>
+                </div>
+                <div className={`w-5 h-5 rounded border-2 transition ${
+                  layers.transportOnly
+                    ? 'bg-blue-600 border-blue-600'
+                    : 'border-gray-300 dark:border-gray-600'
+                }`} />
+              </button>
+
+              <button
+                onClick={() => setLayers({ ...layers, alarms: !layers.alarms })}
+                className="w-full text-left flex items-center gap-3 p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition group"
+              >
+                {layers.alarms ? (
+                  <Eye className="w-4 h-4 text-blue-600" />
+                ) : (
+                  <EyeOff className="w-4 h-4 text-gray-400" />
+                )}
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Alarms</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Show active alarms</p>
+                </div>
+                <div className={`w-5 h-5 rounded border-2 transition ${
+                  layers.alarms
+                    ? 'bg-blue-600 border-blue-600'
+                    : 'border-gray-300 dark:border-gray-600'
+                }`} />
+              </button>
+            </div>
+          </div>
+
+          {/* Multi-Tenant Control Panel */}
+          <MultiTenantAwareness
+            topology={filteredNodes}
+            selectedCountry={selectedCountry}
+            selectedTenant={selectedTenant}
+            onCountryChange={setSelectedCountry}
+            onTenantChange={setSelectedTenant}
+          />
+
+          {/* Export Panel */}
           {showExportPanel && (
             <ExportPanel
               topology={filteredNodes}
