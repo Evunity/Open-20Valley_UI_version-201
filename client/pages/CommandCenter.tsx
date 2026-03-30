@@ -144,7 +144,7 @@ export const CommandCenter: React.FC = () => {
 
       {/* Module Selector */}
       <div className="bg-card border-b border-border rounded-lg p-4">
-        <div className="grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-10 gap-2">
+        <div className="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-9 gap-2">
           {MODULES.map(module => {
             const Icon = module.icon;
             return (
