@@ -65,15 +65,6 @@ export default function ExecutiveRiskOverview() {
 
   return (
     <div className="space-y-8">
-      {/* Hero Question */}
-      <div className="bg-gradient-to-r from-red-500/10 to-orange-500/10 border border-red-500/20 rounded-xl p-8">
-        <h3 className="text-2xl font-bold text-foreground mb-2">
-          Is the platform operating safely?
-        </h3>
-        <p className="text-muted-foreground">
-          Executive risk scoring based on activity patterns, policy adherence, and behavioral anomalies.
-        </p>
-      </div>
 
       {/* Operational Risk Score */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

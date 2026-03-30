@@ -296,16 +296,6 @@ export default function BlastCorrelationEngine() {
 
   return (
     <div className="space-y-8">
-      {/* Description */}
-      <div className="bg-red-500/5 border border-red-500/20 rounded-xl p-6">
-        <h3 className="font-bold text-foreground mb-2 flex items-center gap-2">
-          <Zap className="w-5 h-5 text-red-600" />
-          Blast Correlation Engine
-        </h3>
-        <p className="text-sm text-muted-foreground">
-          Automatically link event chains to reveal causal relationships. Track how a single action cascades into major incidents affecting revenue and network stability.
-        </p>
-      </div>
 
       {/* Chain Selection */}
       <div className="space-y-3">

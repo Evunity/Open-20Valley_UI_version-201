@@ -146,16 +146,6 @@ export default function ChangeDiffViewer() {
 
   return (
     <div className="space-y-8">
-      {/* Description */}
-      <div className="bg-blue-500/5 border border-blue-500/20 rounded-xl p-6">
-        <h3 className="font-bold text-foreground mb-2 flex items-center gap-2">
-          <ArrowRight className="w-5 h-5 text-blue-600" />
-          Change Diff Viewer
-        </h3>
-        <p className="text-sm text-muted-foreground">
-          Side-by-side parameter comparison with visual highlighting. Track configuration changes with impact assessment for forensic investigations.
-        </p>
-      </div>
 
       {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

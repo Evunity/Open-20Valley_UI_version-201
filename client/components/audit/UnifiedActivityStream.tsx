@@ -137,13 +137,6 @@ export default function UnifiedActivityStream() {
 
   return (
     <div className="space-y-8">
-      {/* Description */}
-      <div className="bg-blue-500/5 border border-blue-500/20 rounded-xl p-6">
-        <h3 className="font-bold text-foreground mb-2">Unified Activity Stream</h3>
-        <p className="text-sm text-muted-foreground">
-          Complete immutable log of all platform events. Every action is timestamped to nanosecond precision, correlated, and forensically complete.
-        </p>
-      </div>
 
       {/* Advanced Table Controls */}
       <div className="rounded-xl border border-border/50 p-4 bg-card/50 space-y-4">

@@ -12,15 +12,6 @@ export default function CrossSystemIncidentTimeline() {
 
   return (
     <div className="space-y-8">
-      {/* Description */}
-      <div className="bg-orange-500/5 border border-orange-500/20 rounded-xl p-6">
-        <h3 className="font-bold text-foreground mb-2">
-          Cross-System Incident Timeline
-        </h3>
-        <p className="text-sm text-muted-foreground">
-          Reconstruct multi-module incidents with precise timing and causal relationships. Understand how actions in one module triggered events in others.
-        </p>
-      </div>
 
       {/* Timeline Visualization */}
       <div className="rounded-xl border border-border/50 p-6 bg-card/50">

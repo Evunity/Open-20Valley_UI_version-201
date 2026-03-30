@@ -270,16 +270,6 @@ export default function ActivityAudit() {
 
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Workspace Header */}
-          <div className="border-b border-border bg-card/30 px-8 py-4">
-            <div className="flex items-center justify-between">
-              <div></div>
-              <div className="text-xs px-2 py-1 rounded bg-muted text-muted-foreground font-semibold capitalize">
-                {activeConfig?.domain}
-              </div>
-            </div>
-          </div>
-
           {/* Workspace Content */}
           <div className="flex-1 overflow-y-auto">
             <div className="p-8">

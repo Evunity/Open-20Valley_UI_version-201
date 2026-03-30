@@ -9,15 +9,6 @@ export default function SessionIntelligenceCenter() {
 
   return (
     <div className="space-y-8">
-      {/* Description */}
-      <div className="bg-green-500/5 border border-green-500/20 rounded-xl p-6">
-        <h3 className="font-bold text-foreground mb-2">
-          Session Intelligence Center
-        </h3>
-        <p className="text-sm text-muted-foreground">
-          Monitor active user sessions, track behavioral patterns, and detect anomalies in real-time.
-        </p>
-      </div>
 
       {/* Active Sessions */}
       <div className="rounded-xl border border-border/50 p-6 bg-card/50">

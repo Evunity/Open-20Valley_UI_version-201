@@ -40,15 +40,6 @@ export default function RiskActivityHeatmap() {
 
   return (
     <div className="space-y-8">
-      {/* Description */}
-      <div className="bg-red-500/5 border border-red-500/20 rounded-xl p-6">
-        <h3 className="font-bold text-foreground mb-2">
-          Risk Activity Heatmap
-        </h3>
-        <p className="text-sm text-muted-foreground">
-          Visualize time-based security risk spikes. Security teams instantly detect patterns and anomalies in activity timing.
-        </p>
-      </div>
 
       {/* Hourly Heatmap */}
       <div className="rounded-xl border border-border/50 p-6 bg-card/50">

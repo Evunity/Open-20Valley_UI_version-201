@@ -185,16 +185,6 @@ export default function EvidencePackagingEngine() {
 
   return (
     <div className="space-y-8">
-      {/* Description */}
-      <div className="bg-yellow-500/5 border border-yellow-500/20 rounded-xl p-6">
-        <h3 className="font-bold text-foreground mb-2 flex items-center gap-2">
-          <Package className="w-5 h-5 text-yellow-600" />
-          Evidence Packaging Engine
-        </h3>
-        <p className="text-sm text-muted-foreground">
-          Export investigation bundles containing forensically-sound evidence packages. Includes immutable audit trails, chain-of-custody documentation, and legal discovery metadata.
-        </p>
-      </div>
 
       {/* Bundle Selection */}
       <div className="space-y-3">

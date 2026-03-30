@@ -10,15 +10,6 @@ export default function PrivilegedAccessRadar() {
 
   return (
     <div className="space-y-8">
-      {/* Description */}
-      <div className="bg-red-500/5 border border-red-500/20 rounded-xl p-6">
-        <h3 className="font-bold text-foreground mb-2">
-          Privileged Access Radar
-        </h3>
-        <p className="text-sm text-muted-foreground">
-          Track all admin-level actions, privilege escalations, and policy violations. Detect and alert on unauthorized access attempts.
-        </p>
-      </div>
 
       {/* Privileged Actions Today */}
       <div className="rounded-xl border border-border/50 p-6 bg-card/50">

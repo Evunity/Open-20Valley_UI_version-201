@@ -300,16 +300,6 @@ export default function BehavioralBaselinesPanel() {
 
   return (
     <div className="space-y-8">
-      {/* Description */}
-      <div className="bg-cyan-500/5 border border-cyan-500/20 rounded-xl p-6">
-        <h3 className="font-bold text-foreground mb-2 flex items-center gap-2">
-          <Brain className="w-5 h-5 text-cyan-600" />
-          Behavioral Baselines
-        </h3>
-        <p className="text-sm text-muted-foreground">
-          Learn normal behavior patterns for each user. Flag deviations quietly but powerfully. Detect insider threats and compromised accounts by comparing current activity against established baselines.
-        </p>
-      </div>
 
       {/* User Selection */}
       <div className="space-y-3">
