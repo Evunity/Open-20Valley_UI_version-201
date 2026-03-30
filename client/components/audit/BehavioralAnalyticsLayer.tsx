@@ -118,7 +118,6 @@ export default function BehavioralAnalyticsLayer() {
                   style={{ width: `${item.score}%` }}
                 />
               </div>
-              <p className="text-xs text-muted-foreground">Risk Factors: {item.factors}</p>
             </div>
           ))}
         </div>
@@ -126,25 +125,21 @@ export default function BehavioralAnalyticsLayer() {
 
       {/* ML Model Insights */}
       <div className="rounded-xl border border-border/50 p-6 bg-card/50">
-        <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
-          <Zap className="w-5 h-5 text-yellow-600" />
+        <h3 className="font-bold text-foreground mb-4">
           ML Model Insights
         </h3>
 
         <div className="space-y-3 text-sm">
           <div className="p-3 bg-muted/30 rounded-lg border border-border/30">
-            <p className="font-semibold text-foreground mb-1">Model Accuracy</p>
-            <p className="text-xs text-muted-foreground">94.2% precision in anomaly detection over 90-day window</p>
+            <p className="font-semibold text-foreground">Model Accuracy</p>
           </div>
 
           <div className="p-3 bg-muted/30 rounded-lg border border-border/30">
-            <p className="font-semibold text-foreground mb-1">False Positive Rate</p>
-            <p className="text-xs text-muted-foreground">2.8% (within acceptable range for security monitoring)</p>
+            <p className="font-semibold text-foreground">False Positive Rate</p>
           </div>
 
           <div className="p-3 bg-muted/30 rounded-lg border border-border/30">
-            <p className="font-semibold text-foreground mb-1">Training Data</p>
-            <p className="text-xs text-muted-foreground">12 months of historical activity (4.2M events)</p>
+            <p className="font-semibold text-foreground">Training Data</p>
           </div>
         </div>
       </div>

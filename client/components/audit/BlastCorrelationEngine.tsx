@@ -445,9 +445,6 @@ export default function BlastCorrelationEngine() {
           <div className="p-4 bg-blue-500/5 border border-blue-500/20 rounded-lg">
             <p className="text-xs text-blue-700 mb-2">Root Cause</p>
             <p className="text-sm text-blue-700 font-semibold">{currentChain.rootCause}</p>
-            <p className="text-xs text-blue-600 mt-2">
-              This single action triggered a cascading failure affecting {currentChain.eventCount} critical systems within {currentChain.timeWindow}.
-            </p>
           </div>
         </div>
       </div>
@@ -461,27 +458,19 @@ export default function BlastCorrelationEngine() {
         <div className="space-y-2 text-sm">
           <div className="flex items-start gap-2">
             <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-1.5" />
-            <p className="text-muted-foreground">
-              <span className="font-semibold text-foreground">Require approval workflows</span> for privilege escalations with mandatory review period
-            </p>
+            <p className="text-foreground font-semibold">Require approval workflows</p>
           </div>
           <div className="flex items-start gap-2">
             <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-1.5" />
-            <p className="text-muted-foreground">
-              <span className="font-semibold text-foreground">Implement policy change gates</span> with automated impact prediction
-            </p>
+            <p className="text-foreground font-semibold">Implement policy change gates</p>
           </div>
           <div className="flex items-start gap-2">
             <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-1.5" />
-            <p className="text-muted-foreground">
-              <span className="font-semibold text-foreground">Add automation circuit breakers</span> to prevent cascade failures
-            </p>
+            <p className="text-foreground font-semibold">Add automation circuit breakers</p>
           </div>
           <div className="flex items-start gap-2">
             <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-1.5" />
-            <p className="text-muted-foreground">
-              <span className="font-semibold text-foreground">Validate all frequency changes</span> against interference prediction models
-            </p>
+            <p className="text-foreground font-semibold">Validate all frequency changes</p>
           </div>
         </div>
       </div>

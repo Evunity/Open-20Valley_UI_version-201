@@ -324,8 +324,7 @@ export default function EvidencePackagingEngine() {
             <div className="flex items-start gap-3">
               <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-semibold text-foreground mb-1">Case Information</p>
-                <p className="text-sm text-muted-foreground">Case ID, investigator, date range, scope, regulatory basis</p>
+                <p className="font-semibold text-foreground">Case Information</p>
               </div>
             </div>
           </div>
@@ -334,8 +333,7 @@ export default function EvidencePackagingEngine() {
             <div className="flex items-start gap-3">
               <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-semibold text-foreground mb-1">Chain of Custody Log</p>
-                <p className="text-sm text-muted-foreground">Who accessed bundle, when, why, with cryptographic signatures on each access</p>
+                <p className="font-semibold text-foreground">Chain of Custody Log</p>
               </div>
             </div>
           </div>
@@ -344,8 +342,7 @@ export default function EvidencePackagingEngine() {
             <div className="flex items-start gap-3">
               <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-semibold text-foreground mb-1">Integrity Verification</p>
-                <p className="text-sm text-muted-foreground">SHA-256 hashes for all items, bundle signature, tamper-evident seals</p>
+                <p className="font-semibold text-foreground">Integrity Verification</p>
               </div>
             </div>
           </div>
@@ -354,8 +351,7 @@ export default function EvidencePackagingEngine() {
             <div className="flex items-start gap-3">
               <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-semibold text-foreground mb-1">Legal Discovery Manifest</p>
-                <p className="text-sm text-muted-foreground">Item descriptions, sensitivity labels, retention requirements, legal holds</p>
+                <p className="font-semibold text-foreground">Legal Discovery Manifest</p>
               </div>
             </div>
           </div>
@@ -364,8 +360,7 @@ export default function EvidencePackagingEngine() {
             <div className="flex items-start gap-3">
               <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-semibold text-foreground mb-1">Analyst Notes</p>
-                <p className="text-sm text-muted-foreground">Investigation findings, conclusions, recommendations, supporting analysis</p>
+                <p className="font-semibold text-foreground">Analyst Notes</p>
               </div>
             </div>
           </div>
