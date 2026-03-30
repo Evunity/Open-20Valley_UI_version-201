@@ -50,7 +50,7 @@ const TopologyManagementContent: React.FC = () => {
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [selectedTenant, setSelectedTenant] = useState<string | null>(null);
   const [showPredictiveRisks, setShowPredictiveRisks] = useState(true);
-  const [showLayerPanel, setShowLayerPanel] = useState(false);
+  const [showLayerPanel, setShowLayerPanel] = useState(true);
   const [showExportPanel, setShowExportPanel] = useState(false);
   const [showTenantPanel, setShowTenantPanel] = useState(false);
   const [layers, setLayers] = useState<LayerSettings>({
@@ -63,6 +63,38 @@ const TopologyManagementContent: React.FC = () => {
     transportOnly: false,
     ranOnly: false
   });
+
+  // Apply layer and tenant filters to topology
+  const filteredNodes = React.useMemo(() => {
+    let filtered = [...visibleNodes];
+
+    // Apply tenant/country filter
+    if (selectedCountry) {
+      filtered = filtered.filter(node => node.country === selectedCountry);
+    }
+
+    // Apply layer filters
+    if (layers.alarms) {
+      filtered = filtered.filter(node =>
+        node.alarmSummary.critical > 0 || node.alarmSummary.major > 0 ||
+        node.alarmSummary.minor > 0 || node.type !== 'site'
+      );
+    }
+
+    if (layers.ranOnly) {
+      filtered = filtered.filter(node =>
+        node.type === 'cell' || node.type === 'sector' || node.type === 'site'
+      );
+    }
+
+    if (layers.transportOnly) {
+      filtered = filtered.filter(node =>
+        node.type === 'link' || node.type === 'equipment' || node.parentId
+      );
+    }
+
+    return filtered;
+  }, [visibleNodes, selectedCountry, layers]);
 
   const toggleNode = (id: string) => {
     const newExpanded = new Set(expandedNodes);
@@ -135,7 +167,7 @@ const TopologyManagementContent: React.FC = () => {
 
           {showTenantPanel && (
             <MultiTenantAwareness
-              topology={visibleNodes}
+              topology={filteredNodes}
               selectedCountry={selectedCountry}
               selectedTenant={selectedTenant}
               onCountryChange={setSelectedCountry}
@@ -145,7 +177,7 @@ const TopologyManagementContent: React.FC = () => {
 
           {showExportPanel && (
             <ExportPanel
-              topology={visibleNodes}
+              topology={filteredNodes}
               currentView="geospatial-map"
               filters={{ country: selectedCountry, tenant: selectedTenant }}
             />
@@ -155,7 +187,7 @@ const TopologyManagementContent: React.FC = () => {
         {/* Main map area */}
         <div className="col-span-3">
           <GeospatialNetworkMap
-            topology={visibleNodes}
+            topology={filteredNodes}
             layers={layers}
             selectedObject={selectedNode}
             onObjectSelect={(node) => selectNode(node.id)}
@@ -167,14 +199,14 @@ const TopologyManagementContent: React.FC = () => {
       {/* Predictive Risk Panel */}
       {showPredictiveRisks && (
         <div className="max-h-60 overflow-y-auto">
-          <PredictiveRiskHighlight topology={visibleNodes} isEnabled={showPredictiveRisks} />
+          <PredictiveRiskHighlight topology={filteredNodes} isEnabled={showPredictiveRisks} />
         </div>
       )}
     </div>
   );
 
   const renderTreeView = () => {
-    const renderNode = (obj: typeof visibleNodes[0], level: number) => (
+    const renderNode = (obj: typeof filteredNodes[0], level: number) => (
       <div key={obj.id} style={{ marginLeft: `${level * 16}px` }} className="mb-1">
         <button
           onClick={() => {
@@ -205,7 +237,7 @@ const TopologyManagementContent: React.FC = () => {
         {expandedNodes.has(obj.id) && obj.childrenIds.length > 0 && (
           <div>
             {obj.childrenIds.map(childId => {
-              const child = visibleNodes.find(o => o.id === childId);
+              const child = filteredNodes.find(o => o.id === childId);
               return child ? renderNode(child, level + 1) : null;
             })}
           </div>
@@ -213,7 +245,7 @@ const TopologyManagementContent: React.FC = () => {
       </div>
     );
 
-    const roots = visibleNodes.filter(o => !o.parentId);
+    const roots = filteredNodes.filter(o => !o.parentId);
     return (
       <div className="w-full flex flex-col h-full gap-4 p-4 bg-background dark:bg-background overflow-y-auto">
         <h2 className="text-lg font-bold text-foreground">Hierarchical Tree View</h2>
@@ -315,7 +347,7 @@ const TopologyManagementContent: React.FC = () => {
             </>
           ) : (
             <div className="w-full flex items-center justify-between">
-              <p className="text-muted-foreground">Visible: <strong>{stats.totalVisible}</strong> | Alarms: <strong>{stats.totalAlarms}</strong></p>
+              <p className="text-muted-foreground">Visible: <strong>{filteredNodes.length}</strong> | Alarms: <strong>{filteredNodes.reduce((sum, n) => sum + n.alarmSummary.critical + n.alarmSummary.major, 0)}</strong></p>
               <div className="text-xs text-gray-500 dark:text-gray-500">
                 {performance.lastRegionLoadTime < 2000 && performance.lastZoomTime < 300 && performance.lastExpandTime < 200 ? (
                   <span className="text-green-600">✓ Performance optimal</span>
