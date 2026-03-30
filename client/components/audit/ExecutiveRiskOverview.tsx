@@ -66,59 +66,34 @@ export default function ExecutiveRiskOverview() {
   return (
     <div className="space-y-2">
 
-      {/* Operational Risk Score */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="rounded-xl border border-border/50 p-8 bg-card/50">
-          <div className="flex items-end justify-between">
+      {/* Operational Risk Score + Executive Risk Cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        {/* Risk Score Card */}
+        <div className="rounded-xl border border-border/50 p-6 bg-card/50 lg:col-span-1">
+          <div className="flex flex-col items-center">
             <div>
-              <div className="flex items-baseline gap-3">
-                <span className="text-6xl font-bold text-orange-600">{operationalRiskScore}</span>
-                <span className="text-2xl text-muted-foreground">/100</span>
+              <div className="flex items-baseline gap-1 justify-center">
+                <span className="text-5xl font-bold text-orange-600">{operationalRiskScore}</span>
+                <span className="text-lg text-muted-foreground">/100</span>
               </div>
-              <p className="text-lg font-semibold text-orange-600 mt-2">Status: {riskStatus}</p>
+              <p className="text-sm font-semibold text-orange-600 mt-2 text-center">Status: {riskStatus}</p>
             </div>
-            <div className="w-40 h-40 rounded-full flex items-center justify-center" 
+            <div className="w-32 h-32 rounded-full flex items-center justify-center mt-4"
               style={{
                 background: `conic-gradient(
                   #f97316 0deg ${operationalRiskScore * 3.6}deg,
                   hsl(var(--muted)) ${operationalRiskScore * 3.6}deg 360deg
                 )`
               }}>
-              <div className="w-36 h-36 rounded-full bg-card flex items-center justify-center">
-                <span className="text-4xl font-bold text-orange-600">{operationalRiskScore}</span>
+              <div className="w-28 h-28 rounded-full bg-card flex items-center justify-center">
+                <span className="text-3xl font-bold text-orange-600">{operationalRiskScore}</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Risk Assessment */}
-        <div className="rounded-xl border border-border/50 p-6 bg-card/50">
-          <h4 className="font-bold text-foreground mb-4">Risk Assessment Summary</h4>
-          <div className="space-y-3">
-            {riskFactors.map((factor, idx) => (
-              <div key={idx} className="p-3 bg-muted/30 rounded-lg border border-border/30">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium text-foreground">{factor.metric}</span>
-                  <span className={cn("text-xs font-bold px-2 py-1 rounded", getSeverityColor(factor.status))}>
-                    {factor.value} events
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>Impact: {factor.impact}</span>
-                  <span className={`font-semibold ${factor.status === 'critical' ? 'text-red-600' : 'text-yellow-600'}`}>
-                    ↑ Trending
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Executive Risk Cards */}
-      <div>
-        <h3 className="font-bold text-foreground mb-4">Executive Risk Cards</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Executive Risk Cards */}
+        <div className="lg:col-span-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {executiveCards.map((card, idx) => (
             <div
               key={idx}
@@ -143,6 +118,29 @@ export default function ExecutiveRiskOverview() {
 
               <div className="text-xs text-muted-foreground">
                 Trend: {card.trend === 'up' ? '↑ Increasing' : '→ Stable'}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Risk Assessment */}
+      <div className="rounded-xl border border-border/50 p-6 bg-card/50">
+        <h4 className="font-bold text-foreground mb-4">Risk Assessment Summary</h4>
+        <div className="space-y-3">
+          {riskFactors.map((factor, idx) => (
+            <div key={idx} className="p-3 bg-muted/30 rounded-lg border border-border/30">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm font-medium text-foreground">{factor.metric}</span>
+                <span className={cn("text-xs font-bold px-2 py-1 rounded", getSeverityColor(factor.status))}>
+                  {factor.value} events
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>Impact: {factor.impact}</span>
+                <span className={`font-semibold ${factor.status === 'critical' ? 'text-red-600' : 'text-yellow-600'}`}>
+                  ↑ Trending
+                </span>
               </div>
             </div>
           ))}
