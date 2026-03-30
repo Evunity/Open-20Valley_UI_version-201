@@ -282,10 +282,6 @@ export default function ActivityAudit() {
                     )}>
                       <activeConfig.icon className="w-5 h-5 text-white" />
                     </div>
-                    <div>
-                      <h2 className="text-xl font-bold text-foreground">{activeConfig.label}</h2>
-                      <p className="text-sm text-muted-foreground">{activeConfig.description}</p>
-                    </div>
                   </>
                 )}
               </div>

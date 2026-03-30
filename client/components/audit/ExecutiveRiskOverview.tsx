@@ -80,7 +80,6 @@ export default function ExecutiveRiskOverview() {
         <div className="rounded-xl border border-border/50 p-8 bg-card/50">
           <div className="flex items-end justify-between">
             <div>
-              <p className="text-sm text-muted-foreground mb-2">Operational Risk Score</p>
               <div className="flex items-baseline gap-3">
                 <span className="text-6xl font-bold text-orange-600">{operationalRiskScore}</span>
                 <span className="text-2xl text-muted-foreground">/100</span>
