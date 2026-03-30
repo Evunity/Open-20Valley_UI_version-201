@@ -97,12 +97,36 @@ export const BulkEditor: React.FC<BulkEditorProps> = () => {
       </div>
 
       {/* Configuration Input */}
-      <div>
-        <label className="block text-xs font-semibold text-muted-foreground mb-2">CSV Configuration</label>
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <label className="block text-xs font-semibold text-muted-foreground">CSV Configuration</label>
+          <div className="flex items-center gap-2">
+            <label className="text-xs font-semibold text-muted-foreground cursor-pointer hover:text-foreground transition">
+              <input
+                type="file"
+                accept=".csv"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                      const text = event.target?.result as string;
+                      setContent(text);
+                    };
+                    reader.readAsText(file);
+                  }
+                }}
+                className="hidden"
+              />
+              📁 Upload CSV
+            </label>
+          </div>
+        </div>
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
           className="w-full h-32 px-3 py-2 border border-border rounded-lg font-mono text-xs focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground"
+          placeholder="Paste CSV content or upload a file..."
         />
       </div>
 
