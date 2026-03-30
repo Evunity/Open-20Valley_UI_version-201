@@ -101,7 +101,7 @@ export default function Settings2() {
               <div className="space-y-2">
                 {/* General Platform Settings */}
                 <div className="rounded-lg border border-border bg-card p-4">
-                  <h3 className="mb-2 text-xl font-semibold text-foreground">4.1 General Platform Settings</h3>
+                  <h3 className="mb-2 text-xl font-semibold text-foreground">General Platform Settings</h3>
                   <div className="space-y-2">
                     <div>
                       <label className="block text-sm font-semibold text-foreground mb-2">System Name</label>
@@ -178,7 +178,7 @@ export default function Settings2() {
 
               {/* Alarm Module */}
               <div className="rounded-lg border border-border bg-card p-4">
-                <h3 className="mb-2 text-xl font-semibold text-foreground">5.1 Alarm Module Settings</h3>
+                <h3 className="mb-2 text-xl font-semibold text-foreground">Alarm Module Settings</h3>
                 <div className="space-y-2">
                   <label className="flex items-center gap-2">
                     <input type="checkbox" defaultChecked className="h-4 w-4" />
@@ -197,7 +197,7 @@ export default function Settings2() {
 
               {/* Analytics Module */}
               <div className="rounded-lg border border-border bg-card p-4">
-                <h3 className="mb-2 text-xl font-semibold text-foreground">5.2 Analytics Module Settings</h3>
+                <h3 className="mb-2 text-xl font-semibold text-foreground">Analytics Module Settings</h3>
                 <div className="space-y-2">
                   <div>
                     <label className="text-sm font-semibold text-foreground">Default KPI aggregation window</label>
@@ -225,7 +225,7 @@ export default function Settings2() {
 
               {/* Automation Module */}
               <div className="rounded-lg border border-border bg-card p-4">
-                <h3 className="mb-2 text-xl font-semibold text-foreground">5.3 Automation & AI Settings</h3>
+                <h3 className="mb-2 text-xl font-semibold text-foreground">Automation & AI Settings</h3>
                 <div className="space-y-2">
                   <label className="flex items-center gap-2">
                     <input type="checkbox" className="h-4 w-4" />
@@ -248,7 +248,7 @@ export default function Settings2() {
 
               {/* Topology Settings */}
               <div className="rounded-lg border border-border bg-card p-4">
-                <h3 className="mb-2 text-xl font-semibold text-foreground">5.4 Topology Settings</h3>
+                <h3 className="mb-2 text-xl font-semibold text-foreground">Topology Settings</h3>
                 <div className="space-y-2">
                   <div>
                     <label className="text-sm font-semibold text-foreground">Default map view</label>
@@ -271,7 +271,7 @@ export default function Settings2() {
 
               {/* Reports Settings */}
               <div className="rounded-lg border border-border bg-card p-4">
-                <h3 className="mb-2 text-xl font-semibold text-foreground">5.5 Reports Settings</h3>
+                <h3 className="mb-2 text-xl font-semibold text-foreground">Reports Settings</h3>
                 <div className="space-y-2">
                   <div>
                     <label className="text-sm font-semibold text-foreground">Default export format</label>
@@ -290,7 +290,7 @@ export default function Settings2() {
 
               {/* Command Center Settings */}
               <div className="rounded-lg border border-border bg-card p-4">
-                <h3 className="mb-2 text-xl font-semibold text-foreground">5.6 Command Center Settings</h3>
+                <h3 className="mb-2 text-xl font-semibold text-foreground">Command Center Settings</h3>
                 <div className="space-y-2">
                   <div>
                     <label className="text-sm font-semibold text-foreground">Max bulk execution size</label>
@@ -319,7 +319,7 @@ export default function Settings2() {
               <h2 className="text-3xl font-bold text-foreground">Integration Settings</h2>
 
               <div className="rounded-lg border border-border bg-card p-4">
-                <h3 className="mb-2 text-xl font-semibold text-foreground">6.1 Northbound Integrations</h3>
+                <h3 className="mb-2 text-xl font-semibold text-foreground">Northbound Integrations</h3>
                 <div className="mb-6 space-y-3">
                   {['ServiceNow ITSM', 'Splunk SIEM', 'Email Server', 'Webhook Endpoint'].map(int => (
                     <div key={int} className="flex items-center justify-between rounded-lg bg-muted p-4">
@@ -334,7 +334,7 @@ export default function Settings2() {
               </div>
 
               <div className="rounded-lg border border-border bg-card p-4">
-                <h3 className="mb-2 text-xl font-semibold text-foreground">6.2 Southbound Integrations (Network)</h3>
+                <h3 className="mb-2 text-xl font-semibold text-foreground">Southbound Integrations (Network)</h3>
                 <div className="space-y-3">
                   {['SNMP', 'NETCONF', 'SSH', 'REST'].map(proto => (
                     <div key={proto} className="flex items-center justify-between rounded-lg bg-muted p-4">
@@ -356,7 +356,7 @@ export default function Settings2() {
               <h2 className="text-3xl font-bold text-foreground">Data & Retention Policies</h2>
 
               <div className="rounded-lg border border-border bg-card p-4">
-                <h3 className="mb-2 text-xl font-semibold text-foreground">7.1 Data Retention</h3>
+                <h3 className="mb-2 text-xl font-semibold text-foreground">Data Retention</h3>
                 <div className="space-y-2">
                   {['Alarms', 'KPIs', 'Logs', 'Audit Records', 'Automation History', 'Command Execution Logs', 'Report Snapshots'].map(dataType => (
                     <div key={dataType} className="grid grid-cols-3 gap-4 rounded-lg bg-muted p-4">
@@ -381,7 +381,7 @@ export default function Settings2() {
               </div>
 
               <div className="rounded-lg border border-border bg-card p-4">
-                <h3 className="mb-2 text-xl font-semibold text-foreground">7.2 Data Archiving</h3>
+                <h3 className="mb-2 text-xl font-semibold text-foreground">Data Archiving</h3>
                 <div className="space-y-2">
                   <div>
                     <label className="text-sm font-semibold text-foreground">Archive frequency</label>
@@ -410,7 +410,7 @@ export default function Settings2() {
               <h2 className="text-3xl font-bold text-foreground">Performance & System Limits</h2>
 
               <div className="rounded-lg border border-border bg-card p-4">
-                <h3 className="mb-2 text-xl font-semibold text-foreground">8.1 Resource Limits</h3>
+                <h3 className="mb-2 text-xl font-semibold text-foreground">Resource Limits</h3>
                 <div className="space-y-2">
                   <div>
                     <label className="text-sm font-semibold text-foreground">Max concurrent automations</label>
@@ -436,7 +436,7 @@ export default function Settings2() {
               </div>
 
               <div className="rounded-lg border border-border bg-card p-4">
-                <h3 className="mb-2 text-xl font-semibold text-foreground">8.2 Load Protection</h3>
+                <h3 className="mb-2 text-xl font-semibold text-foreground">Load Protection</h3>
                 <div className="space-y-2">
                   <label className="flex items-center gap-2">
                     <input type="checkbox" defaultChecked className="h-4 w-4" />
@@ -465,7 +465,7 @@ export default function Settings2() {
               <h2 className="text-3xl font-bold text-foreground">Notifications & Communication Settings</h2>
 
               <div className="rounded-lg border border-border bg-card p-4">
-                <h3 className="mb-2 text-xl font-semibold text-foreground">9.1 Notification Channels</h3>
+                <h3 className="mb-2 text-xl font-semibold text-foreground">Notification Channels</h3>
                 <div className="space-y-3">
                   {['Email', 'SMS', 'In-app Notification', 'Webhook', 'Push'].map(channel => (
                     <div key={channel} className="flex items-center justify-between rounded-lg bg-muted p-4">
@@ -480,7 +480,7 @@ export default function Settings2() {
               </div>
 
               <div className="rounded-lg border border-border bg-card p-4">
-                <h3 className="mb-2 text-xl font-semibold text-foreground">9.2 Alert/Notification Routing Defaults</h3>
+                <h3 className="mb-2 text-xl font-semibold text-foreground">Alert/Notification Routing Defaults</h3>
                 <div className="space-y-3">
                   {[
                     { alert: 'Critical alarms', route: 'NOC Team' },
@@ -538,7 +538,7 @@ export default function Settings2() {
               <h2 className="text-3xl font-bold text-foreground">Environment & Deployment Settings</h2>
 
               <div className="rounded-lg border border-border bg-card p-4">
-                <h3 className="mb-2 text-xl font-semibold text-foreground">11.1 Feature Flags</h3>
+                <h3 className="mb-2 text-xl font-semibold text-foreground">Feature Flags</h3>
                 <div className="space-y-3">
                   {['AI experimental features', 'New topology rendering engine', 'Beta report builder', 'Advanced scripting mode'].map(flag => (
                     <div key={flag} className="flex items-center justify-between rounded-lg bg-muted p-4">
@@ -560,7 +560,7 @@ export default function Settings2() {
               <h2 className="text-3xl font-bold text-foreground">Backup & Recovery Settings</h2>
 
               <div className="rounded-lg border border-border bg-card p-4">
-                <h3 className="mb-2 text-xl font-semibold text-foreground">12.1 Backup Configuration</h3>
+                <h3 className="mb-2 text-xl font-semibold text-foreground">Backup Configuration</h3>
                 <div className="space-y-2">
                   <div>
                     <label className="text-sm font-semibold text-foreground">Backup frequency</label>
@@ -590,7 +590,7 @@ export default function Settings2() {
               </div>
 
               <div className="rounded-lg border border-border bg-card p-4">
-                <h3 className="mb-2 text-xl font-semibold text-foreground">12.2 Disaster Recovery Mode</h3>
+                <h3 className="mb-2 text-xl font-semibold text-foreground">Disaster Recovery Mode</h3>
                 <div className="space-y-2">
                   <div>
                     <label className="text-sm font-semibold text-foreground">Secondary site configuration</label>
@@ -612,7 +612,7 @@ export default function Settings2() {
               <h2 className="text-3xl font-bold text-foreground">Branding & UI Customization</h2>
 
               <div className="rounded-lg border border-border bg-card p-4">
-                <h3 className="mb-2 text-xl font-semibold text-foreground">13. Branding & UI Customization</h3>
+                <h3 className="mb-2 text-xl font-semibold text-foreground">Branding & UI Customization</h3>
                 <div className="space-y-2">
                   <div>
                     <label className="text-sm font-semibold text-foreground">Logo</label>
@@ -644,7 +644,7 @@ export default function Settings2() {
               <h2 className="text-3xl font-bold text-foreground">Audit & Change Control</h2>
 
               <div className="rounded-lg border border-border bg-card p-4">
-                <h3 className="mb-2 text-xl font-semibold text-foreground">14. Settings Audit & Change Control</h3>
+                <h3 className="mb-2 text-xl font-semibold text-foreground">Settings Audit & Change Control</h3>
                 <div className="mb-6 space-y-3">
                   <p className="text-sm text-muted-foreground">Every setting change logs:</p>
                   <ul className="space-y-2 text-sm text-foreground list-disc list-inside">
