@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { Plus, Trash2, Edit2, Eye } from 'lucide-react';
+import React, { useState, useCallback } from 'react';
+import { Plus, Trash2, Edit2, Eye, EyeOff, Copy, AlertCircle, Check, X } from 'lucide-react';
 import { TopologyObject } from '../utils/topologyData';
+import { HierarchyManager, HierarchyValidator, VALID_CHILDREN } from '../utils/hierarchyManager';
 
 interface EditableTreeViewProps {
   topology: TopologyObject[];
@@ -13,6 +14,13 @@ interface AddNodeModalState {
   parentType: string | null;
 }
 
+interface RenameModalState {
+  isOpen: boolean;
+  nodeId: string | null;
+  currentName: string;
+  newName: string;
+}
+
 export const EditableTreeView: React.FC<EditableTreeViewProps> = ({
   topology,
   onTopologyChange
@@ -22,10 +30,17 @@ export const EditableTreeView: React.FC<EditableTreeViewProps> = ({
   const [draggedNode, setDraggedNode] = useState<string | null>(null);
   const [dragOverNode, setDragOverNode] = useState<string | null>(null);
   const [localTopology, setLocalTopology] = useState<TopologyObject[]>(topology);
+  const [hierarchyManager, setHierarchyManager] = useState(() => new HierarchyManager(topology));
   const [addNodeModal, setAddNodeModal] = useState<AddNodeModalState>({
     isOpen: false,
     parentId: null,
     parentType: null
+  });
+  const [renameModal, setRenameModal] = useState<RenameModalState>({
+    isOpen: false,
+    nodeId: null,
+    currentName: '',
+    newName: ''
   });
   const [newNodeForm, setNewNodeForm] = useState({
     name: '',
@@ -33,10 +48,12 @@ export const EditableTreeView: React.FC<EditableTreeViewProps> = ({
     vendor: 'Nokia' as const
   });
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Update local topology when props change
   React.useEffect(() => {
     setLocalTopology(topology);
+    setHierarchyManager(new HierarchyManager(topology));
   }, [topology]);
 
   const toggleExpanded = (id: string) => {
@@ -49,13 +66,66 @@ export const EditableTreeView: React.FC<EditableTreeViewProps> = ({
     setExpandedNodes(newExpanded);
   };
 
-  const getNodeById = (id: string): TopologyObject | undefined => {
-    return localTopology.find(n => n.id === id);
-  };
+  const handleAddNode = useCallback(() => {
+    if (!newNodeForm.name.trim()) {
+      setError('Node name cannot be empty');
+      return;
+    }
 
-  const getChildrenOf = (parentId: string): TopologyObject[] => {
-    return localTopology.filter(n => n.parentId === parentId);
-  };
+    const result = hierarchyManager.addNode(
+      newNodeForm.name,
+      newNodeForm.type,
+      addNodeModal.parentId || undefined,
+      newNodeForm.vendor
+    );
+
+    if (result.success) {
+      const updatedTopology = hierarchyManager.export();
+      setLocalTopology(updatedTopology);
+      onTopologyChange?.(updatedTopology);
+      setError(null);
+      setNewNodeForm({ name: '', type: 'region', vendor: 'Nokia' });
+      setAddNodeModal({ isOpen: false, parentId: null, parentType: null });
+    } else {
+      setError(result.error || 'Failed to add node');
+    }
+  }, [newNodeForm, addNodeModal.parentId, hierarchyManager, onTopologyChange]);
+
+  const handleRemoveNode = useCallback((nodeId: string) => {
+    if (!window.confirm('Are you sure you want to remove this node and all its children?')) {
+      return;
+    }
+
+    const result = hierarchyManager.removeNode(nodeId);
+    if (result.success) {
+      const updatedTopology = hierarchyManager.export();
+      setLocalTopology(updatedTopology);
+      onTopologyChange?.(updatedTopology);
+      setError(null);
+      setSelectedNodeId(null);
+    } else {
+      setError(result.error || 'Failed to remove node');
+    }
+  }, [hierarchyManager, onTopologyChange]);
+
+  const handleRenameNode = useCallback(() => {
+    if (!renameModal.nodeId) return;
+    if (!renameModal.newName.trim()) {
+      setError('Name cannot be empty');
+      return;
+    }
+
+    const result = hierarchyManager.renameNode(renameModal.nodeId, renameModal.newName);
+    if (result.success) {
+      const updatedTopology = hierarchyManager.export();
+      setLocalTopology(updatedTopology);
+      onTopologyChange?.(updatedTopology);
+      setError(null);
+      setRenameModal({ isOpen: false, nodeId: null, currentName: '', newName: '' });
+    } else {
+      setError(result.error || 'Failed to rename node');
+    }
+  }, [renameModal, hierarchyManager, onTopologyChange]);
 
   const handleDragStart = (e: React.DragEvent, nodeId: string) => {
     if (!editMode) return;
@@ -86,138 +156,44 @@ export const EditableTreeView: React.FC<EditableTreeViewProps> = ({
       return;
     }
 
-    // Find the dragged and target nodes
-    const draggedNode_obj = getNodeById(draggedNode);
-    const targetNode = getNodeById(targetId);
-
-    if (!draggedNode_obj || !targetNode) return;
-
-    // Don't allow dropping a node on itself or its children
-    const isDescendant = (parentId: string, childId: string): boolean => {
-      const children = getChildrenOf(parentId);
-      if (children.some(c => c.id === childId)) return true;
-      return children.some(c => isDescendant(c.id, childId));
-    };
-
-    if (isDescendant(draggedNode, targetId)) {
+    // Validate the move
+    const draggedNodeObj = hierarchyManager.findById(draggedNode);
+    if (!draggedNodeObj) {
+      setError('Source node not found');
       setDraggedNode(null);
       setDragOverNode(null);
       return;
     }
 
-    // Perform the move operation
-    const updated = localTopology.map(node => {
-      if (node.id === draggedNode) {
-        return { ...node, parentId: targetId };
-      }
-      if (node.id === targetId) {
-        return {
-          ...node,
-          childrenIds: node.childrenIds.includes(draggedNode)
-            ? node.childrenIds
-            : [...node.childrenIds, draggedNode]
-        };
-      }
-      if (node.parentId === draggedNode && node.id !== draggedNode_obj.parentId) {
-        return {
-          ...node,
-          parentId: node.parentId
-        };
-      }
-      if (node.id === draggedNode_obj.parentId) {
-        return {
-          ...node,
-          childrenIds: node.childrenIds.filter(id => id !== draggedNode)
-        };
-      }
-      return node;
-    });
+    const result = hierarchyManager.moveNode(draggedNode, targetId);
+    if (result.success) {
+      const updatedTopology = hierarchyManager.export();
+      setLocalTopology(updatedTopology);
+      onTopologyChange?.(updatedTopology);
+      setError(null);
+    } else {
+      setError(result.error || 'Cannot move to this location');
+    }
 
-    setLocalTopology(updated);
-    onTopologyChange?.(updated);
     setDraggedNode(null);
     setDragOverNode(null);
   };
 
-  const handleRemoveNode = (nodeId: string) => {
-    if (!window.confirm('Are you sure you want to remove this node and all its children?')) {
-      return;
-    }
-
-    const nodeToRemove = getNodeById(nodeId);
-    if (!nodeToRemove) return;
-
-    // Collect all nodes to remove (node + descendants)
-    const nodesToRemove = new Set<string>();
-    const collect = (id: string) => {
-      nodesToRemove.add(id);
-      getChildrenOf(id).forEach(child => collect(child.id));
-    };
-    collect(nodeId);
-
-    // Update topology
-    const updated = localTopology
-      .filter(n => !nodesToRemove.has(n.id))
-      .map(node => ({
-        ...node,
-        childrenIds: node.childrenIds.filter(id => !nodesToRemove.has(id))
-      }));
-
-    setLocalTopology(updated);
-    onTopologyChange?.(updated);
-    setSelectedNodeId(null);
-  };
-
-  const handleAddNode = () => {
-    if (!newNodeForm.name.trim() || !addNodeModal.parentId) return;
-
-    const newNode: TopologyObject = {
-      id: `${newNodeForm.type}_${Date.now()}`,
-      name: newNodeForm.name,
-      type: newNodeForm.type,
-      vendor: newNodeForm.vendor,
-      parentId: addNodeModal.parentId,
-      childrenIds: [],
-      healthState: 'healthy',
-      alarmSummary: { critical: 0, major: 0, minor: 0, warning: 0 },
-      kpiSummary: {
-        availability: 99.5,
-        dropRate: 0,
-        throughput: 90,
-        latency: 15,
-        utilization: 50
-      },
-      automationLocked: false,
-      lastStateChange: new Date().toISOString(),
-      description: newNodeForm.name
-    };
-
-    const updated = [
-      ...localTopology.map(node =>
-        node.id === addNodeModal.parentId
-          ? { ...node, childrenIds: [...node.childrenIds, newNode.id] }
-          : node
-      ),
-      newNode
-    ];
-
-    setLocalTopology(updated);
-    onTopologyChange?.(updated);
-
-    // Reset form and close modal
-    setNewNodeForm({ name: '', type: 'region', vendor: 'Nokia' });
-    setAddNodeModal({ isOpen: false, parentId: null, parentType: null });
+  const getValidChildTypes = (nodeType: string): string[] => {
+    const validTypes = VALID_CHILDREN[nodeType as any];
+    return validTypes || [];
   };
 
   const renderNode = (nodeId: string, level: number): React.ReactNode => {
-    const node = getNodeById(nodeId);
+    const node = hierarchyManager.findById(nodeId);
     if (!node) return null;
 
-    const children = getChildrenOf(nodeId);
+    const children = hierarchyManager.getChildren(nodeId);
     const isExpanded = expandedNodes.has(nodeId);
     const isDragging = draggedNode === nodeId;
     const isDragOver = dragOverNode === nodeId;
     const isSelected = selectedNodeId === nodeId;
+    const validChildTypes = getValidChildTypes(node.type);
 
     return (
       <div key={nodeId} style={{ marginLeft: `${level * 16}px` }} className="mb-0.5">
@@ -266,27 +242,40 @@ export const EditableTreeView: React.FC<EditableTreeViewProps> = ({
               {node.type}
             </span>
             <span className="font-medium text-foreground truncate">{node.name}</span>
-            <span className="ml-auto text-xs text-gray-500 dark:text-gray-500 flex-shrink-0">
-              {node.alarmSummary.critical + node.alarmSummary.major} alarms
-            </span>
+            {children.length > 0 && (
+              <span className="ml-auto text-xs text-gray-500 dark:text-gray-500 flex-shrink-0">
+                {children.length}
+              </span>
+            )}
           </button>
 
           {/* Edit Mode Controls */}
           {editMode && nodeId !== 'global' && (
             <div className="flex-shrink-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
               <button
-                onClick={() => {
-                  setAddNodeModal({
-                    isOpen: true,
-                    parentId: nodeId,
-                    parentType: node.type
-                  });
-                }}
-                className="p-1 hover:bg-blue-100 dark:hover:bg-blue-900 rounded transition"
-                title="Add child node"
+                onClick={() => setRenameModal({ isOpen: true, nodeId, currentName: node.name, newName: node.name })}
+                className="p-1 hover:bg-purple-100 dark:hover:bg-purple-900 rounded transition"
+                title="Rename node"
               >
-                <Plus className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                <Edit2 className="w-4 h-4 text-purple-600 dark:text-purple-400" />
               </button>
+
+              {validChildTypes.length > 0 && (
+                <button
+                  onClick={() => {
+                    setAddNodeModal({
+                      isOpen: true,
+                      parentId: nodeId,
+                      parentType: node.type
+                    });
+                  }}
+                  className="p-1 hover:bg-blue-100 dark:hover:bg-blue-900 rounded transition"
+                  title="Add child node"
+                >
+                  <Plus className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                </button>
+              )}
+
               <button
                 onClick={() => handleRemoveNode(nodeId)}
                 className="p-1 hover:bg-red-100 dark:hover:bg-red-900 rounded transition"
@@ -337,6 +326,20 @@ export const EditableTreeView: React.FC<EditableTreeViewProps> = ({
         </button>
       </div>
 
+      {/* Error Message */}
+      {error && (
+        <div className="px-4 py-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg flex items-center gap-2 text-sm text-red-700 dark:text-red-300">
+          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          <span>{error}</span>
+          <button
+            onClick={() => setError(null)}
+            className="ml-auto p-1 hover:bg-red-100 dark:hover:bg-red-900 rounded"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Tree View Container */}
       <div className="flex-1 bg-card rounded-lg border border-border p-4 overflow-y-auto">
         {rootNodes.length > 0 ? (
@@ -344,14 +347,14 @@ export const EditableTreeView: React.FC<EditableTreeViewProps> = ({
             {rootNodes.map(root => renderNode(root.id, 0))}
           </div>
         ) : (
-          <p className="text-sm text-gray-600">No nodes visible with current filters</p>
+          <p className="text-sm text-gray-600">No nodes in hierarchy</p>
         )}
       </div>
 
       {/* Edit Mode Info */}
       {editMode && (
         <div className="px-3 py-2 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg text-xs text-blue-700 dark:text-blue-300">
-          <strong>Edit Mode:</strong> Drag nodes to reorganize, hover to add/remove nodes
+          <strong>Edit Mode:</strong> Drag to move, hover for add/rename/remove. Changes are applied immediately.
         </div>
       )}
 
@@ -372,9 +375,7 @@ export const EditableTreeView: React.FC<EditableTreeViewProps> = ({
                 <input
                   type="text"
                   value={newNodeForm.name}
-                  onChange={(e) =>
-                    setNewNodeForm({ ...newNodeForm, name: e.target.value })
-                  }
+                  onChange={(e) => setNewNodeForm({ ...newNodeForm, name: e.target.value })}
                   placeholder="Enter node name"
                   className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground focus:ring-2 focus:ring-blue-500 outline-none"
                   autoFocus
@@ -388,16 +389,14 @@ export const EditableTreeView: React.FC<EditableTreeViewProps> = ({
                 </label>
                 <select
                   value={newNodeForm.type}
-                  onChange={(e) =>
-                    setNewNodeForm({ ...newNodeForm, type: e.target.value as any })
-                  }
+                  onChange={(e) => setNewNodeForm({ ...newNodeForm, type: e.target.value as any })}
                   className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground focus:ring-2 focus:ring-blue-500 outline-none"
                 >
-                  <option value="region">Region</option>
-                  <option value="cluster">Cluster</option>
-                  <option value="site">Site</option>
-                  <option value="node">Node</option>
-                  <option value="rack">Rack</option>
+                  {getValidChildTypes(addNodeModal.parentType || '').map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -408,9 +407,7 @@ export const EditableTreeView: React.FC<EditableTreeViewProps> = ({
                 </label>
                 <select
                   value={newNodeForm.vendor}
-                  onChange={(e) =>
-                    setNewNodeForm({ ...newNodeForm, vendor: e.target.value as any })
-                  }
+                  onChange={(e) => setNewNodeForm({ ...newNodeForm, vendor: e.target.value as any })}
                   className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground focus:ring-2 focus:ring-blue-500 outline-none"
                 >
                   <option value="Nokia">Nokia</option>
@@ -433,6 +430,49 @@ export const EditableTreeView: React.FC<EditableTreeViewProps> = ({
                 onClick={() => {
                   setAddNodeModal({ isOpen: false, parentId: null, parentType: null });
                   setNewNodeForm({ name: '', type: 'region', vendor: 'Nokia' });
+                  setError(null);
+                }}
+                className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg font-semibold hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Rename Modal */}
+      {renameModal.isOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-bold text-foreground mb-4">Rename Node</h3>
+
+            <div className="mb-6">
+              <label className="block text-sm font-semibold text-foreground mb-2">
+                Current Name: {renameModal.currentName}
+              </label>
+              <input
+                type="text"
+                value={renameModal.newName}
+                onChange={(e) => setRenameModal({ ...renameModal, newName: e.target.value })}
+                placeholder="Enter new name"
+                className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground focus:ring-2 focus:ring-purple-500 outline-none"
+                autoFocus
+              />
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+              <button
+                onClick={handleRenameNode}
+                className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition"
+              >
+                Rename
+              </button>
+              <button
+                onClick={() => {
+                  setRenameModal({ isOpen: false, nodeId: null, currentName: '', newName: '' });
+                  setError(null);
                 }}
                 className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg font-semibold hover:bg-gray-300 dark:hover:bg-gray-600 transition"
               >
