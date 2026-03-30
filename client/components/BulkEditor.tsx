@@ -24,11 +24,18 @@ const MOCK_BULK_CHANGES: BulkChange[] = [
 
 export const BulkEditor: React.FC<BulkEditorProps> = () => {
   const [content, setContent] = useState('site,parameter,old_value,new_value\nCairo-Site-1,TX Power,43,40\nCairo-Site-2,TX Power,43,40\nGiza-Site-1,TX Power,43,40');
-  const [format, setFormat] = useState('csv');
   const [scope, setScope] = useState('region');
+  const [selectedVendor, setSelectedVendor] = useState('');
+  const [selectedTechnology, setSelectedTechnology] = useState('');
   const [changes, setChanges] = useState<BulkChange[]>(MOCK_BULK_CHANGES);
   const [showPreview, setShowPreview] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  const filteredChanges = changes.filter(change => {
+    const vendorMatch = !selectedVendor || change.site.toLowerCase().includes(selectedVendor.toLowerCase());
+    const techMatch = !selectedTechnology || change.parameter.toLowerCase().includes(selectedTechnology.toLowerCase());
+    return vendorMatch && techMatch;
+  });
 
   const validateChanges = () => {
     setChanges(changes.map(c => ({ ...c, status: 'validated' })));
@@ -49,27 +56,14 @@ export const BulkEditor: React.FC<BulkEditorProps> = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const successCount = changes.filter(c => c.status === 'success').length;
-  const failedCount = changes.filter(c => c.status === 'failed').length;
-  const validatedCount = changes.filter(c => c.status === 'validated').length;
+  const successCount = filteredChanges.filter(c => c.status === 'success').length;
+  const failedCount = filteredChanges.filter(c => c.status === 'failed').length;
+  const validatedCount = filteredChanges.filter(c => c.status === 'validated').length;
 
   return (
     <div className="flex flex-col h-full gap-4 p-4">
       {/* Filters & Controls */}
-      <div className="grid grid-cols-4 gap-4">
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Format</label>
-          <select
-            value={format}
-            onChange={(e) => setFormat(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-          >
-            <option value="csv">CSV</option>
-            <option value="json">JSON</option>
-            <option value="yaml">YAML</option>
-          </select>
-        </div>
-
+      <div className="grid grid-cols-3 gap-4">
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">Scope</label>
           <select
@@ -80,35 +74,44 @@ export const BulkEditor: React.FC<BulkEditorProps> = () => {
             <option value="all">All Sites</option>
             <option value="region">Selected Region</option>
             <option value="cluster">Selected Cluster</option>
-            <option value="vendor">Vendor Filter</option>
-            <option value="tech">Technology Filter</option>
           </select>
         </div>
 
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">Vendor Filter</label>
-          <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-            <option>All Vendors</option>
-            <option>Huawei</option>
-            <option>Nokia</option>
-            <option>Ericsson</option>
+          <select
+            value={selectedVendor}
+            onChange={(e) => setSelectedVendor(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+          >
+            <option value="">All Vendors</option>
+            <option value="Huawei">Huawei</option>
+            <option value="Nokia">Nokia</option>
+            <option value="Ericsson">Ericsson</option>
+            <option value="ZTE">ZTE</option>
           </select>
         </div>
 
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">Technology</label>
-          <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-            <option>All Technologies</option>
-            <option>4G</option>
-            <option>5G</option>
-            <option>Transport</option>
+          <select
+            value={selectedTechnology}
+            onChange={(e) => setSelectedTechnology(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+          >
+            <option value="">All Technologies</option>
+            <option value="2G">2G</option>
+            <option value="3G">3G</option>
+            <option value="4G">4G</option>
+            <option value="5G">5G</option>
+            <option value="ORAN">O-RAN</option>
           </select>
         </div>
       </div>
 
       {/* Configuration Input */}
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">Configuration Changes ({format.toUpperCase()})</label>
+        <label className="block text-sm font-semibold text-gray-700 mb-2">CSV Configuration</label>
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
@@ -151,7 +154,7 @@ export const BulkEditor: React.FC<BulkEditorProps> = () => {
               <div className="text-green-600">New Value</div>
               <div>Impact</div>
             </div>
-            {changes.map((change, i) => (
+            {filteredChanges.map((change, i) => (
               <div key={i} className="grid grid-cols-5 gap-2 text-xs p-2 bg-gray-50 rounded">
                 <div className="font-mono">{change.site}</div>
                 <div>{change.parameter}</div>
@@ -194,7 +197,7 @@ export const BulkEditor: React.FC<BulkEditorProps> = () => {
               </tr>
             </thead>
             <tbody>
-              {changes.map((change, i) => (
+              {filteredChanges.map((change, i) => (
                 <tr key={i} className="border-b border-gray-200 hover:bg-gray-50">
                   <td className="px-4 py-2 font-mono">{change.site}</td>
                   <td className="px-4 py-2">{change.parameter}</td>
@@ -229,7 +232,7 @@ export const BulkEditor: React.FC<BulkEditorProps> = () => {
       <div className="grid grid-cols-3 gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
         <div>
           <p className="text-xs text-blue-600">Total Changes</p>
-          <p className="text-2xl font-bold text-blue-900">{changes.length}</p>
+          <p className="text-2xl font-bold text-blue-900">{filteredChanges.length}</p>
         </div>
         <div>
           <p className="text-xs text-green-600">Ready to Execute</p>

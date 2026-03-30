@@ -14,6 +14,8 @@ interface Parameter {
   lastModified: string;
   modifiedBy: string;
   description: string;
+  technology: '2G' | '3G' | '4G' | '5G' | 'ORAN';
+  vendor: 'Huawei' | 'Nokia' | 'Ericsson' | 'ZTE';
 }
 
 const MOCK_PARAMETERS: Parameter[] = [
@@ -24,7 +26,9 @@ const MOCK_PARAMETERS: Parameter[] = [
     category: 'RF',
     lastModified: '2024-12-02 14:30',
     modifiedBy: 'Engineer.A',
-    description: 'Transmit power level in dBm'
+    description: 'Transmit power level in dBm',
+    technology: '4G',
+    vendor: 'Huawei'
   },
   {
     name: 'Cell Barring',
@@ -33,7 +37,9 @@ const MOCK_PARAMETERS: Parameter[] = [
     category: 'RF',
     lastModified: '2024-11-15 09:00',
     modifiedBy: 'System',
-    description: 'Whether cell is barred from access'
+    description: 'Whether cell is barred from access',
+    technology: '5G',
+    vendor: 'Nokia'
   },
   {
     name: 'DL Bandwidth',
@@ -42,7 +48,9 @@ const MOCK_PARAMETERS: Parameter[] = [
     category: 'Transport',
     lastModified: '2024-10-20 16:45',
     modifiedBy: 'Engineer.B',
-    description: 'Downlink bandwidth in MHz'
+    description: 'Downlink bandwidth in MHz',
+    technology: '4G',
+    vendor: 'Ericsson'
   },
   {
     name: 'IP Address',
@@ -51,7 +59,9 @@ const MOCK_PARAMETERS: Parameter[] = [
     category: 'IP',
     lastModified: '2024-12-01 11:20',
     modifiedBy: 'Network.Admin',
-    description: 'Management IP address'
+    description: 'Management IP address',
+    technology: '5G',
+    vendor: 'ZTE'
   },
   {
     name: 'Power Supply Status',
@@ -60,28 +70,36 @@ const MOCK_PARAMETERS: Parameter[] = [
     category: 'Power',
     lastModified: '2024-11-30 08:00',
     modifiedBy: 'System',
-    description: 'Primary power supply status'
+    description: 'Primary power supply status',
+    technology: '2G',
+    vendor: 'Huawei'
   }
 ];
 
 export const ParameterExplorer: React.FC<ParameterExplorerProps> = ({ selectedTarget }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [selectedTechnology, setSelectedTechnology] = useState<string>('');
+  const [selectedVendor, setSelectedVendor] = useState<string>('');
   const [expandedParam, setExpandedParam] = useState<string | null>(null);
 
   const categories = ['RF', 'Transport', 'IP', 'Power', 'System'] as const;
+  const technologies = ['2G', '3G', '4G', '5G', 'ORAN'] as const;
+  const vendors = ['Huawei', 'Nokia', 'Ericsson', 'ZTE'] as const;
 
   const filteredParams = MOCK_PARAMETERS.filter(param => {
     const matchesSearch = param.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          param.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = !selectedCategory || param.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+    const matchesTechnology = !selectedTechnology || param.technology === selectedTechnology;
+    const matchesVendor = !selectedVendor || param.vendor === selectedVendor;
+    return matchesSearch && matchesCategory && matchesTechnology && matchesVendor;
   });
 
   return (
     <div className="flex flex-col h-full gap-4 p-4">
-      {/* Search & Filter */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Search & Filters */}
+      <div className="space-y-3">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
@@ -93,16 +111,40 @@ export const ParameterExplorer: React.FC<ParameterExplorerProps> = ({ selectedTa
           />
         </div>
 
-        <div className="flex gap-2">
-          <Filter className="w-5 h-5 text-gray-400 self-center" />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          <div className="flex gap-2">
+            <Filter className="w-5 h-5 text-gray-400 self-center flex-shrink-0" />
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            >
+              <option value="">All Categories</option>
+              {categories.map(cat => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+          </div>
+
           <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            value={selectedTechnology}
+            onChange={(e) => setSelectedTechnology(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
           >
-            <option value="">All Categories</option>
-            {categories.map(cat => (
-              <option key={cat} value={cat}>{cat}</option>
+            <option value="">All Technologies</option>
+            {technologies.map(tech => (
+              <option key={tech} value={tech}>{tech}</option>
+            ))}
+          </select>
+
+          <select
+            value={selectedVendor}
+            onChange={(e) => setSelectedVendor(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+          >
+            <option value="">All Vendors</option>
+            {vendors.map(vendor => (
+              <option key={vendor} value={vendor}>{vendor}</option>
             ))}
           </select>
         </div>
@@ -154,6 +196,21 @@ export const ParameterExplorer: React.FC<ParameterExplorerProps> = ({ selectedTa
                       <p className="text-xs font-semibold text-gray-700 mb-1">Default Value</p>
                       <p className="text-sm font-mono bg-white border border-gray-200 rounded px-3 py-2">
                         {param.defaultValue}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-xs font-semibold text-gray-700 mb-1">Technology</p>
+                      <p className="text-sm font-semibold text-gray-900 bg-white border border-gray-200 rounded px-3 py-2">
+                        {param.technology}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-gray-700 mb-1">Vendor</p>
+                      <p className="text-sm font-semibold text-gray-900 bg-white border border-gray-200 rounded px-3 py-2">
+                        {param.vendor}
                       </p>
                     </div>
                   </div>
