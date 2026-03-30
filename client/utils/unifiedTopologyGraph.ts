@@ -269,11 +269,11 @@ export function generateUnifiedTopologyGraph(): TopologyGraph {
     countryNodeMap[country] = countryNode.id;
   });
 
-  // Create Regions per Country - EXPANDED
+  // Create Regions per Country - BALANCED FOR PERFORMANCE
   const regionsByCountry: Record<string, string[]> = {
-    'Egypt': ['Cairo', 'Alexandria', 'Giza', 'Aswan', 'Luxor', 'Port Said', 'Suez'],
-    'Saudi Arabia': ['Riyadh', 'Jeddah', 'Dammam', 'Medina', 'Mecca', 'Khobar', 'Al Kharj'],
-    'UAE': ['Dubai', 'Abu Dhabi', 'Sharjah', 'Ajman', 'Ras Al Khaimah', 'Fujairah', 'Umm Al Quwain']
+    'Egypt': ['Cairo', 'Alexandria', 'Giza', 'Aswan'],
+    'Saudi Arabia': ['Riyadh', 'Jeddah', 'Dammam'],
+    'UAE': ['Dubai', 'Abu Dhabi', 'Sharjah']
   };
 
   const regionMap: Record<string, string> = {};
@@ -294,10 +294,10 @@ export function generateUnifiedTopologyGraph(): TopologyGraph {
     });
   });
 
-  // Create Clusters per Region - MASSIVELY EXPANDED (10-20 clusters per region)
+  // Create Clusters per Region - OPTIMIZED (3-5 clusters per region for performance)
   Object.values(regionMap).forEach(regionId => {
     const regionNode = nodes.get(regionId)!;
-    const clusterCount = 10 + Math.floor(Math.random() * 11); // 10-20 clusters
+    const clusterCount = 3 + Math.floor(Math.random() * 3); // 3-5 clusters
 
     for (let i = 0; i < clusterCount; i++) {
       const clusterNode = createNode(`${regionNode.name}-Cluster-${i + 1}`, 'cluster', regionId, {
@@ -312,8 +312,8 @@ export function generateUnifiedTopologyGraph(): TopologyGraph {
       nodes.set(clusterNode.id, clusterNode);
       regionNode.childrenIds.push(clusterNode.id);
 
-      // Create Sites per Cluster - MASSIVELY EXPANDED (20-35 sites per cluster)
-      const siteCount = 20 + Math.floor(Math.random() * 16);
+      // Create Sites per Cluster - OPTIMIZED (6-10 sites per cluster)
+      const siteCount = 6 + Math.floor(Math.random() * 5);
       for (let j = 0; j < siteCount; j++) {
         const siteNode = createNode(`${clusterNode.name}-Site-${j + 1}`, 'site', clusterNode.id, {
           geoCoordinates: {
@@ -327,8 +327,8 @@ export function generateUnifiedTopologyGraph(): TopologyGraph {
         nodes.set(siteNode.id, siteNode);
         clusterNode.childrenIds.push(siteNode.id);
 
-        // Create Nodes per Site - EXPANDED (5-10 nodes per site)
-        const nodeCount = 5 + Math.floor(Math.random() * 6);
+        // Create Nodes per Site - BALANCED (3-5 nodes per site)
+        const nodeCount = 3 + Math.floor(Math.random() * 3);
         for (let k = 0; k < nodeCount; k++) {
           const rNode = createNode(`${siteNode.name}-Node-${k + 1}`, 'node', siteNode.id, {
             geoCoordinates: siteNode.geoCoordinates,
@@ -339,74 +339,71 @@ export function generateUnifiedTopologyGraph(): TopologyGraph {
           nodes.set(rNode.id, rNode);
           siteNode.childrenIds.push(rNode.id);
 
-          // Create Racks per Node (1-2 racks per node)
-          const rackCount = 1 + Math.floor(Math.random() * 2);
-          for (let rk = 0; rk < rackCount; rk++) {
-            const rackNode = createNode(`${rNode.name}-Rack-${rk + 1}`, 'rack', rNode.id, {
+          // Create Racks per Node (1 rack per node)
+          const rackNode = createNode(`${rNode.name}-Rack-01`, 'rack', rNode.id, {
+            geoCoordinates: siteNode.geoCoordinates,
+            country: regionNode.country,
+            region: regionNode.region,
+            capacity: { totalCapacity: 42, usedCapacity: 20 + Math.floor(Math.random() * 22), unit: 'U' },
+            description: `Rack in ${rNode.name}`
+          });
+          nodes.set(rackNode.id, rackNode);
+          rNode.childrenIds.push(rackNode.id);
+
+          // Create Boards in Rack - BALANCED (3 boards per rack)
+          const boardCount = 3;
+          for (let b = 0; b < boardCount; b++) {
+            const boardNode = createNode(`Board-${b + 1}`, 'board', rackNode.id, {
               geoCoordinates: siteNode.geoCoordinates,
-              country: regionNode.country,
-              region: regionNode.region,
-              capacity: { totalCapacity: 42, usedCapacity: 20 + Math.floor(Math.random() * 22), unit: 'U' },
-              description: `Rack ${rk + 1} in ${rNode.name}`
+              rackPosition: { startU: b * 7 + 1, endU: (b + 1) * 7 },
+              capacity: { totalCapacity: 16, usedCapacity: Math.floor(Math.random() * 12) + 4, unit: 'ports' },
+              description: `Board in ${rackNode.name}`
             });
-            nodes.set(rackNode.id, rackNode);
-            rNode.childrenIds.push(rackNode.id);
+            nodes.set(boardNode.id, boardNode);
+            rackNode.childrenIds.push(boardNode.id);
 
-            // Create Boards in Rack - EXPANDED (4-6 boards per rack)
-            const boardCount = 4 + Math.floor(Math.random() * 3);
-            for (let b = 0; b < boardCount; b++) {
-              const boardNode = createNode(`Board-${b + 1}`, 'board', rackNode.id, {
+            // Create RRUs (Radio Remote Units) - BALANCED (2-3 RRUs per board)
+            const rruCount = 2 + Math.floor(Math.random() * 2);
+            for (let r = 0; r < rruCount; r++) {
+              const rruNode = createNode(`RRU-${r + 1}`, 'rru', boardNode.id, {
                 geoCoordinates: siteNode.geoCoordinates,
-                rackPosition: { startU: b * 7 + 1, endU: (b + 1) * 7 },
-                capacity: { totalCapacity: 16, usedCapacity: Math.floor(Math.random() * 12) + 4, unit: 'ports' },
-                description: `Board in ${rackNode.name}`
+                rackPosition: { startU: b * 7 + 1 + r * 2, endU: b * 7 + 1 + r * 2 + 1 },
+                capacity: { totalCapacity: 8, usedCapacity: Math.floor(Math.random() * 6) + 2, unit: 'ports' },
+                description: `RRU in ${boardNode.name}`
               });
-              nodes.set(boardNode.id, boardNode);
-              rackNode.childrenIds.push(boardNode.id);
+              nodes.set(rruNode.id, rruNode);
+              boardNode.childrenIds.push(rruNode.id);
 
-              // Create RRUs (Radio Remote Units) - EXPANDED (3-5 RRUs per board)
-              const rruCount = 3 + Math.floor(Math.random() * 3);
-              for (let r = 0; r < rruCount; r++) {
-                const rruNode = createNode(`RRU-${r + 1}`, 'rru', boardNode.id, {
+              // Create Ports - BALANCED (4-6 ports per RRU)
+              const portCount = 4 + Math.floor(Math.random() * 3);
+              for (let p = 0; p < portCount; p++) {
+                const portNode = createNode(`Port-${p + 1}`, 'port', rruNode.id, {
                   geoCoordinates: siteNode.geoCoordinates,
-                  rackPosition: { startU: b * 7 + 1 + r * 2, endU: b * 7 + 1 + r * 2 + 1 },
-                  capacity: { totalCapacity: 8, usedCapacity: Math.floor(Math.random() * 6) + 2, unit: 'ports' },
-                  description: `RRU in ${boardNode.name}`
+                  transportInterfaces: [{
+                    id: `iface_${p}`,
+                    name: `Port ${p + 1}`,
+                    type: ['MPLS', 'Fiber', 'Microwave', 'IP', 'Radio'][Math.floor(Math.random() * 5)] as TransportType,
+                    linkState: Math.random() > 0.93 ? (Math.random() > 0.5 ? 'degraded' : 'down') : 'up',
+                    throughput: 1000 + Math.random() * 10000,
+                    errors: Math.floor(Math.random() * 100),
+                    capacity: 10000,
+                    utilization: 30 + Math.random() * 60
+                  }],
+                  description: `Port in ${rruNode.name}`
                 });
-                nodes.set(rruNode.id, rruNode);
-                boardNode.childrenIds.push(rruNode.id);
+                nodes.set(portNode.id, portNode);
+                rruNode.childrenIds.push(portNode.id);
 
-                // Create Ports - EXPANDED (6-10 ports per RRU)
-                const portCount = 6 + Math.floor(Math.random() * 5);
-                for (let p = 0; p < portCount; p++) {
-                  const portNode = createNode(`Port-${p + 1}`, 'port', rruNode.id, {
+                // Create Cells (leaf nodes) - BALANCED (1-2 cells per port)
+                const cellCount = 1 + Math.floor(Math.random() * 2);
+                for (let c = 0; c < cellCount; c++) {
+                  const cellNode = createNode(`Cell-${c + 1}`, 'cell', portNode.id, {
                     geoCoordinates: siteNode.geoCoordinates,
-                    transportInterfaces: [{
-                      id: `iface_${p}`,
-                      name: `Port ${p + 1}`,
-                      type: ['MPLS', 'Fiber', 'Microwave', 'IP', 'Radio'][Math.floor(Math.random() * 5)] as TransportType,
-                      linkState: Math.random() > 0.93 ? (Math.random() > 0.5 ? 'degraded' : 'down') : 'up',
-                      throughput: 1000 + Math.random() * 10000,
-                      errors: Math.floor(Math.random() * 100),
-                      capacity: 10000,
-                      utilization: 30 + Math.random() * 60
-                    }],
-                    description: `Port in ${rruNode.name}`
+                    description: `Cell in ${portNode.name}`,
+                    technology: ['2G', '3G', '4G', '5G'][Math.floor(Math.random() * 4)] as Technology
                   });
-                  nodes.set(portNode.id, portNode);
-                  rruNode.childrenIds.push(portNode.id);
-
-                  // Create Cells (leaf nodes) - EXPANDED (2-4 cells per port)
-                  const cellCount = 2 + Math.floor(Math.random() * 3);
-                  for (let c = 0; c < cellCount; c++) {
-                    const cellNode = createNode(`Cell-${c + 1}`, 'cell', portNode.id, {
-                      geoCoordinates: siteNode.geoCoordinates,
-                      description: `Cell in ${portNode.name}`,
-                      technology: ['2G', '3G', '4G', '5G'][Math.floor(Math.random() * 4)] as Technology
-                    });
-                    nodes.set(cellNode.id, cellNode);
-                    portNode.childrenIds.push(cellNode.id);
-                  }
+                  nodes.set(cellNode.id, cellNode);
+                  portNode.childrenIds.push(cellNode.id);
                 }
               }
             }
