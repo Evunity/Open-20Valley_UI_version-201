@@ -295,7 +295,7 @@ export default function BlastCorrelationEngine() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4">
 
       {/* Chain Selection */}
       <div className="space-y-3">

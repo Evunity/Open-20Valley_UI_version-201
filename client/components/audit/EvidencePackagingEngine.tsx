@@ -184,7 +184,7 @@ export default function EvidencePackagingEngine() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4">
 
       {/* Bundle Selection */}
       <div className="space-y-3">

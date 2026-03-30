@@ -9,7 +9,7 @@ export default function PrivilegedAccessRadar() {
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4">
 
       {/* Privileged Actions Today */}
       <div className="rounded-xl border border-border/50 p-6 bg-card/50">

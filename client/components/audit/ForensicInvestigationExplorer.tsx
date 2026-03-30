@@ -225,7 +225,7 @@ export default function ForensicInvestigationExplorer() {
   );
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4">
       {/* Navigation Tabs for Forensic Tools */}
       {activeView !== 'investigation' && (
         <div className="flex items-center gap-2 border-b border-border pb-4 -mx-8 px-8">

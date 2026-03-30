@@ -8,7 +8,7 @@ export default function BehavioralAnalyticsLayer() {
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4">
 
       {/* Active Anomalies */}
       <div className="rounded-xl border border-border/50 p-6 bg-card/50">

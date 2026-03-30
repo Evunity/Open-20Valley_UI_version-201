@@ -272,7 +272,7 @@ export default function ActivityAudit() {
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Workspace Content */}
           <div className="flex-1 overflow-y-auto">
-            <div className="p-8">
+            <div className="p-4">
               {renderWorkspace()}
             </div>
           </div>

@@ -145,7 +145,7 @@ export default function ChangeDiffViewer() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4">
 
       {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
