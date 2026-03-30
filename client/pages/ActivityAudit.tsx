@@ -18,15 +18,17 @@ import SessionIntelligenceCenter from "@/components/audit/SessionIntelligenceCen
 import CrossSystemIncidentTimeline from "@/components/audit/CrossSystemIncidentTimeline";
 import PrivilegedAccessRadar from "@/components/audit/PrivilegedAccessRadar";
 import BehavioralAnalyticsLayer from "@/components/audit/BehavioralAnalyticsLayer";
+import UserProfilesAudit from "@/components/audit/UserProfilesAudit";
 
-type AuditWorkspace = 
+type AuditWorkspace =
   | 'executive-risk'
   | 'activity-stream'
   | 'forensic'
   | 'sessions'
   | 'timeline'
   | 'privileged-access'
-  | 'behavioral';
+  | 'behavioral'
+  | 'user-profiles';
 
 interface WorkspaceConfig {
   id: AuditWorkspace;
@@ -93,6 +95,14 @@ const WORKSPACES: WorkspaceConfig[] = [
     description: 'Detect anomalies and insider threat patterns',
     domain: 'security',
     color: 'from-indigo-500 to-blue-500'
+  },
+  {
+    id: 'user-profiles',
+    label: 'User Profiles',
+    icon: Users,
+    description: 'Complete user profiles with all audit insights',
+    domain: 'governance',
+    color: 'from-cyan-500 to-blue-500'
   }
 ];
 
@@ -121,6 +131,8 @@ export default function ActivityAudit() {
         return <PrivilegedAccessRadar />;
       case 'behavioral':
         return <BehavioralAnalyticsLayer />;
+      case 'user-profiles':
+        return <UserProfilesAudit />;
       default:
         return null;
     }
