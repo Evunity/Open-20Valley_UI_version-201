@@ -321,15 +321,15 @@ const TopologyManagementContent: React.FC = () => {
   return (
     <div className="topology-theme flex flex-col h-screen bg-background">
       {/* View Selector */}
-      <div className="bg-card border-b border-border rounded-lg p-4">
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+      <div className="bg-card border-b border-border p-4">
+        <div className="grid grid-cols-7 gap-3">
           {VIEWS.map(view => {
             const Icon = view.icon;
             return (
               <button
                 key={view.id}
                 onClick={() => setActiveView(view.id)}
-                className={`flex flex-col items-center justify-center gap-2 p-4 rounded-lg border-2 transition h-28 ${
+                className={`flex flex-col items-center justify-center gap-2 p-3 rounded-lg border-2 transition h-20 ${
                   activeView === view.id
                     ? 'border-blue-600 bg-blue-50 dark:bg-blue-950'
                     : 'border-border hover:border-primary/40 bg-card'
