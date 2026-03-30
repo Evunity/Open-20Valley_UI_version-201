@@ -93,8 +93,9 @@ const MOCK_AUDIT: AuditEntry[] = [
 ];
 
 export const AuditRollbackCenter: React.FC<AuditRollbackCenterProps> = () => {
-  const [entries] = useState<AuditEntry[]>(MOCK_AUDIT);
+  const [entries, setEntries] = useState<AuditEntry[]>(MOCK_AUDIT);
   const [selectedEntry, setSelectedEntry] = useState<string | null>(null);
+  const [detailedViewId, setDetailedViewId] = useState<string | null>(null);
   const [selectedSite, setSelectedSite] = useState('');
   const [selectedTechnology, setSelectedTechnology] = useState('');
   const [selectedVendor, setSelectedVendor] = useState('');
@@ -105,6 +106,23 @@ export const AuditRollbackCenter: React.FC<AuditRollbackCenterProps> = () => {
     const vendorMatch = !selectedVendor || entry.vendor === selectedVendor;
     return siteMatch && techMatch && vendorMatch;
   });
+
+  const handleViewFullDetails = (entryId: string) => {
+    setDetailedViewId(detailedViewId === entryId ? null : entryId);
+  };
+
+  const handleRollback = (entryId: string) => {
+    const entry = entries.find(e => e.id === entryId);
+    if (!entry) return;
+
+    if (window.confirm(`Are you sure you want to rollback "${entry.action}"?`)) {
+      setEntries(entries.map(e =>
+        e.id === entryId ? { ...e, status: 'rolled-back' as const, reversible: false } : e
+      ));
+      setSelectedEntry(null);
+      alert(`Rollback completed successfully for "${entry.action}"`);
+    }
+  };
 
   return (
     <div className="flex flex-col h-full gap-4 p-4">
@@ -198,17 +216,73 @@ export const AuditRollbackCenter: React.FC<AuditRollbackCenterProps> = () => {
                 </div>
 
                 <div className="flex gap-2">
-                  <button className="flex-1 px-3 py-2 bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900 font-semibold text-sm flex items-center justify-center gap-2 transition">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleViewFullDetails(entry.id);
+                    }}
+                    className="flex-1 px-3 py-2 bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900 font-semibold text-sm flex items-center justify-center gap-2 transition"
+                  >
                     <Eye className="w-4 h-4" />
                     View Full Details
                   </button>
                   {entry.reversible && (
-                    <button className="flex-1 px-3 py-2 bg-orange-100 dark:bg-orange-950 text-orange-700 dark:text-orange-300 rounded-lg hover:bg-orange-200 dark:hover:bg-orange-900 font-semibold text-sm flex items-center justify-center gap-2 transition">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRollback(entry.id);
+                      }}
+                      className="flex-1 px-3 py-2 bg-orange-100 dark:bg-orange-950 text-orange-700 dark:text-orange-300 rounded-lg hover:bg-orange-200 dark:hover:bg-orange-900 font-semibold text-sm flex items-center justify-center gap-2 transition"
+                    >
                       <RotateCcw className="w-4 h-4" />
                       Rollback
                     </button>
                   )}
                 </div>
+
+                {/* Full Details View */}
+                {detailedViewId === entry.id && (
+                  <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800 space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <p className="text-xs font-semibold text-muted-foreground mb-1">Action</p>
+                        <p className="text-sm font-mono text-foreground">{entry.action}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-muted-foreground mb-1">Object</p>
+                        <p className="text-sm font-mono text-foreground">{entry.object}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-muted-foreground mb-1">Site</p>
+                        <p className="text-sm font-mono text-foreground">{entry.site}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-muted-foreground mb-1">Technology</p>
+                        <p className="text-sm font-mono text-foreground">{entry.technology}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-muted-foreground mb-1">Vendor</p>
+                        <p className="text-sm font-mono text-foreground">{entry.vendor}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-muted-foreground mb-1">User</p>
+                        <p className="text-sm font-mono text-foreground">{entry.user}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-muted-foreground mb-1">Timestamp</p>
+                        <p className="text-sm font-mono text-foreground">{entry.timestamp}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-muted-foreground mb-1">Status</p>
+                        <p className="text-sm font-mono text-foreground capitalize">{entry.status}</p>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-muted-foreground mb-1">Change Details</p>
+                      <p className="text-sm font-mono text-foreground bg-background p-2 rounded">{entry.changeDetails}</p>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
