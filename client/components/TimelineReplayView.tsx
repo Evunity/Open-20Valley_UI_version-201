@@ -195,7 +195,7 @@ export const TimelineReplayView: React.FC<TimelineReplayViewProps> = ({ onEventS
             </div>
 
             {/* Separator - Centered Arrow */}
-            <div className="flex items-center justify-center px-2">
+            <div className="flex items-center justify-center px-2 mt-5">
               <div className="text-primary font-bold text-xl">↔</div>
             </div>
 
