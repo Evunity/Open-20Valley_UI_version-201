@@ -9,6 +9,7 @@ import { PredictiveRiskHighlight } from '../components/PredictiveRiskHighlight';
 import { ExportPanel } from '../components/ExportPanel';
 import { MultiTenantAwareness } from '../components/MultiTenantAwareness';
 import { GeospatialNetworkMap } from '../components/GeospatialNetworkMap';
+import { EditableTreeView } from '../components/EditableTreeView';
 import { TopologyProvider, useTopology } from '../contexts/TopologyContext';
 
 type ViewType = 'map' | 'tree' | 'dependency' | 'rack' | 'transport' | 'impact' | 'timeline';
@@ -242,58 +243,15 @@ const TopologyManagementContent: React.FC = () => {
     </div>
   );
 
-  const renderTreeView = () => {
-    const renderNode = (obj: typeof filteredNodes[0], level: number) => (
-      <div key={obj.id} style={{ marginLeft: `${level * 16}px` }} className="mb-1">
-        <button
-          onClick={() => {
-            if (obj.childrenIds.length > 0) {
-              if (expandedNodes.has(obj.id)) {
-                // Collapse
-              } else {
-                expandNode(obj.id);
-              }
-            }
-            selectNode(obj.id);
-          }}
-          className="w-full text-left px-2 py-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition flex items-center gap-2 text-sm"
-        >
-          <span className={expandedNodes.has(obj.id) && obj.childrenIds.length > 0 ? 'rotate-90' : ''}>
-            {obj.childrenIds.length > 0 ? '▶' : '•'}
-          </span>
-          <span className={`px-1.5 py-0.5 rounded text-xs font-semibold ${
-            obj.healthState === 'healthy' ? 'bg-green-100 dark:bg-green-950 text-green-800 dark:text-green-300' :
-            obj.healthState === 'degraded' ? 'bg-yellow-100 dark:bg-yellow-950 text-yellow-800 dark:text-yellow-300' :
-            'bg-red-100 dark:bg-red-950 text-red-800 dark:text-red-300'
-          }`}>
-            {obj.type}
-          </span>
-          <span className="font-medium text-foreground">{obj.name}</span>
-          <span className="ml-auto text-xs text-gray-500 dark:text-gray-500">{obj.alarmSummary.critical + obj.alarmSummary.major} alarms</span>
-        </button>
-        {expandedNodes.has(obj.id) && obj.childrenIds.length > 0 && (
-          <div>
-            {obj.childrenIds.map(childId => {
-              const child = filteredNodes.find(o => o.id === childId);
-              return child ? renderNode(child, level + 1) : null;
-            })}
-          </div>
-        )}
-      </div>
-    );
-
-    const roots = filteredNodes.filter(o => !o.parentId);
-    return (
-      <div className="w-full flex flex-col h-full gap-4 p-4 bg-background dark:bg-background overflow-y-auto">
-        <h2 className="text-lg font-bold text-foreground">Hierarchical Tree View</h2>
-        <div className="flex-1 bg-card rounded-lg border border-border p-4 overflow-y-auto">
-          {roots.length > 0 ? roots.map(root => renderNode(root, 0)) : (
-            <p className="text-sm text-gray-600">No nodes visible with current filters</p>
-          )}
-        </div>
-      </div>
-    );
-  };
+  const renderTreeView = () => (
+    <EditableTreeView
+      topology={filteredNodes}
+      onTopologyChange={(updatedTopology) => {
+        // Handle topology changes if needed
+        console.log('Topology updated:', updatedTopology);
+      }}
+    />
+  );
 
   const renderDependencyView = () => (
     <div className="w-full h-full flex flex-col gap-4 p-4 bg-background dark:bg-background overflow-y-auto">
