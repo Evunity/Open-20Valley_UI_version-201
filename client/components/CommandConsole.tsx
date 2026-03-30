@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Copy, Check, ChevronDown, Lightbulb } from 'lucide-react';
+import SearchableDropdown from './SearchableDropdown';
 
 interface ConsoleProps {
   selectedTarget: any;
@@ -69,9 +70,13 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
   const [showAddCommand, setShowAddCommand] = useState(false);
   const [newCommandInput, setNewCommandInput] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [selectedSite, setSelectedSite] = useState<string>('');
-  const [selectedTechnology, setSelectedTechnology] = useState<string>('');
+  const [selectedSite, setSelectedSite] = useState<string[]>([]);
+  const [selectedTechnology, setSelectedTechnology] = useState<string[]>([]);
   const consoleEndRef = useRef<HTMLDivElement>(null);
+
+  // Options for selectors
+  const SITE_OPTIONS = ['Site-A', 'Site-B', 'Site-C', 'Site-D'];
+  const TECHNOLOGY_OPTIONS = ['2G', '3G', '4G', '5G', 'O-RAN'];
 
   const scrollToBottom = () => {
     consoleEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -107,10 +112,10 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
     if (!command.trim()) return;
 
     // Validate required selections
-    if (!selectedSite || !selectedTechnology || !selectedVendor) {
+    if (selectedSite.length === 0 || selectedTechnology.length === 0 || !selectedVendor) {
       const missing = [];
-      if (!selectedSite) missing.push('Site');
-      if (!selectedTechnology) missing.push('Technology');
+      if (selectedSite.length === 0) missing.push('Site');
+      if (selectedTechnology.length === 0) missing.push('Technology');
       if (!selectedVendor) missing.push('Vendor');
 
       const errorEntry: CommandHistory = {
@@ -189,38 +194,28 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
         {/* Required Selection Row */}
         <div className="grid grid-cols-3 gap-3">
           {/* Site Selection */}
-          <div>
-            <label className="block text-xs font-semibold text-muted-foreground mb-1">Site <span className="text-red-500">*</span></label>
-            <select
-              value={selectedSite}
-              onChange={(e) => setSelectedSite(e.target.value)}
-              className={`w-full px-3 py-1.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm ${
-                !selectedSite ? 'border-red-500 dark:border-red-500' : 'border-border'
-              }`}
-            >
-              <option value="">Select Site...</option>
-              <option value="Site-A">Site-A</option>
-              <option value="Site-B">Site-B</option>
-              <option value="Site-C">Site-C</option>
-            </select>
-          </div>
+          <SearchableDropdown
+            label="Site"
+            options={SITE_OPTIONS}
+            selected={selectedSite}
+            onChange={(selected) => setSelectedSite(selected)}
+            placeholder="Search sites..."
+            multiSelect={false}
+            searchable={true}
+            compact={true}
+          />
 
           {/* Technology Selection */}
-          <div>
-            <label className="block text-xs font-semibold text-muted-foreground mb-1">Technology <span className="text-red-500">*</span></label>
-            <select
-              value={selectedTechnology}
-              onChange={(e) => setSelectedTechnology(e.target.value)}
-              className={`w-full px-3 py-1.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm ${
-                !selectedTechnology ? 'border-red-500 dark:border-red-500' : 'border-border'
-              }`}
-            >
-              <option value="">Select Technology...</option>
-              <option value="4G">4G</option>
-              <option value="5G">5G</option>
-              <option value="Fiber">Fiber</option>
-            </select>
-          </div>
+          <SearchableDropdown
+            label="Technology"
+            options={TECHNOLOGY_OPTIONS}
+            selected={selectedTechnology}
+            onChange={(selected) => setSelectedTechnology(selected)}
+            placeholder="Search technologies..."
+            multiSelect={false}
+            searchable={true}
+            compact={true}
+          />
 
           {/* Vendor Selection */}
           <div>
@@ -428,7 +423,7 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
           <button
             onClick={executeCommand}
             disabled={!command.trim()}
-            className="px-4 h-fit py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-2 font-semibold"
+            className="px-6 py-2.5 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary transition-all flex items-center gap-2 font-semibold text-sm shadow-md hover:shadow-lg whitespace-nowrap flex-shrink-0"
           >
             <Send className="w-4 h-4" />
             Execute
