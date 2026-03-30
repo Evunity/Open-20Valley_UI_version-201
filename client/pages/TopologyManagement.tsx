@@ -8,7 +8,7 @@ import { LayerControlPanel, LayerSettings } from '../components/LayerControlPane
 import { PredictiveRiskHighlight } from '../components/PredictiveRiskHighlight';
 import { ExportPanel } from '../components/ExportPanel';
 import { MultiTenantAwareness } from '../components/MultiTenantAwareness';
-import { EnhancedGeospatialMap } from '../components/EnhancedGeospatialMap';
+import { GeospatialNetworkMap } from '../components/GeospatialNetworkMap';
 import { TopologyProvider, useTopology } from '../contexts/TopologyContext';
 
 type ViewType = 'map' | 'tree' | 'dependency' | 'rack' | 'transport' | 'impact' | 'timeline';
@@ -154,7 +154,7 @@ const TopologyManagementContent: React.FC = () => {
 
         {/* Main map area */}
         <div className="col-span-3">
-          <EnhancedGeospatialMap
+          <GeospatialNetworkMap
             topology={visibleNodes}
             layers={layers}
             selectedObject={selectedNode}
