@@ -63,13 +63,13 @@ export const BulkEditor: React.FC<BulkEditorProps> = () => {
   return (
     <div className="flex flex-col h-full gap-4 p-4">
       {/* Filters & Controls */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 rounded-lg border border-border bg-card">
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Scope</label>
+          <label className="block text-xs font-semibold text-muted-foreground mb-1">Scope</label>
           <select
             value={scope}
             onChange={(e) => setScope(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            className="w-full px-3 py-1.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm"
           >
             <option value="all">All Sites</option>
             <option value="region">Selected Region</option>
@@ -78,11 +78,11 @@ export const BulkEditor: React.FC<BulkEditorProps> = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Vendor Filter</label>
+          <label className="block text-xs font-semibold text-muted-foreground mb-1">Vendor</label>
           <select
             value={selectedVendor}
             onChange={(e) => setSelectedVendor(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            className="w-full px-3 py-1.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm"
           >
             <option value="">All Vendors</option>
             <option value="Huawei">Huawei</option>
@@ -93,11 +93,11 @@ export const BulkEditor: React.FC<BulkEditorProps> = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Technology</label>
+          <label className="block text-xs font-semibold text-muted-foreground mb-1">Technology</label>
           <select
             value={selectedTechnology}
             onChange={(e) => setSelectedTechnology(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            className="w-full px-3 py-1.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm"
           >
             <option value="">All Technologies</option>
             <option value="2G">2G</option>
@@ -111,11 +111,11 @@ export const BulkEditor: React.FC<BulkEditorProps> = () => {
 
       {/* Configuration Input */}
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">CSV Configuration</label>
+        <label className="block text-xs font-semibold text-muted-foreground mb-2">CSV Configuration</label>
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          className="w-full h-32 px-3 py-2 border border-gray-300 rounded-lg font-mono text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full h-32 px-3 py-2 border border-border rounded-lg font-mono text-xs focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground"
         />
       </div>
 
@@ -123,19 +123,19 @@ export const BulkEditor: React.FC<BulkEditorProps> = () => {
       <div className="flex gap-2">
         <button
           onClick={validateChanges}
-          className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold transition"
+          className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 font-semibold transition"
         >
           Validate Changes
         </button>
         <button
           onClick={dryRun}
-          className="flex-1 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 font-semibold transition"
+          className="flex-1 px-4 py-2 bg-amber-600 dark:bg-amber-700 text-white rounded-lg hover:bg-amber-700 dark:hover:bg-amber-800 font-semibold transition"
         >
           Dry Run
         </button>
         <button
           onClick={() => setShowPreview(!showPreview)}
-          className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-semibold flex items-center justify-center gap-2 transition"
+          className="flex-1 px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 font-semibold flex items-center justify-center gap-2 transition"
         >
           <ChevronDown className={`w-4 h-4 transition ${showPreview ? 'rotate-180' : ''}`} />
           Preview
@@ -144,10 +144,10 @@ export const BulkEditor: React.FC<BulkEditorProps> = () => {
 
       {/* Diff Preview */}
       {showPreview && (
-        <div className="border border-gray-200 rounded-lg overflow-hidden">
-          <div className="bg-gray-100 px-4 py-2 font-semibold text-sm">Diff Preview (Changes to be applied)</div>
-          <div className="p-4 bg-white space-y-2 max-h-48 overflow-y-auto">
-            <div className="grid grid-cols-5 gap-2 text-xs font-semibold text-gray-700 mb-2">
+        <div className="border border-border rounded-lg overflow-hidden">
+          <div className="bg-muted px-4 py-2 font-semibold text-sm">Diff Preview (Changes to be applied)</div>
+          <div className="p-4 bg-background space-y-2 max-h-48 overflow-y-auto">
+            <div className="grid grid-cols-5 gap-2 text-xs font-semibold text-muted-foreground mb-2">
               <div>Site</div>
               <div>Parameter</div>
               <div className="text-red-600">Old Value</div>
@@ -155,15 +155,15 @@ export const BulkEditor: React.FC<BulkEditorProps> = () => {
               <div>Impact</div>
             </div>
             {filteredChanges.map((change, i) => (
-              <div key={i} className="grid grid-cols-5 gap-2 text-xs p-2 bg-gray-50 rounded">
+              <div key={i} className="grid grid-cols-5 gap-2 text-xs p-2 bg-card rounded border border-border">
                 <div className="font-mono">{change.site}</div>
                 <div>{change.parameter}</div>
                 <div className="text-red-600 line-through font-mono">{change.oldValue}</div>
                 <div className="text-green-600 font-mono font-bold">{change.newValue}</div>
                 <div className={`px-2 py-0.5 rounded font-semibold ${
-                  change.status === 'failed' ? 'bg-red-100 text-red-800' :
-                  change.status === 'validated' ? 'bg-green-100 text-green-800' :
-                  'bg-yellow-100 text-yellow-800'
+                  change.status === 'failed' ? 'bg-red-100 dark:bg-red-950 text-red-800 dark:text-red-300' :
+                  change.status === 'validated' ? 'bg-green-100 dark:bg-green-950 text-green-800 dark:text-green-300' :
+                  'bg-yellow-100 dark:bg-yellow-950 text-yellow-800 dark:text-yellow-300'
                 }`}>
                   {change.status}
                 </div>
@@ -174,46 +174,46 @@ export const BulkEditor: React.FC<BulkEditorProps> = () => {
       )}
 
       {/* Execution Table */}
-      <div className="border border-gray-200 rounded-lg overflow-hidden">
-        <div className="bg-gray-100 px-4 py-2 font-semibold text-sm flex items-center justify-between">
+      <div className="border border-border rounded-lg overflow-hidden">
+        <div className="bg-muted px-4 py-2 font-semibold text-sm flex items-center justify-between">
           <span>Execution Status</span>
           <div className="flex gap-4 text-xs font-semibold">
-            <span className="text-green-700">✓ {successCount}</span>
-            <span className="text-red-700">✗ {failedCount}</span>
-            <span className="text-blue-700">~ {validatedCount}</span>
+            <span className="text-green-600 dark:text-green-400">✓ {successCount}</span>
+            <span className="text-red-600 dark:text-red-400">✗ {failedCount}</span>
+            <span className="text-primary">~ {validatedCount}</span>
           </div>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-muted/50 border-b border-border">
               <tr>
-                <th className="px-4 py-2 text-left font-semibold text-gray-700">Site</th>
-                <th className="px-4 py-2 text-left font-semibold text-gray-700">Parameter</th>
-                <th className="px-4 py-2 text-left font-semibold text-gray-700">Old</th>
-                <th className="px-4 py-2 text-left font-semibold text-gray-700">New</th>
-                <th className="px-4 py-2 text-left font-semibold text-gray-700">Status</th>
-                <th className="px-4 py-2 text-left font-semibold text-gray-700">Message</th>
+                <th className="px-4 py-2 text-left font-semibold text-muted-foreground">Site</th>
+                <th className="px-4 py-2 text-left font-semibold text-muted-foreground">Parameter</th>
+                <th className="px-4 py-2 text-left font-semibold text-muted-foreground">Old</th>
+                <th className="px-4 py-2 text-left font-semibold text-muted-foreground">New</th>
+                <th className="px-4 py-2 text-left font-semibold text-muted-foreground">Status</th>
+                <th className="px-4 py-2 text-left font-semibold text-muted-foreground">Message</th>
               </tr>
             </thead>
             <tbody>
               {filteredChanges.map((change, i) => (
-                <tr key={i} className="border-b border-gray-200 hover:bg-gray-50">
+                <tr key={i} className="border-b border-border hover:bg-muted/30">
                   <td className="px-4 py-2 font-mono">{change.site}</td>
                   <td className="px-4 py-2">{change.parameter}</td>
-                  <td className="px-4 py-2 font-mono text-red-600">{change.oldValue}</td>
-                  <td className="px-4 py-2 font-mono text-green-600 font-bold">{change.newValue}</td>
+                  <td className="px-4 py-2 font-mono text-red-600 dark:text-red-400">{change.oldValue}</td>
+                  <td className="px-4 py-2 font-mono text-green-600 dark:text-green-400 font-bold">{change.newValue}</td>
                   <td className="px-4 py-2">
                     <span className={`px-2 py-0.5 rounded font-semibold ${
-                      change.status === 'success' ? 'bg-green-100 text-green-800' :
-                      change.status === 'failed' ? 'bg-red-100 text-red-800' :
-                      change.status === 'validated' ? 'bg-blue-100 text-blue-800' :
-                      'bg-yellow-100 text-yellow-800'
+                      change.status === 'success' ? 'bg-green-100 dark:bg-green-950 text-green-800 dark:text-green-300' :
+                      change.status === 'failed' ? 'bg-red-100 dark:bg-red-950 text-red-800 dark:text-red-300' :
+                      change.status === 'validated' ? 'bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300' :
+                      'bg-yellow-100 dark:bg-yellow-950 text-yellow-800 dark:text-yellow-300'
                     }`}>
                       {change.status}
                     </span>
                   </td>
-                  <td className="px-4 py-2 text-red-600">
+                  <td className="px-4 py-2 text-red-600 dark:text-red-400">
                     {change.error && (
                       <div className="flex items-center gap-1">
                         <AlertCircle className="w-3 h-3" />
@@ -229,18 +229,18 @@ export const BulkEditor: React.FC<BulkEditorProps> = () => {
       </div>
 
       {/* Summary */}
-      <div className="grid grid-cols-3 gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+      <div className="grid grid-cols-3 gap-3 p-3 bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-lg">
         <div>
-          <p className="text-xs text-blue-600">Total Changes</p>
-          <p className="text-2xl font-bold text-blue-900">{filteredChanges.length}</p>
+          <p className="text-xs text-primary/70">Total Changes</p>
+          <p className="text-2xl font-bold text-primary">{filteredChanges.length}</p>
         </div>
         <div>
-          <p className="text-xs text-green-600">Ready to Execute</p>
-          <p className="text-2xl font-bold text-green-900">{validatedCount}</p>
+          <p className="text-xs text-green-600 dark:text-green-400">Ready to Execute</p>
+          <p className="text-2xl font-bold text-green-700 dark:text-green-400">{validatedCount}</p>
         </div>
         <div>
-          <p className="text-xs text-red-600">With Errors</p>
-          <p className="text-2xl font-bold text-red-900">{failedCount}</p>
+          <p className="text-xs text-red-600 dark:text-red-400">With Errors</p>
+          <p className="text-2xl font-bold text-red-700 dark:text-red-400">{failedCount}</p>
         </div>
       </div>
     </div>
