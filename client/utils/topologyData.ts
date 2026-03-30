@@ -161,10 +161,10 @@ export function generateMockTopologyHierarchy(): TopologyObject[] {
     });
   });
 
-  // Clusters per region (5-10 per region for more data)
+  // Clusters per region (15-25 per region for massive data)
   Array.from(regionMap.entries()).forEach(([regionName, regionId]) => {
     const regionObj = objects.find(o => o.id === regionId)!;
-    const clusterCount = 5 + Math.floor(Math.random() * 6);
+    const clusterCount = 15 + Math.floor(Math.random() * 11);
 
     for (let i = 0; i < clusterCount; i++) {
       const id = `cluster_${regionName}_${i}`;
@@ -206,10 +206,10 @@ export function generateMockTopologyHierarchy(): TopologyObject[] {
     }
   });
 
-  // Sites per cluster (8-18 per cluster for more data)
+  // Sites per cluster (20-35 per cluster for MASSIVE data)
   const clusters = objects.filter(o => o.type === 'cluster');
   clusters.forEach((cluster, clusterIdx) => {
-    const siteCount = 8 + Math.floor(Math.random() * 11);
+    const siteCount = 20 + Math.floor(Math.random() * 16);
     const technologies: Technology[] = ['2G', '3G', '4G', '5G'];
 
     for (let i = 0; i < siteCount; i++) {
@@ -256,8 +256,8 @@ export function generateMockTopologyHierarchy(): TopologyObject[] {
 
       objects.push(siteObj);
 
-      // Add cells/sectors under each site (2-4 per site)
-      const cellCount = 2 + Math.floor(Math.random() * 3);
+      // Add cells/sectors under each site (5-10 per site)
+      const cellCount = 5 + Math.floor(Math.random() * 6);
       for (let c = 0; c < cellCount; c++) {
         const cellId = `cell_${siteId}_${c}`;
         siteObj.childrenIds.push(cellId);
@@ -295,8 +295,8 @@ export function generateMockTopologyHierarchy(): TopologyObject[] {
         });
       }
 
-      // Add equipment/nodes under each site (3-5 per site)
-      const equipCount = 3 + Math.floor(Math.random() * 3);
+      // Add equipment/nodes under each site (6-12 per site)
+      const equipCount = 6 + Math.floor(Math.random() * 7);
       for (let e = 0; e < equipCount; e++) {
         const equipId = `equipment_${siteId}_${e}`;
         siteObj.childrenIds.push(equipId);
