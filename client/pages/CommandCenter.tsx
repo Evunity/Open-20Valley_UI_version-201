@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { Terminal, Code, Settings2, Zap, FileText, Eye, RotateCcw, Package, AlertTriangle, GitCompare, Clock } from 'lucide-react';
+import { Terminal, Code, Zap, FileText, Eye, RotateCcw, Package, AlertTriangle, GitCompare, Clock } from 'lucide-react';
 import { CommandConsole } from '../components/CommandConsole';
 import { ParameterExplorer } from '../components/ParameterExplorer';
-import { ModifyChangeEngine } from '../components/ModifyChangeEngine';
 import { BulkEditor } from '../components/BulkEditor';
 import { ScriptLibrary } from '../components/ScriptLibrary';
 import { ExecutionMonitor } from '../components/ExecutionMonitor';
@@ -11,7 +10,7 @@ import { SandboxMode } from '../components/SandboxMode';
 import { RollbackVersionControl } from '../components/RollbackVersionControl';
 import { DiffView } from '../components/DiffView';
 
-type ModuleView = 'console' | 'parameters' | 'modify' | 'bulk' | 'scripts' | 'monitor' | 'audit' | 'sandbox' | 'rollback' | 'diff';
+type ModuleView = 'console' | 'parameters' | 'bulk' | 'scripts' | 'monitor' | 'audit' | 'sandbox' | 'rollback' | 'diff';
 
 interface ModuleConfig {
   id: ModuleView;
@@ -35,13 +34,6 @@ const MODULES: ModuleConfig[] = [
     icon: Eye,
     description: 'Browse, search, and view network parameters',
     riskLevel: 'read-only'
-  },
-  {
-    id: 'modify',
-    label: 'Modify & Change',
-    icon: Settings2,
-    description: 'Modify parameters with full validation pipeline',
-    riskLevel: 'dangerous'
   },
   {
     id: 'bulk',
@@ -114,8 +106,6 @@ export const CommandCenter: React.FC = () => {
         return <CommandConsole {...props} />;
       case 'parameters':
         return <ParameterExplorer {...props} />;
-      case 'modify':
-        return <ModifyChangeEngine {...props} />;
       case 'bulk':
         return <BulkEditor {...props} />;
       case 'scripts':
