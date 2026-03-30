@@ -32,3 +32,6 @@ pnpm-debug.log*
 # Temporary files
 .turbo/
 .cache/
+
+# Database
+database.sqlite
