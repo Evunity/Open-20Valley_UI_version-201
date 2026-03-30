@@ -321,23 +321,23 @@ const TopologyManagementContent: React.FC = () => {
   return (
     <div className="topology-theme flex flex-col h-screen bg-background">
       {/* View Selector */}
-      <div className="bg-card border-b border-border px-6 py-3">
-        <div className="flex gap-2">
+      <div className="bg-card border-b border-border rounded-lg p-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
           {VIEWS.map(view => {
             const Icon = view.icon;
             return (
               <button
                 key={view.id}
                 onClick={() => setActiveView(view.id)}
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-2 ${
+                className={`flex flex-col items-center justify-center gap-2 p-4 rounded-lg border-2 transition h-28 ${
                   activeView === view.id
-                    ? 'bg-blue-600 text-white dark:bg-blue-700'
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                    ? 'border-blue-600 bg-blue-50 dark:bg-blue-950'
+                    : 'border-border hover:border-primary/40 bg-card'
                 }`}
                 title={view.description}
               >
-                <Icon className="w-4 h-4" />
-                {view.label}
+                <Icon className={`w-5 h-5 flex-shrink-0 ${activeView === view.id ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
+                <span className="text-xs font-semibold text-center text-foreground line-clamp-2">{view.label}</span>
               </button>
             );
           })}
