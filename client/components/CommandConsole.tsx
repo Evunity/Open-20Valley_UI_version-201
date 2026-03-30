@@ -72,6 +72,7 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedSite, setSelectedSite] = useState<string[]>([]);
   const [selectedTechnology, setSelectedTechnology] = useState<string[]>([]);
+  const [guidedCommand, setGuidedCommand] = useState<{ keyword: string; params: string }>({ keyword: '', params: '' });
   const consoleEndRef = useRef<HTMLDivElement>(null);
 
   // Options for selectors
@@ -370,70 +371,158 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
         <div ref={consoleEndRef} />
       </div>
 
-      {/* Command Input */}
+      {/* Command Input - Mode Specific */}
       <div className="space-y-1">
-        <div className="flex gap-2">
-          <div className="flex-1">
-            <div className="relative flex-1">
+        {mode === 'raw' && (
+          <div className="flex gap-2">
+            <div className="flex-1">
+              <div className="relative flex-1">
+                <textarea
+                  value={command}
+                  onChange={(e) => {
+                    const upperValue = e.target.value.toUpperCase();
+                    setCommand(upperValue);
+                    setShowSuggestions(upperValue.trim().length > 0);
+                  }}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      executeCommand();
+                    }
+                  }}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                  onFocus={() => command.trim().length > 0 && setShowSuggestions(true)}
+                  disabled={selectedSite.length === 0 || selectedTechnology.length === 0 || !selectedVendor}
+                  placeholder={selectedSite.length === 0 || selectedTechnology.length === 0 || !selectedVendor
+                    ? 'Please select Site, Technology & Vendor first'
+                    : `Enter ${selectedVendor} command in UPPERCASE (e.g., LST CELL;)`}
+                  className={`w-full px-3 py-2 border-2 rounded-lg font-mono text-sm focus:outline-none transition uppercase tracking-wide disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-muted/30 ${
+                    selectedSite.length === 0 || selectedTechnology.length === 0 || !selectedVendor
+                      ? 'border-amber-300 dark:border-amber-700 text-muted-foreground'
+                      : command.trim() && isValid
+                      ? 'border-green-500 bg-green-50 dark:bg-green-950/30 text-foreground'
+                      : command.trim()
+                      ? 'border-red-500 bg-red-50 dark:bg-red-950/30 text-foreground'
+                      : 'border-border bg-input text-foreground'
+                  }`}
+                  rows={2}
+                />
+
+                {/* Autocomplete Suggestions */}
+                {showSuggestions && getAutocompleteSuggestions(command).length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-10 max-h-40 overflow-y-auto">
+                    {getAutocompleteSuggestions(command).map((suggestion, index) => (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          setCommand(suggestion);
+                          setShowSuggestions(false);
+                        }}
+                        className="w-full text-left px-3 py-2 text-sm font-mono hover:bg-muted border-b border-border last:border-b-0 text-foreground transition"
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+            <button
+              onClick={executeCommand}
+              disabled={!command.trim()}
+              className="px-6 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary transition-all flex items-center gap-2 font-semibold text-sm shadow-md hover:shadow-lg whitespace-nowrap flex-shrink-0"
+            >
+              <Send className="w-4 h-4" />
+              Execute
+            </button>
+          </div>
+        )}
+
+        {mode === 'guided' && (
+          <div className="space-y-2 p-3 bg-muted/30 border border-border rounded-lg">
+            <p className="text-xs font-semibold text-muted-foreground mb-2">Build Command Interactively</p>
+            <div className="grid grid-cols-2 gap-3">
+              <select
+                value={guidedCommand.keyword}
+                onChange={(e) => setGuidedCommand(prev => ({ ...prev, keyword: e.target.value }))}
+                disabled={selectedSite.length === 0 || selectedTechnology.length === 0 || !selectedVendor}
+                className="px-3 py-2 text-sm border border-border rounded-lg bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+              >
+                <option value="">Select Command Keyword</option>
+                {Object.keys(COMMAND_HINTS).map(keyword => (
+                  <option key={keyword} value={keyword}>{keyword}</option>
+                ))}
+              </select>
+              <input
+                type="text"
+                value={guidedCommand.params}
+                onChange={(e) => setGuidedCommand(prev => ({ ...prev, params: e.target.value.toUpperCase() }))}
+                disabled={selectedSite.length === 0 || selectedTechnology.length === 0 || !selectedVendor}
+                placeholder="Parameters (optional)"
+                className="px-3 py-2 text-sm border border-border rounded-lg bg-input text-foreground uppercase focus:outline-none focus:ring-2 focus:ring-primary/50"
+              />
+            </div>
+            <button
+              onClick={() => {
+                if (guidedCommand.keyword) {
+                  const fullCommand = guidedCommand.params
+                    ? `${guidedCommand.keyword} ${guidedCommand.params}`
+                    : guidedCommand.keyword;
+                  setCommand(fullCommand);
+                  setGuidedCommand({ keyword: '', params: '' });
+                  executeCommand();
+                }
+              }}
+              disabled={!guidedCommand.keyword || selectedSite.length === 0 || selectedTechnology.length === 0 || !selectedVendor}
+              className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 font-semibold text-sm"
+            >
+              <Send className="w-4 h-4" />
+              Execute
+            </button>
+          </div>
+        )}
+
+        {mode === 'script' && (
+          <div className="flex gap-2">
+            <div className="flex-1">
               <textarea
                 value={command}
                 onChange={(e) => {
                   const upperValue = e.target.value.toUpperCase();
                   setCommand(upperValue);
-                  setShowSuggestions(upperValue.trim().length > 0);
+                  setShowSuggestions(false);
                 }}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    executeCommand();
-                  }
-                }}
-                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                onFocus={() => command.trim().length > 0 && setShowSuggestions(true)}
                 disabled={selectedSite.length === 0 || selectedTechnology.length === 0 || !selectedVendor}
                 placeholder={selectedSite.length === 0 || selectedTechnology.length === 0 || !selectedVendor
                   ? 'Please select Site, Technology & Vendor first'
-                  : `Enter ${selectedVendor} command in UPPERCASE (e.g., LST CELL;)`}
+                  : 'Enter multiple commands (one per line)'}
                 className={`w-full px-3 py-2 border-2 rounded-lg font-mono text-sm focus:outline-none transition uppercase tracking-wide disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-muted/30 ${
                   selectedSite.length === 0 || selectedTechnology.length === 0 || !selectedVendor
                     ? 'border-amber-300 dark:border-amber-700 text-muted-foreground'
-                    : command.trim() && isValid
-                    ? 'border-green-500 bg-green-50 dark:bg-green-950/30 text-foreground'
-                    : command.trim()
-                    ? 'border-red-500 bg-red-50 dark:bg-red-950/30 text-foreground'
                     : 'border-border bg-input text-foreground'
                 }`}
-                rows={2}
+                rows={4}
               />
-
-              {/* Autocomplete Suggestions */}
-              {showSuggestions && getAutocompleteSuggestions(command).length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-10 max-h-40 overflow-y-auto">
-                  {getAutocompleteSuggestions(command).map((suggestion, index) => (
-                    <button
-                      key={index}
-                      onClick={() => {
-                        setCommand(suggestion);
-                        setShowSuggestions(false);
-                      }}
-                      className="w-full text-left px-3 py-2 text-sm font-mono hover:bg-muted border-b border-border last:border-b-0 text-foreground transition"
-                    >
-                      {suggestion}
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
+            <button
+              onClick={() => {
+                const commands = command.split('\n').filter(cmd => cmd.trim());
+                commands.forEach(cmd => {
+                  setCommand(cmd.trim());
+                });
+                if (commands.length > 0) {
+                  setCommand(commands[commands.length - 1]);
+                  executeCommand();
+                }
+              }}
+              disabled={!command.trim()}
+              className="px-6 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary transition-all flex items-center gap-2 font-semibold text-sm shadow-md hover:shadow-lg whitespace-nowrap flex-shrink-0 h-fit"
+            >
+              <Send className="w-4 h-4" />
+              Execute All
+            </button>
           </div>
-          <button
-            onClick={executeCommand}
-            disabled={!command.trim()}
-            className="px-6 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary transition-all flex items-center gap-2 font-semibold text-sm shadow-md hover:shadow-lg whitespace-nowrap flex-shrink-0"
-          >
-            <Send className="w-4 h-4" />
-            Execute
-          </button>
-        </div>
+        )}
 
         {/* Syntax Hints */}
         {command.trim() && (
