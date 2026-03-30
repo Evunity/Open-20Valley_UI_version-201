@@ -48,20 +48,16 @@ export default function Settings2() {
 
   return (
     <div className="settings-theme-fix flex h-full flex-col bg-background">
-      {/* Header */}
-      <div className="border-b border-border bg-card px-8 py-4">
-      </div>
-
       {/* Tab Navigation - Horizontal Scrollable */}
       <div className="border-b border-border bg-card overflow-x-auto">
-        <div className="flex px-8 min-w-max gap-1">
+        <div className="flex px-6 min-w-max gap-1">
           {tabs.map(tab => {
             const Icon = tab.icon;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 border-b-2 px-4 py-4 text-sm font-medium transition-colors whitespace-nowrap ${
+                className={`flex items-center gap-2 border-b-2 px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap ${
                   activeTab === tab.id
                     ? 'border-primary text-primary'
                     : 'border-transparent text-muted-foreground hover:text-foreground'
@@ -77,15 +73,15 @@ export default function Settings2() {
 
       {/* Content Area */}
       <div className="flex-1 overflow-y-auto">
-        <div className="p-8 max-w-6xl mx-auto">
+        <div className="p-4 md:p-6 max-w-6xl mx-auto">
 
           {/* 1. System Configuration */}
           {activeTab === 'system-config' && (
-            <div className="space-y-6">
+            <div className="space-y-4">
               <h2 className="text-3xl font-bold text-foreground">1. System Configuration</h2>
               <p className="text-muted-foreground">Controls system-wide behavior and emergency controls</p>
 
-              <div className="space-y-6">
+              <div className="space-y-4">
                 {/* General Platform Settings */}
                 <div className="rounded-lg border border-border bg-card p-6">
                   <h3 className="mb-4 text-xl font-semibold text-foreground">4.1 General Platform Settings</h3>
@@ -167,7 +163,7 @@ export default function Settings2() {
 
           {/* 2. Module Configuration */}
           {activeTab === 'module-config' && (
-            <div className="space-y-6">
+            <div className="space-y-4">
               <h2 className="text-3xl font-bold text-foreground">2. Module Configuration</h2>
               <p className="text-muted-foreground">Configure behavior for each platform module</p>
 
@@ -310,7 +306,7 @@ export default function Settings2() {
 
           {/* 3. Integration Settings */}
           {activeTab === 'integration' && (
-            <div className="space-y-6">
+            <div className="space-y-4">
               <h2 className="text-3xl font-bold text-foreground">3. Integration Settings</h2>
               <p className="text-muted-foreground">Configure external system connections</p>
 
@@ -348,7 +344,7 @@ export default function Settings2() {
 
           {/* 4. Data & Retention */}
           {activeTab === 'data-retention' && (
-            <div className="space-y-6">
+            <div className="space-y-4">
               <h2 className="text-3xl font-bold text-foreground">4. Data & Retention Policies</h2>
               <p className="text-muted-foreground">Control how long data is stored</p>
 
@@ -403,7 +399,7 @@ export default function Settings2() {
 
           {/* 5. Performance & Limits */}
           {activeTab === 'performance' && (
-            <div className="space-y-6">
+            <div className="space-y-4">
               <h2 className="text-3xl font-bold text-foreground">5. Performance & System Limits</h2>
               <p className="text-muted-foreground">Prevent abuse or overload</p>
 
@@ -459,7 +455,7 @@ export default function Settings2() {
 
           {/* 6. Notifications */}
           {activeTab === 'notifications' && (
-            <div className="space-y-6">
+            <div className="space-y-4">
               <h2 className="text-3xl font-bold text-foreground">6. Notifications & Communication Settings</h2>
               <p className="text-muted-foreground">Define how the system communicates</p>
 
@@ -505,7 +501,7 @@ export default function Settings2() {
 
           {/* 7. Automation Guardrails */}
           {activeTab === 'automation' && (
-            <div className="space-y-6">
+            <div className="space-y-4">
               <h2 className="text-3xl font-bold text-foreground">7. Automation Guardrails</h2>
               <p className="text-muted-foreground">System-wide safety rules stronger than tenant-level rules</p>
 
@@ -534,7 +530,7 @@ export default function Settings2() {
 
           {/* 8. Environment & Deployment */}
           {activeTab === 'environment' && (
-            <div className="space-y-6">
+            <div className="space-y-4">
               <h2 className="text-3xl font-bold text-foreground">8. Environment & Deployment Settings</h2>
               <p className="text-muted-foreground">Control deployment modes and feature flags</p>
 
@@ -557,7 +553,7 @@ export default function Settings2() {
 
           {/* 9. Backup & Recovery */}
           {activeTab === 'backup' && (
-            <div className="space-y-6">
+            <div className="space-y-4">
               <h2 className="text-3xl font-bold text-foreground">9. Backup & Recovery Settings</h2>
               <p className="text-muted-foreground">Define recovery behavior and backup policies</p>
 
@@ -610,7 +606,7 @@ export default function Settings2() {
 
           {/* 10. Branding & UI */}
           {activeTab === 'branding' && (
-            <div className="space-y-6">
+            <div className="space-y-4">
               <h2 className="text-3xl font-bold text-foreground">10. Branding & UI Customization</h2>
               <p className="text-muted-foreground">Configure platform branding and UI settings</p>
 
@@ -643,7 +639,7 @@ export default function Settings2() {
 
           {/* 11. Audit & Change Control */}
           {activeTab === 'audit' && (
-            <div className="space-y-6">
+            <div className="space-y-4">
               <h2 className="text-3xl font-bold text-foreground">11. Audit & Change Control</h2>
               <p className="text-muted-foreground">Track all setting changes with full audit trail</p>
 
@@ -687,7 +683,7 @@ export default function Settings2() {
 
           {/* 12. Permissions & Access */}
           {activeTab === 'permissions' && (
-            <div className="space-y-6">
+            <div className="space-y-4">
               <h2 className="text-3xl font-bold text-foreground">12. Permissions & Access Control</h2>
               <p className="text-muted-foreground">Granular admin role permissions for settings</p>
 
@@ -729,7 +725,7 @@ export default function Settings2() {
           )}
 
           {/* Footer */}
-          <div className="mt-12 flex gap-3 border-t border-border pt-6">
+          <div className="mt-6 flex gap-3 border-t border-border pt-4">
             <button
               onClick={handleSave}
               className="flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-2 text-white hover:bg-blue-700"
