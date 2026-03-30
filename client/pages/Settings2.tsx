@@ -78,8 +78,7 @@ export default function Settings2() {
           {/* 1. System Configuration */}
           {activeTab === 'system-config' && (
             <div className="space-y-4">
-              <h2 className="text-3xl font-bold text-foreground">1. System Configuration</h2>
-              <p className="text-muted-foreground">Controls system-wide behavior and emergency controls</p>
+              <h2 className="text-3xl font-bold text-foreground">System Configuration</h2>
 
               <div className="space-y-4">
                 {/* General Platform Settings */}
@@ -164,8 +163,7 @@ export default function Settings2() {
           {/* 2. Module Configuration */}
           {activeTab === 'module-config' && (
             <div className="space-y-4">
-              <h2 className="text-3xl font-bold text-foreground">2. Module Configuration</h2>
-              <p className="text-muted-foreground">Configure behavior for each platform module</p>
+              <h2 className="text-3xl font-bold text-foreground">Module Configuration</h2>
 
               {/* Alarm Module */}
               <div className="rounded-lg border border-border bg-card p-6">
@@ -307,8 +305,7 @@ export default function Settings2() {
           {/* 3. Integration Settings */}
           {activeTab === 'integration' && (
             <div className="space-y-4">
-              <h2 className="text-3xl font-bold text-foreground">3. Integration Settings</h2>
-              <p className="text-muted-foreground">Configure external system connections</p>
+              <h2 className="text-3xl font-bold text-foreground">Integration Settings</h2>
 
               <div className="rounded-lg border border-border bg-card p-6">
                 <h3 className="mb-4 text-xl font-semibold text-foreground">6.1 Northbound Integrations</h3>
@@ -345,8 +342,7 @@ export default function Settings2() {
           {/* 4. Data & Retention */}
           {activeTab === 'data-retention' && (
             <div className="space-y-4">
-              <h2 className="text-3xl font-bold text-foreground">4. Data & Retention Policies</h2>
-              <p className="text-muted-foreground">Control how long data is stored</p>
+              <h2 className="text-3xl font-bold text-foreground">Data & Retention Policies</h2>
 
               <div className="rounded-lg border border-border bg-card p-6">
                 <h3 className="mb-4 text-xl font-semibold text-foreground">7.1 Data Retention</h3>
@@ -400,8 +396,7 @@ export default function Settings2() {
           {/* 5. Performance & Limits */}
           {activeTab === 'performance' && (
             <div className="space-y-4">
-              <h2 className="text-3xl font-bold text-foreground">5. Performance & System Limits</h2>
-              <p className="text-muted-foreground">Prevent abuse or overload</p>
+              <h2 className="text-3xl font-bold text-foreground">Performance & System Limits</h2>
 
               <div className="rounded-lg border border-border bg-card p-6">
                 <h3 className="mb-4 text-xl font-semibold text-foreground">8.1 Resource Limits</h3>
@@ -456,8 +451,7 @@ export default function Settings2() {
           {/* 6. Notifications */}
           {activeTab === 'notifications' && (
             <div className="space-y-4">
-              <h2 className="text-3xl font-bold text-foreground">6. Notifications & Communication Settings</h2>
-              <p className="text-muted-foreground">Define how the system communicates</p>
+              <h2 className="text-3xl font-bold text-foreground">Notifications & Communication Settings</h2>
 
               <div className="rounded-lg border border-border bg-card p-6">
                 <h3 className="mb-4 text-xl font-semibold text-foreground">9.1 Notification Channels</h3>
@@ -502,8 +496,7 @@ export default function Settings2() {
           {/* 7. Automation Guardrails */}
           {activeTab === 'automation' && (
             <div className="space-y-4">
-              <h2 className="text-3xl font-bold text-foreground">7. Automation Guardrails</h2>
-              <p className="text-muted-foreground">System-wide safety rules stronger than tenant-level rules</p>
+              <h2 className="text-3xl font-bold text-foreground">Automation Guardrails</h2>
 
               <div className="rounded-lg border border-border bg-card p-6">
                 <div className="space-y-4">
@@ -531,8 +524,7 @@ export default function Settings2() {
           {/* 8. Environment & Deployment */}
           {activeTab === 'environment' && (
             <div className="space-y-4">
-              <h2 className="text-3xl font-bold text-foreground">8. Environment & Deployment Settings</h2>
-              <p className="text-muted-foreground">Control deployment modes and feature flags</p>
+              <h2 className="text-3xl font-bold text-foreground">Environment & Deployment Settings</h2>
 
               <div className="rounded-lg border border-border bg-card p-6">
                 <h3 className="mb-4 text-xl font-semibold text-foreground">11.1 Feature Flags</h3>
@@ -554,8 +546,7 @@ export default function Settings2() {
           {/* 9. Backup & Recovery */}
           {activeTab === 'backup' && (
             <div className="space-y-4">
-              <h2 className="text-3xl font-bold text-foreground">9. Backup & Recovery Settings</h2>
-              <p className="text-muted-foreground">Define recovery behavior and backup policies</p>
+              <h2 className="text-3xl font-bold text-foreground">Backup & Recovery Settings</h2>
 
               <div className="rounded-lg border border-border bg-card p-6">
                 <h3 className="mb-4 text-xl font-semibold text-foreground">12.1 Backup Configuration</h3>
@@ -607,8 +598,7 @@ export default function Settings2() {
           {/* 10. Branding & UI */}
           {activeTab === 'branding' && (
             <div className="space-y-4">
-              <h2 className="text-3xl font-bold text-foreground">10. Branding & UI Customization</h2>
-              <p className="text-muted-foreground">Configure platform branding and UI settings</p>
+              <h2 className="text-3xl font-bold text-foreground">Branding & UI Customization</h2>
 
               <div className="rounded-lg border border-border bg-card p-6">
                 <h3 className="mb-4 text-xl font-semibold text-foreground">13. Branding & UI Customization</h3>
@@ -640,8 +630,7 @@ export default function Settings2() {
           {/* 11. Audit & Change Control */}
           {activeTab === 'audit' && (
             <div className="space-y-4">
-              <h2 className="text-3xl font-bold text-foreground">11. Audit & Change Control</h2>
-              <p className="text-muted-foreground">Track all setting changes with full audit trail</p>
+              <h2 className="text-3xl font-bold text-foreground">Audit & Change Control</h2>
 
               <div className="rounded-lg border border-border bg-card p-6">
                 <h3 className="mb-4 text-xl font-semibold text-foreground">14. Settings Audit & Change Control</h3>
@@ -684,8 +673,7 @@ export default function Settings2() {
           {/* 12. Permissions & Access */}
           {activeTab === 'permissions' && (
             <div className="space-y-4">
-              <h2 className="text-3xl font-bold text-foreground">12. Permissions & Access Control</h2>
-              <p className="text-muted-foreground">Granular admin role permissions for settings</p>
+              <h2 className="text-3xl font-bold text-foreground">Permissions & Access Control</h2>
 
               <div className="rounded-lg border border-border bg-card overflow-x-auto">
                 <table className="w-full text-sm">
