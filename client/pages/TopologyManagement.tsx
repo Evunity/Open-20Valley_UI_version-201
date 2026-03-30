@@ -333,10 +333,10 @@ const TopologyManagementContent: React.FC = () => {
         </div>
 
         {/* Controls Row - Export, Predictive AI, and Edit Mode (for Tree View) */}
-        <div className="flex gap-2 items-center">
+        <div className="flex gap-2 items-center flex-wrap">
           <button
             onClick={() => setShowExportPanel(!showExportPanel)}
-            className={`px-3 py-1.5 rounded text-xs font-semibold transition ${
+            className={`px-3 py-1.5 h-9 flex items-center justify-center rounded text-xs font-semibold transition ${
               showExportPanel
                 ? 'bg-blue-600 text-white dark:bg-blue-700'
                 : 'bg-input text-foreground border border-border hover:border-primary/40'
@@ -345,19 +345,19 @@ const TopologyManagementContent: React.FC = () => {
           >
             Export
           </button>
-          <label className="flex items-center gap-2 text-xs cursor-pointer px-3 py-1.5 bg-input border border-border rounded hover:border-primary/40 transition">
+          <label className="flex items-center gap-2 h-9 text-xs cursor-pointer px-3 bg-input border border-border rounded hover:border-primary/40 transition">
             <input
               type="checkbox"
               checked={showPredictiveRisks}
               onChange={(e) => setShowPredictiveRisks(e.target.checked)}
-              className="w-4 h-4 rounded"
+              className="w-4 h-4 rounded flex-shrink-0"
             />
-            <span>Predictive AI</span>
+            <span className="whitespace-nowrap">Predictive AI</span>
           </label>
           {activeView === 'tree' && (
             <button
               onClick={() => setEditMode(!editMode)}
-              className={`px-3 py-1.5 rounded text-xs font-semibold transition flex items-center gap-2 ${
+              className={`px-3 py-1.5 h-9 flex items-center justify-center gap-2 rounded text-xs font-semibold transition ${
                 editMode
                   ? 'bg-blue-600 text-white dark:bg-blue-700'
                   : 'bg-input text-foreground border border-border hover:border-primary/40'
@@ -365,7 +365,7 @@ const TopologyManagementContent: React.FC = () => {
               title="Toggle edit mode"
             >
               {editMode ? <Edit2 className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
-              {editMode ? 'Edit Mode' : 'View Mode'}
+              <span className="whitespace-nowrap">{editMode ? 'Edit Mode' : 'View Mode'}</span>
             </button>
           )}
         </div>
