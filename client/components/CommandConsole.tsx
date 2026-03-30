@@ -396,14 +396,14 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
                   placeholder={selectedSite.length === 0 || selectedTechnology.length === 0 || !selectedVendor
                     ? 'Please select Site, Technology & Vendor first'
                     : `Enter ${selectedVendor} command in UPPERCASE (e.g., LST CELL;)`}
-                  className={`w-full px-4 py-3 border-2 rounded-lg font-mono text-sm focus:outline-none focus:ring-0 transition uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-muted/20 resize-none ${
+                  className={`w-full px-3 py-2 border rounded-lg font-mono text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition uppercase tracking-wide disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-muted/20 resize-none ${
                     selectedSite.length === 0 || selectedTechnology.length === 0 || !selectedVendor
                       ? 'border-amber-300/60 dark:border-amber-700/60 text-muted-foreground bg-amber-50/30 dark:bg-amber-950/10'
                       : command.trim() && isValid
-                      ? 'border-green-500/70 bg-green-50/50 dark:bg-green-950/20 text-foreground'
+                      ? 'border-green-500/70 bg-green-50/40 dark:bg-green-950/20 text-foreground'
                       : command.trim()
-                      ? 'border-red-500/70 bg-red-50/50 dark:bg-red-950/20 text-foreground'
-                      : 'border-border/70 bg-input text-foreground hover:border-border'
+                      ? 'border-red-500/70 bg-red-50/40 dark:bg-red-950/20 text-foreground'
+                      : 'border-border bg-input text-foreground'
                   }`}
                   rows={2}
                 />
@@ -430,7 +430,7 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
             <button
               onClick={executeCommand}
               disabled={!command.trim()}
-              className="px-5 h-auto py-3 bg-gradient-to-br from-primary to-primary/90 text-primary-foreground rounded-lg hover:from-primary/95 hover:to-primary/85 disabled:from-muted disabled:to-muted/80 disabled:text-muted-foreground disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2 font-semibold text-sm shadow-lg hover:shadow-xl whitespace-nowrap flex-shrink-0 hover:scale-105 active:scale-95"
+              className="px-5 h-auto py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-2 font-semibold text-sm whitespace-nowrap flex-shrink-0"
             >
               <Send className="w-4 h-4" />
               <span>Execute</span>
@@ -446,7 +446,7 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
                 value={guidedCommand.keyword}
                 onChange={(e) => setGuidedCommand(prev => ({ ...prev, keyword: e.target.value }))}
                 disabled={selectedSite.length === 0 || selectedTechnology.length === 0 || !selectedVendor}
-                className="px-4 py-2.5 text-sm border-2 border-border/70 rounded-lg bg-input text-foreground focus:outline-none focus:border-primary/50 focus:ring-0 transition disabled:opacity-50 disabled:bg-muted/20"
+                className="px-3 py-2 text-sm border border-border rounded-lg bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition disabled:opacity-50 disabled:bg-muted/20"
               >
                 <option value="">Select Command Keyword</option>
                 {Object.keys(COMMAND_HINTS).map(keyword => (
@@ -459,7 +459,7 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
                 onChange={(e) => setGuidedCommand(prev => ({ ...prev, params: e.target.value.toUpperCase() }))}
                 disabled={selectedSite.length === 0 || selectedTechnology.length === 0 || !selectedVendor}
                 placeholder="Parameters (optional)"
-                className="px-4 py-2.5 text-sm border-2 border-border/70 rounded-lg bg-input text-foreground uppercase focus:outline-none focus:border-primary/50 focus:ring-0 transition disabled:opacity-50 disabled:bg-muted/20"
+                className="px-3 py-2 text-sm border border-border rounded-lg bg-input text-foreground uppercase focus:outline-none focus:ring-2 focus:ring-primary/50 transition disabled:opacity-50 disabled:bg-muted/20"
               />
             </div>
             <button
@@ -474,7 +474,7 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
                 }
               }}
               disabled={!guidedCommand.keyword || selectedSite.length === 0 || selectedTechnology.length === 0 || !selectedVendor}
-              className="w-full px-4 py-3 bg-gradient-to-br from-primary to-primary/90 text-primary-foreground rounded-lg hover:from-primary/95 hover:to-primary/85 disabled:from-muted disabled:to-muted/80 disabled:text-muted-foreground disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 font-semibold text-sm shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
+              className="w-full px-4 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2 font-semibold text-sm"
             >
               <Send className="w-4 h-4" />
               Execute
@@ -496,10 +496,10 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
                 placeholder={selectedSite.length === 0 || selectedTechnology.length === 0 || !selectedVendor
                   ? 'Please select Site, Technology & Vendor first'
                   : 'Enter multiple commands (one per line)'}
-                className={`w-full px-4 py-3 border-2 rounded-lg font-mono text-sm focus:outline-none focus:ring-0 transition uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-muted/20 resize-none ${
+                className={`w-full px-3 py-2 border rounded-lg font-mono text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition uppercase tracking-wide disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-muted/20 resize-none ${
                   selectedSite.length === 0 || selectedTechnology.length === 0 || !selectedVendor
                     ? 'border-amber-300/60 dark:border-amber-700/60 text-muted-foreground bg-amber-50/30 dark:bg-amber-950/10'
-                    : 'border-border/70 bg-input text-foreground hover:border-border'
+                    : 'border-border bg-input text-foreground'
                 }`}
                 rows={4}
               />
@@ -516,7 +516,7 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
                 }
               }}
               disabled={!command.trim()}
-              className="px-5 h-auto py-3 bg-gradient-to-br from-primary to-primary/90 text-primary-foreground rounded-lg hover:from-primary/95 hover:to-primary/85 disabled:from-muted disabled:to-muted/80 disabled:text-muted-foreground disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2 font-semibold text-sm shadow-lg hover:shadow-xl whitespace-nowrap flex-shrink-0 hover:scale-105 active:scale-95"
+              className="px-5 h-auto py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-2 font-semibold text-sm whitespace-nowrap flex-shrink-0"
             >
               <Send className="w-4 h-4" />
               <span>Execute All</span>
