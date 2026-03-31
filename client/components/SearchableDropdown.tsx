@@ -122,7 +122,7 @@ export default function SearchableDropdown({
                 {selected.map((item) => (
                   <div
                     key={item}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary/10 text-primary text-xs font-medium max-w-full"
+                    className="inline-flex items-center gap-0.5 px-1.5 py-0 rounded bg-primary/10 text-primary text-[11px] font-medium max-w-full"
                   >
                     <span className="truncate">{item}</span>
                     <button
@@ -134,7 +134,7 @@ export default function SearchableDropdown({
                       type="button"
                       aria-label={`Remove ${item}`}
                     >
-                      <X className="w-3 h-3" />
+                      <X className="w-2.5 h-2.5" />
                     </button>
                   </div>
                 ))}
