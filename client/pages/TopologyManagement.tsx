@@ -351,7 +351,7 @@ const TopologyManagementContent: React.FC = () => {
               <button
                 key={view.id}
                 onClick={() => setActiveView(view.id)}
-                className={`flex flex-col items-center justify-center gap-1 px-2 py-1.5 rounded-lg border-2 transition min-h-[60px] w-fit ${
+                className={`flex flex-col items-center justify-center gap-1 px-2 py-1.5 rounded-lg border-2 transition min-h-[60px] flex-1 min-w-[80px] ${
                   activeView === view.id
                     ? 'border-blue-600 bg-blue-50 dark:bg-blue-950'
                     : 'border-border hover:border-primary/40 bg-card'
