@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import {
   Shield, Activity, Users, GitBranch, Lock, TrendingUp,
-  Download, Settings, Plus, Eye
+  Download, Settings, Plus, Eye, Trash2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -106,6 +106,16 @@ export default function ActivityAudit() {
     const views = JSON.parse(localStorage.getItem('auditViews') || '{}');
     setSavedViews(views);
   }, []);
+
+  const handleDeleteView = (viewName: string) => {
+    const updatedViews = { ...savedViews };
+    delete updatedViews[viewName];
+    localStorage.setItem('auditViews', JSON.stringify(updatedViews));
+    setSavedViews(updatedViews);
+    if (selectedSavedView === viewName) {
+      setSelectedSavedView(null);
+    }
+  };
 
   const activeConfig = useMemo(
     () => WORKSPACES.find(w => w.id === activeWorkspace),
@@ -253,19 +263,30 @@ export default function ActivityAudit() {
               <div className="space-y-1 pt-4 border-t border-border">
                 <div className="text-xs font-semibold text-purple-600/70 px-3 py-2">Saved Views</div>
                 {Object.keys(savedViews).map(viewName => (
-                  <button
+                  <div
                     key={viewName}
-                    onClick={() => setSelectedSavedView(viewName)}
-                    className={cn(
-                      "w-full flex items-start gap-3 px-3 py-2 rounded-lg text-sm transition-colors text-left group",
-                      selectedSavedView === viewName
-                        ? "bg-primary/10 text-primary"
-                        : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-                    )}
+                    className="flex items-center gap-1 group px-2 py-1 rounded-lg hover:bg-muted/30 transition-colors"
                   >
-                    <Eye className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                    <span className="flex-1">{viewName}</span>
-                  </button>
+                    <button
+                      onClick={() => setSelectedSavedView(viewName)}
+                      className={cn(
+                        "flex-1 flex items-start gap-3 px-1 py-1 rounded text-sm transition-colors text-left",
+                        selectedSavedView === viewName
+                          ? "text-primary"
+                          : "text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      <Eye className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                      <span className="flex-1 truncate">{viewName}</span>
+                    </button>
+                    <button
+                      onClick={() => handleDeleteView(viewName)}
+                      className="p-1 rounded text-muted-foreground hover:text-red-600 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100"
+                      title="Delete this view"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 ))}
               </div>
             )}
