@@ -237,7 +237,7 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
         </div>
 
         {/* Mode Selection */}
-        <div className="flex items-end gap-3">
+        <div className="flex items-end gap-2">
           <div className="flex-1">
             <label className="block text-xs font-semibold text-muted-foreground mb-1">Mode</label>
             <SearchableDropdown
@@ -260,7 +260,7 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
           </div>
           <button
             onClick={() => setShowAddCommand(!showAddCommand)}
-            className="text-xs px-3 py-1.5 bg-primary/10 hover:bg-primary/20 border border-primary/30 rounded text-primary font-medium transition whitespace-nowrap h-9 flex items-center"
+            className="flex-1 text-xs bg-primary/10 hover:bg-primary/20 border border-primary/30 rounded text-primary font-medium transition h-9 flex items-center justify-center"
           >
             + Add
           </button>
