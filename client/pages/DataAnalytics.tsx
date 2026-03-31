@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Download } from "lucide-react";
 import * as XLSX from "xlsx";
 import {
@@ -40,6 +40,9 @@ import { cn } from "@/lib/utils";
 export default function DataAnalytics() {
   const { toast } = useToast();
   const { filters } = useGlobalFilters();
+  const [heatmapDate, setHeatmapDate] = useState<string>(
+    new Date().toISOString().split("T")[0]
+  );
 
   // Generate data
   const kpis = useMemo(() => generateDataKPIs(filters), [filters]);
@@ -72,7 +75,10 @@ export default function DataAnalytics() {
   // Generate heatmap data
   const timeRegionHeatmap = useMemo(() => generateTimeRegionHeatmap(), []);
   const techCapacityHeatmap = useMemo(() => generateTechCapacityHeatmap(), []);
-  const hourlyUtilizationHeatmap = useMemo(() => generateHourlyUtilizationHeatmap(), []);
+  const hourlyUtilizationHeatmap = useMemo(
+    () => generateHourlyUtilizationHeatmap(heatmapDate),
+    [heatmapDate]
+  );
 
   // Generate data insights
   const dataInsights = useMemo(
@@ -614,7 +620,17 @@ export default function DataAnalytics() {
                 recommendation: "Plan upgrade timeline",
               },
             ].map((item, idx) => (
-              <div key={item.area} className="p-4 rounded-lg border border-red-200 bg-red-50">
+              <div
+                key={item.area}
+                className={cn(
+                  "p-4 rounded-lg border",
+                  item.risk === "Critical"
+                    ? "border-red-200 bg-red-50"
+                    : item.risk === "High"
+                      ? "border-orange-200 bg-orange-50"
+                      : "border-yellow-200 bg-yellow-50"
+                )}
+              >
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <p className="font-semibold text-foreground">{item.area}</p>
@@ -623,7 +639,16 @@ export default function DataAnalytics() {
                       <span className="font-semibold">{item.speed}</span>
                     </p>
                   </div>
-                  <span className="px-2 py-1 rounded text-xs font-semibold bg-red-200 text-red-700">
+                  <span
+                    className={cn(
+                      "px-2 py-1 rounded text-xs font-semibold",
+                      item.risk === "Critical"
+                        ? "bg-red-200 text-red-700"
+                        : item.risk === "High"
+                          ? "bg-orange-200 text-orange-700"
+                          : "bg-yellow-200 text-yellow-700"
+                    )}
+                  >
                     {item.risk}
                   </span>
                 </div>
@@ -678,7 +703,7 @@ export default function DataAnalytics() {
                           <div
                             key={`${row.name}-cell-${cellIdx}`}
                             className={cn(
-                              "w-24 h-10 rounded flex items-center justify-center text-xs font-bold text-gray-900",
+                              "w-24 h-16 rounded flex items-center justify-center text-sm font-bold text-gray-900",
                               bgColor
                             )}
                             title={`${row.name} - ${cell.value.toFixed(1)}%`}
@@ -753,7 +778,7 @@ export default function DataAnalytics() {
                           <div
                             key={`${row.name}-cell-${cellIdx}`}
                             className={cn(
-                              "w-24 h-10 rounded flex items-center justify-center text-xs font-bold text-gray-900",
+                              "w-24 h-16 rounded flex items-center justify-center text-sm font-bold text-gray-900",
                               bgColor
                             )}
                             title={`${row.name} - ${cell.value.toFixed(1)}%`}
@@ -789,7 +814,7 @@ export default function DataAnalytics() {
         </div>
 
         {/* Heatmap: Hourly/Daily Utilization Pattern */}
-        <div className="card-elevated rounded-xl border border-border/50 p-6">
+        <div className="card-elevated rounded-xl border border-border/50 p-6 flex flex-col min-h-[420px]">
           {(() => {
             // Determine if showing hourly or daily based on date range
             const daysDiff = getDaysDifference(filters.dateRange);
@@ -830,22 +855,23 @@ export default function DataAnalytics() {
                       <label className="text-xs font-semibold text-muted-foreground">Date:</label>
                       <input
                         type="date"
+                        value={heatmapDate}
+                        onChange={(e) => setHeatmapDate(e.target.value)}
                         className="px-3 py-1.5 rounded border border-border text-xs bg-background text-foreground focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                        defaultValue={new Date().toISOString().split("T")[0]}
                         title="Select date for heatmap"
                       />
                     </div>
                   )}
                 </div>
-                <div className="overflow-x-auto -mx-6 px-6">
-                  <div className="min-w-max">
+                <div className="flex-1 overflow-x-auto -mx-6 px-6">
+                  <div className="w-full">
                     {/* Column headers */}
                     <div className="flex gap-0.5 mb-2">
-                      <div className="w-14 sm:w-16"></div>
+                      <div className="w-14 sm:w-16 flex-shrink-0"></div>
                       {columnHeaders.map((header, colIdx) => (
                         <div
                           key={`header-${colIdx}`}
-                          className="w-6 sm:w-8 text-center text-xs font-semibold text-muted-foreground dark:text-muted-foreground"
+                          className="flex-1 min-w-0 text-center text-xs font-semibold text-muted-foreground dark:text-muted-foreground"
                         >
                           {header}
                         </div>
@@ -855,7 +881,7 @@ export default function DataAnalytics() {
                     {/* Heatmap rows */}
                     {hourlyUtilizationHeatmap.map((row) => (
                       <div key={row.name} className="flex gap-0.5 mb-2">
-                        <div className="w-14 sm:w-16 text-xs font-semibold text-muted-foreground dark:text-muted-foreground flex items-center truncate">
+                        <div className="w-14 sm:w-16 flex-shrink-0 text-xs font-semibold text-muted-foreground dark:text-muted-foreground flex items-center truncate">
                           {row.name}
                         </div>
                         {row.cells.slice(0, columnHeaders.length).map((cell, cellIdx) => {
@@ -871,7 +897,7 @@ export default function DataAnalytics() {
                           return (
                             <div
                               key={`${row.name}-cell-${cellIdx}`}
-                              className={cn("w-6 h-6 sm:w-8 sm:h-8 rounded", bgColor)}
+                              className={cn("flex-1 min-h-6 sm:min-h-8 rounded flex items-center justify-center", bgColor)}
                               title={`${row.name} ${tooltipPrefix} ${columnHeaders[cellIdx]} - ${cell.value.toFixed(1)}%`}
                             ></div>
                           );
@@ -880,7 +906,7 @@ export default function DataAnalytics() {
                     ))}
                   </div>
                 </div>
-                <div className="flex justify-center gap-2 sm:gap-4 mt-6 text-xs flex-wrap">
+                <div className="flex justify-center gap-2 sm:gap-4 mt-auto pt-6 text-xs flex-wrap">
                   <div className="flex items-center gap-1 sm:gap-2">
                     <div className="w-4 h-3 sm:w-6 sm:h-4 rounded bg-green-400 dark:bg-green-600"></div>
                     <span>0-40%</span>

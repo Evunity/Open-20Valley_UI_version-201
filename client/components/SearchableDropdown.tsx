@@ -102,29 +102,24 @@ export default function SearchableDropdown({
           }
         }}
         className={cn(
-          "w-full border transition-all flex items-center justify-between cursor-pointer relative",
+          "w-full border transition-all flex items-center justify-between cursor-pointer relative overflow-hidden",
           compact ? "h-9 px-2.5 rounded-md" : "control-height px-3 rounded-lg",
           isOpen
-            ? "border-primary bg-primary/5 ring-2 ring-primary/50"
+            ? "border-primary bg-primary/5 ring-1 ring-primary/30 ring-offset-0"
             : "border-border bg-background hover:border-primary/50"
         )}
       >
-        {multiSelect && selected.length > 1 && !isOpen && (
-          <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-md">
-            {selected.length}
-          </div>
-        )}
 
         <div className="flex items-center gap-2 min-w-0 flex-1">
           {multiSelect ? (
             selected.length > 0 ? (
-              <div className="flex items-center gap-1 min-w-0 overflow-hidden">
-                {selected.map((item) => (
+              <div className="flex items-center gap-1 min-w-0">
+                {selected.slice(0, 1).map((item) => (
                   <div
                     key={item}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary/10 text-primary text-xs font-medium max-w-full"
+                    className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-primary/8 text-primary text-[11px] font-medium whitespace-nowrap flex-shrink-0"
                   >
-                    <span className="truncate">{item}</span>
+                    <span className="truncate max-w-[80px]">{item}</span>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -134,10 +129,15 @@ export default function SearchableDropdown({
                       type="button"
                       aria-label={`Remove ${item}`}
                     >
-                      <X className="w-3 h-3" />
+                      <X className="w-2.5 h-2.5" />
                     </button>
                   </div>
                 ))}
+                {selected.length > 1 && (
+                  <span className="text-xs font-bold text-white bg-primary px-2 py-1 rounded-md whitespace-nowrap shadow-md">
+                    +{selected.length - 1}
+                  </span>
+                )}
               </div>
             ) : (
               <span className="typo-input text-muted-foreground truncate">Select {label.toLowerCase()}...</span>
@@ -159,7 +159,7 @@ export default function SearchableDropdown({
 
       {isOpen && (
         <div className={cn(
-          "absolute top-full left-0 right-0 rounded-lg border border-border bg-card shadow-lg z-50",
+          "absolute top-full left-0 right-0 rounded-lg border border-border bg-card shadow-md z-50",
           compact ? "mt-1.5" : "mt-2"
         )}>
           {searchable && (
@@ -233,30 +233,6 @@ export default function SearchableDropdown({
             )}
           </div>
 
-          {selected.length > 0 && (
-            <div className={cn("border-t border-border/50 flex gap-2", compact ? "p-1.5" : "p-2")}>
-              <button
-                onClick={() => onChange([])}
-                className={cn(
-                  "flex-1 px-2 text-xs rounded bg-muted hover:bg-muted/70 transition-all text-foreground font-medium",
-                  compact ? "py-1.5" : "py-1.5"
-                )}
-              >
-                Clear
-              </button>
-              {multiSelect && (
-                <button
-                  onClick={closeDropdown}
-                  className={cn(
-                    "flex-1 px-2 text-xs rounded bg-primary/10 hover:bg-primary/20 transition-all text-primary font-medium",
-                    compact ? "py-1.5" : "py-1.5"
-                  )}
-                >
-                  Done
-                </button>
-              )}
-            </div>
-          )}
         </div>
       )}
     </div>

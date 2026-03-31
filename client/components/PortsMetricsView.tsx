@@ -1,7 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { Activity, Zap, TrendingUp, AlertCircle, CheckCircle, BarChart3, Filter, Download } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import * as XLSX from 'xlsx';
 import SearchableDropdown from './SearchableDropdown';
+import { useToast } from '@/hooks/use-toast';
 
 interface PortMetric {
   id: string;
@@ -98,12 +100,77 @@ const generateTimeSeriesData = (timeRange: '24h' | '7d' | '30d' = '24h') => {
 };
 
 export const PortsMetricsView: React.FC<{ topology?: any }> = () => {
+  const { toast } = useToast();
   const [selectedSite, setSelectedSite] = useState<number>(0);
   const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d'>('24h');
-  
+
   const siteMetrics = useMemo(() => generateFakeSiteMetrics(), []);
   const timeSeriesData = useMemo(() => generateTimeSeriesData(timeRange), [timeRange]);
   const currentSite = siteMetrics[selectedSite];
+
+  const handleExport = () => {
+    if (!currentSite) {
+      toast({
+        title: "No data",
+        description: "Please select a site first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const wb = XLSX.utils.book_new();
+
+    // Sheet 1: Site Summary
+    const siteSummary = [
+      ['Metric', 'Value'],
+      ['Site Name', currentSite.siteName],
+      ['Location', currentSite.location],
+      ['Total Ports', currentSite.totalPorts],
+      ['Active Ports', currentSite.activePorts],
+      ['Avg Utilization', `${currentSite.avgUtilization}%`],
+      ['Total Bandwidth', `${(currentSite.totalBandwidth / 1000).toFixed(1)}G`],
+      ['Error Rate', `${currentSite.errorRate}%`],
+      ['Health Score', `${currentSite.health}%`],
+    ];
+    const ws1 = XLSX.utils.aoa_to_sheet(siteSummary);
+    XLSX.utils.book_append_sheet(wb, ws1, 'Site Summary');
+
+    // Sheet 2: All Ports
+    const portsData = currentSite.ports.map(port => [
+      port.portName,
+      port.status,
+      `${port.utilization}%`,
+      port.bandwidth,
+      port.packets,
+      port.errors,
+      port.dropped,
+      `${port.health}%`,
+    ]);
+    portsData.unshift(['Port Name', 'Status', 'Utilization', 'Bandwidth (Mbps)', 'Packets', 'Errors', 'Dropped', 'Health']);
+    const ws2 = XLSX.utils.aoa_to_sheet(portsData);
+    XLSX.utils.book_append_sheet(wb, ws2, 'All Ports');
+
+    // Sheet 3: Time Series Data
+    const timeSeriesSheet = timeSeriesData.map(item => [
+      item.time,
+      item.utilization,
+      item.bandwidth,
+      item.errors,
+      item.packets,
+    ]);
+    timeSeriesSheet.unshift(['Time', 'Utilization (%)', 'Bandwidth (Mbps)', 'Errors', 'Packets']);
+    const ws3 = XLSX.utils.aoa_to_sheet(timeSeriesSheet);
+    XLSX.utils.book_append_sheet(wb, ws3, 'Time Series');
+
+    // Download
+    const fileName = `Ports_Metrics_${currentSite.siteName}_${new Date().toISOString().split('T')[0]}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+
+    toast({
+      title: "Export successful",
+      description: `Downloaded ${fileName}`,
+    });
+  };
 
   const portStatusBreakdown = useMemo(() => {
     if (!currentSite) return [];
@@ -170,7 +237,10 @@ export const PortsMetricsView: React.FC<{ topology?: any }> = () => {
           </div>
 
           {/* Export Button */}
-          <button className="h-9 flex items-center gap-2 px-3 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition text-xs font-semibold flex-shrink-0">
+          <button
+            onClick={handleExport}
+            className="h-9 flex items-center gap-2 px-3 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition text-xs font-semibold flex-shrink-0"
+          >
             <Download className="w-4 h-4" />
             Export
           </button>
