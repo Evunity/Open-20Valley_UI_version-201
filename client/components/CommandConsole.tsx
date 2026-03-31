@@ -273,6 +273,7 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
               multiSelect={false}
               searchable={true}
               compact={true}
+              dropdownId="console-site-dropdown"
             />
           </div>
 
@@ -290,6 +291,7 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
               multiSelect={false}
               searchable={true}
               compact={true}
+              dropdownId="console-technology-dropdown"
             />
           </div>
 
@@ -307,6 +309,7 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
               multiSelect={false}
               searchable={true}
               compact={true}
+              dropdownId="console-vendor-dropdown"
             />
           </div>
         </div>
@@ -331,6 +334,7 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
               multiSelect={false}
               searchable={true}
               compact={true}
+              dropdownId="console-mode-dropdown"
             />
           </div>
           <button
@@ -527,6 +531,7 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
                 multiSelect={false}
                 searchable={true}
                 compact={true}
+                dropdownId="guided-command-keyword-dropdown"
               />
               <input
                 type="text"
