@@ -349,17 +349,30 @@ export default function AnalyticsManagement() {
   };
 
   const handleExportAll = () => {
-    if (selectedKPIs.length === 0) {
-      alert("No KPIs selected to export");
+    if (availableKPIs.length === 0) {
+      alert("No KPIs available to export");
       return;
     }
 
     const workbook = XLSX.utils.book_new();
 
-    selectedKPIs.forEach((kpi) => {
-      const kpiData = chartDataMap[kpi.id] || [];
+    // Export ALL available KPIs, not just selected ones
+    availableKPIs.forEach((kpi) => {
+      // Generate data for this KPI
+      let label = "All";
+      if (selectedNetwork) label = selectedNetwork;
+      else if (selectedRegion) label = selectedRegion;
+      else if (selectedCluster) label = selectedCluster;
+      else if (selectedSite) label = selectedSite;
+      else if (selectedCell) label = selectedCell;
+      else {
+        const scopeLabels = SCOPE_OPTIONS[currentScope] || ["Network"];
+        label = scopeLabels[0];
+      }
 
-      if (kpiData.length > 0) {
+      const kpiData = generateKPIValues(kpi, currentScope, label);
+
+      if (kpiData && kpiData.length > 0) {
         const worksheetData = kpiData.map((item) => ({
           "KPI": kpi.name,
           "Date": item.timestamp,
@@ -397,7 +410,7 @@ export default function AnalyticsManagement() {
       }
     });
 
-    XLSX.writeFile(workbook, `KPI_Export_${new Date().toISOString().split("T")[0]}.xlsx`);
+    XLSX.writeFile(workbook, `KPI_Export_All_${new Date().toISOString().split("T")[0]}.xlsx`);
   };
 
   return (
