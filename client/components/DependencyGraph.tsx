@@ -128,22 +128,45 @@ export const DependencyGraph: React.FC<DependencyGraphProps> = ({
       e => filteredNodeIds.has(e.source) && filteredNodeIds.has(e.target)
     );
 
-    // Draw edges
-    ctx.strokeStyle = '#cbd5e1';
-    ctx.lineWidth = 1;
+    // Draw edges with curved paths
     filteredEdges.forEach(edge => {
       const sourceNode = filteredNodes.find(n => n.id === edge.source);
       const targetNode = filteredNodes.find(n => n.id === edge.target);
       if (sourceNode && targetNode) {
+        // Calculate control point for smooth curve
+        const dx = targetNode.x - sourceNode.x;
+        const dy = targetNode.y - sourceNode.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        // Create perpendicular control point for smooth curves
+        const controlOffsetX = -dy / distance * 40;
+        const controlOffsetY = dx / distance * 40;
+        const controlX = (sourceNode.x + targetNode.x) / 2 + controlOffsetX;
+        const controlY = (sourceNode.y + targetNode.y) / 2 + controlOffsetY;
+
+        // Draw thick curved line with shadow effect
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 5;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
         ctx.beginPath();
         ctx.moveTo(sourceNode.x, sourceNode.y);
-        ctx.lineTo(targetNode.x, targetNode.y);
+        ctx.quadraticCurveTo(controlX, controlY, targetNode.x, targetNode.y);
+        ctx.stroke();
+
+        // Draw lighter line on top for bold effect
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(sourceNode.x, sourceNode.y);
+        ctx.quadraticCurveTo(controlX, controlY, targetNode.x, targetNode.y);
         ctx.stroke();
 
         // Draw arrow
-        const angle = Math.atan2(targetNode.y - sourceNode.y, targetNode.x - sourceNode.x);
-        const arrowSize = 8;
-        ctx.fillStyle = '#94a3b8';
+        const angle = Math.atan2(dy, dx);
+        const arrowSize = 10;
+        ctx.fillStyle = '#64748b';
         ctx.beginPath();
         ctx.moveTo(targetNode.x, targetNode.y);
         ctx.lineTo(
