@@ -195,28 +195,38 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
         {/* Required Selection Row */}
         <div className="grid grid-cols-3 gap-3">
           {/* Site Selection */}
-          <SearchableDropdown
-            label="Site"
-            options={SITE_OPTIONS}
-            selected={selectedSite}
-            onChange={(selected) => setSelectedSite(selected)}
-            placeholder="Search sites..."
-            multiSelect={false}
-            searchable={true}
-            compact={true}
-          />
+          <div>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">
+              Site <span className="text-red-500">*</span>
+            </label>
+            <SearchableDropdown
+              label=""
+              options={SITE_OPTIONS}
+              selected={selectedSite}
+              onChange={(selected) => setSelectedSite(selected)}
+              placeholder="Search sites..."
+              multiSelect={false}
+              searchable={true}
+              compact={true}
+            />
+          </div>
 
           {/* Technology Selection */}
-          <SearchableDropdown
-            label="Technology"
-            options={TECHNOLOGY_OPTIONS}
-            selected={selectedTechnology}
-            onChange={(selected) => setSelectedTechnology(selected)}
-            placeholder="Search technologies..."
-            multiSelect={false}
-            searchable={true}
-            compact={true}
-          />
+          <div>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">
+              Technology <span className="text-red-500">*</span>
+            </label>
+            <SearchableDropdown
+              label=""
+              options={TECHNOLOGY_OPTIONS}
+              selected={selectedTechnology}
+              onChange={(selected) => setSelectedTechnology(selected)}
+              placeholder="Search technologies..."
+              multiSelect={false}
+              searchable={true}
+              compact={true}
+            />
+          </div>
 
           {/* Vendor Selection */}
           <div>
