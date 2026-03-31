@@ -416,17 +416,16 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
           <div className="space-y-3 p-4 bg-muted/20 border border-border rounded-lg">
             <p className="text-xs font-semibold text-muted-foreground mb-3">Build Command Interactively</p>
             <div className="grid grid-cols-2 gap-3">
-              <select
-                value={guidedCommand.keyword}
-                onChange={(e) => setGuidedCommand(prev => ({ ...prev, keyword: e.target.value }))}
-                disabled={selectedSite.length === 0 || selectedTechnology.length === 0 || !selectedVendor}
-                className="px-3 py-2 text-sm border border-border rounded-lg bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition disabled:opacity-50 disabled:bg-muted/20"
-              >
-                <option value="">Select Command Keyword</option>
-                {Object.keys(COMMAND_HINTS).map(keyword => (
-                  <option key={keyword} value={keyword}>{keyword}</option>
-                ))}
-              </select>
+              <SearchableDropdown
+                label=""
+                options={Object.keys(COMMAND_HINTS)}
+                selected={guidedCommand.keyword ? [guidedCommand.keyword] : []}
+                onChange={(selected) => setGuidedCommand(prev => ({ ...prev, keyword: selected[0] || '' }))}
+                placeholder="Select Command Keyword"
+                multiSelect={false}
+                searchable={true}
+                compact={true}
+              />
               <input
                 type="text"
                 value={guidedCommand.params}
