@@ -115,16 +115,16 @@ export default function SearchableDropdown({
           </div>
         )}
 
-        <div className="flex items-center gap-2 min-w-0 flex-1">
+        <div className="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
           {multiSelect ? (
             selected.length > 0 ? (
-              <div className="flex items-center gap-1 min-w-0 overflow-hidden">
+              <div className="flex items-center gap-1 min-w-0 overflow-x-auto overflow-y-hidden flex-wrap">
                 {selected.map((item) => (
                   <div
                     key={item}
-                    className="inline-flex items-center gap-0.5 px-1.5 py-0 rounded bg-primary/10 text-primary text-[11px] font-medium max-w-full"
+                    className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[11px] font-medium flex-shrink-0"
                   >
-                    <span className="truncate">{item}</span>
+                    <span className="truncate max-w-[100px]">{item}</span>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
