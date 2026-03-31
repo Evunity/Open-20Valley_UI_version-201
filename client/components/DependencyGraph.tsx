@@ -12,7 +12,7 @@ import ReactFlow, {
   ReactFlowProvider,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { Home, Filter, Maximize2, Minimize2 } from 'lucide-react';
+import { Home, Filter, Maximize2, Minimize2, ZoomOut } from 'lucide-react';
 import { TopologyObject } from '../utils/topologyData';
 import DependencyNode from './DependencyNode';
 
@@ -36,10 +36,9 @@ function DependencyGraphContent({
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [filterLevel, setFilterLevel] = useState<string>('all');
-  const [zoomLevel, setZoomLevel] = useState(1);
+  const [showOnlyUpstream, setShowOnlyUpstream] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const graphContainerRef = useRef<HTMLDivElement>(null);
 
   // Initialize graph data
   useEffect(() => {
@@ -82,9 +81,9 @@ function DependencyGraphContent({
         const row = Math.floor(idx / itemsPerRow);
         const col = idx % itemsPerRow;
 
-        // MASSIVE spacing: 850px horizontal, 650px vertical between levels, 450px between rows
-        const x = (col - itemsPerRow / 2.5) * 850;
-        const y = (level * 650) + (row * 450);
+        // MASSIVE spacing: 600px horizontal, 500px vertical between nodes
+        const x = (col - itemsPerRow / 2.5) * 600;
+        const y = (level * 500) + (row * 350);
 
         nodeMap.set(obj.id, {
           id: obj.id,
@@ -134,59 +133,54 @@ function DependencyGraphContent({
     }, 100);
   }, [topology, setNodes, setEdges, fitView, selectedNode]);
 
-  // Filter nodes and edges based on level - includes selected level and all descendants
+  // Filter nodes and edges based on level and upstream only
   const filteredNodes = useMemo(() => {
-    if (filterLevel === 'all') {
-      return nodes;
+    let result = nodes;
+
+    // Apply level filter
+    if (filterLevel !== 'all') {
+      result = result.filter(node => {
+        const topoObj = topology.find(t => t.id === node.id);
+        if (!topoObj) return false;
+
+        const levelMap: Record<string, number> = {
+          global: 0,
+          country: 1,
+          region: 2,
+          cluster: 3,
+          site: 4,
+          node: 5,
+          cell: 5,
+          equipment: 5,
+          link: 5,
+          rack: 6
+        };
+
+        return (levelMap[topoObj.type] || 5).toString() === filterLevel;
+      });
     }
 
-    const levelMap: Record<string, number> = {
-      global: 0,
-      country: 1,
-      region: 2,
-      cluster: 3,
-      site: 4,
-      node: 5,
-      cell: 5,
-      equipment: 5,
-      link: 5,
-      rack: 6
-    };
+    // Apply upstream only filter
+    if (showOnlyUpstream && selectedNode) {
+      const upstreamIds = new Set<string>();
 
-    const selectedLevelNum = parseInt(filterLevel);
-    const nodeIds = new Set<string>();
-
-    // Build a map of children for each node for efficient lookup
-    const childrenMap = new Map<string, string[]>();
-    topology.forEach(obj => {
-      if (obj.parentId) {
-        if (!childrenMap.has(obj.parentId)) {
-          childrenMap.set(obj.parentId, []);
+      // Find all upstream nodes (ancestors)
+      const findUpstream = (nodeId: string) => {
+        const topoObj = topology.find(t => t.id === nodeId);
+        if (topoObj && topoObj.parentId) {
+          upstreamIds.add(topoObj.parentId);
+          findUpstream(topoObj.parentId);
         }
-        childrenMap.get(obj.parentId)!.push(obj.id);
-      }
-    });
+      };
 
-    // First, add all nodes at the selected level and their descendants
-    const addNodeAndDescendants = (nodeId: string) => {
-      nodeIds.add(nodeId);
-      // Recursively add all children
-      const children = childrenMap.get(nodeId);
-      if (children) {
-        children.forEach(childId => addNodeAndDescendants(childId));
-      }
-    };
+      upstreamIds.add(selectedNode.id);
+      findUpstream(selectedNode.id);
 
-    // Find all nodes at the selected level and add them with their descendants
-    topology.forEach(obj => {
-      const nodeLevel = levelMap[obj.type] || 5;
-      if (nodeLevel === selectedLevelNum) {
-        addNodeAndDescendants(obj.id);
-      }
-    });
+      result = result.filter(n => upstreamIds.has(n.id));
+    }
 
-    return nodes.filter(node => nodeIds.has(node.id));
-  }, [nodes, filterLevel, topology]);
+    return result;
+  }, [nodes, filterLevel, topology, showOnlyUpstream, selectedNode]);
 
   const filteredEdges = useMemo(() => {
     const filteredNodeIds = new Set(filteredNodes.map(n => n.id));
@@ -207,12 +201,12 @@ function DependencyGraphContent({
   }, [fitView]);
 
   const handleFullscreen = useCallback(async () => {
-    if (!graphContainerRef.current) return;
+    if (!containerRef.current) return;
 
     try {
       if (!isFullscreen) {
-        if (graphContainerRef.current.requestFullscreen) {
-          await graphContainerRef.current.requestFullscreen();
+        if (containerRef.current.requestFullscreen) {
+          await containerRef.current.requestFullscreen();
           setIsFullscreen(true);
         }
       } else {
@@ -226,26 +220,16 @@ function DependencyGraphContent({
     }
   }, [isFullscreen]);
 
-  const handleZoomChange = useCallback((newZoom: number) => {
-    setZoomLevel(newZoom);
-    // Update zoom by using fitView with bounds that force the desired zoom level
-    // This approach ensures the graph zooms to the desired level
-    if (filteredNodes.length === 0) return;
-
-    // Calculate viewport to achieve target zoom
-    const allX = filteredNodes.map(n => n.position.x);
-    const allY = filteredNodes.map(n => n.position.y);
-    const centerX = (Math.max(...allX) + Math.min(...allX)) / 2;
-    const centerY = (Math.max(...allY) + Math.min(...allY)) / 2;
-
-    // Use setCenter to position at the calculated center with desired zoom
-    setCenter(centerX, centerY, { zoom: newZoom, duration: 0 });
-  }, [filteredNodes, setCenter]);
+  const handleZoomOut = useCallback(() => {
+    const currentZoom = getZoom();
+    const newZoom = Math.max(0.2, currentZoom - 0.2);
+    fitView({ padding: 0.2, minZoom: 0.2, maxZoom: 3, duration: 200 });
+  }, [getZoom, fitView]);
 
   return (
     <div
       ref={containerRef}
-      className="w-full flex flex-col h-full gap-4 p-4 bg-background dark:bg-background overflow-hidden relative"
+      className={`w-full flex flex-col h-full gap-4 p-4 bg-background dark:bg-background overflow-hidden relative ${isFullscreen ? 'fixed inset-0 z-50' : ''}`}
     >
       <p className="text-xs text-muted-foreground">
         {filteredNodes.length} nodes • {filteredEdges.length} relationships
@@ -263,30 +247,19 @@ function DependencyGraphContent({
             <Home className="w-4 h-4" />
           </button>
           <button
+            onClick={handleZoomOut}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition"
+            title="Zoom out to see more nodes"
+          >
+            <ZoomOut className="w-4 h-4" />
+          </button>
+          <button
             onClick={handleFullscreen}
             className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition"
             title={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
           >
             {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
           </button>
-        </div>
-
-        {/* Zoom Slider */}
-        <div className="flex items-center gap-2 border-r border-border pr-3">
-          <label className="text-xs text-muted-foreground whitespace-nowrap">Zoom:</label>
-          <input
-            type="range"
-            min="10"
-            max="300"
-            step="1"
-            value={Math.round(zoomLevel * 100)}
-            onChange={(e) => handleZoomChange(parseInt(e.target.value) / 100)}
-            className="w-24 h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
-            title="Zoom level"
-          />
-          <span className="text-xs text-muted-foreground w-10 text-right">
-            {Math.round(zoomLevel * 100)}%
-          </span>
         </div>
 
         {/* Level Filter */}
@@ -307,13 +280,23 @@ function DependencyGraphContent({
             <option value="6">Rack</option>
           </select>
         </div>
+
+        {/* Upstream Filter */}
+        {selectedNode && (
+          <label className="flex items-center gap-2 text-xs cursor-pointer bg-blue-50 dark:bg-blue-950 px-2 py-1 rounded border border-blue-200 dark:border-blue-800">
+            <input
+              type="checkbox"
+              checked={showOnlyUpstream}
+              onChange={(e) => setShowOnlyUpstream(e.target.checked)}
+              className="rounded"
+            />
+            <span>Upstream Only</span>
+          </label>
+        )}
       </div>
 
       {/* ReactFlow Container */}
-      <div
-        ref={graphContainerRef}
-        className={`flex-1 border border-border rounded-lg overflow-hidden bg-white dark:bg-gray-900 ${isFullscreen ? 'fixed inset-0 z-50 rounded-none border-0' : ''}`}
-      >
+      <div className="flex-1 border border-border rounded-lg overflow-hidden bg-white dark:bg-gray-900">
         <ReactFlow
           nodes={filteredNodes}
           edges={filteredEdges}
