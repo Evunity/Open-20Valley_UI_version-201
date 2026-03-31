@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Activity, Zap, TrendingUp, AlertCircle, CheckCircle, BarChart3, Filter, Download } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import SearchableDropdown from './SearchableDropdown';
 
 interface PortMetric {
   id: string;
@@ -113,44 +114,49 @@ export const PortsMetricsView: React.FC<{ topology?: any }> = () => {
     <div className="flex flex-col h-full bg-background overflow-auto">
       {/* Header */}
       <div className="bg-card border-b border-border p-4 sticky top-0 z-10">
-        <div className="flex items-center gap-6 justify-between flex-wrap">
-          {/* Site Selector */}
-          <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-muted-foreground" />
-            <label className="text-sm font-medium text-foreground">Site:</label>
-            <select
-              value={selectedSite}
-              onChange={(e) => setSelectedSite(parseInt(e.target.value))}
-              className="px-3 py-1.5 border border-border rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            >
-              {siteMetrics.map((site, idx) => (
-                <option key={idx} value={idx}>{site.siteName}</option>
-              ))}
-            </select>
-          </div>
+        <div className="flex items-end gap-4 justify-between">
+          {/* Left Controls: Site + Time Range */}
+          <div className="flex items-end gap-4">
+            {/* Site Selector */}
+            <div className="w-48">
+              <SearchableDropdown
+                label="Site"
+                options={siteMetrics.map((site) => site.siteName)}
+                selected={selectedSite !== null ? [siteMetrics[selectedSite]?.siteName || ''] : []}
+                onChange={(selected) => {
+                  const idx = siteMetrics.findIndex(site => site.siteName === selected[0]);
+                  if (idx !== -1) setSelectedSite(idx);
+                }}
+                placeholder="Search sites..."
+                multiSelect={false}
+                searchable={true}
+                compact={true}
+              />
+            </div>
 
-          {/* Time Range Selector */}
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-foreground">Time Range:</label>
-            <div className="flex gap-1 p-1 bg-muted rounded-lg border border-border">
-              {(['24h', '7d', '30d'] as const).map(range => (
-                <button
-                  key={range}
-                  onClick={() => setTimeRange(range)}
-                  className={`px-4 py-1.5 rounded text-xs font-semibold transition-colors cursor-pointer ${
-                    timeRange === range
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-background text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                  }`}
-                >
-                  {range}
-                </button>
-              ))}
+            {/* Time Range Selector */}
+            <div>
+              <label className="block text-xs font-semibold text-muted-foreground mb-1">Time Range</label>
+              <div className="flex gap-1 p-1 bg-muted rounded-lg border border-border">
+                {(['24h', '7d', '30d'] as const).map(range => (
+                  <button
+                    key={range}
+                    onClick={() => setTimeRange(range)}
+                    className={`px-3 py-1.5 rounded text-xs font-semibold transition-colors cursor-pointer ${
+                      timeRange === range
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-background text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                    }`}
+                  >
+                    {range}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
           {/* Export Button */}
-          <button className="flex items-center gap-2 px-4 py-1.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition">
+          <button className="h-9 flex items-center gap-2 px-3 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition text-xs font-semibold flex-shrink-0">
             <Download className="w-4 h-4" />
             Export
           </button>
