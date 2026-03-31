@@ -141,7 +141,7 @@ export const CommandCenter: React.FC = () => {
               <button
                 key={module.id}
                 onClick={() => setActiveModule(module.id)}
-                className={`flex flex-col items-center justify-center gap-1.5 p-2 rounded-lg border-2 transition min-h-[80px] ${
+                className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-lg border-2 transition min-h-[120px] ${
                   activeModule === module.id
                     ? 'border-blue-600 bg-blue-50 dark:bg-blue-950'
                     : 'border-border hover:border-primary/40 bg-card'
