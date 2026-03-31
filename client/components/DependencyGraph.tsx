@@ -59,7 +59,7 @@ function DependencyGraphContent({
       return levelMap[node.type] || 5;
     };
 
-    // Create nodes with improved spacing - nodes far from each other
+    // Create nodes with MUCH larger spacing to prevent overlapping
     const nodesByLevel: Record<number, TopologyObject[]> = {};
 
     topology.forEach((obj) => {
@@ -74,16 +74,16 @@ function DependencyGraphContent({
 
     Object.entries(nodesByLevel).forEach(([levelStr, levelNodes]) => {
       const level = parseInt(levelStr);
-      // Distribute nodes evenly across available space
-      const itemsPerRow = Math.max(2, Math.ceil(Math.sqrt(levelNodes.length * 1.5)));
+      // Spread nodes across wider area
+      const itemsPerRow = Math.max(1, Math.ceil(Math.sqrt(levelNodes.length)));
 
       levelNodes.forEach((obj, idx) => {
         const row = Math.floor(idx / itemsPerRow);
         const col = idx % itemsPerRow;
 
-        // Much larger spacing: 400px horizontal, 280px vertical
-        const x = (col - itemsPerRow / 2) * 400;
-        const y = (level * 320) + (row * 200);
+        // MASSIVE spacing: 600px horizontal, 500px vertical between nodes
+        const x = (col - itemsPerRow / 2.5) * 600;
+        const y = (level * 500) + (row * 350);
 
         nodeMap.set(obj.id, {
           id: obj.id,
@@ -99,7 +99,7 @@ function DependencyGraphContent({
         });
       });
 
-      yOffset = Math.max(yOffset, Object.keys(nodesByLevel).length * 320);
+      yOffset = Math.max(yOffset, Object.keys(nodesByLevel).length * 500);
     });
 
     // Create edges
@@ -229,7 +229,7 @@ function DependencyGraphContent({
   return (
     <div
       ref={containerRef}
-      className={`w-full flex flex-col h-full gap-4 p-4 bg-background dark:bg-background overflow-hidden ${isFullscreen ? 'fixed inset-0 z-50' : ''}`}
+      className={`w-full flex flex-col h-full gap-4 p-4 bg-background dark:bg-background overflow-hidden relative ${isFullscreen ? 'fixed inset-0 z-50' : ''}`}
     >
       <p className="text-xs text-muted-foreground">
         {filteredNodes.length} nodes • {filteredEdges.length} relationships
@@ -312,26 +312,26 @@ function DependencyGraphContent({
         </ReactFlow>
       </div>
 
-      {/* Info Panel */}
+      {/* Floating Info Panel - Overlay on graph */}
       {selectedNode && (
-        <div className="p-4 bg-card rounded-lg border border-border">
-          <h3 className="font-bold text-foreground mb-2">{selectedNode.name}</h3>
-          <div className="grid grid-cols-4 gap-4 text-xs text-muted-foreground">
+        <div className="absolute bottom-6 right-6 w-80 p-4 bg-card rounded-lg border border-border shadow-lg z-10 max-h-48 overflow-y-auto">
+          <h3 className="font-bold text-foreground mb-3 text-sm">{selectedNode.name}</h3>
+          <div className="grid grid-cols-2 gap-3 text-xs text-muted-foreground">
             <div>
               <p className="font-semibold text-foreground">Type</p>
-              <p>{selectedNode.type}</p>
+              <p className="text-xs">{selectedNode.type}</p>
             </div>
             <div>
               <p className="font-semibold text-foreground">Health</p>
-              <p>{selectedNode.healthState}</p>
+              <p className="text-xs">{selectedNode.healthState}</p>
             </div>
             <div>
               <p className="font-semibold text-foreground">Vendor</p>
-              <p>{selectedNode.vendor || 'Unknown'}</p>
+              <p className="text-xs">{selectedNode.vendor || 'Unknown'}</p>
             </div>
             <div>
               <p className="font-semibold text-foreground">Alarms</p>
-              <p>{selectedNode.alarmSummary.critical + selectedNode.alarmSummary.major}</p>
+              <p className="text-xs">{selectedNode.alarmSummary.critical + selectedNode.alarmSummary.major}</p>
             </div>
           </div>
         </div>
