@@ -454,13 +454,8 @@ export default function AnalyticsManagement() {
           {/* KPI Search Results Dropdown */}
           {showKPIDropdown && (
             <>
-              {/* Backdrop */}
-              <div
-                className="fixed inset-0 z-10"
-                onClick={() => setShowKPIDropdown(false)}
-              />
               {/* Dropdown */}
-              <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-primary/40 rounded-lg shadow-xl z-20 max-h-72 overflow-y-auto">
+              <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-primary/40 rounded-lg shadow-xl z-50 max-h-72 overflow-y-auto">
                 {filteredKPIs.length > 0 ? (
                   <div className="divide-y divide-border/30">
                     {filteredKPIs.map((kpi) => {
