@@ -258,38 +258,6 @@ export default function ActivityAudit() {
               })}
             </div>
 
-            {/* Saved Views - only show if on activity-stream workspace */}
-            {activeWorkspace === 'activity-stream' && Object.keys(savedViews).length > 0 && (
-              <div className="space-y-1 pt-4 border-t border-border">
-                <div className="text-xs font-semibold text-purple-600/70 px-3 py-2">Saved Views</div>
-                {Object.keys(savedViews).map(viewName => (
-                  <div
-                    key={viewName}
-                    className="flex items-center gap-1 group px-2 py-1 rounded-lg hover:bg-muted/30 transition-colors"
-                  >
-                    <button
-                      onClick={() => setSelectedSavedView(viewName)}
-                      className={cn(
-                        "flex-1 flex items-start gap-3 px-1 py-1 rounded text-sm transition-colors text-left",
-                        selectedSavedView === viewName
-                          ? "text-primary"
-                          : "text-muted-foreground hover:text-foreground"
-                      )}
-                    >
-                      <Eye className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                      <span className="flex-1 truncate">{viewName}</span>
-                    </button>
-                    <button
-                      onClick={() => handleDeleteView(viewName)}
-                      className="p-1 rounded text-muted-foreground hover:text-red-600 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100"
-                      title="Delete this view"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         </div>
 
