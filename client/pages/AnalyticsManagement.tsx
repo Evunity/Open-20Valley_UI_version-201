@@ -323,7 +323,10 @@ export default function AnalyticsManagement() {
 
     const worksheet = XLSX.utils.json_to_sheet(worksheetData);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, kpi.name);
+
+    // Sanitize sheet name - remove forbidden characters
+    const sanitizedName = kpi.name.replace(/[\:\\\/?*\[\]]/g, "").substring(0, 31);
+    XLSX.utils.book_append_sheet(workbook, worksheet, sanitizedName);
 
     const range = XLSX.utils.decode_range(worksheet["!ref"] || "A1");
     for (let C = range.s.c; C <= range.e.c; ++C) {
@@ -345,7 +348,8 @@ export default function AnalyticsManagement() {
       { wch: 15 },
     ];
 
-    XLSX.writeFile(workbook, `${kpi.name.replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.xlsx`);
+    const fileName = `${kpi.name.replace(/[\:\\\/?*\[\]\s]/g, "_")}_${new Date().toISOString().split("T")[0]}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
   };
 
   const handleExportAll = () => {
@@ -355,6 +359,11 @@ export default function AnalyticsManagement() {
     }
 
     const workbook = XLSX.utils.book_new();
+
+    // Sanitize sheet names - remove forbidden characters
+    const sanitizeSheetName = (name: string): string => {
+      return name.replace(/[\:\\\/?*\[\]]/g, "").substring(0, 31);
+    };
 
     // Export ALL available KPIs, not just selected ones
     availableKPIs.forEach((kpi) => {
@@ -406,7 +415,7 @@ export default function AnalyticsManagement() {
           { wch: 15 },
         ];
 
-        XLSX.utils.book_append_sheet(workbook, worksheet, kpi.name.substring(0, 31));
+        XLSX.utils.book_append_sheet(workbook, worksheet, sanitizeSheetName(kpi.name));
       }
     });
 
