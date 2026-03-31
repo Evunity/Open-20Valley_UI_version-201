@@ -73,9 +73,23 @@ const generateFakeSiteMetrics = (): SiteMetrics[] => {
 };
 
 // Time series data for charts
-const generateTimeSeriesData = () => {
-  return Array.from({ length: 24 }, (_, i) => ({
-    time: `${i}:00`,
+const generateTimeSeriesData = (timeRange: '24h' | '7d' | '30d' = '24h') => {
+  let dataPoints = 24; // 24 hours
+  let timeFormat = (i: number) => `${i}:00`;
+
+  if (timeRange === '7d') {
+    dataPoints = 7;
+    timeFormat = (i: number) => {
+      const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      return days[i % 7];
+    };
+  } else if (timeRange === '30d') {
+    dataPoints = 30;
+    timeFormat = (i: number) => `Day ${i + 1}`;
+  }
+
+  return Array.from({ length: dataPoints }, (_, i) => ({
+    time: timeFormat(i),
     utilization: Math.floor(Math.random() * 80) + 20,
     bandwidth: Math.floor(Math.random() * 8000) + 1000,
     errors: Math.floor(Math.random() * 100),
@@ -88,7 +102,7 @@ export const PortsMetricsView: React.FC<{ topology?: any }> = () => {
   const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d'>('24h');
   
   const siteMetrics = useMemo(() => generateFakeSiteMetrics(), []);
-  const timeSeriesData = useMemo(() => generateTimeSeriesData(), []);
+  const timeSeriesData = useMemo(() => generateTimeSeriesData(timeRange), [timeRange]);
   const currentSite = siteMetrics[selectedSite];
 
   const portStatusBreakdown = useMemo(() => {
