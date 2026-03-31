@@ -73,7 +73,8 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
   const [selectedSite, setSelectedSite] = useState<string[]>([]);
   const [selectedTechnology, setSelectedTechnology] = useState<string[]>([]);
   const [guidedCommand, setGuidedCommand] = useState<{ keyword: string; params: string }>({ keyword: '', params: '' });
-  const [quickCommandView, setQuickCommandView] = useState<'all' | 'custom'>('all');
+  const [quickCommandView, setQuickCommandView] = useState<'all' | 'saved'>('all');
+  const [savedCommands, setSavedCommands] = useState<string[]>([]);
   const consoleEndRef = useRef<HTMLDivElement>(null);
 
   // Options for selectors
@@ -84,6 +85,7 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
   useEffect(() => {
     const savedHistory = localStorage.getItem('commandHistory');
     const savedCustomCommands = localStorage.getItem('customCommands');
+    const savedCmdList = localStorage.getItem('savedCommandsList');
 
     if (savedHistory) {
       try {
@@ -100,6 +102,14 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
         console.error('Failed to load custom commands:', e);
       }
     }
+
+    if (savedCmdList) {
+      try {
+        setSavedCommands(JSON.parse(savedCmdList));
+      } catch (e) {
+        console.error('Failed to load saved commands:', e);
+      }
+    }
   }, []);
 
   // Save history to localStorage whenever it changes
@@ -112,6 +122,11 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
     localStorage.setItem('customCommands', JSON.stringify(customCommands));
   }, [customCommands]);
 
+  // Save saved commands to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('savedCommandsList', JSON.stringify(savedCommands));
+  }, [savedCommands]);
+
   const scrollToBottom = () => {
     consoleEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -120,10 +135,6 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
     scrollToBottom();
   }, [history]);
 
-  // Reset quick command view when vendor changes
-  useEffect(() => {
-    setQuickCommandView('all');
-  }, [selectedVendor]);
 
   const getCommandSyntaxValidation = (cmd: string) => {
     const trimmed = cmd.trim().toUpperCase();
@@ -199,6 +210,10 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
   const addCustomCommand = () => {
     if (!newCommandInput.trim()) return;
 
+    // Add to global saved commands (persists across vendors)
+    setSavedCommands(prev => [...new Set([...prev, newCommandInput.trim()])]);
+
+    // Also add to vendor-specific for quick access
     setCustomCommands(prev => ({
       ...prev,
       [selectedVendor]: [
@@ -211,6 +226,12 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
   };
 
   const removeCustomCommand = (index: number) => {
+    const cmd = getQuickCommands()[index];
+
+    // Remove from global saved commands
+    setSavedCommands(prev => prev.filter(c => c !== cmd));
+
+    // Remove from vendor-specific
     setCustomCommands(prev => ({
       ...prev,
       [selectedVendor]: prev[selectedVendor]?.filter((_, i) => i !== index) || []
@@ -218,17 +239,17 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
   };
 
   const getQuickCommands = () => {
-    const custom = customCommands[selectedVendor] || [];
     const defaults = VENDOR_COMMANDS[selectedVendor as keyof typeof VENDOR_COMMANDS] || [];
 
-    if (quickCommandView === 'custom') {
-      return custom.slice(0, 6);
+    if (quickCommandView === 'saved') {
+      return savedCommands.slice(0, 6);
     }
 
-    return [...custom, ...defaults].slice(0, 6);
+    // Show saved commands first, then vendor defaults
+    return [...savedCommands, ...defaults].slice(0, 6);
   };
 
-  const hasCustomCommands = (customCommands[selectedVendor]?.length || 0) > 0;
+  const hasSavedCommands = savedCommands.length > 0;
 
   const { isValid } = getCommandSyntaxValidation(command);
 
@@ -328,7 +349,7 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
             <Lightbulb className="w-4 h-4 text-yellow-600" />
             Quick Commands ({selectedVendor})
           </label>
-          {hasCustomCommands && (
+          {hasSavedCommands && (
             <div className="flex gap-1 bg-muted/40 border border-border rounded p-0.5">
               <button
                 onClick={() => setQuickCommandView('all')}
@@ -341,14 +362,14 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
                 All
               </button>
               <button
-                onClick={() => setQuickCommandView('custom')}
+                onClick={() => setQuickCommandView('saved')}
                 className={`px-2 py-0.5 text-xs rounded transition ${
-                  quickCommandView === 'custom'
+                  quickCommandView === 'saved'
                     ? 'bg-primary text-primary-foreground'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                Custom
+                Saved
               </button>
             </div>
           )}
@@ -391,7 +412,7 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
 
         <div className="grid grid-cols-3 gap-1.5 mb-3">
           {getQuickCommands().map((cmd, i) => {
-            const isCustom = i < (customCommands[selectedVendor]?.length || 0);
+            const isSaved = savedCommands.includes(cmd);
             return (
               <div
                 key={i}
@@ -400,7 +421,7 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
                 <button
                   onClick={() => pasteCommand(cmd)}
                   className={`w-full px-2 py-1 text-xs border rounded transition font-mono text-left ${
-                    isCustom
+                    isSaved
                       ? 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/50'
                       : 'bg-muted/60 hover:bg-muted border-border'
                   } text-foreground`}
@@ -408,13 +429,13 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
                 >
                   {cmd.length > 20 ? cmd.substring(0, 17) + '...' : cmd}
                 </button>
-                {isCustom && (
+                {isSaved && (
                   <button
-                    onClick={() => removeCustomCommand(i)}
-                    className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-xs hover:bg-red-600"
-                    title="Remove custom command"
+                    onClick={() => setSavedCommands(prev => prev.filter(c => c !== cmd))}
+                    className="absolute -top-3 -right-3 w-6 h-6 bg-gray-300 dark:bg-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-full opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-sm font-bold border border-gray-400 dark:border-gray-600 shadow-md"
+                    title="Remove saved command"
                   >
-                    ×
+                    ✕
                   </button>
                 )}
               </div>
