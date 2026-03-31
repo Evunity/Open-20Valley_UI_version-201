@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { Download, RotateCcw, ChevronDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useDropdownManager } from "@/hooks/useDropdownManager";
+import TimeInputWithAmPm from "@/components/TimeInputWithAmPm";
 import * as XLSX from "xlsx";
 import { cn } from "@/lib/utils";
 import {
@@ -475,29 +476,19 @@ export default function TrendChartContainer({
                   {/* Time Filters */}
                   <div className="pb-3">
                     <h4 className="text-xs font-semibold text-foreground mb-3">Time Filters</h4>
-                    <div className="space-y-2">
-                      <div>
-                        <label className="text-xs font-semibold text-muted-foreground block mb-1">
-                          Start Time
-                        </label>
-                        <input
-                          type="time"
-                          value={timeZoomStart}
-                          onChange={(e) => setTimeZoomStart(e.target.value)}
-                          className="w-full px-2 py-1 rounded border border-border text-sm"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs font-semibold text-muted-foreground block mb-1">
-                          End Time
-                        </label>
-                        <input
-                          type="time"
-                          value={timeZoomEnd}
-                          onChange={(e) => setTimeZoomEnd(e.target.value)}
-                          className="w-full px-2 py-1 rounded border border-border text-sm"
-                        />
-                      </div>
+                    <div className="space-y-3">
+                      <TimeInputWithAmPm
+                        label="Start Time"
+                        value={timeZoomStart}
+                        onChange={(value) => setTimeZoomStart(value)}
+                        placeholder="HH:MM"
+                      />
+                      <TimeInputWithAmPm
+                        label="End Time"
+                        value={timeZoomEnd}
+                        onChange={(value) => setTimeZoomEnd(value)}
+                        placeholder="HH:MM"
+                      />
                     </div>
                   </div>
 

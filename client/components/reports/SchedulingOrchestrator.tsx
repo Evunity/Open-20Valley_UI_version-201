@@ -1,5 +1,8 @@
 import { Clock, Zap, CheckCircle, AlertCircle } from 'lucide-react';
 
+import { useState } from 'react';
+import TimeInputWithAmPm from '@/components/TimeInputWithAmPm';
+
 interface Schedule {
   id: string;
   reportName: string;
@@ -12,6 +15,8 @@ interface Schedule {
 }
 
 export default function SchedulingOrchestrator() {
+  const [scheduleTime, setScheduleTime] = useState('06:00');
+
   const schedules: Schedule[] = [
     {
       id: '1',
@@ -198,8 +203,12 @@ export default function SchedulingOrchestrator() {
             </div>
 
             <div>
-              <label className="text-sm font-semibold text-foreground block mb-2">Time</label>
-              <input type="time" defaultValue="06:00" className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm" />
+              <TimeInputWithAmPm
+                label="Time"
+                value={scheduleTime}
+                onChange={(value) => setScheduleTime(value)}
+                placeholder="HH:MM"
+              />
             </div>
           </div>
 
