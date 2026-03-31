@@ -402,10 +402,89 @@ export default function AnalyticsManagement() {
 
   return (
     <div className="space-y-2">
-      {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-1.5">
-        <div></div>
-        <div className="flex items-center gap-1.5">
+      {/* Header - Search bar with Views and Save buttons on one row */}
+      <div className="flex items-center gap-1.5 flex-wrap">
+        {/* KPI Search Bar - Flex left */}
+        <div className="relative flex-1 min-w-[200px]">
+          <div className={cn("bg-card border rounded p-1.5 flex items-center gap-1.5 transition-all shadow-sm", showKPIDropdown ? "border-primary ring-1 ring-primary/30 shadow-md" : "border-border hover:border-primary/30")}>
+            <Search className="w-3.5 h-3.5 text-primary flex-shrink-0 stroke-2" />
+            <input
+              type="text"
+              placeholder="Search KPIs..."
+              value={kpiSearch}
+              onChange={(e) => {
+                setKpiSearch(e.target.value);
+                setShowKPIDropdown(true);
+              }}
+              onFocus={() => setShowKPIDropdown(true)}
+              className="flex-1 bg-transparent border-0 text-xs text-foreground placeholder-muted-foreground/70 focus:outline-none font-medium"
+            />
+            {kpiSearch && (
+              <button
+                onClick={() => setKpiSearch("")}
+                className="p-0.5 text-muted-foreground hover:text-foreground transition-colors flex-shrink-0 hover:bg-muted/50 rounded"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            )}
+          </div>
+
+          {/* KPI Search Results Dropdown */}
+          {showKPIDropdown && (
+            <>
+              {/* Backdrop */}
+              <div
+                className="fixed inset-0 z-10"
+                onClick={() => setShowKPIDropdown(false)}
+              />
+              {/* Dropdown */}
+              <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-primary/40 rounded-lg shadow-xl z-20 max-h-72 overflow-y-auto">
+                {filteredKPIs.length > 0 ? (
+                  <div className="divide-y divide-border/30">
+                    {filteredKPIs.map((kpi) => {
+                      const isSelected = selectedKPIs.find((k) => k.id === kpi.id);
+                      return (
+                        <button
+                          key={kpi.id}
+                          onClick={() => {
+                            if (isSelected) {
+                              setSelectedKPIs(selectedKPIs.filter((k) => k.id !== kpi.id));
+                            } else {
+                              setSelectedKPIs([...selectedKPIs, kpi]);
+                            }
+                          }}
+                          className={cn(
+                            "w-full text-left px-2 py-1.5 text-xs transition-all flex items-start gap-2",
+                            isSelected
+                              ? "bg-primary/10 border-l-2 border-l-primary"
+                              : "hover:bg-muted/40"
+                          )}
+                        >
+                          <div className={cn("w-4 h-4 rounded border-2 flex-shrink-0 mt-0.5 flex items-center justify-center", isSelected ? "bg-primary border-primary" : "border-border")}>
+                            {isSelected && <Check className="w-2.5 h-2.5 text-primary-foreground" />}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-semibold text-xs text-foreground">{kpi.name}</div>
+                            <div className="text-[10px] text-muted-foreground mt-0.5">{kpi.category} • {kpi.technology}</div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="px-3 py-3 text-xs text-muted-foreground">
+                    {availableKPIs.length === 0
+                      ? "No KPIs match the currently applied filters."
+                      : "No KPIs match your search term in the applied filter set."}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Views and Save buttons - Right side */}
+        <div className="flex items-center gap-1.5 flex-shrink-0">
           <button
             onClick={() => setShowSavedViews(!showSavedViews)}
             className="flex items-center gap-1 px-2 py-1 rounded border border-border bg-background hover:bg-muted/50 transition-colors text-xs font-medium"
@@ -519,84 +598,6 @@ export default function AnalyticsManagement() {
         </div>
       )}
 
-      {/* KPI Search Bar - FULL WIDTH with Dropdown */}
-      <div className="relative">
-        <div className={cn("bg-card border rounded p-1.5 flex items-center gap-1.5 transition-all shadow-sm", showKPIDropdown ? "border-primary ring-1 ring-primary/30 shadow-md" : "border-border hover:border-primary/30")}>
-          <Search className="w-3.5 h-3.5 text-primary flex-shrink-0 stroke-2" />
-          <input
-            type="text"
-            placeholder="Search KPIs..."
-            value={kpiSearch}
-            onChange={(e) => {
-              setKpiSearch(e.target.value);
-              setShowKPIDropdown(true);
-            }}
-            onFocus={() => setShowKPIDropdown(true)}
-            className="flex-1 bg-transparent border-0 text-xs text-foreground placeholder-muted-foreground/70 focus:outline-none font-medium"
-          />
-          {kpiSearch && (
-            <button
-              onClick={() => setKpiSearch("")}
-              className="p-0.5 text-muted-foreground hover:text-foreground transition-colors flex-shrink-0 hover:bg-muted/50 rounded"
-            >
-              <X className="w-3 h-3" />
-            </button>
-          )}
-        </div>
-
-        {/* KPI Search Results Dropdown */}
-        {showKPIDropdown && (
-          <>
-            {/* Backdrop */}
-            <div
-              className="fixed inset-0 z-10"
-              onClick={() => setShowKPIDropdown(false)}
-            />
-            {/* Dropdown */}
-            <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-primary/40 rounded-lg shadow-xl z-20 max-h-72 overflow-y-auto">
-              {filteredKPIs.length > 0 ? (
-                <div className="divide-y divide-border/30">
-                  {filteredKPIs.map((kpi) => {
-                    const isSelected = selectedKPIs.find((k) => k.id === kpi.id);
-                    return (
-                      <button
-                        key={kpi.id}
-                        onClick={() => {
-                          if (isSelected) {
-                            setSelectedKPIs(selectedKPIs.filter((k) => k.id !== kpi.id));
-                          } else {
-                            setSelectedKPIs([...selectedKPIs, kpi]);
-                          }
-                        }}
-                        className={cn(
-                          "w-full text-left px-2 py-1.5 text-xs transition-all flex items-start gap-2",
-                          isSelected
-                            ? "bg-primary/10 border-l-2 border-l-primary"
-                            : "hover:bg-muted/40"
-                        )}
-                      >
-                        <div className={cn("w-4 h-4 rounded border-2 flex-shrink-0 mt-0.5 flex items-center justify-center", isSelected ? "bg-primary border-primary" : "border-border")}>
-                          {isSelected && <Check className="w-2.5 h-2.5 text-primary-foreground" />}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-xs text-foreground">{kpi.name}</div>
-                          <div className="text-[10px] text-muted-foreground mt-0.5">{kpi.category} • {kpi.technology}</div>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="px-3 py-3 text-xs text-muted-foreground">
-                  {availableKPIs.length === 0
-                    ? "No KPIs match the currently applied filters."
-                    : "No KPIs match your search term in the applied filter set."}
-                </div>
-              )}
-            </div>
-          </>
-        )}
-      </div>
 
       {isGenerated && availableKPIs.length === 0 && (
         <div className="bg-card border border-dashed border-border rounded-lg p-4">
