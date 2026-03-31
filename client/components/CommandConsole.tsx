@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Copy, Check, ChevronDown, Lightbulb } from 'lucide-react';
+import { Send, Copy, Check, ChevronDown, Lightbulb, X } from 'lucide-react';
 import SearchableDropdown from './SearchableDropdown';
 
 interface ConsoleProps {
@@ -432,10 +432,10 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
                 {isSaved && (
                   <button
                     onClick={() => setSavedCommands(prev => prev.filter(c => c !== cmd))}
-                    className="absolute -top-3 -right-3 w-6 h-6 bg-gray-300 dark:bg-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-full opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-sm font-bold border border-gray-400 dark:border-gray-600 shadow-md"
+                    className="absolute -top-2 -right-2 w-4 h-4 bg-gray-400 dark:bg-gray-600 hover:bg-gray-500 dark:hover:bg-gray-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-xs shadow-sm"
                     title="Remove saved command"
                   >
-                    ✕
+                    <X className="w-3 h-3" />
                   </button>
                 )}
               </div>
