@@ -47,13 +47,15 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
   const allowHourly = daysDiff <= 3;
   const shouldForceDaily = daysDiff > 3;
 
-  // Auto-adjust granularity if needed
-  if (shouldForceDaily && stagedFilters.timeGranularity === "hours") {
-    handleStagedFilterChange({
-      ...stagedFilters,
-      timeGranularity: "days",
-    });
-  }
+  // Auto-adjust granularity when date range changes and makes hourly invalid
+  useEffect(() => {
+    if (shouldForceDaily && stagedFilters.timeGranularity === "hours") {
+      setStagedFilters((prev) => ({
+        ...prev,
+        timeGranularity: "days",
+      }));
+    }
+  }, [daysDiff]);
 
   const activeFilterCount =
     stagedFilters.vendors.length +
