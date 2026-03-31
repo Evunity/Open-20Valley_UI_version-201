@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { Download, RotateCcw, ChevronDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useDropdownManager } from "@/hooks/useDropdownManager";
 import * as XLSX from "xlsx";
 import { cn } from "@/lib/utils";
 import {
@@ -57,12 +58,18 @@ export default function TrendChartContainer({
   onChartTypeChange,
 }: TrendChartContainerProps) {
   const { toast } = useToast();
+
+  // Generate unique IDs for this chart instance based on title
+  const chartTypeMenuId = `chart-type-menu-${title.replace(/\s+/g, '-').toLowerCase()}`;
+  const zoomControlsId = `zoom-controls-${title.replace(/\s+/g, '-').toLowerCase()}`;
+
+  const { isOpen: showChartTypeMenu, toggle: toggleChartTypeMenu, close: closeChartTypeMenu } = useDropdownManager(chartTypeMenuId);
+  const { isOpen: showZoomControls, toggle: toggleZoomControls, close: closeZoomControls } = useDropdownManager(zoomControlsId);
+
   const [isExporting, setIsExporting] = useState(false);
   const [chartType, setChartType] = useState<ChartType>(defaultChartType);
   const [zoomStart, setZoomStart] = useState(0);
   const [zoomEnd, setZoomEnd] = useState(data.length - 1);
-  const [showChartTypeMenu, setShowChartTypeMenu] = useState(false);
-  const [showZoomControls, setShowZoomControls] = useState(false);
   const [dateZoomStart, setDateZoomStart] = useState("");
   const [dateZoomEnd, setDateZoomEnd] = useState("");
   const [timeZoomStart, setTimeZoomStart] = useState("");
@@ -153,7 +160,7 @@ export default function TrendChartContainer({
 
   const handleChartTypeChange = (type: ChartType) => {
     setChartType(type);
-    setShowChartTypeMenu(false);
+    closeChartTypeMenu();
     onChartTypeChange?.(type);
   };
 
@@ -386,7 +393,7 @@ export default function TrendChartContainer({
           {/* Chart Type Selector */}
           <div className="relative">
             <button
-              onClick={() => setShowChartTypeMenu(!showChartTypeMenu)}
+              onClick={toggleChartTypeMenu}
               className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-background hover:bg-muted/50 transition-colors text-sm font-medium"
               title="Change chart type"
             >
@@ -418,7 +425,7 @@ export default function TrendChartContainer({
           {zoomable && (
             <div className="relative">
               <button
-                onClick={() => setShowZoomControls(!showZoomControls)}
+                onClick={toggleZoomControls}
                 className={cn(
                   "inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-background hover:bg-muted/50 transition-colors text-sm font-medium",
                   (zoomStart > 0 || zoomEnd < data.length - 1) &&

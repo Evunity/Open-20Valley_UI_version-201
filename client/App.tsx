@@ -3,6 +3,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { FilterProvider } from "@/hooks/useGlobalFilters";
+import { DropdownProvider } from "@/hooks/useDropdownManager";
 import ScrollToTop from "@/components/ScrollToTop";
 import Layout from "@/components/Layout";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -38,9 +39,10 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <FilterProvider>
-        <TooltipProvider>
-          <Toaster />
-          <AuthProvider>
+        <DropdownProvider>
+          <TooltipProvider>
+            <Toaster />
+            <AuthProvider>
             <BrowserRouter>
               <ScrollToTop />
               <Routes>
@@ -281,6 +283,7 @@ export default function App() {
             </BrowserRouter>
           </AuthProvider>
         </TooltipProvider>
+        </DropdownProvider>
       </FilterProvider>
     </QueryClientProvider>
   );

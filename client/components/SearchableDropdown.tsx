@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { ChevronDown, X, Search, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useDropdownManager } from "@/hooks/useDropdownManager";
 
 interface SearchableDropdownProps {
   label: string;
@@ -12,6 +13,7 @@ interface SearchableDropdownProps {
   disabledOptions?: string[];
   searchable?: boolean;
   compact?: boolean;
+  dropdownId?: string;
 }
 
 export default function SearchableDropdown({
@@ -24,8 +26,12 @@ export default function SearchableDropdown({
   disabledOptions = [],
   searchable = true,
   compact = false,
+  dropdownId,
 }: SearchableDropdownProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  // Generate unique ID from label if not provided
+  const uniqueId = dropdownId || `dropdown-${label.replace(/\s+/g, '-').toLowerCase()}`;
+  const { isOpen, toggle: toggleDropdown, close: closeDropdown } = useDropdownManager(uniqueId);
+
   const [searchTerm, setSearchTerm] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -36,13 +42,13 @@ export default function SearchableDropdown({
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
+        closeDropdown();
       }
     }
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [closeDropdown]);
 
   const toggleOption = (option: string) => {
     if (disabledOptions.includes(option)) {
@@ -53,10 +59,10 @@ export default function SearchableDropdown({
       // In single-select mode, allow toggle - if clicking the same option, deselect it
       if (selected.includes(option)) {
         onChange([]);
-        setIsOpen(false);
+        closeDropdown();
       } else {
         onChange([option]);
-        setIsOpen(false);
+        closeDropdown();
       }
       return;
     }
@@ -86,13 +92,13 @@ export default function SearchableDropdown({
       )}
 
       <div
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={toggleDropdown}
         role="button"
         tabIndex={0}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
-            setIsOpen(!isOpen);
+            toggleDropdown();
           }
         }}
         className={cn(
@@ -240,7 +246,7 @@ export default function SearchableDropdown({
               </button>
               {multiSelect && (
                 <button
-                  onClick={() => setIsOpen(false)}
+                  onClick={closeDropdown}
                   className={cn(
                     "flex-1 px-2 text-xs rounded bg-primary/10 hover:bg-primary/20 transition-all text-primary font-medium",
                     compact ? "py-1.5" : "py-1.5"
