@@ -703,7 +703,7 @@ export default function DataAnalytics() {
                           <div
                             key={`${row.name}-cell-${cellIdx}`}
                             className={cn(
-                              "w-24 h-10 rounded flex items-center justify-center text-xs font-bold text-gray-900",
+                              "w-24 h-16 rounded flex items-center justify-center text-sm font-bold text-gray-900",
                               bgColor
                             )}
                             title={`${row.name} - ${cell.value.toFixed(1)}%`}
@@ -778,7 +778,7 @@ export default function DataAnalytics() {
                           <div
                             key={`${row.name}-cell-${cellIdx}`}
                             className={cn(
-                              "w-24 h-10 rounded flex items-center justify-center text-xs font-bold text-gray-900",
+                              "w-24 h-16 rounded flex items-center justify-center text-sm font-bold text-gray-900",
                               bgColor
                             )}
                             title={`${row.name} - ${cell.value.toFixed(1)}%`}
