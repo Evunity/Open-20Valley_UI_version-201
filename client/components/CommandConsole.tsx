@@ -73,11 +73,44 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
   const [selectedSite, setSelectedSite] = useState<string[]>([]);
   const [selectedTechnology, setSelectedTechnology] = useState<string[]>([]);
   const [guidedCommand, setGuidedCommand] = useState<{ keyword: string; params: string }>({ keyword: '', params: '' });
+  const [quickCommandView, setQuickCommandView] = useState<'all' | 'custom'>('all');
   const consoleEndRef = useRef<HTMLDivElement>(null);
 
   // Options for selectors
   const SITE_OPTIONS = ['Site-A', 'Site-B', 'Site-C', 'Site-D'];
   const TECHNOLOGY_OPTIONS = ['2G', '3G', '4G', '5G', 'O-RAN'];
+
+  // Load from localStorage on mount
+  useEffect(() => {
+    const savedHistory = localStorage.getItem('commandHistory');
+    const savedCustomCommands = localStorage.getItem('customCommands');
+
+    if (savedHistory) {
+      try {
+        setHistory(JSON.parse(savedHistory));
+      } catch (e) {
+        console.error('Failed to load history:', e);
+      }
+    }
+
+    if (savedCustomCommands) {
+      try {
+        setCustomCommands(JSON.parse(savedCustomCommands));
+      } catch (e) {
+        console.error('Failed to load custom commands:', e);
+      }
+    }
+  }, []);
+
+  // Save history to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('commandHistory', JSON.stringify(history));
+  }, [history]);
+
+  // Save custom commands to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('customCommands', JSON.stringify(customCommands));
+  }, [customCommands]);
 
   const scrollToBottom = () => {
     consoleEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -86,6 +119,11 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
   useEffect(() => {
     scrollToBottom();
   }, [history]);
+
+  // Reset quick command view when vendor changes
+  useEffect(() => {
+    setQuickCommandView('all');
+  }, [selectedVendor]);
 
   const getCommandSyntaxValidation = (cmd: string) => {
     const trimmed = cmd.trim().toUpperCase();
@@ -145,7 +183,6 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
     };
 
     setHistory([...history, newEntry]);
-    setCommand('');
     setShowSuggestions(false);
   };
 
@@ -183,8 +220,15 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
   const getQuickCommands = () => {
     const custom = customCommands[selectedVendor] || [];
     const defaults = VENDOR_COMMANDS[selectedVendor as keyof typeof VENDOR_COMMANDS] || [];
+
+    if (quickCommandView === 'custom') {
+      return custom.slice(0, 6);
+    }
+
     return [...custom, ...defaults].slice(0, 6);
   };
+
+  const hasCustomCommands = (customCommands[selectedVendor]?.length || 0) > 0;
 
   const { isValid } = getCommandSyntaxValidation(command);
 
@@ -279,11 +323,35 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
 
       {/* Quick Commands */}
       <div>
-        <div className="mb-1">
+        <div className="mb-2 flex items-center justify-between">
           <label className="block text-xs font-semibold text-muted-foreground flex items-center gap-1">
             <Lightbulb className="w-4 h-4 text-yellow-600" />
             Quick Commands ({selectedVendor})
           </label>
+          {hasCustomCommands && (
+            <div className="flex gap-1 bg-muted/40 border border-border rounded p-0.5">
+              <button
+                onClick={() => setQuickCommandView('all')}
+                className={`px-2 py-0.5 text-xs rounded transition ${
+                  quickCommandView === 'all'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                All
+              </button>
+              <button
+                onClick={() => setQuickCommandView('custom')}
+                className={`px-2 py-0.5 text-xs rounded transition ${
+                  quickCommandView === 'custom'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Custom
+              </button>
+            </div>
+          )}
         </div>
 
         {showAddCommand && (
