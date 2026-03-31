@@ -42,35 +42,140 @@ export const TransportPathView: React.FC<TransportPathViewProps> = ({ onPathSele
 
   const regions = ['Cairo', 'Alexandria', 'Giza', 'Suez', 'Mansoura'];
 
-  // Mock transport paths
-  const mockPaths: TransportPath[] = [
-    {
-      source: 'Cairo',
-      destination: 'Alexandria',
-      type: 'fiber',
-      protectionState: 'active',
-      primary: [
-        { name: 'Cairo-Core', type: 'Router', health: 'healthy', latency: 0, utilization: 45 },
-        { name: 'Giza-Hub', type: 'Optical Node', health: 'healthy', latency: 2.5, utilization: 55 },
-        { name: 'Alexandria-Core', type: 'Router', health: 'healthy', latency: 5.2, utilization: 48 }
+  // Generate mock paths based on topology type
+  const generateMockPathsForTopology = (pattern: TopologyPattern): TransportPath[] => {
+    const basePaths: Record<TopologyPattern, TransportPath[]> = {
+      tree: [
+        {
+          source: 'Cairo',
+          destination: 'Alexandria',
+          type: 'fiber',
+          protectionState: 'active',
+          primary: [
+            { name: 'Cairo-Core', type: 'Router', health: 'healthy', latency: 0, utilization: 45 },
+            { name: 'Cairo-Hub', type: 'Optical Node', health: 'healthy', latency: 1.2, utilization: 50 },
+            { name: 'Alexandria-Core', type: 'Router', health: 'healthy', latency: 3.8, utilization: 48 }
+          ]
+        },
+        {
+          source: 'Cairo',
+          destination: 'Giza',
+          type: 'fiber',
+          protectionState: 'active',
+          primary: [
+            { name: 'Cairo-Core', type: 'Router', health: 'healthy', latency: 0, utilization: 35 },
+            { name: 'Giza-Access', type: 'Switch', health: 'healthy', latency: 0.5, utilization: 40 }
+          ]
+        }
       ],
-      backup: [
-        { name: 'Cairo-Core', type: 'Router', health: 'healthy', latency: 0, utilization: 10 },
-        { name: 'Suez-Hub', type: 'Optical Node', health: 'healthy', latency: 8.5, utilization: 8 },
-        { name: 'Alexandria-Core', type: 'Router', health: 'healthy', latency: 13.7, utilization: 9 }
+      ring: [
+        {
+          source: 'Cairo',
+          destination: 'Alexandria',
+          type: 'fiber',
+          protectionState: 'active',
+          primary: [
+            { name: 'Cairo-Ring-Node1', type: 'Router', health: 'healthy', latency: 0, utilization: 55 },
+            { name: 'Giza-Ring-Node', type: 'Router', health: 'healthy', latency: 2.1, utilization: 58 },
+            { name: 'Alexandria-Ring-Node1', type: 'Router', health: 'healthy', latency: 4.6, utilization: 52 }
+          ],
+          backup: [
+            { name: 'Cairo-Ring-Node1', type: 'Router', health: 'healthy', latency: 0, utilization: 10 },
+            { name: 'Suez-Ring-Node', type: 'Router', health: 'healthy', latency: 5.8, utilization: 12 },
+            { name: 'Alexandria-Ring-Node2', type: 'Router', health: 'healthy', latency: 10.4, utilization: 11 }
+          ]
+        }
+      ],
+      mesh: [
+        {
+          source: 'Cairo',
+          destination: 'Alexandria',
+          type: 'fiber',
+          protectionState: 'active',
+          primary: [
+            { name: 'Cairo-Mesh-Core', type: 'Router', health: 'healthy', latency: 0, utilization: 62 },
+            { name: 'Alexandria-Mesh-Core', type: 'Router', health: 'healthy', latency: 3.2, utilization: 60 }
+          ],
+          backup: [
+            { name: 'Cairo-Mesh-Core', type: 'Router', health: 'healthy', latency: 0, utilization: 58 },
+            { name: 'Giza-Mesh-Node', type: 'Router', health: 'healthy', latency: 1.8, utilization: 56 },
+            { name: 'Suez-Mesh-Node', type: 'Router', health: 'healthy', latency: 6.5, utilization: 54 },
+            { name: 'Alexandria-Mesh-Core', type: 'Router', health: 'healthy', latency: 8.3, utilization: 55 }
+          ]
+        }
+      ],
+      star: [
+        {
+          source: 'Cairo',
+          destination: 'Alexandria',
+          type: 'fiber',
+          protectionState: 'active',
+          primary: [
+            { name: 'Cairo-Access', type: 'Switch', health: 'healthy', latency: 0, utilization: 40 },
+            { name: 'Central-Hub', type: 'Core Router', health: 'healthy', latency: 2.5, utilization: 75 },
+            { name: 'Alexandria-Access', type: 'Switch', health: 'healthy', latency: 5.1, utilization: 38 }
+          ]
+        },
+        {
+          source: 'Cairo',
+          destination: 'Giza',
+          type: 'fiber',
+          protectionState: 'active',
+          primary: [
+            { name: 'Cairo-Access', type: 'Switch', health: 'healthy', latency: 0, utilization: 40 },
+            { name: 'Central-Hub', type: 'Core Router', health: 'healthy', latency: 2.5, utilization: 75 },
+            { name: 'Giza-Access', type: 'Switch', health: 'healthy', latency: 4.8, utilization: 35 }
+          ]
+        }
+      ],
+      hybrid: [
+        {
+          source: 'Cairo',
+          destination: 'Alexandria',
+          type: 'fiber',
+          protectionState: 'active',
+          primary: [
+            { name: 'Cairo-Core', type: 'Router', health: 'healthy', latency: 0, utilization: 48 },
+            { name: 'Cairo-Hub', type: 'Optical Node', health: 'healthy', latency: 1.5, utilization: 52 },
+            { name: 'Giza-Node', type: 'Router', health: 'healthy', latency: 3.2, utilization: 50 },
+            { name: 'Alexandria-Core', type: 'Router', health: 'healthy', latency: 5.8, utilization: 46 }
+          ],
+          backup: [
+            { name: 'Cairo-Core', type: 'Router', health: 'healthy', latency: 0, utilization: 15 },
+            { name: 'Suez-Node', type: 'Router', health: 'degraded', latency: 6.2, utilization: 18 },
+            { name: 'Alexandria-Core', type: 'Router', health: 'healthy', latency: 9.4, utilization: 16 }
+          ]
+        }
+      ],
+      p2p: [
+        {
+          source: 'Cairo',
+          destination: 'Alexandria',
+          type: 'microwave',
+          protectionState: 'active',
+          primary: [
+            { name: 'Cairo-P2P-TX', type: 'Microwave', health: 'healthy', latency: 0, utilization: 85 },
+            { name: 'Alexandria-P2P-RX', type: 'Microwave', health: 'healthy', latency: 2.4, utilization: 83 }
+          ]
+        },
+        {
+          source: 'Cairo',
+          destination: 'Suez',
+          type: 'ip',
+          protectionState: 'active',
+          primary: [
+            { name: 'Cairo-BGP', type: 'BGP Router', health: 'healthy', latency: 0, utilization: 42 },
+            { name: 'Suez-BGP', type: 'BGP Router', health: 'healthy', latency: 3.7, utilization: 40 }
+          ]
+        }
       ]
-    },
-    {
-      source: 'Cairo',
-      destination: 'Suez',
-      type: 'microwave',
-      protectionState: 'active',
-      primary: [
-        { name: 'Cairo-MW', type: 'Microwave', health: 'healthy', latency: 0, utilization: 72 },
-        { name: 'Suez-MW', type: 'Microwave', health: 'degraded', latency: 3.1, utilization: 75 }
-      ]
-    }
-  ];
+    };
+
+    return basePaths[pattern] || [];
+  };
+
+  // Mock transport paths - use generated data based on topology
+  const mockPaths = generateMockPathsForTopology(topologyType);
 
   const selectedTransportPath = mockPaths.find(
     p => p.source === sourceRegion && p.destination === destRegion
