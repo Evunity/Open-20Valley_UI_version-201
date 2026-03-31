@@ -736,12 +736,7 @@ export default function DashboardNew() {
               <div
                 key={kpi.id}
                   className={cn(
-                  "p-3 rounded-lg border transition-all duration-200 hover:shadow-sm hover:border-primary/50",
-                  kpiValue.status === "healthy"
-                    ? "border-status-healthy/20 bg-status-healthy/5"
-                    : kpiValue.status === "critical"
-                      ? "border-status-critical/20 bg-status-critical/5"
-                      : "border-border bg-card"
+                  "p-3 rounded-lg border border-border bg-card transition-all duration-200 hover:shadow-sm hover:border-primary/50"
                 )}
               >
                 <div className="flex items-start justify-between gap-2 mb-1">
