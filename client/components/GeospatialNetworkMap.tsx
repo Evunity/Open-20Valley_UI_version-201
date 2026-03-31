@@ -131,8 +131,12 @@ export const GeospatialNetworkMap: React.FC<GeospatialNetworkMapProps> = ({
 }) => {
   const [zoomLevel, setZoomLevel] = useState(6);
 
-  // Filter objects with valid geo coordinates
-  const geoObjects = topology.filter(obj => obj.geoCoordinates && obj.type !== 'country');
+  // Filter objects with valid geo coordinates - only show important types to reduce clutter
+  const geoObjects = topology.filter(obj =>
+    obj.geoCoordinates &&
+    obj.type !== 'country' &&
+    (obj.type === 'site' || obj.type === 'cluster' || obj.type === 'region')
+  );
 
   // Calculate statistics
   const healthyCount = geoObjects.filter(o => o.healthState === 'healthy').length;
