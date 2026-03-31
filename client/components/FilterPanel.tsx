@@ -356,8 +356,7 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
           </button>
           <button
             onClick={() => {
-              resetFilters();
-              onFiltersChange?.({
+              const emptyFilters = {
                 vendors: [],
                 technologies: [],
                 regions: [],
@@ -365,7 +364,10 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
                 countries: [],
                 dateRange: { from: null, to: null },
                 timeGranularity: "days",
-              });
+              };
+              setStagedFilters(emptyFilters);
+              setFilters(emptyFilters);
+              onFiltersChange?.(emptyFilters);
             }}
             className="control-height px-4 rounded border border-border text-foreground hover:bg-muted/50 transition-colors typo-button"
             title="Clear all filters"
