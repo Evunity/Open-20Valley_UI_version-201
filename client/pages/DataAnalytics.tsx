@@ -867,11 +867,11 @@ export default function DataAnalytics() {
                   <div className="w-full">
                     {/* Column headers */}
                     <div className="flex gap-0.5 mb-2">
-                      <div className="w-14 sm:w-16"></div>
+                      <div className="w-14 sm:w-16 flex-shrink-0"></div>
                       {columnHeaders.map((header, colIdx) => (
                         <div
                           key={`header-${colIdx}`}
-                          className="w-6 sm:w-8 text-center text-xs font-semibold text-muted-foreground dark:text-muted-foreground"
+                          className="flex-1 min-w-0 text-center text-xs font-semibold text-muted-foreground dark:text-muted-foreground"
                         >
                           {header}
                         </div>
@@ -881,7 +881,7 @@ export default function DataAnalytics() {
                     {/* Heatmap rows */}
                     {hourlyUtilizationHeatmap.map((row) => (
                       <div key={row.name} className="flex gap-0.5 mb-2">
-                        <div className="w-14 sm:w-16 text-xs font-semibold text-muted-foreground dark:text-muted-foreground flex items-center truncate">
+                        <div className="w-14 sm:w-16 flex-shrink-0 text-xs font-semibold text-muted-foreground dark:text-muted-foreground flex items-center truncate">
                           {row.name}
                         </div>
                         {row.cells.slice(0, columnHeaders.length).map((cell, cellIdx) => {
@@ -897,7 +897,7 @@ export default function DataAnalytics() {
                           return (
                             <div
                               key={`${row.name}-cell-${cellIdx}`}
-                              className={cn("w-6 h-6 sm:w-8 sm:h-8 rounded", bgColor)}
+                              className={cn("flex-1 min-h-6 sm:min-h-8 rounded flex items-center justify-center", bgColor)}
                               title={`${row.name} ${tooltipPrefix} ${columnHeaders[cellIdx]} - ${cell.value.toFixed(1)}%`}
                             ></div>
                           );
