@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Download } from "lucide-react";
 import * as XLSX from "xlsx";
 import {
@@ -40,6 +40,9 @@ import { cn } from "@/lib/utils";
 export default function DataAnalytics() {
   const { toast } = useToast();
   const { filters } = useGlobalFilters();
+  const [heatmapDate, setHeatmapDate] = useState<string>(
+    new Date().toISOString().split("T")[0]
+  );
 
   // Generate data
   const kpis = useMemo(() => generateDataKPIs(filters), [filters]);
@@ -72,7 +75,10 @@ export default function DataAnalytics() {
   // Generate heatmap data
   const timeRegionHeatmap = useMemo(() => generateTimeRegionHeatmap(), []);
   const techCapacityHeatmap = useMemo(() => generateTechCapacityHeatmap(), []);
-  const hourlyUtilizationHeatmap = useMemo(() => generateHourlyUtilizationHeatmap(), []);
+  const hourlyUtilizationHeatmap = useMemo(
+    () => generateHourlyUtilizationHeatmap(heatmapDate),
+    [heatmapDate]
+  );
 
   // Generate data insights
   const dataInsights = useMemo(
@@ -849,15 +855,16 @@ export default function DataAnalytics() {
                       <label className="text-xs font-semibold text-muted-foreground">Date:</label>
                       <input
                         type="date"
+                        value={heatmapDate}
+                        onChange={(e) => setHeatmapDate(e.target.value)}
                         className="px-3 py-1.5 rounded border border-border text-xs bg-background text-foreground focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                        defaultValue={new Date().toISOString().split("T")[0]}
                         title="Select date for heatmap"
                       />
                     </div>
                   )}
                 </div>
                 <div className="overflow-x-auto -mx-6 px-6">
-                  <div className="min-w-max">
+                  <div className="w-full">
                     {/* Column headers */}
                     <div className="flex gap-0.5 mb-2">
                       <div className="w-14 sm:w-16"></div>

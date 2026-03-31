@@ -684,10 +684,20 @@ export const generateTechCapacityHeatmap = (): HeatmapRow[] => {
 };
 
 // Hourly utilization pattern - shows usage pattern across 24 hours
-export const generateHourlyUtilizationHeatmap = (): HeatmapRow[] => {
+export const generateHourlyUtilizationHeatmap = (selectedDate?: string): HeatmapRow[] => {
   const days = Array.from({ length: 7 }, (_, i) => {
-    const date = new Date();
-    date.setDate(date.getDate() - (6 - i));
+    let date = new Date();
+
+    if (selectedDate) {
+      // If a specific date is selected, show that date and 6 days around it
+      const selected = new Date(selectedDate);
+      date = new Date(selected);
+      date.setDate(date.getDate() - (6 - i));
+    } else {
+      // Default: last 7 days
+      date.setDate(date.getDate() - (6 - i));
+    }
+
     const day = String(date.getDate()).padStart(2, "0");
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
