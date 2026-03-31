@@ -36,7 +36,6 @@ function DependencyGraphContent({
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [filterLevel, setFilterLevel] = useState<string>('all');
-  const [showOnlyUpstream, setShowOnlyUpstream] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -133,7 +132,19 @@ function DependencyGraphContent({
     }, 100);
   }, [topology, setNodes, setEdges, fitView, selectedNode]);
 
-  // Filter nodes and edges based on level and upstream only
+  // Handle fullscreen change events
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
+
+  // Filter nodes and edges based on level
   const filteredNodes = useMemo(() => {
     let result = nodes;
 
@@ -160,27 +171,8 @@ function DependencyGraphContent({
       });
     }
 
-    // Apply upstream only filter
-    if (showOnlyUpstream && selectedNode) {
-      const upstreamIds = new Set<string>();
-
-      // Find all upstream nodes (ancestors)
-      const findUpstream = (nodeId: string) => {
-        const topoObj = topology.find(t => t.id === nodeId);
-        if (topoObj && topoObj.parentId) {
-          upstreamIds.add(topoObj.parentId);
-          findUpstream(topoObj.parentId);
-        }
-      };
-
-      upstreamIds.add(selectedNode.id);
-      findUpstream(selectedNode.id);
-
-      result = result.filter(n => upstreamIds.has(n.id));
-    }
-
     return result;
-  }, [nodes, filterLevel, topology, showOnlyUpstream, selectedNode]);
+  }, [nodes, filterLevel, topology]);
 
   const filteredEdges = useMemo(() => {
     const filteredNodeIds = new Set(filteredNodes.map(n => n.id));
@@ -280,19 +272,6 @@ function DependencyGraphContent({
             <option value="6">Rack</option>
           </select>
         </div>
-
-        {/* Upstream Filter */}
-        {selectedNode && (
-          <label className="flex items-center gap-2 text-xs cursor-pointer bg-blue-50 dark:bg-blue-950 px-2 py-1 rounded border border-blue-200 dark:border-blue-800">
-            <input
-              type="checkbox"
-              checked={showOnlyUpstream}
-              onChange={(e) => setShowOnlyUpstream(e.target.checked)}
-              className="rounded"
-            />
-            <span>Upstream Only</span>
-          </label>
-        )}
       </div>
 
       {/* ReactFlow Container */}
