@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { RotateCcw, Eye, Download, X } from 'lucide-react';
+import { RotateCcw, Eye, Download } from 'lucide-react';
 import SearchableDropdown from './SearchableDropdown';
 
 interface AuditRollbackCenterProps {
@@ -128,91 +128,39 @@ export const AuditRollbackCenter: React.FC<AuditRollbackCenterProps> = () => {
   return (
     <div className="flex flex-col h-full gap-4 p-4">
       {/* Filters */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-foreground">Filters</h3>
-          {(selectedSite.length > 0 || selectedTechnology.length > 0 || selectedVendor.length > 0) && (
-            <button
-              onClick={() => {
-                setSelectedSite([]);
-                setSelectedTechnology([]);
-                setSelectedVendor([]);
-              }}
-              className="text-xs px-2 py-1 bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300 rounded hover:bg-red-200 dark:hover:bg-red-900 font-semibold transition flex items-center gap-1"
-            >
-              <X className="w-3 h-3" />
-              Clear All
-            </button>
-          )}
-        </div>
+      <div className="grid grid-cols-3 gap-3">
+        <SearchableDropdown
+          label="Site"
+          options={SITE_OPTIONS}
+          selected={selectedSite}
+          onChange={setSelectedSite}
+          placeholder="All Sites"
+          multiSelect={false}
+          searchable={true}
+          compact={true}
+        />
 
-        <div className="grid grid-cols-3 gap-3">
-          <div className="relative">
-            <SearchableDropdown
-              label="Site"
-              options={SITE_OPTIONS}
-              selected={selectedSite}
-              onChange={setSelectedSite}
-              placeholder="All Sites"
-              multiSelect={false}
-              searchable={true}
-              compact={true}
-            />
-            {selectedSite.length > 0 && (
-              <button
-                onClick={() => setSelectedSite([])}
-                className="absolute top-2 right-2 p-1 hover:bg-red-100 dark:hover:bg-red-950 rounded transition"
-                title="Clear site filter"
-              >
-                <X className="w-3 h-3 text-red-600 dark:text-red-400" />
-              </button>
-            )}
-          </div>
+        <SearchableDropdown
+          label="Technology"
+          options={TECHNOLOGY_OPTIONS}
+          selected={selectedTechnology}
+          onChange={setSelectedTechnology}
+          placeholder="All Technologies"
+          multiSelect={false}
+          searchable={true}
+          compact={true}
+        />
 
-          <div className="relative">
-            <SearchableDropdown
-              label="Technology"
-              options={TECHNOLOGY_OPTIONS}
-              selected={selectedTechnology}
-              onChange={setSelectedTechnology}
-              placeholder="All Technologies"
-              multiSelect={false}
-              searchable={true}
-              compact={true}
-            />
-            {selectedTechnology.length > 0 && (
-              <button
-                onClick={() => setSelectedTechnology([])}
-                className="absolute top-2 right-2 p-1 hover:bg-red-100 dark:hover:bg-red-950 rounded transition"
-                title="Clear technology filter"
-              >
-                <X className="w-3 h-3 text-red-600 dark:text-red-400" />
-              </button>
-            )}
-          </div>
-
-          <div className="relative">
-            <SearchableDropdown
-              label="Vendor"
-              options={VENDOR_OPTIONS}
-              selected={selectedVendor}
-              onChange={setSelectedVendor}
-              placeholder="All Vendors"
-              multiSelect={false}
-              searchable={true}
-              compact={true}
-            />
-            {selectedVendor.length > 0 && (
-              <button
-                onClick={() => setSelectedVendor([])}
-                className="absolute top-2 right-2 p-1 hover:bg-red-100 dark:hover:bg-red-950 rounded transition"
-                title="Clear vendor filter"
-              >
-                <X className="w-3 h-3 text-red-600 dark:text-red-400" />
-              </button>
-            )}
-          </div>
-        </div>
+        <SearchableDropdown
+          label="Vendor"
+          options={VENDOR_OPTIONS}
+          selected={selectedVendor}
+          onChange={setSelectedVendor}
+          placeholder="All Vendors"
+          multiSelect={false}
+          searchable={true}
+          compact={true}
+        />
       </div>
 
       {/* Audit Log */}

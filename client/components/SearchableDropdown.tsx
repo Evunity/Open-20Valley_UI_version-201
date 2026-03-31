@@ -221,7 +221,7 @@ export default function SearchableDropdown({
             )}
           </div>
 
-          {multiSelect && selected.length > 0 && (
+          {selected.length > 0 && (
             <div className={cn("border-t border-border/50 flex gap-2", compact ? "p-1.5" : "p-2")}>
               <button
                 onClick={() => onChange([])}
@@ -230,17 +230,19 @@ export default function SearchableDropdown({
                   compact ? "py-1.5" : "py-1.5"
                 )}
               >
-                Clear All
+                Clear
               </button>
-              <button
-                onClick={() => setIsOpen(false)}
-                className={cn(
-                  "flex-1 px-2 text-xs rounded bg-primary/10 hover:bg-primary/20 transition-all text-primary font-medium",
-                  compact ? "py-1.5" : "py-1.5"
-                )}
-              >
-                Done
-              </button>
+              {multiSelect && (
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className={cn(
+                    "flex-1 px-2 text-xs rounded bg-primary/10 hover:bg-primary/20 transition-all text-primary font-medium",
+                    compact ? "py-1.5" : "py-1.5"
+                  )}
+                >
+                  Done
+                </button>
+              )}
             </div>
           )}
         </div>
