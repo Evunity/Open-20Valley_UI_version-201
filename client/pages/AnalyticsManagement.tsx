@@ -1150,7 +1150,7 @@ export default function AnalyticsManagement() {
               className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-background hover:bg-muted transition-colors text-sm font-medium"
             >
               <Download className="w-4 h-4" />
-              Export
+              Export All
             </button>
           </div>
 
