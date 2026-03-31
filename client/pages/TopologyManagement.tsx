@@ -53,6 +53,7 @@ const TopologyManagementContent: React.FC = () => {
   const [activeView, setActiveView] = useState<ViewType>('map');
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [selectedTenant, setSelectedTenant] = useState<string | null>(null);
+  const [selectedHierarchyLevel, setSelectedHierarchyLevel] = useState<string>('all');
   const [showPredictiveRisks, setShowPredictiveRisks] = useState(true);
   const [showExportPanel, setShowExportPanel] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -66,6 +67,17 @@ const TopologyManagementContent: React.FC = () => {
     transportOnly: false,
     ranOnly: false
   });
+
+  const hierarchyLevels: Record<string, string[]> = {
+    'all': ['global', 'country', 'region', 'cluster', 'site', 'node', 'cell', 'sector', 'rru', 'bbu', 'transport', 'interface', 'port', 'board', 'shelf', 'cabinet', 'rack', 'link'],
+    'global': ['global'],
+    'country': ['country'],
+    'region': ['region'],
+    'cluster': ['cluster'],
+    'site': ['site'],
+    'node': ['node', 'cell', 'sector'],
+    'rack': ['rack', 'board', 'shelf', 'cabinet']
+  };
 
   // Helper function to get the country ancestor of a node
   const getCountryAncestor = React.useCallback((node: typeof visibleNodes[0]): string | null => {
@@ -85,7 +97,13 @@ const TopologyManagementContent: React.FC = () => {
   const filteredNodes = React.useMemo(() => {
     let filtered = [...visibleNodes];
 
-    // Apply country/tenant filter FIRST (but keep parent nodes visible)
+    // Apply hierarchy level filter FIRST
+    if (selectedHierarchyLevel !== 'all') {
+      const allowedTypes = hierarchyLevels[selectedHierarchyLevel] || hierarchyLevels['all'];
+      filtered = filtered.filter(node => allowedTypes.includes(node.type));
+    }
+
+    // Apply country/tenant filter (but keep parent nodes visible)
     if (selectedCountry) {
       filtered = filtered.filter(node => {
         // Keep global, country, and region nodes always visible
@@ -123,15 +141,20 @@ const TopologyManagementContent: React.FC = () => {
     // else: show all (with country filter applied above)
 
     return filtered;
-  }, [visibleNodes, selectedCountry, layers, getCountryAncestor]);
+  }, [visibleNodes, selectedCountry, selectedHierarchyLevel, layers, getCountryAncestor, hierarchyLevels]);
 
 
   const renderMapView = () => (
     <div className="w-full h-full flex flex-col bg-background dark:bg-background overflow-y-auto">
       {/* Filter Status Indicators with Controls */}
-      {(selectedCountry || layers.ranOnly || layers.transportOnly || layers.alarms || filteredNodes.length < visibleNodes.length || activeView === 'map') && (
+      {(selectedCountry || selectedHierarchyLevel !== 'all' || layers.ranOnly || layers.transportOnly || layers.alarms || filteredNodes.length < visibleNodes.length || activeView === 'map') && (
         <div className="flex gap-2 px-4 py-2 flex-wrap items-center justify-between">
           <div className="flex gap-2 flex-wrap items-center">
+            {selectedHierarchyLevel !== 'all' && (
+              <span className="text-xs px-2 py-1 bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 rounded font-semibold">
+                📊 Level: {selectedHierarchyLevel.charAt(0).toUpperCase() + selectedHierarchyLevel.slice(1)}
+              </span>
+            )}
             {selectedCountry && (
               <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 rounded font-semibold">
                 🌍 Country: {selectedCountry}
@@ -160,30 +183,48 @@ const TopologyManagementContent: React.FC = () => {
           </div>
 
           {/* Controls on the same row */}
-          {activeView === 'map' && (
-            <div className="flex gap-2 items-center">
-              <button
-                onClick={() => setShowExportPanel(!showExportPanel)}
-                className={`px-3 py-1.5 h-9 flex items-center justify-center rounded text-xs font-semibold transition ${
-                  showExportPanel
-                    ? 'bg-blue-600 text-white dark:bg-blue-700'
-                    : 'bg-input text-foreground border border-border hover:border-primary/40'
-                }`}
-                title="Export options"
-              >
-                Export
-              </button>
-              <label className="flex items-center gap-2 h-9 text-xs cursor-pointer px-3 bg-input border border-border rounded hover:border-primary/40 transition">
-                <input
-                  type="checkbox"
-                  checked={showPredictiveRisks}
-                  onChange={(e) => setShowPredictiveRisks(e.target.checked)}
-                  className="w-4 h-4 rounded flex-shrink-0"
-                />
-                <span className="whitespace-nowrap">Predictive AI</span>
-              </label>
-            </div>
-          )}
+          <div className="flex gap-2 items-center">
+            <select
+              value={selectedHierarchyLevel}
+              onChange={(e) => setSelectedHierarchyLevel(e.target.value)}
+              className="h-9 px-3 rounded text-xs font-semibold bg-input text-foreground border border-border hover:border-primary/40 transition cursor-pointer"
+              title="Filter by hierarchy level"
+            >
+              <option value="all">All Levels</option>
+              <option value="global">Global</option>
+              <option value="country">Country</option>
+              <option value="region">Region</option>
+              <option value="cluster">Cluster</option>
+              <option value="site">Site</option>
+              <option value="node">Node</option>
+              <option value="rack">Rack</option>
+            </select>
+
+            {activeView === 'map' && (
+              <>
+                <button
+                  onClick={() => setShowExportPanel(!showExportPanel)}
+                  className={`px-3 py-1.5 h-9 flex items-center justify-center rounded text-xs font-semibold transition ${
+                    showExportPanel
+                      ? 'bg-blue-600 text-white dark:bg-blue-700'
+                      : 'bg-input text-foreground border border-border hover:border-primary/40'
+                  }`}
+                  title="Export options"
+                >
+                  Export
+                </button>
+                <label className="flex items-center gap-2 h-9 text-xs cursor-pointer px-3 bg-input border border-border rounded hover:border-primary/40 transition">
+                  <input
+                    type="checkbox"
+                    checked={showPredictiveRisks}
+                    onChange={(e) => setShowPredictiveRisks(e.target.checked)}
+                    className="w-4 h-4 rounded flex-shrink-0"
+                  />
+                  <span className="whitespace-nowrap">Predictive AI</span>
+                </label>
+              </>
+            )}
+          </div>
         </div>
       )}
 
