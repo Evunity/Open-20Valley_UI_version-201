@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import {
   Shield, Activity, Users, GitBranch, Lock, TrendingUp,
-  Download, Settings, Plus
+  Download, Settings, Plus, Eye
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
