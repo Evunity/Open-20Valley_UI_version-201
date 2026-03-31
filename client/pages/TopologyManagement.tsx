@@ -200,8 +200,8 @@ const TopologyManagementContent: React.FC = () => {
           />
         </div>
 
-        {/* Right sidebar - Layers & Multi-Tenant Controls - Fixed width */}
-        <div className="w-64 space-y-3 overflow-y-auto max-h-[calc(100vh-250px)]">
+        {/* Right sidebar - Layers & Multi-Tenant Controls - Flexible width */}
+        <div className="flex-shrink-0 w-64 space-y-3 overflow-y-auto max-h-[calc(100vh-250px)]">
           {/* Layers Control Panel - Inline */}
           <div className="flex flex-col bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-3">
             <h3 className="font-semibold text-sm text-gray-900 dark:text-gray-100 mb-3">Layers</h3>
