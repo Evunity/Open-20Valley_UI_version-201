@@ -71,18 +71,19 @@ function DependencyGraphContent({
 
     let yOffset = 0;
 
-    Object.entries(nodesByLevel).forEach(([levelStr, levelNodes]) => {
+    Object.entries(nodesByLevel).sort((a, b) => parseInt(a[0]) - parseInt(b[0])).forEach(([levelStr, levelNodes]) => {
       const level = parseInt(levelStr);
-      // Spread nodes across wider area
+      // Spread nodes across wider area - adapt based on count
       const itemsPerRow = Math.max(1, Math.ceil(Math.sqrt(levelNodes.length)));
+      const spacing = Math.min(800, Math.max(300, 6000 / Math.max(1, levelNodes.length)));
 
       levelNodes.forEach((obj, idx) => {
         const row = Math.floor(idx / itemsPerRow);
         const col = idx % itemsPerRow;
 
-        // MASSIVE spacing: 600px horizontal, 500px vertical between nodes
-        const x = (col - itemsPerRow / 2.5) * 600;
-        const y = (level * 500) + (row * 350);
+        // Adaptive spacing based on number of nodes
+        const x = (col - itemsPerRow / 2) * spacing;
+        const y = (level * 600) + (row * 400);
 
         nodeMap.set(obj.id, {
           id: obj.id,
@@ -98,7 +99,7 @@ function DependencyGraphContent({
         });
       });
 
-      yOffset = Math.max(yOffset, Object.keys(nodesByLevel).length * 500);
+      yOffset = Math.max(yOffset, Object.keys(nodesByLevel).length * 600);
     });
 
     // Create edges
