@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Search, Filter, Download, Copy, AlertCircle, CheckCircle, Settings, Save, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -15,7 +15,12 @@ interface AuditEvent {
   details: string;
 }
 
-export default function UnifiedActivityStream() {
+interface UnifiedActivityStreamProps {
+  selectedView?: string | null;
+  onSaveView?: () => void;
+}
+
+export default function UnifiedActivityStream({ selectedView: selectedSavedView, onSaveView }: UnifiedActivityStreamProps = {}) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterSeverity, setFilterSeverity] = useState<string>('all');
   const [timeRange, setTimeRange] = useState('24h');
@@ -25,6 +30,22 @@ export default function UnifiedActivityStream() {
   const [useRegex, setUseRegex] = useState(false);
   const [highlightRules, setHighlightRules] = useState<string[]>(['critical']);
   const [viewName, setViewName] = useState('');
+
+  useEffect(() => {
+    if (selectedSavedView) {
+      const savedViews = JSON.parse(localStorage.getItem('auditViews') || '{}');
+      const viewConfig = savedViews[selectedSavedView];
+      if (viewConfig) {
+        setFilterSeverity(viewConfig.filterSeverity || 'all');
+        setTimeRange(viewConfig.timeRange || '24h');
+        setGroupBy(viewConfig.groupBy || 'none');
+        setPinnedColumns(viewConfig.pinnedColumns || ['eventId', 'timestamp']);
+        setUseRegex(viewConfig.useRegex || false);
+        setHighlightRules(viewConfig.highlightRules || ['critical']);
+        setSelectedView(selectedSavedView);
+      }
+    }
+  }, [selectedSavedView]);
 
   const handleSaveView = () => {
     if (!viewName.trim()) {
@@ -45,6 +66,7 @@ export default function UnifiedActivityStream() {
     localStorage.setItem('auditViews', JSON.stringify(savedViews));
     alert(`View "${viewName}" saved successfully`);
     setViewName('');
+    onSaveView?.();
   };
 
   const handleExport = () => {

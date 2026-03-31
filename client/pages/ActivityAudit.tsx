@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Shield, Activity, Users, GitBranch, Lock, TrendingUp,
   Download, Settings, Plus
@@ -99,6 +99,13 @@ const WORKSPACES: WorkspaceConfig[] = [
 export default function ActivityAudit() {
   const [activeWorkspace, setActiveWorkspace] = useState<AuditWorkspace>('executive-risk');
   const [timeMode, setTimeMode] = useState<'live' | 'investigative' | 'historical'>('live');
+  const [savedViews, setSavedViews] = useState<Record<string, any>>({});
+  const [selectedSavedView, setSelectedSavedView] = useState<string | null>(null);
+
+  useEffect(() => {
+    const views = JSON.parse(localStorage.getItem('auditViews') || '{}');
+    setSavedViews(views);
+  }, []);
 
   const activeConfig = useMemo(
     () => WORKSPACES.find(w => w.id === activeWorkspace),
@@ -110,7 +117,10 @@ export default function ActivityAudit() {
       case 'executive-risk':
         return <ExecutiveRiskOverview />;
       case 'activity-stream':
-        return <UnifiedActivityStream />;
+        return <UnifiedActivityStream onSaveView={() => {
+          const views = JSON.parse(localStorage.getItem('auditViews') || '{}');
+          setSavedViews(views);
+        }} selectedView={selectedSavedView} />;
       case 'sessions':
         return <SessionIntelligenceCenter />;
       case 'timeline':
@@ -150,10 +160,6 @@ export default function ActivityAudit() {
               <button className="px-3 py-2 rounded-lg border border-border hover:bg-muted transition-colors text-sm flex items-center gap-2">
                 <Download className="w-4 h-4" />
                 Export
-              </button>
-              <button className="px-3 py-2 rounded-lg border border-border hover:bg-muted transition-colors text-sm flex items-center gap-2">
-                <Settings className="w-4 h-4" />
-                Configure
               </button>
             </div>
           </div>
@@ -219,7 +225,7 @@ export default function ActivityAudit() {
             </div>
 
             {/* Governance Workspaces */}
-            <div className="space-y-1">
+            <div className="space-y-1 mb-6">
               <div className="text-xs font-semibold text-orange-600/70 px-3 py-2">Governance</div>
               {WORKSPACES.filter(w => w.domain === 'governance').map(workspace => {
                 const Icon = workspace.icon;
@@ -241,6 +247,28 @@ export default function ActivityAudit() {
                 );
               })}
             </div>
+
+            {/* Saved Views - only show if on activity-stream workspace */}
+            {activeWorkspace === 'activity-stream' && Object.keys(savedViews).length > 0 && (
+              <div className="space-y-1 pt-4 border-t border-border">
+                <div className="text-xs font-semibold text-purple-600/70 px-3 py-2">Saved Views</div>
+                {Object.keys(savedViews).map(viewName => (
+                  <button
+                    key={viewName}
+                    onClick={() => setSelectedSavedView(viewName)}
+                    className={cn(
+                      "w-full flex items-start gap-3 px-3 py-2 rounded-lg text-sm transition-colors text-left group",
+                      selectedSavedView === viewName
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                    )}
+                  >
+                    <Eye className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                    <span className="flex-1">{viewName}</span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
