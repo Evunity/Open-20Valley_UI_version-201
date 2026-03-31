@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Map, GitBranch, Network, Box, Layers, ZoomIn, Route, Clock, Eye, EyeOff, Edit2 } from 'lucide-react';
+import { Map, GitBranch, Network, Box, Layers, ZoomIn, Route, Clock, Eye, EyeOff, Edit2, Activity } from 'lucide-react';
 import { RackView } from '../components/RackView';
 import { TransportPathView } from '../components/TransportPathView';
 import { ImpactAnalysisView } from '../components/ImpactAnalysisView';
@@ -11,9 +11,10 @@ import { MultiTenantAwareness } from '../components/MultiTenantAwareness';
 import { GeospatialNetworkMap } from '../components/GeospatialNetworkMap';
 import { EditableTreeView } from '../components/EditableTreeView';
 import { DependencyGraph } from '../components/DependencyGraph';
+import { PortsMetricsView } from '../components/PortsMetricsView';
 import { TopologyProvider, useTopology } from '../contexts/TopologyContext';
 
-type ViewType = 'map' | 'tree' | 'dependency' | 'rack' | 'transport' | 'impact' | 'timeline';
+type ViewType = 'map' | 'tree' | 'dependency' | 'rack' | 'transport' | 'impact' | 'timeline' | 'ports-metrics';
 
 interface TopologyViewConfig {
   id: ViewType;
@@ -29,7 +30,8 @@ const VIEWS: TopologyViewConfig[] = [
   { id: 'rack', label: 'Rack View', icon: Box, description: 'Physical hardware layout with RRU/BBU binding' },
   { id: 'transport', label: 'Transport', icon: Route, description: 'Transport topology patterns and path tracing' },
   { id: 'impact', label: 'Impact Analysis', icon: Layers, description: 'Blast radius and service impact calculation' },
-  { id: 'timeline', label: 'Timeline', icon: Clock, description: 'Historical replay and RCA' }
+  { id: 'timeline', label: 'Timeline', icon: Clock, description: 'Historical replay and RCA' },
+  { id: 'ports-metrics', label: 'Ports & Metrics', icon: Activity, description: 'Port performance and bandwidth metrics' }
 ];
 
 /**
@@ -325,6 +327,8 @@ const TopologyManagementContent: React.FC = () => {
 
   const renderTimelineView = () => <TimelineReplayView onEventSelect={(event) => console.log(event)} />;
 
+  const renderPortsMetricsView = () => <PortsMetricsView topology={filteredNodes} />;
+
   const currentView = activeView === 'map' ? renderMapView() :
                       activeView === 'tree' ? renderTreeView() :
                       activeView === 'dependency' ? renderDependencyView() :
@@ -332,6 +336,7 @@ const TopologyManagementContent: React.FC = () => {
                       activeView === 'transport' ? renderTransportView() :
                       activeView === 'impact' ? renderImpactView() :
                       activeView === 'timeline' ? renderTimelineView() :
+                      activeView === 'ports-metrics' ? renderPortsMetricsView() :
                       renderMapView();
 
   return (
