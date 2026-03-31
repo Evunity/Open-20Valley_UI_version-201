@@ -195,28 +195,38 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
         {/* Required Selection Row */}
         <div className="grid grid-cols-3 gap-3">
           {/* Site Selection */}
-          <SearchableDropdown
-            label="Site"
-            options={SITE_OPTIONS}
-            selected={selectedSite}
-            onChange={(selected) => setSelectedSite(selected)}
-            placeholder="Search sites..."
-            multiSelect={false}
-            searchable={true}
-            compact={true}
-          />
+          <div>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">
+              Site <span className="text-red-500">*</span>
+            </label>
+            <SearchableDropdown
+              label=""
+              options={SITE_OPTIONS}
+              selected={selectedSite}
+              onChange={(selected) => setSelectedSite(selected)}
+              placeholder="Search sites..."
+              multiSelect={false}
+              searchable={true}
+              compact={true}
+            />
+          </div>
 
           {/* Technology Selection */}
-          <SearchableDropdown
-            label="Technology"
-            options={TECHNOLOGY_OPTIONS}
-            selected={selectedTechnology}
-            onChange={(selected) => setSelectedTechnology(selected)}
-            placeholder="Search technologies..."
-            multiSelect={false}
-            searchable={true}
-            compact={true}
-          />
+          <div>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">
+              Technology <span className="text-red-500">*</span>
+            </label>
+            <SearchableDropdown
+              label=""
+              options={TECHNOLOGY_OPTIONS}
+              selected={selectedTechnology}
+              onChange={(selected) => setSelectedTechnology(selected)}
+              placeholder="Search technologies..."
+              multiSelect={false}
+              searchable={true}
+              compact={true}
+            />
+          </div>
 
           {/* Vendor Selection */}
           <div>
@@ -236,10 +246,9 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
           </div>
         </div>
 
-        {/* Optional Selection Row */}
-        <div className="grid grid-cols-2 gap-3">
-          {/* Mode Selection */}
-          <div>
+        {/* Mode Selection */}
+        <div className="flex items-end gap-2">
+          <div className="flex-1">
             <label className="block text-xs font-semibold text-muted-foreground mb-1">Mode</label>
             <SearchableDropdown
               label=""
@@ -259,34 +268,22 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
               compact={true}
             />
           </div>
-
-          {/* Context */}
-          <div>
-            <label className="block text-xs font-semibold text-muted-foreground mb-1">Target Context</label>
-            <input
-              type="text"
-              placeholder="Global → Country → Region"
-              value={selectedTarget.site ? `${selectedTarget.site}` : 'Global'}
-              readOnly
-              className="w-full px-3 py-1.5 border border-border rounded-lg bg-input text-foreground text-sm"
-            />
-          </div>
+          <button
+            onClick={() => setShowAddCommand(!showAddCommand)}
+            className="flex-1 text-xs bg-primary/10 hover:bg-primary/20 border border-primary/30 rounded text-primary font-medium transition h-9 flex items-center justify-center"
+          >
+            + Add
+          </button>
         </div>
       </div>
 
       {/* Quick Commands */}
       <div>
-        <div className="flex items-center justify-between mb-1">
+        <div className="mb-1">
           <label className="block text-xs font-semibold text-muted-foreground flex items-center gap-1">
             <Lightbulb className="w-4 h-4 text-yellow-600" />
             Quick Commands ({selectedVendor})
           </label>
-          <button
-            onClick={() => setShowAddCommand(!showAddCommand)}
-            className="text-xs px-2 py-1 bg-primary/10 hover:bg-primary/20 border border-primary/30 rounded text-primary font-medium transition"
-          >
-            + Add
-          </button>
         </div>
 
         {showAddCommand && (
@@ -324,7 +321,7 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
           </div>
         )}
 
-        <div className="grid grid-cols-3 gap-1.5">
+        <div className="grid grid-cols-3 gap-1.5 mb-3">
           {getQuickCommands().map((cmd, i) => {
             const isCustom = i < (customCommands[selectedVendor]?.length || 0);
             return (
@@ -356,30 +353,6 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
             );
           })}
         </div>
-      </div>
-
-      {/* Console Display */}
-      <div className="flex-1 bg-gray-900 border border-gray-800 rounded-lg overflow-y-auto font-mono text-xs p-4">
-        <div className="text-green-400">
-          <p>$ OpenValley Command Console - {selectedVendor}</p>
-          <p>$ Type commands below. Press Enter to execute.</p>
-          <p>$ All commands are audited and logged.</p>
-          <p></p>
-
-          {history.map((entry) => (
-            <div key={entry.id} className="mb-3">
-              <p className="text-blue-400">{entry.timestamp} $ {entry.command}</p>
-              <pre className={`text-xs whitespace-pre-wrap ${
-                entry.status === 'success' ? 'text-green-300' :
-                entry.status === 'error' ? 'text-red-300' :
-                'text-yellow-300'
-              }`}>
-                {entry.output}
-              </pre>
-            </div>
-          ))}
-        </div>
-        <div ref={consoleEndRef} />
       </div>
 
       {/* Command Input - Mode Specific */}
@@ -453,17 +426,16 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
           <div className="space-y-3 p-4 bg-muted/20 border border-border rounded-lg">
             <p className="text-xs font-semibold text-muted-foreground mb-3">Build Command Interactively</p>
             <div className="grid grid-cols-2 gap-3">
-              <select
-                value={guidedCommand.keyword}
-                onChange={(e) => setGuidedCommand(prev => ({ ...prev, keyword: e.target.value }))}
-                disabled={selectedSite.length === 0 || selectedTechnology.length === 0 || !selectedVendor}
-                className="px-3 py-2 text-sm border border-border rounded-lg bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition disabled:opacity-50 disabled:bg-muted/20"
-              >
-                <option value="">Select Command Keyword</option>
-                {Object.keys(COMMAND_HINTS).map(keyword => (
-                  <option key={keyword} value={keyword}>{keyword}</option>
-                ))}
-              </select>
+              <SearchableDropdown
+                label=""
+                options={Object.keys(COMMAND_HINTS)}
+                selected={guidedCommand.keyword ? [guidedCommand.keyword] : []}
+                onChange={(selected) => setGuidedCommand(prev => ({ ...prev, keyword: selected[0] || '' }))}
+                placeholder="Select Command Keyword"
+                multiSelect={false}
+                searchable={true}
+                compact={true}
+              />
               <input
                 type="text"
                 value={guidedCommand.params}
@@ -543,12 +515,36 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
               : 'bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800'
           }`}>
             <p className={isValid ? 'text-green-800 dark:text-green-300' : 'text-red-800 dark:text-red-300'}>
-              {isValid ? '✓ Valid syntax' : '✗ Invalid syntax'} 
-              {getCommandSyntaxValidation(command).matchedKeyword && 
+              {isValid ? '✓ Valid syntax' : '✗ Invalid syntax'}
+              {getCommandSyntaxValidation(command).matchedKeyword &&
                 ` - ${COMMAND_HINTS[getCommandSyntaxValidation(command).matchedKeyword || '']}`}
             </p>
           </div>
         )}
+      </div>
+
+      {/* Console Display */}
+      <div className="flex-1 bg-gray-900 border border-gray-800 rounded-lg overflow-y-auto font-mono text-xs p-4">
+        <div className="text-green-400">
+          <p>$ OpenValley Command Console - {selectedVendor}</p>
+          <p>$ Type commands below. Press Enter to execute.</p>
+          <p>$ All commands are audited and logged.</p>
+          <p></p>
+
+          {history.map((entry) => (
+            <div key={entry.id} className="mb-3">
+              <p className="text-blue-400">{entry.timestamp} $ {entry.command}</p>
+              <pre className={`text-xs whitespace-pre-wrap ${
+                entry.status === 'success' ? 'text-green-300' :
+                entry.status === 'error' ? 'text-red-300' :
+                'text-yellow-300'
+              }`}>
+                {entry.output}
+              </pre>
+            </div>
+          ))}
+        </div>
+        <div ref={consoleEndRef} />
       </div>
 
       {/* Recent Commands */}
