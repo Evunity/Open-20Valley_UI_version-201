@@ -1,6 +1,8 @@
 import { useState, useMemo } from "react";
 import { Download, RotateCcw, ChevronDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useDropdownManager } from "@/hooks/useDropdownManager";
+import TimeInputWithAmPm from "@/components/TimeInputWithAmPm";
 import * as XLSX from "xlsx";
 import { cn } from "@/lib/utils";
 import {
@@ -57,12 +59,18 @@ export default function TrendChartContainer({
   onChartTypeChange,
 }: TrendChartContainerProps) {
   const { toast } = useToast();
+
+  // Generate unique IDs for this chart instance based on title
+  const chartTypeMenuId = `chart-type-menu-${title.replace(/\s+/g, '-').toLowerCase()}`;
+  const zoomControlsId = `zoom-controls-${title.replace(/\s+/g, '-').toLowerCase()}`;
+
+  const { isOpen: showChartTypeMenu, toggle: toggleChartTypeMenu, close: closeChartTypeMenu } = useDropdownManager(chartTypeMenuId);
+  const { isOpen: showZoomControls, toggle: toggleZoomControls, close: closeZoomControls } = useDropdownManager(zoomControlsId);
+
   const [isExporting, setIsExporting] = useState(false);
   const [chartType, setChartType] = useState<ChartType>(defaultChartType);
   const [zoomStart, setZoomStart] = useState(0);
   const [zoomEnd, setZoomEnd] = useState(data.length - 1);
-  const [showChartTypeMenu, setShowChartTypeMenu] = useState(false);
-  const [showZoomControls, setShowZoomControls] = useState(false);
   const [dateZoomStart, setDateZoomStart] = useState("");
   const [dateZoomEnd, setDateZoomEnd] = useState("");
   const [timeZoomStart, setTimeZoomStart] = useState("");
@@ -153,7 +161,7 @@ export default function TrendChartContainer({
 
   const handleChartTypeChange = (type: ChartType) => {
     setChartType(type);
-    setShowChartTypeMenu(false);
+    closeChartTypeMenu();
     onChartTypeChange?.(type);
   };
 
@@ -386,7 +394,7 @@ export default function TrendChartContainer({
           {/* Chart Type Selector */}
           <div className="relative">
             <button
-              onClick={() => setShowChartTypeMenu(!showChartTypeMenu)}
+              onClick={toggleChartTypeMenu}
               className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-background hover:bg-muted/50 transition-colors text-sm font-medium"
               title="Change chart type"
             >
@@ -418,7 +426,7 @@ export default function TrendChartContainer({
           {zoomable && (
             <div className="relative">
               <button
-                onClick={() => setShowZoomControls(!showZoomControls)}
+                onClick={toggleZoomControls}
                 className={cn(
                   "inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-background hover:bg-muted/50 transition-colors text-sm font-medium",
                   (zoomStart > 0 || zoomEnd < data.length - 1) &&
@@ -468,29 +476,19 @@ export default function TrendChartContainer({
                   {/* Time Filters */}
                   <div className="pb-3">
                     <h4 className="text-xs font-semibold text-foreground mb-3">Time Filters</h4>
-                    <div className="space-y-2">
-                      <div>
-                        <label className="text-xs font-semibold text-muted-foreground block mb-1">
-                          Start Time
-                        </label>
-                        <input
-                          type="time"
-                          value={timeZoomStart}
-                          onChange={(e) => setTimeZoomStart(e.target.value)}
-                          className="w-full px-2 py-1 rounded border border-border text-sm"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs font-semibold text-muted-foreground block mb-1">
-                          End Time
-                        </label>
-                        <input
-                          type="time"
-                          value={timeZoomEnd}
-                          onChange={(e) => setTimeZoomEnd(e.target.value)}
-                          className="w-full px-2 py-1 rounded border border-border text-sm"
-                        />
-                      </div>
+                    <div className="space-y-3">
+                      <TimeInputWithAmPm
+                        label="Start Time"
+                        value={timeZoomStart}
+                        onChange={(value) => setTimeZoomStart(value)}
+                        placeholder="HH:MM"
+                      />
+                      <TimeInputWithAmPm
+                        label="End Time"
+                        value={timeZoomEnd}
+                        onChange={(value) => setTimeZoomEnd(value)}
+                        placeholder="HH:MM"
+                      />
                     </div>
                   </div>
 

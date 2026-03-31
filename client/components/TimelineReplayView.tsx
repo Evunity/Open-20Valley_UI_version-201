@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Clock, ChevronRight, AlertTriangle, TrendingUp, CheckCircle } from 'lucide-react';
+import TimeInputWithAmPm from '@/components/TimeInputWithAmPm';
 
 interface TimelineEvent {
   time: string;
@@ -181,34 +182,32 @@ export const TimelineReplayView: React.FC<TimelineReplayViewProps> = ({ onEventS
           {/* Time Range Inputs */}
           <div className="flex items-stretch gap-3">
             {/* Start Time */}
-            <div className="flex-1 flex flex-col">
-              <label className="block text-xs font-semibold text-muted-foreground mb-2">From</label>
-              <div className="flex items-center gap-2 flex-1">
+            <div className="flex-1 flex flex-col gap-2">
+              <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                <input
-                  type="time"
+                <TimeInputWithAmPm
+                  label="From"
                   value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                  className="flex-1 px-3 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm font-mono"
+                  onChange={(value) => setStartTime(value)}
+                  placeholder="HH:MM"
                 />
               </div>
             </div>
 
             {/* Separator - Centered Arrow */}
-            <div className="flex items-center justify-center px-2 mt-5">
+            <div className="flex items-center justify-center px-2">
               <div className="text-primary font-bold text-xl">↔</div>
             </div>
 
             {/* End Time */}
-            <div className="flex-1 flex flex-col">
-              <label className="block text-xs font-semibold text-muted-foreground mb-2">To</label>
-              <div className="flex items-center gap-2 flex-1">
+            <div className="flex-1 flex flex-col gap-2">
+              <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                <input
-                  type="time"
+                <TimeInputWithAmPm
+                  label="To"
                   value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                  className="flex-1 px-3 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm font-mono"
+                  onChange={(value) => setEndTime(value)}
+                  placeholder="HH:MM"
                 />
               </div>
             </div>

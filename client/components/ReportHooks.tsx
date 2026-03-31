@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Plus, Calendar, CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import TimeInputWithAmPm from "@/components/TimeInputWithAmPm";
 
 interface ReportHooksProps {
   viewTitle: string;
@@ -164,19 +165,16 @@ export default function ReportHooks({
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-foreground block mb-1">
-                Time
-              </label>
-              <input
-                type="time"
+              <TimeInputWithAmPm
+                label="Time"
                 value={scheduleConfig.time}
-                onChange={(e) =>
+                onChange={(value) =>
                   setScheduleConfig({
                     ...scheduleConfig,
-                    time: e.target.value,
+                    time: value,
                   })
                 }
-                className="w-full px-3 py-2 rounded border border-border text-sm"
+                placeholder="HH:MM"
               />
             </div>
 
@@ -322,14 +320,11 @@ function ScheduleDialog({
         </div>
 
         <div>
-          <label className="text-sm font-semibold text-foreground block mb-2">
-            Time
-          </label>
-          <input
-            type="time"
+          <TimeInputWithAmPm
+            label="Time"
             value={config.time}
-            onChange={(e) => onConfigChange({ ...config, time: e.target.value })}
-            className="w-full px-3 py-2 rounded border border-border text-sm"
+            onChange={(value) => onConfigChange({ ...config, time: value })}
+            placeholder="HH:MM"
           />
         </div>
 

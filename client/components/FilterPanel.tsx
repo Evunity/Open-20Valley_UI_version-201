@@ -3,6 +3,7 @@ import { X, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGlobalFilters, type GlobalFilterState } from "@/hooks/useGlobalFilters";
 import { useToast } from "@/hooks/use-toast";
+import { useDropdownManager } from "@/hooks/useDropdownManager";
 import DualMonthCalendar from "@/components/DualMonthCalendar";
 import SearchableDropdown from "@/components/SearchableDropdown";
 import { getDaysDifference } from "@/utils/dashboardData";
@@ -15,7 +16,7 @@ interface FilterPanelProps {
 export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
   const { filters, setFilters, resetFilters, availableClusters } = useGlobalFilters();
   const { toast } = useToast();
-  const [showCalendarDropdown, setShowCalendarDropdown] = useState(false);
+  const { isOpen: showCalendarDropdown, toggle: toggleCalendarDropdown, close: closeCalendarDropdown } = useDropdownManager("calendar-dropdown");
 
   // Staged filters - changes are made here until Apply is clicked
   const [stagedFilters, setStagedFilters] = useState<GlobalFilterState>(filters);
@@ -215,6 +216,7 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
         {/* Country Dropdown */}
         <SearchableDropdown
           label="Country"
+          dropdownId="filter-country"
           options={[
             "United States",
             "Canada",
@@ -240,6 +242,7 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
         {/* Region Dropdown */}
         <SearchableDropdown
           label="Region"
+          dropdownId="filter-region"
           options={["North", "South", "East", "West", "Central"]}
           selected={stagedFilters.regions}
           onChange={(selected) => handleStagedFilterChange({ ...stagedFilters, regions: selected })}
@@ -249,6 +252,7 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
         {/* Cluster Dropdown */}
         <SearchableDropdown
           label="Cluster"
+          dropdownId="filter-cluster"
           options={availableClusters.map((cluster) => cluster.name)}
           selected={stagedFilters.clusters}
           onChange={(selected) => handleStagedFilterChange({ ...stagedFilters, clusters: selected })}
@@ -258,6 +262,7 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
         {/* Vendor Dropdown */}
         <SearchableDropdown
           label="Vendor"
+          dropdownId="filter-vendor"
           options={["Ericsson", "Huawei", "Nokia", "Samsung", "Cisco"]}
           selected={stagedFilters.vendors}
           onChange={(selected) => handleStagedFilterChange({ ...stagedFilters, vendors: selected })}
@@ -267,6 +272,7 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
         {/* Technology Dropdown */}
         <SearchableDropdown
           label="Technology"
+          dropdownId="filter-technology"
           options={["2G", "3G", "4G", "5G", "O-RAN"]}
           selected={stagedFilters.technologies}
           onChange={(selected) => handleStagedFilterChange({ ...stagedFilters, technologies: selected })}
@@ -276,6 +282,7 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
         {/* Time Granularity Control */}
         <SearchableDropdown
           label="Granularity"
+          dropdownId="filter-granularity"
           options={["Hours", "Days"]}
           selected={[stagedFilters.timeGranularity === "hours" ? "Hours" : "Days"]}
           multiSelect={false}
@@ -306,7 +313,7 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
             Choose Dates
           </label>
           <button
-            onClick={() => setShowCalendarDropdown(!showCalendarDropdown)}
+            onClick={toggleCalendarDropdown}
             className="w-full control-height px-3 rounded-lg border border-border bg-background typo-input focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all hover:bg-muted/30 flex items-center"
           >
             {stagedFilters.dateRange.from && stagedFilters.dateRange.to ? (
@@ -381,7 +388,7 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
           {/* Overlay backdrop to close on click */}
           <div
             className="fixed inset-0 z-40 bg-black/30"
-            onClick={() => setShowCalendarDropdown(false)}
+            onClick={closeCalendarDropdown}
           />
           {/* Calendar Popup - Centered and Compact */}
           <div className="fixed inset-x-4 top-1/2 -translate-y-1/2 max-w-sm mx-auto p-4 rounded-lg border border-border bg-card shadow-2xl z-50 max-h-[85vh] overflow-y-auto">
@@ -391,7 +398,7 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
                   Select Dates
                 </label>
                 <button
-                  onClick={() => setShowCalendarDropdown(false)}
+                  onClick={closeCalendarDropdown}
                   className="text-muted-foreground hover:text-foreground transition-colors p-1"
                   title="Close calendar"
                 >
@@ -435,7 +442,7 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
                       to: end,
                     },
                   });
-                  setShowCalendarDropdown(false);
+                  closeCalendarDropdown();
                 }}
               />
 
