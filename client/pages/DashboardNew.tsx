@@ -726,7 +726,7 @@ export default function DashboardNew() {
         </div>
 
         {/* KPI Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {selectedKPIs.map((kpi) => {
             const kpiValue = calculateKPIValue(kpi.id, filters);
             const IconComponent = kpi.icon;
@@ -736,7 +736,7 @@ export default function DashboardNew() {
               <div
                 key={kpi.id}
                   className={cn(
-                  "p-2 rounded-lg border transition-all duration-200 hover:shadow-sm hover:border-primary/50",
+                  "p-3 rounded-lg border transition-all duration-200 hover:shadow-sm hover:border-primary/50",
                   kpiValue.status === "healthy"
                     ? "border-status-healthy/20 bg-status-healthy/5"
                     : kpiValue.status === "critical"
@@ -744,7 +744,7 @@ export default function DashboardNew() {
                       : "border-border bg-card"
                 )}
               >
-                <div className="flex items-start justify-between gap-1 mb-0.5">
+                <div className="flex items-start justify-between gap-2 mb-1">
                   <div
                     className={cn(
                       "p-1 rounded-md w-fit",
@@ -780,10 +780,10 @@ export default function DashboardNew() {
                 </div>
 
                 <div>
-                  <p className="typo-label mb-1">
+                  <p className="typo-label mb-0.5">
                     {kpi.label}
                   </p>
-                  <p className={cn("text-[1.35rem] font-semibold leading-tight", getStatusColor(kpiValue.status))}>
+                  <p className={cn("text-[1.5rem] font-bold leading-tight", getStatusColor(kpiValue.status))}>
                     {kpiValue.value}
                   </p>
                 </div>
