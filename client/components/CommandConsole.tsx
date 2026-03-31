@@ -424,18 +424,21 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
                     isSaved
                       ? 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/50'
                       : 'bg-muted/60 hover:bg-muted border-border'
-                  } text-foreground`}
+                  } text-foreground pr-6`}
                   title={`Paste: ${cmd}`}
                 >
                   {cmd.length > 20 ? cmd.substring(0, 17) + '...' : cmd}
                 </button>
                 {isSaved && (
                   <button
-                    onClick={() => setSavedCommands(prev => prev.filter(c => c !== cmd))}
-                    className="absolute -top-2 -right-2 w-4 h-4 bg-gray-400 dark:bg-gray-600 hover:bg-gray-500 dark:hover:bg-gray-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-xs shadow-sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSavedCommands(prev => prev.filter(c => c !== cmd));
+                    }}
+                    className="absolute top-1/2 -translate-y-1/2 right-1 w-3.5 h-3.5 bg-gray-400 dark:bg-gray-600 hover:bg-gray-500 dark:hover:bg-gray-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition flex items-center justify-center shadow-sm"
                     title="Remove saved command"
                   >
-                    <X className="w-3 h-3" />
+                    <X className="w-2.5 h-2.5" />
                   </button>
                 )}
               </div>
