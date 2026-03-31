@@ -50,8 +50,14 @@ export default function SearchableDropdown({
     }
 
     if (!multiSelect) {
-      onChange([option]);
-      setIsOpen(false);
+      // In single-select mode, allow toggle - if clicking the same option, deselect it
+      if (selected.includes(option)) {
+        onChange([]);
+        setIsOpen(false);
+      } else {
+        onChange([option]);
+        setIsOpen(false);
+      }
       return;
     }
 

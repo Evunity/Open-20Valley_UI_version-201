@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { RotateCcw, Eye, Download } from 'lucide-react';
+import { RotateCcw, Eye, Download, X } from 'lucide-react';
 import SearchableDropdown from './SearchableDropdown';
 
 interface AuditRollbackCenterProps {
@@ -128,39 +128,56 @@ export const AuditRollbackCenter: React.FC<AuditRollbackCenterProps> = () => {
   return (
     <div className="flex flex-col h-full gap-4 p-4">
       {/* Filters */}
-      <div className="grid grid-cols-3 gap-3">
-        <SearchableDropdown
-          label="Site"
-          options={SITE_OPTIONS}
-          selected={selectedSite}
-          onChange={setSelectedSite}
-          placeholder="All Sites"
-          multiSelect={false}
-          searchable={true}
-          compact={true}
-        />
+      <div className="space-y-2">
+        <div className="grid grid-cols-3 gap-3">
+          <SearchableDropdown
+            label="Site"
+            options={SITE_OPTIONS}
+            selected={selectedSite}
+            onChange={setSelectedSite}
+            placeholder="All Sites"
+            multiSelect={false}
+            searchable={true}
+            compact={true}
+          />
 
-        <SearchableDropdown
-          label="Technology"
-          options={TECHNOLOGY_OPTIONS}
-          selected={selectedTechnology}
-          onChange={setSelectedTechnology}
-          placeholder="All Technologies"
-          multiSelect={false}
-          searchable={true}
-          compact={true}
-        />
+          <SearchableDropdown
+            label="Technology"
+            options={TECHNOLOGY_OPTIONS}
+            selected={selectedTechnology}
+            onChange={setSelectedTechnology}
+            placeholder="All Technologies"
+            multiSelect={false}
+            searchable={true}
+            compact={true}
+          />
 
-        <SearchableDropdown
-          label="Vendor"
-          options={VENDOR_OPTIONS}
-          selected={selectedVendor}
-          onChange={setSelectedVendor}
-          placeholder="All Vendors"
-          multiSelect={false}
-          searchable={true}
-          compact={true}
-        />
+          <SearchableDropdown
+            label="Vendor"
+            options={VENDOR_OPTIONS}
+            selected={selectedVendor}
+            onChange={setSelectedVendor}
+            placeholder="All Vendors"
+            multiSelect={false}
+            searchable={true}
+            compact={true}
+          />
+        </div>
+
+        {/* Clear Filters Button */}
+        {(selectedSite.length > 0 || selectedTechnology.length > 0 || selectedVendor.length > 0) && (
+          <button
+            onClick={() => {
+              setSelectedSite([]);
+              setSelectedTechnology([]);
+              setSelectedVendor([]);
+            }}
+            className="w-full px-3 py-2 bg-red-100 dark:bg-red-950 hover:bg-red-200 dark:hover:bg-red-900 text-red-700 dark:text-red-300 rounded-lg font-semibold text-sm transition flex items-center justify-center gap-2"
+          >
+            <X className="w-4 h-4" />
+            Clear All Filters
+          </button>
+        )}
       </div>
 
       {/* Audit Log */}
