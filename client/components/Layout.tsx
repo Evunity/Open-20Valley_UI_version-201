@@ -129,7 +129,6 @@ export default function Layout({ children }: LayoutProps) {
   };
 
   const mainNavItems = [
-    { path: "/", label: "Dashboard", icon: LayoutDashboard, matchPaths: ["/"] },
     {
       path: "/analytics-management",
       label: "Analytics Management",

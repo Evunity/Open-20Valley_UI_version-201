@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Map, GitBranch, Network, Box, Layers, ZoomIn, Route, Clock, Eye, EyeOff, Edit2 } from 'lucide-react';
+import { Map, GitBranch, Network, Box, Layers, ZoomIn, Route, Clock, Eye, EyeOff, Edit2, Activity } from 'lucide-react';
 import { RackView } from '../components/RackView';
 import { TransportPathView } from '../components/TransportPathView';
 import { ImpactAnalysisView } from '../components/ImpactAnalysisView';
@@ -11,9 +11,10 @@ import { MultiTenantAwareness } from '../components/MultiTenantAwareness';
 import { GeospatialNetworkMap } from '../components/GeospatialNetworkMap';
 import { EditableTreeView } from '../components/EditableTreeView';
 import { DependencyGraph } from '../components/DependencyGraph';
+import { PortsMetricsView } from '../components/PortsMetricsView';
 import { TopologyProvider, useTopology } from '../contexts/TopologyContext';
 
-type ViewType = 'map' | 'tree' | 'dependency' | 'rack' | 'transport' | 'impact' | 'timeline';
+type ViewType = 'map' | 'tree' | 'dependency' | 'rack' | 'transport' | 'impact' | 'timeline' | 'ports-metrics';
 
 interface TopologyViewConfig {
   id: ViewType;
@@ -29,7 +30,8 @@ const VIEWS: TopologyViewConfig[] = [
   { id: 'rack', label: 'Rack View', icon: Box, description: 'Physical hardware layout with RRU/BBU binding' },
   { id: 'transport', label: 'Transport', icon: Route, description: 'Transport topology patterns and path tracing' },
   { id: 'impact', label: 'Impact Analysis', icon: Layers, description: 'Blast radius and service impact calculation' },
-  { id: 'timeline', label: 'Timeline', icon: Clock, description: 'Historical replay and RCA' }
+  { id: 'timeline', label: 'Timeline', icon: Clock, description: 'Historical replay and RCA' },
+  { id: 'ports-metrics', label: 'Ports & Metrics', icon: Activity, description: 'Port performance and bandwidth metrics' }
 ];
 
 /**
@@ -51,6 +53,7 @@ const TopologyManagementContent: React.FC = () => {
   const [activeView, setActiveView] = useState<ViewType>('map');
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [selectedTenant, setSelectedTenant] = useState<string | null>(null);
+  const [selectedHierarchyLevel, setSelectedHierarchyLevel] = useState<string>('all');
   const [showPredictiveRisks, setShowPredictiveRisks] = useState(true);
   const [showExportPanel, setShowExportPanel] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -64,6 +67,17 @@ const TopologyManagementContent: React.FC = () => {
     transportOnly: false,
     ranOnly: false
   });
+
+  const hierarchyLevels: Record<string, string[]> = {
+    'all': ['global', 'country', 'region', 'cluster', 'site', 'node', 'cell', 'sector', 'rru', 'bbu', 'transport', 'interface', 'port', 'board', 'shelf', 'cabinet', 'rack', 'link'],
+    'global': ['global'],
+    'country': ['country'],
+    'region': ['region'],
+    'cluster': ['cluster'],
+    'site': ['site'],
+    'node': ['node', 'cell', 'sector'],
+    'rack': ['rack', 'board', 'shelf', 'cabinet']
+  };
 
   // Helper function to get the country ancestor of a node
   const getCountryAncestor = React.useCallback((node: typeof visibleNodes[0]): string | null => {
@@ -83,7 +97,13 @@ const TopologyManagementContent: React.FC = () => {
   const filteredNodes = React.useMemo(() => {
     let filtered = [...visibleNodes];
 
-    // Apply country/tenant filter FIRST (but keep parent nodes visible)
+    // Apply hierarchy level filter FIRST
+    if (selectedHierarchyLevel !== 'all') {
+      const allowedTypes = hierarchyLevels[selectedHierarchyLevel] || hierarchyLevels['all'];
+      filtered = filtered.filter(node => allowedTypes.includes(node.type));
+    }
+
+    // Apply country/tenant filter (but keep parent nodes visible)
     if (selectedCountry) {
       filtered = filtered.filter(node => {
         // Keep global, country, and region nodes always visible
@@ -121,15 +141,20 @@ const TopologyManagementContent: React.FC = () => {
     // else: show all (with country filter applied above)
 
     return filtered;
-  }, [visibleNodes, selectedCountry, layers, getCountryAncestor]);
+  }, [visibleNodes, selectedCountry, selectedHierarchyLevel, layers, getCountryAncestor, hierarchyLevels]);
 
 
   const renderMapView = () => (
     <div className="w-full h-full flex flex-col bg-background dark:bg-background overflow-y-auto">
       {/* Filter Status Indicators with Controls */}
-      {(selectedCountry || layers.ranOnly || layers.transportOnly || layers.alarms || filteredNodes.length < visibleNodes.length || activeView === 'map') && (
+      {(selectedCountry || selectedHierarchyLevel !== 'all' || layers.ranOnly || layers.transportOnly || layers.alarms || filteredNodes.length < visibleNodes.length || activeView === 'map') && (
         <div className="flex gap-2 px-4 py-2 flex-wrap items-center justify-between">
           <div className="flex gap-2 flex-wrap items-center">
+            {selectedHierarchyLevel !== 'all' && (
+              <span className="text-xs px-2 py-1 bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 rounded font-semibold">
+                📊 Level: {selectedHierarchyLevel.charAt(0).toUpperCase() + selectedHierarchyLevel.slice(1)}
+              </span>
+            )}
             {selectedCountry && (
               <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 rounded font-semibold">
                 🌍 Country: {selectedCountry}
@@ -158,30 +183,48 @@ const TopologyManagementContent: React.FC = () => {
           </div>
 
           {/* Controls on the same row */}
-          {activeView === 'map' && (
-            <div className="flex gap-2 items-center">
-              <button
-                onClick={() => setShowExportPanel(!showExportPanel)}
-                className={`px-3 py-1.5 h-9 flex items-center justify-center rounded text-xs font-semibold transition ${
-                  showExportPanel
-                    ? 'bg-blue-600 text-white dark:bg-blue-700'
-                    : 'bg-input text-foreground border border-border hover:border-primary/40'
-                }`}
-                title="Export options"
-              >
-                Export
-              </button>
-              <label className="flex items-center gap-2 h-9 text-xs cursor-pointer px-3 bg-input border border-border rounded hover:border-primary/40 transition">
-                <input
-                  type="checkbox"
-                  checked={showPredictiveRisks}
-                  onChange={(e) => setShowPredictiveRisks(e.target.checked)}
-                  className="w-4 h-4 rounded flex-shrink-0"
-                />
-                <span className="whitespace-nowrap">Predictive AI</span>
-              </label>
-            </div>
-          )}
+          <div className="flex gap-2 items-center">
+            <select
+              value={selectedHierarchyLevel}
+              onChange={(e) => setSelectedHierarchyLevel(e.target.value)}
+              className="h-9 px-3 rounded text-xs font-semibold bg-input text-foreground border border-border hover:border-primary/40 transition cursor-pointer"
+              title="Filter by hierarchy level"
+            >
+              <option value="all">All Levels</option>
+              <option value="global">Global</option>
+              <option value="country">Country</option>
+              <option value="region">Region</option>
+              <option value="cluster">Cluster</option>
+              <option value="site">Site</option>
+              <option value="node">Node</option>
+              <option value="rack">Rack</option>
+            </select>
+
+            {activeView === 'map' && (
+              <>
+                <button
+                  onClick={() => setShowExportPanel(!showExportPanel)}
+                  className={`px-3 py-1.5 h-9 flex items-center justify-center rounded text-xs font-semibold transition ${
+                    showExportPanel
+                      ? 'bg-blue-600 text-white dark:bg-blue-700'
+                      : 'bg-input text-foreground border border-border hover:border-primary/40'
+                  }`}
+                  title="Export options"
+                >
+                  Export
+                </button>
+                <label className="flex items-center gap-2 h-9 text-xs cursor-pointer px-3 bg-input border border-border rounded hover:border-primary/40 transition">
+                  <input
+                    type="checkbox"
+                    checked={showPredictiveRisks}
+                    onChange={(e) => setShowPredictiveRisks(e.target.checked)}
+                    className="w-4 h-4 rounded flex-shrink-0"
+                  />
+                  <span className="whitespace-nowrap">Predictive AI</span>
+                </label>
+              </>
+            )}
+          </div>
         </div>
       )}
 
@@ -198,8 +241,8 @@ const TopologyManagementContent: React.FC = () => {
           />
         </div>
 
-        {/* Right sidebar - Layers & Multi-Tenant Controls - Fixed width */}
-        <div className="w-64 space-y-3 overflow-y-auto max-h-[calc(100vh-250px)]">
+        {/* Right sidebar - Layers & Multi-Tenant Controls - Flexible width */}
+        <div className="flex-shrink-0 w-64 space-y-3 overflow-y-auto max-h-[calc(100vh-250px)]">
           {/* Layers Control Panel - Inline */}
           <div className="flex flex-col bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-3">
             <h3 className="font-semibold text-sm text-gray-900 dark:text-gray-100 mb-3">Layers</h3>
@@ -325,6 +368,8 @@ const TopologyManagementContent: React.FC = () => {
 
   const renderTimelineView = () => <TimelineReplayView onEventSelect={(event) => console.log(event)} />;
 
+  const renderPortsMetricsView = () => <PortsMetricsView topology={filteredNodes} />;
+
   const currentView = activeView === 'map' ? renderMapView() :
                       activeView === 'tree' ? renderTreeView() :
                       activeView === 'dependency' ? renderDependencyView() :
@@ -332,29 +377,30 @@ const TopologyManagementContent: React.FC = () => {
                       activeView === 'transport' ? renderTransportView() :
                       activeView === 'impact' ? renderImpactView() :
                       activeView === 'timeline' ? renderTimelineView() :
+                      activeView === 'ports-metrics' ? renderPortsMetricsView() :
                       renderMapView();
 
   return (
     <div className="topology-theme flex flex-col h-screen bg-background">
       {/* Toolbar with View Selector and Controls */}
-      <div className="bg-card border-b border-border p-4 flex flex-col gap-3">
+      <div className="bg-card border-b border-border p-3 flex flex-col gap-2">
         {/* View Selector Grid */}
-        <div className="grid grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-2 auto-rows-max">
+        <div className="flex gap-1.5 flex-wrap">
           {VIEWS.map(view => {
             const Icon = view.icon;
             return (
               <button
                 key={view.id}
                 onClick={() => setActiveView(view.id)}
-                className={`flex flex-col items-center justify-center gap-1.5 p-2 rounded-lg border-2 transition min-h-[80px] ${
+                className={`flex flex-col items-center justify-center gap-2 p-4 rounded-lg border-2 transition min-h-[180px] flex-1 min-w-[100px] ${
                   activeView === view.id
                     ? 'border-blue-600 bg-blue-50 dark:bg-blue-950'
                     : 'border-border hover:border-primary/40 bg-card'
                 }`}
                 title={view.description}
               >
-                <Icon className={`w-5 h-5 flex-shrink-0 ${activeView === view.id ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
-                <span className="text-[10px] font-semibold text-center text-foreground line-clamp-2 leading-tight">{view.label}</span>
+                <Icon className={`w-6 h-6 flex-shrink-0 ${activeView === view.id ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
+                <span className="text-xs font-semibold text-center text-foreground line-clamp-2 leading-tight">{view.label}</span>
               </button>
             );
           })}

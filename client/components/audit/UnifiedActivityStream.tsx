@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Search, Filter, Download, Copy, AlertCircle, CheckCircle, Settings, Save, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -15,7 +15,12 @@ interface AuditEvent {
   details: string;
 }
 
-export default function UnifiedActivityStream() {
+interface UnifiedActivityStreamProps {
+  selectedView?: string | null;
+  onSaveView?: () => void;
+}
+
+export default function UnifiedActivityStream({ selectedView: selectedSavedView, onSaveView }: UnifiedActivityStreamProps = {}) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterSeverity, setFilterSeverity] = useState<string>('all');
   const [timeRange, setTimeRange] = useState('24h');
@@ -25,6 +30,30 @@ export default function UnifiedActivityStream() {
   const [useRegex, setUseRegex] = useState(false);
   const [highlightRules, setHighlightRules] = useState<string[]>(['critical']);
   const [viewName, setViewName] = useState('');
+  const [highlightInput, setHighlightInput] = useState('');
+  const [availableSavedViews, setAvailableSavedViews] = useState<string[]>([]);
+
+  useEffect(() => {
+    // Load available saved views from localStorage
+    const savedViews = JSON.parse(localStorage.getItem('auditViews') || '{}');
+    setAvailableSavedViews(Object.keys(savedViews));
+  }, []);
+
+  useEffect(() => {
+    if (selectedSavedView) {
+      const savedViews = JSON.parse(localStorage.getItem('auditViews') || '{}');
+      const viewConfig = savedViews[selectedSavedView];
+      if (viewConfig) {
+        setFilterSeverity(viewConfig.filterSeverity || 'all');
+        setTimeRange(viewConfig.timeRange || '24h');
+        setGroupBy(viewConfig.groupBy || 'none');
+        setPinnedColumns(viewConfig.pinnedColumns || ['eventId', 'timestamp']);
+        setUseRegex(viewConfig.useRegex || false);
+        setHighlightRules(viewConfig.highlightRules || ['critical']);
+        setSelectedView(selectedSavedView);
+      }
+    }
+  }, [selectedSavedView]);
 
   const handleSaveView = () => {
     if (!viewName.trim()) {
@@ -43,8 +72,15 @@ export default function UnifiedActivityStream() {
     const savedViews = JSON.parse(localStorage.getItem('auditViews') || '{}');
     savedViews[viewName] = viewConfig;
     localStorage.setItem('auditViews', JSON.stringify(savedViews));
+
+    // Update available saved views list
+    setAvailableSavedViews(Object.keys(savedViews));
+    // Set the newly saved view as selected
+    setSelectedView(viewName);
+
     alert(`View "${viewName}" saved successfully`);
     setViewName('');
+    onSaveView?.();
   };
 
   const handleExport = () => {
@@ -213,9 +249,9 @@ export default function UnifiedActivityStream() {
             <label className="text-xs font-semibold text-foreground block mb-1">Saved Views</label>
             <select value={selectedView} onChange={(e) => setSelectedView(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm">
               <option value="default">Default View</option>
-              <option value="security">Security Focus</option>
-              <option value="compliance">Compliance View</option>
-              <option value="custom">Custom View</option>
+              {availableSavedViews.map(viewName => (
+                <option key={viewName} value={viewName}>{viewName}</option>
+              ))}
             </select>
           </div>
 
@@ -241,9 +277,46 @@ export default function UnifiedActivityStream() {
           <div>
             <label className="text-xs font-semibold text-foreground block mb-1">Highlight Rules</label>
             <div className="flex items-center gap-1">
-              <input type="text" placeholder="e.g., critical, error" className="flex-1 px-2 py-1 rounded text-xs border border-border bg-background" />
-              <button className="px-2 py-1 rounded text-xs bg-primary/10 text-primary hover:bg-primary/20">Add</button>
+              <input
+                type="text"
+                placeholder="e.g., critical, error"
+                value={highlightInput}
+                onChange={(e) => setHighlightInput(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && highlightInput.trim()) {
+                    setHighlightRules([...highlightRules, highlightInput.trim()]);
+                    setHighlightInput('');
+                  }
+                }}
+                className="flex-1 px-2 py-1 rounded text-xs border border-border bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+              <button
+                onClick={() => {
+                  if (highlightInput.trim()) {
+                    setHighlightRules([...highlightRules, highlightInput.trim()]);
+                    setHighlightInput('');
+                  }
+                }}
+                className="px-2 py-1 rounded text-xs bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+              >
+                Add
+              </button>
             </div>
+            {highlightRules.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-2">
+                {highlightRules.map((rule, idx) => (
+                  <span key={idx} className="text-xs px-2 py-1 rounded bg-primary/20 text-primary flex items-center gap-1">
+                    {rule}
+                    <button
+                      onClick={() => setHighlightRules(highlightRules.filter((_, i) => i !== idx))}
+                      className="hover:text-primary/70"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState, useMemo } from 'react';
+import React, { useCallback, useEffect, useState, useMemo, useRef } from 'react';
 import ReactFlow, {
   Node,
   Edge,
@@ -12,7 +12,7 @@ import ReactFlow, {
   ReactFlowProvider,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { Home, Filter } from 'lucide-react';
+import { Home, Filter, Maximize2, Minimize2, ZoomOut } from 'lucide-react';
 import { TopologyObject } from '../utils/topologyData';
 import DependencyNode from './DependencyNode';
 
@@ -32,11 +32,12 @@ function DependencyGraphContent({
   selectedNode,
   onNodeSelect
 }: DependencyGraphProps) {
-  const { fitView } = useReactFlow();
+  const { fitView, getZoom, setCenter } = useReactFlow();
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [filterLevel, setFilterLevel] = useState<string>('all');
-  const [showOnlyUpstream, setShowOnlyUpstream] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Initialize graph data
   useEffect(() => {
@@ -57,9 +58,9 @@ function DependencyGraphContent({
       return levelMap[node.type] || 5;
     };
 
-    // Create nodes with better positioning using hierarchy
+    // Create nodes with MUCH larger spacing to prevent overlapping
     const nodesByLevel: Record<number, TopologyObject[]> = {};
-    
+
     topology.forEach((obj) => {
       const level = getLevelForNode(obj);
       if (!nodesByLevel[level]) {
@@ -69,17 +70,20 @@ function DependencyGraphContent({
     });
 
     let yOffset = 0;
-    
-    Object.entries(nodesByLevel).forEach(([levelStr, levelNodes]) => {
+
+    Object.entries(nodesByLevel).sort((a, b) => parseInt(a[0]) - parseInt(b[0])).forEach(([levelStr, levelNodes]) => {
       const level = parseInt(levelStr);
-      const itemsPerRow = Math.max(3, Math.ceil(Math.sqrt(levelNodes.length)));
-      
+      // Spread nodes across wider area - adapt based on count
+      const itemsPerRow = Math.max(1, Math.ceil(Math.sqrt(levelNodes.length)));
+      const spacing = Math.min(800, Math.max(300, 6000 / Math.max(1, levelNodes.length)));
+
       levelNodes.forEach((obj, idx) => {
         const row = Math.floor(idx / itemsPerRow);
         const col = idx % itemsPerRow;
-        
-        const x = (col - itemsPerRow / 2) * 250;
-        const y = (level * 200) + (row * 120);
+
+        // Adaptive spacing based on number of nodes
+        const x = (col - itemsPerRow / 2) * spacing;
+        const y = (level * 600) + (row * 400);
 
         nodeMap.set(obj.id, {
           id: obj.id,
@@ -94,8 +98,8 @@ function DependencyGraphContent({
           type: 'dependency',
         });
       });
-      
-      yOffset = Math.max(yOffset, Object.keys(nodesByLevel).length * 200);
+
+      yOffset = Math.max(yOffset, Object.keys(nodesByLevel).length * 600);
     });
 
     // Create edges
@@ -129,31 +133,46 @@ function DependencyGraphContent({
     }, 100);
   }, [topology, setNodes, setEdges, fitView, selectedNode]);
 
+  // Handle fullscreen change events
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
+
   // Filter nodes and edges based on level
   const filteredNodes = useMemo(() => {
-    if (filterLevel === 'all') {
-      return nodes;
+    let result = nodes;
+
+    // Apply level filter
+    if (filterLevel !== 'all') {
+      result = result.filter(node => {
+        const topoObj = topology.find(t => t.id === node.id);
+        if (!topoObj) return false;
+
+        const levelMap: Record<string, number> = {
+          global: 0,
+          country: 1,
+          region: 2,
+          cluster: 3,
+          site: 4,
+          node: 5,
+          cell: 5,
+          equipment: 5,
+          link: 5,
+          rack: 6
+        };
+
+        return (levelMap[topoObj.type] || 5).toString() === filterLevel;
+      });
     }
-    
-    return nodes.filter(node => {
-      const topoObj = topology.find(t => t.id === node.id);
-      if (!topoObj) return false;
-      
-      const levelMap: Record<string, number> = {
-        global: 0,
-        country: 1,
-        region: 2,
-        cluster: 3,
-        site: 4,
-        node: 5,
-        cell: 5,
-        equipment: 5,
-        link: 5,
-        rack: 6
-      };
-      
-      return (levelMap[topoObj.type] || 5).toString() === filterLevel;
-    });
+
+    return result;
   }, [nodes, filterLevel, topology]);
 
   const filteredEdges = useMemo(() => {
@@ -171,27 +190,72 @@ function DependencyGraphContent({
   }, [topology, onNodeSelect]);
 
   const handleResetView = useCallback(() => {
-    fitView({ padding: 0.2, minZoom: 0.5, maxZoom: 2, duration: 200 });
+    fitView({ padding: 0.2, minZoom: 0.3, maxZoom: 2, duration: 200 });
   }, [fitView]);
 
+  const handleFullscreen = useCallback(async () => {
+    if (!containerRef.current) return;
+
+    try {
+      if (!isFullscreen) {
+        if (containerRef.current.requestFullscreen) {
+          await containerRef.current.requestFullscreen();
+          setIsFullscreen(true);
+        }
+      } else {
+        if (document.fullscreenElement) {
+          await document.exitFullscreen();
+          setIsFullscreen(false);
+        }
+      }
+    } catch (err) {
+      console.error('Fullscreen error:', err);
+    }
+  }, [isFullscreen]);
+
+  const handleZoomOut = useCallback(() => {
+    const currentZoom = getZoom();
+    const newZoom = Math.max(0.2, currentZoom - 0.2);
+    fitView({ padding: 0.2, minZoom: 0.2, maxZoom: 3, duration: 200 });
+  }, [getZoom, fitView]);
+
   return (
-    <div className="w-full flex flex-col h-full gap-4 p-4 bg-background dark:bg-background overflow-hidden">
+    <div
+      ref={containerRef}
+      className={`w-full flex flex-col h-full gap-4 p-4 bg-background dark:bg-background overflow-hidden relative ${isFullscreen ? 'fixed inset-0 z-50' : ''}`}
+    >
       <p className="text-xs text-muted-foreground">
         {filteredNodes.length} nodes • {filteredEdges.length} relationships
       </p>
 
       {/* Controls */}
       <div className="flex items-center gap-3 flex-wrap">
-        <div className="flex items-center gap-2">
+        {/* View Controls */}
+        <div className="flex items-center gap-2 border-r border-border pr-3">
           <button
             onClick={handleResetView}
             className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition"
-            title="Reset view"
+            title="Reset view to fit all nodes"
           >
             <Home className="w-4 h-4" />
           </button>
+          <button
+            onClick={handleZoomOut}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition"
+            title="Zoom out to see more nodes"
+          >
+            <ZoomOut className="w-4 h-4" />
+          </button>
+          <button
+            onClick={handleFullscreen}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition"
+            title={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+          >
+            {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+          </button>
         </div>
 
+        {/* Level Filter */}
         <div className="flex items-center gap-2">
           <Filter className="w-4 h-4 text-muted-foreground" />
           <select
@@ -209,16 +273,6 @@ function DependencyGraphContent({
             <option value="6">Rack</option>
           </select>
         </div>
-
-        <label className="flex items-center gap-2 text-xs cursor-pointer">
-          <input
-            type="checkbox"
-            checked={showOnlyUpstream}
-            onChange={(e) => setShowOnlyUpstream(e.target.checked)}
-            className="rounded"
-          />
-          <span>Upstream Only</span>
-        </label>
       </div>
 
       {/* ReactFlow Container */}
@@ -234,30 +288,30 @@ function DependencyGraphContent({
           fitView
         >
           <Background color="#cbd5e1" gap={16} />
-          <Controls />
+          <Controls position="bottom-left" showInteractive={false} />
         </ReactFlow>
       </div>
 
-      {/* Info Panel */}
+      {/* Floating Info Panel - Overlay on graph */}
       {selectedNode && (
-        <div className="p-4 bg-card rounded-lg border border-border">
-          <h3 className="font-bold text-foreground mb-2">{selectedNode.name}</h3>
-          <div className="grid grid-cols-4 gap-4 text-xs text-muted-foreground">
+        <div className="absolute bottom-6 right-6 w-80 p-4 bg-card rounded-lg border border-border shadow-lg z-10 max-h-48 overflow-y-auto">
+          <h3 className="font-bold text-foreground mb-3 text-sm">{selectedNode.name}</h3>
+          <div className="grid grid-cols-2 gap-3 text-xs text-muted-foreground">
             <div>
               <p className="font-semibold text-foreground">Type</p>
-              <p>{selectedNode.type}</p>
+              <p className="text-xs">{selectedNode.type}</p>
             </div>
             <div>
               <p className="font-semibold text-foreground">Health</p>
-              <p>{selectedNode.healthState}</p>
+              <p className="text-xs">{selectedNode.healthState}</p>
             </div>
             <div>
               <p className="font-semibold text-foreground">Vendor</p>
-              <p>{selectedNode.vendor || 'Unknown'}</p>
+              <p className="text-xs">{selectedNode.vendor || 'Unknown'}</p>
             </div>
             <div>
               <p className="font-semibold text-foreground">Alarms</p>
-              <p>{selectedNode.alarmSummary.critical + selectedNode.alarmSummary.major}</p>
+              <p className="text-xs">{selectedNode.alarmSummary.critical + selectedNode.alarmSummary.major}</p>
             </div>
           </div>
         </div>

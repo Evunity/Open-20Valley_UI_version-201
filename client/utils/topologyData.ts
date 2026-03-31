@@ -256,6 +256,45 @@ export function generateMockTopologyHierarchy(): TopologyObject[] {
 
       objects.push(siteObj);
 
+      // Add racks under each site (3-8 per site)
+      const rackCount = 3 + Math.floor(Math.random() * 6);
+      for (let r = 0; r < rackCount; r++) {
+        const rackId = `rack_${siteId}_${r}`;
+        siteObj.childrenIds.push(rackId);
+
+        const rackHealth = Math.random();
+        objects.push({
+          id: rackId,
+          name: `${cluster.name}-Site-${i + 1}-Rack-${r + 1}`,
+          type: 'rack',
+          vendor: cluster.vendor,
+          technology: 'Transport',
+          parentId: siteId,
+          childrenIds: [],
+          geoCoordinates: {
+            latitude: siteLat + (Math.random() - 0.5) * 0.1,
+            longitude: siteLon + (Math.random() - 0.5) * 0.1
+          },
+          healthState: rackHealth > 0.92 ? 'degraded' : 'healthy',
+          alarmSummary: {
+            critical: rackHealth > 0.92 ? Math.floor(Math.random() * 2) : 0,
+            major: Math.floor(Math.random() * 3),
+            minor: Math.floor(Math.random() * 8),
+            warning: Math.floor(Math.random() * 15)
+          },
+          kpiSummary: {
+            availability: 99.5 - Math.random() * 2.5,
+            dropRate: Math.random() * 0.4,
+            throughput: 85 + Math.random() * 15,
+            latency: 3 + Math.random() * 10,
+            utilization: 35 + Math.random() * 55
+          },
+          automationLocked: Math.random() > 0.9,
+          lastStateChange: new Date(Date.now() - Math.random() * 500000).toISOString(),
+          description: `Rack-${r + 1} at ${cluster.name}-Site-${i + 1}`
+        });
+      }
+
       // Add cells/sectors under each site (5-10 per site)
       const cellCount = 5 + Math.floor(Math.random() * 6);
       for (let c = 0; c < cellCount; c++) {
