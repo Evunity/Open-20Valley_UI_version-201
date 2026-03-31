@@ -122,6 +122,25 @@ export const TopologyProvider: React.FC<TopologyProviderProps> = ({
     if (graph && !service) {
       const newService = initializeGraphService(graph);
       setService(newService);
+
+      // Expand first 2 levels to show regions/clusters initially
+      if (graph.rootId) {
+        const viewState = newService.getViewState();
+        const nodesToExpand = [graph.rootId];
+
+        // Recursively expand first 2 levels
+        const expandLevel = (nodeId: string, depth: number) => {
+          if (depth > 2) return;
+          viewState.expandedNodeIds.add(nodeId);
+          const node = graph.nodes.get(nodeId);
+          if (node) {
+            node.childrenIds.slice(0, 20).forEach(childId => expandLevel(childId, depth + 1));
+          }
+        };
+
+        expandLevel(graph.rootId, 0);
+      }
+
       setVisibleNodes(newService.getVisibleNodes());
     }
   }, [graph, service]);

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link2, Route, Zap } from 'lucide-react';
+import { ArrowRight, Network } from 'lucide-react';
 
 type TopologyPattern = 'tree' | 'ring' | 'mesh' | 'star' | 'hybrid' | 'p2p';
 
@@ -31,13 +31,13 @@ export const TransportPathView: React.FC<TransportPathViewProps> = ({ onPathSele
   const [sourceRegion, setSourceRegion] = useState('Cairo');
   const [destRegion, setDestRegion] = useState('Alexandria');
 
-  const topologyPatterns: { id: TopologyPattern; label: string; icon: string; description: string }[] = [
-    { id: 'tree', label: 'Tree', icon: '🌳', description: 'Hierarchical topology' },
-    { id: 'ring', label: 'Ring', icon: '⭕', description: 'Redundant ring topology' },
-    { id: 'mesh', label: 'Mesh', icon: '🕸️', description: 'Fully meshed network' },
-    { id: 'star', label: 'Star', icon: '⭐', description: 'Hub-and-spoke topology' },
-    { id: 'hybrid', label: 'Hybrid', icon: '🔄', description: 'Mixed topology patterns' },
-    { id: 'p2p', label: 'Point-to-Point', icon: '↔️', description: 'Direct links' }
+  const topologyPatterns: { id: TopologyPattern; label: string; description: string }[] = [
+    { id: 'tree', label: 'Tree', description: 'Hierarchical topology' },
+    { id: 'ring', label: 'Ring', description: 'Redundant ring topology' },
+    { id: 'mesh', label: 'Mesh', description: 'Fully meshed network' },
+    { id: 'star', label: 'Star', description: 'Hub-and-spoke topology' },
+    { id: 'hybrid', label: 'Hybrid', description: 'Mixed topology patterns' },
+    { id: 'p2p', label: 'Point-to-Point', description: 'Direct links' }
   ];
 
   const regions = ['Cairo', 'Alexandria', 'Giza', 'Suez', 'Mansoura'];
@@ -76,179 +76,215 @@ export const TransportPathView: React.FC<TransportPathViewProps> = ({ onPathSele
     p => p.source === sourceRegion && p.destination === destRegion
   );
 
-  const getProtectionIcon = (state: string) => {
-    return state === 'active' ? '🟢' : '🟡';
-  };
-
-  const getLinkTypeIcon = (type: string) => {
-    const icons = {
-      'mpls': '🏷️',
-      'microwave': '📡',
-      'fiber': '🔗',
-      'ip': '🌐'
-    };
-    return icons[type as keyof typeof icons] || '?';
-  };
-
   const getHealthColor = (health: string) => {
     switch (health) {
-      case 'healthy': return 'bg-green-100/70 dark:bg-green-950/30 text-green-800 dark:text-green-300';
-      case 'degraded': return 'bg-yellow-100/70 dark:bg-yellow-950/30 text-yellow-800 dark:text-yellow-300';
-      case 'down': return 'bg-red-100/70 dark:bg-red-950/30 text-red-800 dark:text-red-300';
-      default: return 'bg-muted text-foreground';
+      case 'healthy':
+        return 'bg-green-100 dark:bg-green-950/30 text-green-800 dark:text-green-300 border-l-4 border-l-green-600';
+      case 'degraded':
+        return 'bg-yellow-100 dark:bg-yellow-950/30 text-yellow-800 dark:text-yellow-300 border-l-4 border-l-yellow-600';
+      case 'down':
+        return 'bg-red-100 dark:bg-red-950/30 text-red-800 dark:text-red-300 border-l-4 border-l-red-600';
+      default:
+        return 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300 border-l-4 border-l-gray-400';
     }
+  };
+
+  const getProtectionBadgeColor = (state: string) => {
+    return state === 'active'
+      ? 'bg-green-100 dark:bg-green-950/30 text-green-800 dark:text-green-300'
+      : 'bg-yellow-100 dark:bg-yellow-950/30 text-yellow-800 dark:text-yellow-300';
+  };
+
+  const getLinkTypeLabel = (type: string) => {
+    const labels = {
+      'mpls': 'MPLS',
+      'microwave': 'Microwave',
+      'fiber': 'Fiber Optic',
+      'ip': 'IP/Ethernet'
+    };
+    return labels[type as keyof typeof labels] || 'Unknown';
   };
 
   return (
     <div className="w-full h-full flex flex-col gap-4 p-4 bg-background overflow-y-auto">
-      <h2 className="text-lg font-bold text-foreground">Transport & Path Visualization</h2>
 
       {/* Topology Pattern Selector */}
-      <div className="bg-card rounded-lg border border-border p-3">
-        <p className="text-xs font-semibold text-muted-foreground mb-2">Topology Pattern</p>
-        <div className="grid grid-cols-6 gap-2">
+      <div className="bg-card rounded-lg border border-border p-4">
+        <p className="text-sm font-semibold text-foreground mb-3">Topology Pattern</p>
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
           {topologyPatterns.map(pattern => (
             <button
               key={pattern.id}
               onClick={() => setTopologyType(pattern.id)}
-              className={`px-2 py-2 rounded text-center transition flex flex-col items-center justify-center gap-1 ${
+              className={`px-4 py-2 rounded text-sm font-semibold transition border ${
                 topologyType === pattern.id
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                  ? 'bg-blue-600 text-white border-blue-700 dark:bg-blue-700'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700'
               }`}
               title={pattern.description}
             >
-              <span className="text-lg">{pattern.icon}</span>
-              <span className="text-xs font-semibold">{pattern.label}</span>
+              {pattern.label}
             </button>
           ))}
         </div>
       </div>
 
       {/* Mesh Filter */}
-      <label className="flex items-center gap-2 px-3 py-1.5 bg-card rounded border border-border text-xs cursor-pointer hover:bg-muted/40 w-fit">
+      <label className="flex items-center gap-2 px-4 py-2 bg-card rounded border border-border text-sm cursor-pointer hover:bg-muted/40 w-fit">
         <input
           type="checkbox"
           checked={showMeshOnly}
           onChange={(e) => setShowMeshOnly(e.target.checked)}
-          className="w-3 h-3 rounded"
+          className="w-4 h-4 rounded"
         />
-        <span className="font-semibold text-muted-foreground">Show Mesh Links Only</span>
+        <span className="font-semibold text-foreground">Show Mesh Links Only</span>
       </label>
 
       {/* Path Trace Tool */}
       <div className="bg-card rounded-lg border border-border p-4">
-        <h3 className="text-sm font-bold text-foreground mb-3">Path Trace Tool</h3>
-        <div className="grid grid-cols-2 gap-3 mb-3">
+        <h3 className="text-sm font-bold text-foreground mb-4">Path Trace Tool</h3>
+
+        {/* Route Selection */}
+        <div className="grid grid-cols-2 gap-4 mb-6">
           <div>
-            <label className="block text-xs font-semibold text-muted-foreground mb-1">Source</label>
+            <label className="block text-xs font-semibold text-muted-foreground mb-2">Source</label>
             <select
               value={sourceRegion}
               onChange={(e) => setSourceRegion(e.target.value)}
-              className="w-full px-2 py-1 border border-border rounded text-xs focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground"
+              className="w-full px-3 py-2 border border-border rounded bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               {regions.map(r => (
-                <option key={r} value={r}>{r}</option>
+                <option key={r} value={r}>
+                  {r}
+                </option>
               ))}
             </select>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-muted-foreground mb-1">Destination</label>
+            <label className="block text-xs font-semibold text-muted-foreground mb-2">Destination</label>
             <select
               value={destRegion}
               onChange={(e) => setDestRegion(e.target.value)}
-              className="w-full px-2 py-1 border border-border rounded text-xs focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground"
+              className="w-full px-3 py-2 border border-border rounded bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               {regions.map(r => (
-                <option key={r} value={r}>{r}</option>
+                <option key={r} value={r}>
+                  {r}
+                </option>
               ))}
             </select>
           </div>
         </div>
 
         {selectedTransportPath && (
-          <div className="space-y-3">
-            {/* Path Header */}
-            <div className="flex items-center gap-2 pb-3 border-b border-border">
-              <span className="text-sm font-semibold text-foreground">
-                {selectedTransportPath.source} → {selectedTransportPath.destination}
-              </span>
-              <span className="px-2 py-0.5 bg-primary/15 text-primary text-xs rounded font-semibold">
-                {getLinkTypeIcon(selectedTransportPath.type)} {selectedTransportPath.type.toUpperCase()}
+          <div className="space-y-4">
+            {/* Route Header */}
+            <div className="flex items-center justify-between pb-4 border-b border-border">
+              <div className="flex items-center gap-3">
+                <span className="font-semibold text-foreground">{selectedTransportPath.source}</span>
+                <ArrowRight className="w-4 h-4 text-gray-400" />
+                <span className="font-semibold text-foreground">{selectedTransportPath.destination}</span>
+              </div>
+              <span className={`px-3 py-1 rounded text-xs font-semibold ${getProtectionBadgeColor(selectedTransportPath.protectionState)}`}>
+                {getLinkTypeLabel(selectedTransportPath.type)} • {selectedTransportPath.protectionState === 'active' ? 'Active' : 'Standby'}
               </span>
             </div>
 
             {/* Primary Path */}
             <div>
-              <div className="flex items-center gap-2 mb-2">
-                <span className={`text-sm font-bold ${selectedTransportPath.protectionState === 'active' ? 'text-green-700' : 'text-yellow-700'}`}>
-                  {getProtectionIcon(selectedTransportPath.protectionState)} Primary Path
-                </span>
-              </div>
-              <div className="space-y-1 ml-2">
-                {selectedTransportPath.primary.map((hop, idx) => (
-                  <div key={idx} className="flex items-center gap-2 text-xs">
-                    {idx > 0 && <span className="text-muted-foreground">→</span>}
-                    <span className={`px-2 py-0.5 rounded font-semibold ${getHealthColor(hop.health)}`}>
-                      {hop.name}
-                    </span>
-                    <span className="text-muted-foreground text-xs">
-                      {hop.latency}ms • {hop.utilization}% util
-                    </span>
-                  </div>
-                ))}
+              <div className="mb-3">
+                <p className="text-sm font-semibold text-foreground mb-2">Primary Path</p>
+                <div className="space-y-2">
+                  {selectedTransportPath.primary.map((hop, idx) => (
+                    <div key={idx}>
+                      <div className={`px-3 py-2 rounded text-sm ${getHealthColor(hop.health)}`}>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-semibold">{hop.name}</p>
+                            <p className="text-xs opacity-75">{hop.type}</p>
+                          </div>
+                          <div className="text-right text-xs">
+                            <p className="font-semibold">{hop.latency}ms latency</p>
+                            <p className="opacity-75">{hop.utilization}% utilization</p>
+                          </div>
+                        </div>
+                      </div>
+                      {idx < selectedTransportPath.primary.length - 1 && (
+                        <div className="flex justify-center py-1">
+                          <ArrowRight className="w-4 h-4 text-gray-400" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
             {/* Backup Path */}
             {selectedTransportPath.backup && (
               <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-sm font-bold text-yellow-700">
-                    🟡 Backup Path (Standby)
-                  </span>
-                </div>
-                <div className="space-y-1 ml-2">
-                  {selectedTransportPath.backup.map((hop, idx) => (
-                    <div key={idx} className="flex items-center gap-2 text-xs">
-                      {idx > 0 && <span className="text-muted-foreground">→</span>}
-                      <span className={`px-2 py-0.5 rounded font-semibold ${getHealthColor(hop.health)}`}>
-                        {hop.name}
-                      </span>
-                      <span className="text-muted-foreground text-xs">
-                        {hop.latency}ms • {hop.utilization}% util
-                      </span>
-                    </div>
-                  ))}
+                <div className="mb-3">
+                  <p className="text-sm font-semibold text-foreground mb-2">Backup Path</p>
+                  <div className="space-y-2">
+                    {selectedTransportPath.backup.map((hop, idx) => (
+                      <div key={idx}>
+                        <div className={`px-3 py-2 rounded text-sm ${getHealthColor(hop.health)}`}>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-semibold">{hop.name}</p>
+                              <p className="text-xs opacity-75">{hop.type}</p>
+                            </div>
+                            <div className="text-right text-xs">
+                              <p className="font-semibold">{hop.latency}ms latency</p>
+                              <p className="opacity-75">{hop.utilization}% utilization</p>
+                            </div>
+                          </div>
+                        </div>
+                        {idx < selectedTransportPath.backup!.length - 1 && (
+                          <div className="flex justify-center py-1">
+                            <ArrowRight className="w-4 h-4 text-gray-400" />
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
 
-            {/* Summary */}
-            <div className="p-2 bg-primary/10 rounded text-xs text-foreground border border-primary/20">
-              <p className="font-semibold mb-1">Path Summary</p>
-              <p>Total hops: {selectedTransportPath.primary.length + (selectedTransportPath.backup?.length || 0)}</p>
-              <p>Primary latency: {selectedTransportPath.primary.reduce((sum, h) => sum + h.latency, 0).toFixed(1)}ms</p>
-              <p>Link type: {selectedTransportPath.type.toUpperCase()}</p>
+            {/* Path Summary */}
+            <div className="p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded">
+              <p className="text-xs font-semibold text-foreground mb-2">Path Summary</p>
+              <div className="grid grid-cols-3 gap-2 text-xs">
+                <div>
+                  <p className="text-muted-foreground">Total Hops</p>
+                  <p className="font-semibold text-foreground">{selectedTransportPath.primary.length}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Primary Latency</p>
+                  <p className="font-semibold text-foreground">
+                    {selectedTransportPath.primary.reduce((sum, h) => sum + h.latency, 0).toFixed(1)}ms
+                  </p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Link Type</p>
+                  <p className="font-semibold text-foreground">{getLinkTypeLabel(selectedTransportPath.type)}</p>
+                </div>
+              </div>
             </div>
           </div>
         )}
       </div>
 
-      {/* Transport Engineer Info */}
-      <div className="bg-primary/10 border border-primary/20 rounded-lg p-3">
-        <div className="flex items-start gap-2">
-          <Route className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-          <div className="text-xs text-foreground">
-            <p className="font-semibold mb-1">For Transport Engineers:</p>
-            <ul className="space-y-0.5">
-              <li>• Select topology pattern to visualize network structure</li>
-              <li>• Use Path Trace to view complete routes with latency/utilization</li>
-              <li>• See primary and backup paths with protection status</li>
-              <li>• Monitor per-hop health and congestion indicators</li>
-            </ul>
-          </div>
-        </div>
+      {/* Info Box */}
+      <div className="p-4 bg-gray-50 dark:bg-gray-800/30 border border-gray-200 dark:border-gray-700 rounded-lg">
+        <h4 className="text-sm font-semibold text-foreground mb-2">About Transport Paths</h4>
+        <ul className="text-xs text-muted-foreground space-y-1">
+          <li>• Select source and destination to trace end-to-end path</li>
+          <li>• View primary and backup routes with health status</li>
+          <li>• Monitor per-hop latency and link utilization</li>
+          <li>• Identify redundancy and failure points</li>
+        </ul>
       </div>
     </div>
   );

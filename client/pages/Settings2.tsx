@@ -19,7 +19,9 @@ import {
   CheckCircle,
   XCircle,
   Clock,
-  Download
+  Download,
+  Globe,
+  Calendar
 } from 'lucide-react';
 
 export default function Settings2() {
@@ -179,8 +181,9 @@ export default function Settings2() {
               <div className="space-y-2">
                 {/* General Platform Settings */}
                 <div className="rounded-lg border border-border bg-card p-4">
-                  <h3 className="mb-2 text-xl font-semibold text-foreground">General Platform Settings</h3>
-                  <div className="space-y-2">
+                  <h3 className="mb-4 text-xl font-semibold text-foreground">General Platform Settings</h3>
+                  <div className="space-y-4">
+                    {/* System Name */}
                     <div>
                       <label className="block text-sm font-semibold text-foreground mb-2">System Name</label>
                       <input
@@ -190,46 +193,136 @@ export default function Settings2() {
                         className="w-full rounded-lg border border-border px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50 bg-card text-foreground"
                       />
                     </div>
+
+                    {/* Default Timezone */}
                     <div>
-                      <label className="block text-sm font-semibold text-foreground mb-2">Default Timezone</label>
+                      <label className="flex items-center gap-2 text-sm font-semibold text-foreground mb-3">
+                        <Globe className="w-4 h-4 text-primary" />
+                        Default Timezone
+                      </label>
                       <select
                         value={systemConfig.timezone}
                         onChange={(e) => handleConfigChange('timezone', e.target.value)}
-                        className="w-full rounded-lg border border-border px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50 bg-card text-foreground"
+                        className="w-full rounded border border-border px-3 py-2 bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
                       >
-                        <option>UTC</option>
-                        <option>America/New_York</option>
-                        <option>Europe/London</option>
-                        <option>Asia/Tokyo</option>
+                        <optgroup label="UTC">
+                          <option value="UTC">UTC (Coordinated Universal Time)</option>
+                        </optgroup>
+                        <optgroup label="Americas">
+                          <option value="America/New_York">America/New_York (EST/EDT)</option>
+                          <option value="America/Chicago">America/Chicago (CST/CDT)</option>
+                          <option value="America/Denver">America/Denver (MST/MDT)</option>
+                          <option value="America/Los_Angeles">America/Los_Angeles (PST/PDT)</option>
+                          <option value="America/Toronto">America/Toronto (EST/EDT)</option>
+                          <option value="America/Mexico_City">America/Mexico_City (CST/CDT)</option>
+                          <option value="America/Buenos_Aires">America/Buenos_Aires (ART)</option>
+                          <option value="America/Sao_Paulo">America/Sao_Paulo (BRT)</option>
+                        </optgroup>
+                        <optgroup label="Europe">
+                          <option value="Europe/London">Europe/London (GMT/BST)</option>
+                          <option value="Europe/Paris">Europe/Paris (CET/CEST)</option>
+                          <option value="Europe/Berlin">Europe/Berlin (CET/CEST)</option>
+                          <option value="Europe/Moscow">Europe/Moscow (MSK)</option>
+                          <option value="Europe/Istanbul">Europe/Istanbul (EET/EEST)</option>
+                        </optgroup>
+                        <optgroup label="Middle East & Africa">
+                          <option value="Africa/Cairo">Africa/Cairo (EET)</option>
+                          <option value="Africa/Johannesburg">Africa/Johannesburg (SAST)</option>
+                          <option value="Asia/Dubai">Asia/Dubai (GST)</option>
+                          <option value="Asia/Riyadh">Asia/Riyadh (AST)</option>
+                        </optgroup>
+                        <optgroup label="Asia">
+                          <option value="Asia/Bangkok">Asia/Bangkok (ICT)</option>
+                          <option value="Asia/Hong_Kong">Asia/Hong_Kong (HKT)</option>
+                          <option value="Asia/Shanghai">Asia/Shanghai (CST)</option>
+                          <option value="Asia/Tokyo">Asia/Tokyo (JST)</option>
+                          <option value="Asia/Seoul">Asia/Seoul (KST)</option>
+                          <option value="Asia/Singapore">Asia/Singapore (SGT)</option>
+                          <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
+                        </optgroup>
+                        <optgroup label="Pacific">
+                          <option value="Australia/Sydney">Australia/Sydney (AEST/AEDT)</option>
+                          <option value="Australia/Melbourne">Australia/Melbourne (AEST/AEDT)</option>
+                          <option value="Australia/Perth">Australia/Perth (AWST)</option>
+                          <option value="Pacific/Auckland">Pacific/Auckland (NZST/NZDT)</option>
+                        </optgroup>
                       </select>
+                      <p className="text-xs text-muted-foreground mt-2">Selected: <span className="font-medium text-foreground">{systemConfig.timezone}</span></p>
                     </div>
+
+                    {/* System-wide Date/Time Format */}
                     <div>
-                      <label className="block text-sm font-semibold text-foreground mb-2">System-wide Date/Time Format</label>
-                      <select
-                        value={systemConfig.dateFormat}
-                        onChange={(e) => handleConfigChange('dateFormat', e.target.value)}
-                        className="w-full rounded-lg border border-border px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50 bg-card text-foreground"
-                      >
-                        <option>YYYY-MM-DD HH:mm:ss</option>
-                        <option>DD/MM/YYYY HH:mm:ss</option>
-                        <option>MM/DD/YYYY HH:mm:ss</option>
-                      </select>
+                      <label className="flex items-center gap-2 text-sm font-semibold text-foreground mb-3">
+                        <Calendar className="w-4 h-4 text-primary" />
+                        System-wide Date/Time Format
+                      </label>
+
+                      {/* Format Options Grid */}
+                      <div className="space-y-2 mb-4">
+                        {[
+                          { format: 'YYYY-MM-DD HH:mm:ss', label: 'ISO 8601 Format', preview: '2024-01-15 14:30:45' },
+                          { format: 'DD/MM/YYYY HH:mm:ss', label: 'European Format', preview: '15/01/2024 14:30:45' },
+                          { format: 'MM/DD/YYYY HH:mm:ss', label: 'US Format', preview: '01/15/2024 14:30:45' }
+                        ].map(option => (
+                          <label
+                            key={option.format}
+                            className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                              systemConfig.dateFormat === option.format
+                                ? 'border-primary bg-primary/5'
+                                : 'border-border bg-muted hover:border-border/70'
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              name="dateFormat"
+                              value={option.format}
+                              checked={systemConfig.dateFormat === option.format}
+                              onChange={(e) => handleConfigChange('dateFormat', e.target.value)}
+                              className="h-4 w-4"
+                            />
+                            <div className="flex-1">
+                              <p className="text-sm font-medium text-foreground">{option.label}</p>
+                              <p className="text-xs text-muted-foreground font-mono mt-1">{option.preview}</p>
+                            </div>
+                            {systemConfig.dateFormat === option.format && (
+                              <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
+                            )}
+                          </label>
+                        ))}
+                      </div>
+
+                      {/* Live Preview */}
+                      <div className="bg-muted p-3 rounded-lg border border-border/50">
+                        <p className="text-xs font-semibold text-muted-foreground mb-1">Live Preview:</p>
+                        <p className="text-sm font-mono text-foreground">
+                          {systemConfig.dateFormat === 'YYYY-MM-DD HH:mm:ss' && '2024-01-15 14:30:45'}
+                          {systemConfig.dateFormat === 'DD/MM/YYYY HH:mm:ss' && '15/01/2024 14:30:45'}
+                          {systemConfig.dateFormat === 'MM/DD/YYYY HH:mm:ss' && '01/15/2024 14:30:45'}
+                        </p>
+                      </div>
                     </div>
+
+                    {/* Default Language */}
                     <div>
                       <label className="block text-sm font-semibold text-foreground mb-2">Default Language</label>
                       <select
                         value={systemConfig.language}
                         onChange={(e) => handleConfigChange('language', e.target.value)}
-                        className="w-full rounded-lg border border-border px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50 bg-card text-foreground"
+                        className="w-full rounded border border-border px-3 py-2 bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
                       >
-                        <option>English</option>
-                        <option>Spanish</option>
-                        <option>French</option>
-                        <option>German</option>
+                        <option value="English">English</option>
+                        <option value="Spanish">Español (Spanish)</option>
+                        <option value="French">Français (French)</option>
+                        <option value="German">Deutsch (German)</option>
+                        <option value="Mandarin">中文 (Mandarin Chinese)</option>
+                        <option value="Japanese">日本語 (Japanese)</option>
+                        <option value="Arabic">العربية (Arabic)</option>
                       </select>
                     </div>
-                    <div className="border-t border-border pt-2">
-                      <label className="flex items-center gap-3 p-4 rounded-lg bg-muted border border-border cursor-pointer">
+
+                    {/* System Maintenance Mode */}
+                    <div className="border-t border-border pt-4">
+                      <label className="flex items-center gap-3 p-4 rounded-lg bg-muted border border-border cursor-pointer hover:bg-muted/80 transition-colors">
                         <input
                           type="checkbox"
                           checked={systemConfig.maintenanceMode}
@@ -662,7 +755,10 @@ export default function Settings2() {
               </div>
 
               <div className="rounded-lg border border-border bg-card p-4">
-                <h3 className="mb-2 text-xl font-semibold text-foreground">Alert/Notification Routing Defaults</h3>
+                <h3 className="mb-4 text-xl font-semibold text-foreground flex items-center gap-2">
+                  <Bell className="w-5 h-5 text-primary" />
+                  Alert/Notification Routing Defaults
+                </h3>
                 <div className="space-y-3">
                   {[
                     { alert: 'Critical alarms', route: 'NOC Team' },
@@ -670,14 +766,16 @@ export default function Settings2() {
                     { alert: 'Report failure', route: 'Report Owner' },
                     { alert: 'Security violation', route: 'Security Team' }
                   ].map(rule => (
-                    <div key={rule.alert} className="grid grid-cols-2 gap-4 rounded-lg bg-muted p-4">
+                    <div key={rule.alert} className="grid grid-cols-2 gap-4 rounded-lg bg-muted p-4 items-center hover:bg-muted/80 transition-colors">
                       <div>
                         <p className="text-sm font-semibold text-foreground">{rule.alert}</p>
                       </div>
-                      <select className="rounded border border-border px-3 py-2 text-sm">
+                      <select className="rounded border border-border px-3 py-2 text-sm bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer">
                         <option>{rule.route}</option>
                         <option>All Team</option>
                         <option>On-Call</option>
+                        <option>Manager on Call</option>
+                        <option>Escalation Team</option>
                       </select>
                     </div>
                   ))}

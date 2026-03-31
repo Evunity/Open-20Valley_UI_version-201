@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { Play, Pause, RotateCcw, ZoomIn } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Clock, ChevronRight, AlertTriangle, TrendingUp, CheckCircle } from 'lucide-react';
 
 interface TimelineEvent {
   time: string;
   timestamp: number;
+  hour: number;
+  minute: number;
+  second: number;
   event: string;
   object: string;
   type: 'failure' | 'recovery' | 'degradation' | 'state_change';
@@ -16,15 +19,18 @@ interface TimelineReplayViewProps {
 }
 
 export const TimelineReplayView: React.FC<TimelineReplayViewProps> = ({ onEventSelect }) => {
-  const [currentTime, setCurrentTime] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [startTime, setStartTime] = useState('09:12');
+  const [endTime, setEndTime] = useState('09:15');
+  const [expandedEvent, setExpandedEvent] = useState<number | null>(null);
 
-  // Mock timeline events (RCA scenario)
+  // Mock timeline events with proper timestamps
   const timelineEvents: TimelineEvent[] = [
     {
       time: '09:12:15',
       timestamp: 0,
+      hour: 9,
+      minute: 12,
+      second: 15,
       event: 'RRU 2 Power Supply Failure',
       object: 'RRU-Sector-A',
       type: 'failure',
@@ -34,6 +40,9 @@ export const TimelineReplayView: React.FC<TimelineReplayViewProps> = ({ onEventS
     {
       time: '09:12:30',
       timestamp: 15,
+      hour: 9,
+      minute: 12,
+      second: 30,
       event: 'Cell A Coverage Loss Detected',
       object: 'Cell-Cairo-01-A',
       type: 'degradation',
@@ -43,6 +52,9 @@ export const TimelineReplayView: React.FC<TimelineReplayViewProps> = ({ onEventS
     {
       time: '09:13:00',
       timestamp: 45,
+      hour: 9,
+      minute: 13,
+      second: 0,
       event: 'Critical Alarm Generated',
       object: 'Site-Cairo-01',
       type: 'state_change',
@@ -52,6 +64,9 @@ export const TimelineReplayView: React.FC<TimelineReplayViewProps> = ({ onEventS
     {
       time: '09:13:45',
       timestamp: 90,
+      hour: 9,
+      minute: 13,
+      second: 45,
       event: 'Automation Triggered – RRU Restart',
       object: 'RRU-Sector-A',
       type: 'state_change',
@@ -61,6 +76,9 @@ export const TimelineReplayView: React.FC<TimelineReplayViewProps> = ({ onEventS
     {
       time: '09:14:00',
       timestamp: 105,
+      hour: 9,
+      minute: 14,
+      second: 0,
       event: 'RRU Restart Sequence Started',
       object: 'RRU-Sector-A',
       type: 'state_change',
@@ -70,6 +88,9 @@ export const TimelineReplayView: React.FC<TimelineReplayViewProps> = ({ onEventS
     {
       time: '09:14:45',
       timestamp: 150,
+      hour: 9,
+      minute: 14,
+      second: 45,
       event: 'RRU Back Online',
       object: 'RRU-Sector-A',
       type: 'recovery',
@@ -79,6 +100,9 @@ export const TimelineReplayView: React.FC<TimelineReplayViewProps> = ({ onEventS
     {
       time: '09:15:00',
       timestamp: 165,
+      hour: 9,
+      minute: 15,
+      second: 0,
       event: 'Cell A Coverage Restored',
       object: 'Cell-Cairo-01-A',
       type: 'recovery',
@@ -88,6 +112,9 @@ export const TimelineReplayView: React.FC<TimelineReplayViewProps> = ({ onEventS
     {
       time: '09:15:30',
       timestamp: 195,
+      hour: 9,
+      minute: 15,
+      second: 30,
       event: 'Network Stabilized',
       object: 'Site-Cairo-01',
       type: 'recovery',
@@ -96,188 +123,208 @@ export const TimelineReplayView: React.FC<TimelineReplayViewProps> = ({ onEventS
     }
   ];
 
-  const totalDuration = 195; // seconds
-  const progress = (currentTime / totalDuration) * 100;
-
-  // Auto-play logic
-  useEffect(() => {
-    if (!isPlaying) return;
-
-    const interval = setInterval(() => {
-      setCurrentTime(prev => {
-        if (prev >= totalDuration) {
-          setIsPlaying(false);
-          return prev;
-        }
-        return prev + (1 * playbackSpeed);
-      });
-    }, 100);
-
-    return () => clearInterval(interval);
-  }, [isPlaying, playbackSpeed]);
-
-  const currentEvent = timelineEvents.find(e => Math.abs(e.timestamp - currentTime) < 5);
-
-  const getEventIcon = (type: string) => {
-    const icons = {
-      'failure': '❌',
-      'degradation': '⚠️',
-      'recovery': '✅',
-      'state_change': '🔄'
-    };
-    return icons[type as keyof typeof icons] || '?';
+  // Calculate time window in seconds from HH:MM format
+  const parseTimeToSeconds = (timeStr: string) => {
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    return hours * 3600 + minutes * 60;
   };
 
-  const getEventColor = (type: string) => {
+  const timeWindowStartSeconds = parseTimeToSeconds(startTime);
+  const timeWindowEndSeconds = parseTimeToSeconds(endTime);
+
+  // Filter events within selected time window
+  const eventsInWindow = useMemo(() => {
+    return timelineEvents.filter(event => {
+      const eventSeconds = event.hour * 3600 + event.minute * 60 + event.second;
+      return eventSeconds >= timeWindowStartSeconds && eventSeconds <= timeWindowEndSeconds;
+    });
+  }, [startTime, endTime]);
+
+  const getEventIcon = (type: string) => {
     switch (type) {
-      case 'failure': return 'bg-red-100 border-red-300';
-      case 'degradation': return 'bg-yellow-100 border-yellow-300';
-      case 'recovery': return 'bg-green-100 border-green-300';
-      case 'state_change': return 'bg-blue-100 border-blue-300';
-      default: return 'bg-gray-100 border-gray-300';
+      case 'failure':
+        return <AlertTriangle className="w-4 h-4 text-red-600 dark:text-red-400" />;
+      case 'degradation':
+        return <TrendingUp className="w-4 h-4 text-amber-600 dark:text-amber-400 rotate-180" />;
+      case 'recovery':
+        return <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />;
+      case 'state_change':
+        return <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400" />;
+      default:
+        return <Clock className="w-4 h-4 text-gray-400" />;
     }
   };
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  const getEventTypeLabel = (type: string) => {
+    const labels = {
+      'failure': 'Failure',
+      'degradation': 'Degradation',
+      'recovery': 'Recovery',
+      'state_change': 'State Change'
+    };
+    return labels[type as keyof typeof labels] || 'Event';
   };
 
+
   return (
-    <div className="w-full h-full flex flex-col gap-4 p-4 bg-gray-50 overflow-y-auto">
-      <h2 className="text-lg font-bold text-gray-900">Timeline & Replay</h2>
+    <div className="w-full h-full flex flex-col p-6 bg-background overflow-y-auto">
 
-      {/* Playback Controls */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4">
-        <div className="flex items-center gap-3 mb-3">
-          <button
-            onClick={() => setIsPlaying(!isPlaying)}
-            className={`px-3 py-2 rounded-lg font-semibold text-sm transition flex items-center gap-2 ${
-              isPlaying
-                ? 'bg-red-600 text-white hover:bg-red-700'
-                : 'bg-green-600 text-white hover:bg-green-700'
-            }`}
-          >
-            {isPlaying ? (
-              <>
-                <Pause className="w-4 h-4" /> Pause
-              </>
-            ) : (
-              <>
-                <Play className="w-4 h-4" /> Play
-              </>
-            )}
-          </button>
-
-          <button
-            onClick={() => setCurrentTime(0)}
-            className="px-3 py-2 rounded-lg font-semibold text-sm bg-gray-200 text-gray-700 hover:bg-gray-300 transition flex items-center gap-2"
-          >
-            <RotateCcw className="w-4 h-4" /> Reset
-          </button>
-
-          <select
-            value={playbackSpeed}
-            onChange={(e) => setPlaybackSpeed(parseFloat(e.target.value))}
-            className="px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value={0.5}>0.5x</option>
-            <option value={1}>1x</option>
-            <option value={2}>2x</option>
-            <option value={4}>4x</option>
-          </select>
-
-          <div className="ml-auto text-sm font-bold text-gray-900">
-            {formatTime(currentTime)} / {formatTime(totalDuration)}
+      {/* Time Window Selection - Modern Time Range Picker */}
+      <div className="mb-8 space-y-4">
+        <div className="bg-card rounded-lg border border-border p-4">
+          {/* Time Range Header with Clock Icon */}
+          <div className="flex items-center gap-2 mb-4">
+            <Clock className="w-4 h-4 text-primary" />
+            <p className="text-sm font-semibold text-foreground">Select Time Window</p>
           </div>
-        </div>
 
-        {/* Timeline Slider */}
-        <div className="space-y-2">
-          <input
-            type="range"
-            min="0"
-            max={totalDuration}
-            value={currentTime}
-            onChange={(e) => setCurrentTime(parseFloat(e.target.value))}
-            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-          />
+          {/* Time Range Inputs */}
+          <div className="flex items-stretch gap-3">
+            {/* Start Time */}
+            <div className="flex-1 flex flex-col">
+              <label className="block text-xs font-semibold text-muted-foreground mb-2">From</label>
+              <div className="flex items-center gap-2 flex-1">
+                <Clock className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                <input
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  className="flex-1 px-3 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm font-mono"
+                />
+              </div>
+            </div>
 
-          {/* Event Markers */}
-          <div className="relative h-6 bg-gray-100 rounded border border-gray-300">
-            {timelineEvents.map((event, idx) => (
-              <button
-                key={idx}
-                onClick={() => setCurrentTime(event.timestamp)}
-                className="absolute top-1/2 transform -translate-y-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-white border-2 border-gray-400 hover:border-blue-600 transition"
-                style={{ left: `${(event.timestamp / totalDuration) * 100}%` }}
-                title={event.event}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
+            {/* Separator - Centered Arrow */}
+            <div className="flex items-center justify-center px-2 mt-5">
+              <div className="text-primary font-bold text-xl">↔</div>
+            </div>
 
-      {/* Current Event Display */}
-      {currentEvent && (
-        <div className={`rounded-lg border-2 p-4 ${getEventColor(currentEvent.type)}`}>
-          <div className="flex items-start gap-3">
-            <span className="text-2xl">{getEventIcon(currentEvent.type)}</span>
-            <div className="flex-1">
-              <p className="text-sm font-bold text-gray-900">{currentEvent.event}</p>
-              <p className="text-xs text-gray-700 mt-1">{currentEvent.impact}</p>
-              <div className="flex gap-4 mt-2 text-xs text-gray-700">
-                <span><strong>Time:</strong> {currentEvent.time}</span>
-                <span><strong>Object:</strong> {currentEvent.object}</span>
-                <span><strong>Affected:</strong> {currentEvent.affectedObjects} object(s)</span>
+            {/* End Time */}
+            <div className="flex-1 flex flex-col">
+              <label className="block text-xs font-semibold text-muted-foreground mb-2">To</label>
+              <div className="flex items-center gap-2 flex-1">
+                <Clock className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                <input
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className="flex-1 px-3 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground text-sm font-mono"
+                />
               </div>
             </div>
           </div>
-        </div>
-      )}
 
-      {/* Timeline Events List */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4">
-        <h3 className="text-sm font-bold text-gray-900 mb-3">Event Sequence (RCA)</h3>
-        <div className="space-y-2 max-h-64 overflow-y-auto">
-          {timelineEvents.map((event, idx) => (
-            <button
-              key={idx}
-              onClick={() => {
-                setCurrentTime(event.timestamp);
-                onEventSelect?.(event);
-              }}
-              className={`w-full text-left px-3 py-2 rounded border-l-4 transition ${
-                Math.abs(currentTime - event.timestamp) < 5
-                  ? 'bg-blue-50 border-l-blue-600 border-blue-200'
-                  : `${getEventColor(event.type)} border-l-gray-400`
-              }`}
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex items-start gap-2 flex-1">
-                  <span className="text-lg mt-0.5">{getEventIcon(event.type)}</span>
-                  <div className="min-w-0">
-                    <p className="text-xs font-bold text-gray-900">{event.time}</p>
-                    <p className="text-xs font-semibold text-gray-900 mt-0.5">{event.event}</p>
-                    <p className="text-xs text-gray-700 mt-0.5">{event.impact}</p>
-                  </div>
-                </div>
-              </div>
-            </button>
-          ))}
+          {/* Window Summary */}
+          <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-foreground">
+                {startTime} – {endTime}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">{eventsInWindow.length} events in this window</p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs text-muted-foreground">Duration: {Math.abs(parseInt(endTime.split(':')[0]) * 60 + parseInt(endTime.split(':')[1]) - parseInt(startTime.split(':')[0]) * 60 - parseInt(startTime.split(':')[1]))} minutes</p>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Use Cases */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-        <p className="text-xs font-semibold text-blue-900 mb-1">Use Cases:</p>
-        <ul className="text-xs text-blue-800 space-y-0.5">
-          <li>• <strong>Root Cause Analysis (RCA)</strong> - Understand how failures propagate</li>
-          <li>• <strong>Regulatory Defense</strong> - Show recovery timeline to auditors</li>
-          <li>• <strong>Automation Validation</strong> - Verify automation responses</li>
-          <li>• <strong>Training</strong> - Replay outages for NOC team education</li>
-        </ul>
+      {/* Events Timeline */}
+      <div>
+        <h3 className="text-sm font-semibold text-foreground mb-4">Events ({eventsInWindow.length})</h3>
+
+        <div className="relative">
+          {/* Vertical line */}
+          <div className="absolute left-3 top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-gray-700"></div>
+
+          {/* Events */}
+          <div className="space-y-4">
+            {eventsInWindow.length > 0 ? (
+              eventsInWindow.map((event, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => {
+                    setExpandedEvent(expandedEvent === idx ? null : idx);
+                    onEventSelect?.(event);
+                  }}
+                  className="w-full text-left transition"
+                >
+                  <div className="flex gap-4">
+                    {/* Timeline dot */}
+                    <div className="flex flex-col items-center pt-1">
+                      <div className="w-7 h-7 rounded-full bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-700 flex items-center justify-center flex-shrink-0">
+                        {getEventIcon(event.type)}
+                      </div>
+                    </div>
+
+                    {/* Event content */}
+                    <div className="flex-1 pb-4">
+                      <div className="p-3 rounded border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 transition">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1">
+                            <p className="text-xs font-mono font-semibold text-blue-600 dark:text-blue-400">
+                              {event.time}
+                            </p>
+                            <p className="text-sm font-semibold text-foreground mt-1">{event.event}</p>
+                            <p className="text-xs text-muted-foreground mt-1">{event.impact}</p>
+                          </div>
+                          <div className="flex-shrink-0">
+                            <ChevronRight className={`w-4 h-4 text-muted-foreground transition ${expandedEvent === idx ? 'rotate-90' : ''}`} />
+                          </div>
+                        </div>
+
+                        {/* Expanded details */}
+                        {expandedEvent === idx && (
+                          <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700 space-y-2">
+                            <div className="grid grid-cols-3 gap-4 text-xs">
+                              <div>
+                                <p className="text-muted-foreground font-semibold">Type</p>
+                                <p className="text-foreground font-mono mt-0.5">{getEventTypeLabel(event.type)}</p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground font-semibold">Object</p>
+                                <p className="text-foreground font-mono mt-0.5">{event.object}</p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground font-semibold">Affected</p>
+                                <p className="text-foreground font-mono mt-0.5">{event.affectedObjects}</p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              ))
+            ) : (
+              <p className="text-xs text-muted-foreground text-center py-8">No events in selected time window</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Statistics */}
+      <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-800 grid grid-cols-3 gap-4">
+        <div className="p-3 rounded border border-gray-200 dark:border-gray-800">
+          <p className="text-xs text-muted-foreground font-semibold">Total Events</p>
+          <p className="text-lg font-bold text-foreground mt-1">{timelineEvents.length}</p>
+        </div>
+        <div className="p-3 rounded border border-gray-200 dark:border-gray-800">
+          <p className="text-xs text-muted-foreground font-semibold">In Window</p>
+          <p className="text-lg font-bold text-foreground mt-1">{eventsInWindow.length}</p>
+        </div>
+        <div className="p-3 rounded border border-gray-200 dark:border-gray-800">
+          <p className="text-xs text-muted-foreground font-semibold">Failures</p>
+          <p className="text-lg font-bold text-red-600 dark:text-red-400 mt-1">
+            {eventsInWindow.filter(e => e.type === 'failure').length}
+          </p>
+        </div>
+      </div>
+
+      {/* Info */}
+      <div className="mt-6 p-3 text-xs text-muted-foreground bg-gray-50 dark:bg-gray-950/30 rounded border border-gray-200 dark:border-gray-800">
+        <p><span className="font-semibold">Tip:</span> Select a time window to focus on specific operational events. Click events to view detailed information.</p>
       </div>
     </div>
   );

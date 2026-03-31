@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Plus, Copy, Trash2, Play, Tag, Lock, AlertTriangle, Zap, Clock } from 'lucide-react';
+import { Plus, Copy, Trash2, Play, Tag, AlertTriangle, Zap, Clock } from 'lucide-react';
+import SearchableDropdown from './SearchableDropdown';
 
 interface ScriptLibraryProps {
   selectedTarget: any;
@@ -99,6 +100,16 @@ export const ScriptLibrary: React.FC<ScriptLibraryProps> = () => {
   const [showForm, setShowForm] = useState(false);
   const [showExecution, setShowExecution] = useState<string | null>(null);
   const [parameters, setParameters] = useState<Record<string, string>>({});
+  const [isCreating, setIsCreating] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    category: 'RF Optimization' as any,
+    description: '',
+    content: '',
+    vendor: 'Huawei',
+    riskLevel: 'low' as 'low' | 'medium' | 'high'
+  });
 
   const filteredScripts = selectedCategory
     ? scripts.filter(s => s.category === selectedCategory)
@@ -141,10 +152,98 @@ export const ScriptLibrary: React.FC<ScriptLibraryProps> = () => {
     }
   };
 
+  const createScript = async () => {
+    // Validate form
+    if (!formData.name.trim()) {
+      alert('Please enter a script name');
+      return;
+    }
+    if (!formData.description.trim()) {
+      alert('Please enter a description');
+      return;
+    }
+    if (!formData.content.trim()) {
+      alert('Please enter script content');
+      return;
+    }
+
+    setIsCreating(true);
+    try {
+      // Create new script object
+      const newScript: Script = {
+        id: String(scripts.length + 1),
+        name: formData.name,
+        description: formData.description,
+        category: formData.category,
+        vendor: formData.vendor,
+        commands: formData.content.split('\n').filter(line => line.trim()),
+        parameters: [],
+        requiredPermissions: [],
+        riskLevel: formData.riskLevel,
+        rollbackInstructions: 'Manual rollback required',
+        created: new Date().toISOString().split('T')[0],
+        lastModified: new Date().toISOString().split('T')[0],
+        executionCount: 0,
+        successRate: 0
+      };
+
+      // Add to scripts
+      setScripts([...scripts, newScript]);
+
+      // Reset form
+      setFormData({
+        name: '',
+        category: 'RF Optimization',
+        description: '',
+        content: '',
+        vendor: 'Huawei',
+        riskLevel: 'low'
+      });
+      setShowForm(false);
+      alert('Script created successfully!');
+    } catch (error) {
+      console.error('Error creating script:', error);
+      alert('Failed to create script');
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const copyScript = (script: Script) => {
+    try {
+      const scriptJson = JSON.stringify({
+        name: script.name,
+        description: script.description,
+        category: script.category,
+        vendor: script.vendor,
+        commands: script.commands,
+        riskLevel: script.riskLevel,
+        rollbackInstructions: script.rollbackInstructions
+      }, null, 2);
+
+      navigator.clipboard.writeText(scriptJson);
+      setCopiedId(script.id);
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch (error) {
+      console.error('Error copying script:', error);
+      alert('Failed to copy script');
+    }
+  };
+
+  const deleteScript = (scriptId: string) => {
+    const script = scripts.find(s => s.id === scriptId);
+    if (window.confirm(`Are you sure you want to delete "${script?.name}"?`)) {
+      setScripts(scripts.filter(s => s.id !== scriptId));
+      if (showExecution === scriptId) {
+        setShowExecution(null);
+      }
+    }
+  };
+
   return (
     <div className="flex flex-col h-full gap-4 p-4">
       {/* Header */}
-      <div className="flex gap-4">
+      <div className="flex gap-4 items-end">
         <button
           onClick={() => setShowForm(!showForm)}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold flex items-center gap-2"
@@ -153,66 +252,141 @@ export const ScriptLibrary: React.FC<ScriptLibraryProps> = () => {
           Create New Script
         </button>
 
-        <select
-          value={selectedCategory}
-          onChange={(e) => setSelectedCategory(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-        >
-          <option value="">All Categories</option>
-          {SCRIPT_CATEGORIES.map(cat => (
-            <option key={cat} value={cat}>{cat}</option>
-          ))}
-        </select>
+        <div className="w-64">
+          <SearchableDropdown
+            label="Category"
+            options={['All Categories', ...SCRIPT_CATEGORIES]}
+            selected={selectedCategory === '' ? ['All Categories'] : [selectedCategory]}
+            onChange={(selected) => {
+              setSelectedCategory(selected[0] === 'All Categories' ? '' : selected[0]);
+            }}
+            placeholder="Select category..."
+            multiSelect={false}
+            searchable={true}
+            compact={true}
+          />
+        </div>
       </div>
 
       {showForm && (
         <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Script Name</label>
-              <input type="text" placeholder="e.g., Reset Cell Configuration" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+              <label className="block text-xs font-semibold text-muted-foreground mb-1">Script Name</label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="e.g., Reset Cell Configuration"
+                className="w-full px-3 py-1.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+              />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Category</label>
-              <select className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                {SCRIPT_CATEGORIES.map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-              </select>
+              <SearchableDropdown
+                label="Category"
+                options={[...SCRIPT_CATEGORIES]}
+                selected={[formData.category]}
+                onChange={(selected) => setFormData({ ...formData, category: selected[0] as any })}
+                placeholder="Select category..."
+                multiSelect={false}
+                searchable={true}
+                compact={true}
+              />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Description</label>
-            <textarea placeholder="What does this script do?" rows={2} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">Description</label>
+            <textarea
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              placeholder="What does this script do?"
+              rows={2}
+              className="w-full px-3 py-1.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+            />
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-xs font-semibold text-muted-foreground">Script Content</label>
+              <label className="text-xs font-semibold text-primary cursor-pointer hover:text-primary/90">
+                <input
+                  type="file"
+                  accept=".sh,.txt,.sql,.py,.js"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = (event) => {
+                        const text = event.target?.result as string;
+                        setFormData({ ...formData, content: text });
+                      };
+                      reader.readAsText(file);
+                    }
+                  }}
+                  className="hidden"
+                />
+                📁 Upload Script File
+              </label>
+            </div>
+            <textarea
+              value={formData.content}
+              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+              placeholder="Enter script commands, one per line..."
+              rows={6}
+              className="w-full px-3 py-1.5 border border-border rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary/50"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Vendor</label>
-              <select className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                <option>Huawei</option>
-                <option>Nokia</option>
-                <option>Ericsson</option>
-              </select>
+              <SearchableDropdown
+                label="Vendor"
+                options={['Huawei', 'Nokia', 'Ericsson', 'ZTE']}
+                selected={[formData.vendor]}
+                onChange={(selected) => setFormData({ ...formData, vendor: selected[0] })}
+                placeholder="Select vendor..."
+                multiSelect={false}
+                searchable={true}
+                compact={true}
+              />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Risk Level</label>
-              <select className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                <option>Low</option>
-                <option>Medium</option>
-                <option>High</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Required Permissions</label>
-              <input type="text" placeholder="e.g., RF_MODIFY, BULK_EXECUTE" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+              <SearchableDropdown
+                label="Risk Level"
+                options={['Low', 'Medium', 'High']}
+                selected={[formData.riskLevel === 'low' ? 'Low' : formData.riskLevel === 'medium' ? 'Medium' : 'High']}
+                onChange={(selected) => {
+                  const riskMap: Record<string, 'low' | 'medium' | 'high'> = {
+                    'Low': 'low',
+                    'Medium': 'medium',
+                    'High': 'high'
+                  };
+                  setFormData({ ...formData, riskLevel: riskMap[selected[0]] });
+                }}
+                placeholder="Select risk level..."
+                multiSelect={false}
+                searchable={true}
+                compact={true}
+              />
             </div>
           </div>
 
-          <button className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold">
-            Create Script
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={createScript}
+              disabled={isCreating}
+              className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed transition"
+            >
+              {isCreating ? 'Creating...' : 'Create Script'}
+            </button>
+            <button
+              onClick={() => setShowForm(false)}
+              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-semibold transition"
+            >
+              Cancel
+            </button>
+          </div>
         </div>
       )}
 
@@ -229,7 +403,7 @@ export const ScriptLibrary: React.FC<ScriptLibraryProps> = () => {
                       {script.riskLevel}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-600 mb-1">{script.description}</p>
+                  <p className="text-sm text-gray-600 mb-1 whitespace-pre-wrap break-words">{script.description}</p>
 
                   <div className="flex items-center gap-3 text-xs text-gray-500 flex-wrap mt-2">
                     <div className="flex items-center gap-1">
@@ -261,10 +435,15 @@ export const ScriptLibrary: React.FC<ScriptLibraryProps> = () => {
                   >
                     <Play className="w-4 h-4 text-blue-600" />
                   </button>
-                  <button className="p-2 hover:bg-gray-200 rounded transition" title="Copy script">
-                    <Copy className="w-4 h-4 text-gray-600" />
+                  <button
+                    onClick={() => copyScript(script)}
+                    className={`p-2 rounded transition ${copiedId === script.id ? 'bg-green-100' : 'hover:bg-gray-200'}`}
+                    title={copiedId === script.id ? 'Copied!' : 'Copy script'}
+                  >
+                    <Copy className={`w-4 h-4 ${copiedId === script.id ? 'text-green-600' : 'text-gray-600'}`} />
                   </button>
                   <button
+                    onClick={() => deleteScript(script.id)}
                     className="p-2 hover:bg-red-100 rounded transition"
                     title="Delete script"
                   >
@@ -280,15 +459,8 @@ export const ScriptLibrary: React.FC<ScriptLibraryProps> = () => {
                 ))}
               </div>
 
-              {/* Permissions & Rollback */}
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="p-2 bg-blue-50 rounded flex items-start gap-1">
-                  <Lock className="w-3 h-3 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="font-semibold text-blue-900">Permissions:</p>
-                    <p className="text-blue-700">{script.requiredPermissions.join(', ')}</p>
-                  </div>
-                </div>
+              {/* Rollback */}
+              <div className="text-xs">
                 <div className="p-2 bg-amber-50 rounded flex items-start gap-1">
                   <AlertTriangle className="w-3 h-3 text-amber-600 mt-0.5 flex-shrink-0" />
                   <div>

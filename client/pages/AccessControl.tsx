@@ -150,6 +150,110 @@ export default function AccessControl() {
     [activeWorkspace]
   );
 
+  const renderDashboard = () => (
+    <div className="flex-1 overflow-y-auto p-8">
+      <div className="space-y-8">
+        {/* Security Overview Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20 rounded-lg p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Active Tenants</p>
+                <p className="text-3xl font-bold text-foreground">12</p>
+              </div>
+              <Building2 className="w-8 h-8 text-blue-500/50" />
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-lg p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Users</p>
+                <p className="text-3xl font-bold text-foreground">248</p>
+              </div>
+              <Users className="w-8 h-8 text-green-500/50" />
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-orange-500/10 to-red-500/10 border border-orange-500/20 rounded-lg p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Roles Defined</p>
+                <p className="text-3xl font-bold text-foreground">34</p>
+              </div>
+              <Shield className="w-8 h-8 text-orange-500/50" />
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-lg p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Security Alerts</p>
+                <p className="text-3xl font-bold text-red-600">3</p>
+              </div>
+              <AlertCircle className="w-8 h-8 text-red-500/50" />
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Access Sections */}
+        <div>
+          <h2 className="text-2xl font-bold text-foreground mb-4">Essential Controls</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <button onClick={() => setActiveWorkspace('tenant-governance')} className="bg-card border border-border rounded-lg p-6 hover:border-primary/50 transition-all text-left group">
+              <div className="flex items-start justify-between mb-3">
+                <Building2 className="w-6 h-6 text-blue-500 group-hover:text-blue-400" />
+                <span className="text-xs bg-blue-500/20 text-blue-500 px-2 py-1 rounded">CRITICAL</span>
+              </div>
+              <h3 className="font-semibold text-foreground mb-1">Tenant Governance</h3>
+              <p className="text-sm text-muted-foreground">Manage tenant hierarchy, isolation, and organization structure</p>
+            </button>
+
+            <button onClick={() => setActiveWorkspace('module-access')} className="bg-card border border-border rounded-lg p-6 hover:border-primary/50 transition-all text-left group">
+              <div className="flex items-start justify-between mb-3">
+                <Key className="w-6 h-6 text-orange-500 group-hover:text-orange-400" />
+                <span className="text-xs bg-orange-500/20 text-orange-500 px-2 py-1 rounded">CORE</span>
+              </div>
+              <h3 className="font-semibold text-foreground mb-1">Permission Matrix</h3>
+              <p className="text-sm text-muted-foreground">Define module, page, and operation-level access controls</p>
+            </button>
+
+            <button onClick={() => setActiveWorkspace('user-management')} className="bg-card border border-border rounded-lg p-6 hover:border-primary/50 transition-all text-left group">
+              <div className="flex items-start justify-between mb-3">
+                <Users className="w-6 h-6 text-green-500 group-hover:text-green-400" />
+                <span className="text-xs bg-green-500/20 text-green-500 px-2 py-1 rounded">IMPORTANT</span>
+              </div>
+              <h3 className="font-semibold text-foreground mb-1">User & Role Management</h3>
+              <p className="text-sm text-muted-foreground">Manage users, assign roles, and control access levels</p>
+            </button>
+          </div>
+        </div>
+
+        {/* Security & Compliance */}
+        <div>
+          <h2 className="text-2xl font-bold text-foreground mb-4">Security & Compliance</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <button onClick={() => setActiveWorkspace('global-controls')} className="bg-card border border-red-500/30 rounded-lg p-6 hover:border-red-500/60 transition-all text-left group">
+              <div className="flex items-start justify-between mb-3">
+                <Zap className="w-6 h-6 text-red-500 group-hover:text-red-400" />
+              </div>
+              <h3 className="font-semibold text-foreground mb-1">Global Security Controls</h3>
+              <p className="text-sm text-muted-foreground">Emergency kill switches, automation freeze, read-only mode</p>
+            </button>
+
+            <button onClick={() => setActiveWorkspace('separation-duties')} className="bg-card border border-border rounded-lg p-6 hover:border-primary/50 transition-all text-left group">
+              <div className="flex items-start justify-between mb-3">
+                <Shield className="w-6 h-6 text-purple-500 group-hover:text-purple-400" />
+              </div>
+              <h3 className="font-semibold text-foreground mb-1">Separation of Duties</h3>
+              <p className="text-sm text-muted-foreground">Prevent dangerous permission combinations and conflicts</p>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   const renderWorkspace = () => {
     switch (activeWorkspace) {
       case 'tenant-governance':
@@ -177,7 +281,7 @@ export default function AccessControl() {
       case 'global-controls':
         return <GlobalSecurityControls />;
       default:
-        return null;
+        return renderDashboard();
     }
   };
 
@@ -190,7 +294,9 @@ export default function AccessControl() {
             <div>
               <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
                 <Lock className="w-8 h-8 text-primary" />
+                Access Control & Tenant Management
               </h1>
+              <p className="text-sm text-muted-foreground mt-1">Multi-tenant governance, role-based access control, and security policies</p>
             </div>
             <div className="flex items-center gap-2">
               <button

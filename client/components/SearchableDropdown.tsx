@@ -70,12 +70,14 @@ export default function SearchableDropdown({
 
   return (
     <div ref={dropdownRef} className="relative">
-      <label className={cn(
-        "block typo-label",
-        compact ? "text-[11px] mb-1.5" : "text-xs mb-2"
-      )}>
-        {label}
-      </label>
+      {label && (
+        <label className={cn(
+          "block typo-label",
+          compact ? "text-[11px] mb-1.5" : "text-xs mb-2"
+        )}>
+          {label}
+        </label>
+      )}
 
       <div
         onClick={() => setIsOpen(!isOpen)}

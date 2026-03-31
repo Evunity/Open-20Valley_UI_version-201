@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AlertTriangle, Users, TrendingDown, DollarSign } from 'lucide-react';
+import { AlertTriangle, Users, DollarSign, TrendingDown } from 'lucide-react';
 
 interface ImpactChain {
   level: number;
@@ -25,7 +25,6 @@ interface ImpactAnalysisViewProps {
 
 export const ImpactAnalysisView: React.FC<ImpactAnalysisViewProps> = ({ onImpactSelect }) => {
   const [selectedObject, setSelectedObject] = useState('transport_link_01');
-  const [selectedService, setSelectedService] = useState('all');
 
   // Mock impact scenarios
   const impactScenarios: Record<string, BlastRadius> = {
@@ -155,147 +154,151 @@ export const ImpactAnalysisView: React.FC<ImpactAnalysisViewProps> = ({ onImpact
 
   const impact = impactScenarios[selectedObject];
 
-  const getImpactColor = (health: string) => {
+  const getHealthIndicator = (health: string) => {
     switch (health) {
-      case 'down': return 'bg-red-100 border-red-300';
-      case 'degraded': return 'bg-yellow-100 border-yellow-300';
-      default: return 'bg-gray-100 border-gray-300';
+      case 'down':
+        return 'bg-red-600';
+      case 'degraded':
+        return 'bg-amber-600';
+      default:
+        return 'bg-gray-400';
     }
   };
 
-  const getImpactTextColor = (health: string) => {
+  const getHealthLabel = (health: string) => {
     switch (health) {
-      case 'down': return 'text-red-800';
-      case 'degraded': return 'text-yellow-800';
-      default: return 'text-gray-800';
+      case 'down':
+        return 'Critical';
+      case 'degraded':
+        return 'Degraded';
+      default:
+        return 'Healthy';
     }
   };
 
   return (
-    <div className="w-full h-full flex flex-col gap-4 p-4 bg-gray-50 overflow-y-auto">
-      <h2 className="text-lg font-bold text-gray-900">Impact & Blast Radius Analysis</h2>
+    <div className="w-full h-full flex flex-col p-6 bg-background overflow-y-auto">
 
-      {/* Scenario Selector */}
-      <div className="bg-white rounded-lg border border-gray-200 p-3">
-        <p className="text-xs font-semibold text-gray-700 mb-2">Select Failure Scenario</p>
-        <div className="space-y-2">
-          {Object.entries(impactScenarios).map(([key, scenario]) => (
-            <button
-              key={key}
-              onClick={() => setSelectedObject(key)}
-              className={`w-full text-left px-3 py-2 rounded border-2 transition ${
-                selectedObject === key
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-200 hover:border-gray-300 bg-white'
-              }`}
-            >
-              <p className="text-sm font-semibold text-gray-900">{scenario.triggeredBy}</p>
-              <p className="text-xs text-gray-600 mt-0.5">
-                {scenario.totalSubscribersAffected.toLocaleString()} subscribers • ${scenario.estimatedRevenueImpact.toLocaleString()} impact
-              </p>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Impact Chain */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4">
-        <h3 className="text-sm font-bold text-gray-900 mb-3">Impact Propagation Chain</h3>
-        <div className="space-y-2">
-          {impact.impactChain.map((step, idx) => (
-            <div key={idx}>
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-3 gap-6 flex-1">
+        {/* Left: Scenario Selector */}
+        <div className="col-span-1 border-r border-border pr-6">
+          <h3 className="text-sm font-semibold text-foreground mb-4">Failure Scenarios</h3>
+          <div className="space-y-2">
+            {Object.entries(impactScenarios).map(([key, scenario]) => (
               <button
-                onClick={() => onImpactSelect?.(step.object)}
-                className={`w-full text-left px-3 py-2 rounded border-l-4 transition ${getImpactColor(step.health)}`}
+                key={key}
+                onClick={() => setSelectedObject(key)}
+                className={`w-full text-left px-3 py-3 rounded border transition ${
+                  selectedObject === key
+                    ? 'bg-blue-50 dark:bg-blue-950/30 border-blue-300 dark:border-blue-600'
+                    : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'
+                }`}
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <p className={`text-sm font-bold ${getImpactTextColor(step.health)}`}>
-                      Level {step.level}: {step.object}
-                    </p>
-                    <p className="text-xs text-gray-700 mt-1">{step.impact}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-lg font-bold text-gray-900">{step.count}</p>
-                    <p className="text-xs text-gray-600">{step.type}</p>
-                  </div>
-                </div>
+                <p className="text-sm font-medium text-foreground line-clamp-2">{scenario.triggeredBy}</p>
+                <p className="text-xs text-muted-foreground mt-2">
+                  {scenario.totalSubscribersAffected.toLocaleString()} affected
+                </p>
               </button>
-              {idx < impact.impactChain.length - 1 && (
-                <div className="flex justify-center py-1">
-                  <div className="text-gray-400">↓</div>
+            ))}
+          </div>
+        </div>
+
+        {/* Right: Impact Details */}
+        <div className="col-span-2 flex flex-col gap-8">
+          {/* Impact Chain */}
+          <div>
+            <h3 className="text-sm font-semibold text-foreground mb-4">Impact Chain</h3>
+            <div className="space-y-3">
+              {impact.impactChain.map((step, idx) => (
+                <div key={idx}>
+                  <div
+                    onClick={() => onImpactSelect?.(step.object)}
+                    className="p-3 rounded border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 cursor-pointer transition"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <div className={`w-2 h-2 rounded-full ${getHealthIndicator(step.health)}`}></div>
+                          <span className="text-xs font-semibold text-muted-foreground">Level {step.level}</span>
+                          <span className="text-xs font-medium text-foreground">{getHealthLabel(step.health)}</span>
+                        </div>
+                        <p className="text-sm font-semibold text-foreground mt-1">{step.object}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{step.impact}</p>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <p className="text-lg font-bold text-foreground">{step.count}</p>
+                        <p className="text-xs text-muted-foreground">{step.type}</p>
+                      </div>
+                    </div>
+                  </div>
+                  {idx < impact.impactChain.length - 1 && (
+                    <div className="flex justify-center py-1">
+                      <div className="w-0.5 h-3 bg-gray-300 dark:bg-gray-700"></div>
+                    </div>
+                  )}
                 </div>
-              )}
+              ))}
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Summary Cards */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="bg-red-50 rounded-lg border border-red-200 p-3">
-          <div className="flex items-center gap-2 mb-1">
-            <Users className="w-4 h-4 text-red-600" />
-            <p className="text-xs font-semibold text-red-900">Subscribers Impacted</p>
           </div>
-          <p className="text-2xl font-bold text-red-700">
-            {(impact.totalSubscribersAffected / 1000).toFixed(0)}K
-          </p>
-        </div>
 
-        <div className="bg-orange-50 rounded-lg border border-orange-200 p-3">
-          <div className="flex items-center gap-2 mb-1">
-            <DollarSign className="w-4 h-4 text-orange-600" />
-            <p className="text-xs font-semibold text-orange-900">Revenue Impact</p>
-          </div>
-          <p className="text-2xl font-bold text-orange-700">
-            ${(impact.estimatedRevenueImpact / 1000).toFixed(0)}K
-          </p>
-        </div>
-      </div>
-
-      {/* Affected Services */}
-      <div className="bg-white rounded-lg border border-gray-200 p-3">
-        <p className="text-xs font-semibold text-gray-700 mb-2">Affected Services</p>
-        <div className="flex flex-wrap gap-2">
-          {impact.affectedServices.map((service, idx) => (
-            <span key={idx} className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded font-semibold">
-              {service}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {/* KPI Degradation */}
-      <div className="bg-white rounded-lg border border-gray-200 p-3">
-        <p className="text-xs font-semibold text-gray-700 mb-3">KPI Degradation</p>
-        <div className="space-y-2">
-          {Object.entries(impact.kpiDegradation).map(([kpi, degradation]) => (
-            <div key={kpi}>
-              <div className="flex justify-between items-center mb-1">
-                <span className="text-xs font-semibold text-gray-700">{kpi}</span>
-                <span className="text-xs font-bold text-red-600">-{degradation}%</span>
+          {/* Metrics */}
+          <div>
+            <h3 className="text-sm font-semibold text-foreground mb-4">Key Metrics</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-3 rounded border border-gray-200 dark:border-gray-800">
+                <p className="text-xs text-muted-foreground font-medium">Subscribers Affected</p>
+                <p className="text-2xl font-bold text-foreground mt-2">
+                  {(impact.totalSubscribersAffected / 1000).toFixed(0)}K
+                </p>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                <div
-                  className="bg-red-500 rounded-full h-full transition"
-                  style={{ width: `${Math.min(degradation, 100)}%` }}
-                />
+              <div className="p-3 rounded border border-gray-200 dark:border-gray-800">
+                <p className="text-xs text-muted-foreground font-medium">Revenue Impact</p>
+                <p className="text-2xl font-bold text-foreground mt-2">
+                  ${(impact.estimatedRevenueImpact / 1000).toFixed(0)}K
+                </p>
               </div>
             </div>
-          ))}
+          </div>
+
+          {/* Services & KPIs */}
+          <div className="grid grid-cols-2 gap-6">
+            {/* Affected Services */}
+            <div>
+              <h4 className="text-xs font-semibold text-foreground uppercase tracking-wide mb-3">Services</h4>
+              <div className="flex flex-wrap gap-2">
+                {impact.affectedServices.map((service, idx) => (
+                  <span
+                    key={idx}
+                    className="px-2.5 py-1 rounded text-xs font-medium bg-gray-100 dark:bg-gray-800 text-foreground"
+                  >
+                    {service}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* KPI Summary */}
+            <div>
+              <h4 className="text-xs font-semibold text-foreground uppercase tracking-wide mb-3">KPI Impact</h4>
+              <div className="space-y-2">
+                {Object.entries(impact.kpiDegradation).slice(0, 2).map(([kpi, degradation]) => (
+                  <div key={kpi} className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">{kpi}</span>
+                    <span className="text-xs font-semibold text-red-600 dark:text-red-400">-{degradation}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* NOC Info */}
-      <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-        <div className="flex items-start gap-2">
-          <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
-          <div className="text-xs text-amber-900">
-            <p className="font-semibold mb-1">For NOC Teams:</p>
-            <p>This impact analysis helps understand consequences of failures and prioritize recovery actions.</p>
-          </div>
-        </div>
+      {/* Info Footer */}
+      <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-800">
+        <p className="text-xs text-muted-foreground">
+          <span className="font-semibold">Note:</span> Impact analysis simulates cascading failures. Results are based on current topology and configuration.
+        </p>
       </div>
     </div>
   );

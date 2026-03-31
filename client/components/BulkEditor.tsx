@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { ChevronDown, Copy, Check, AlertCircle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
+import SearchableDropdown from './SearchableDropdown';
 
 interface BulkEditorProps {
   selectedTarget: any;
@@ -24,11 +25,18 @@ const MOCK_BULK_CHANGES: BulkChange[] = [
 
 export const BulkEditor: React.FC<BulkEditorProps> = () => {
   const [content, setContent] = useState('site,parameter,old_value,new_value\nCairo-Site-1,TX Power,43,40\nCairo-Site-2,TX Power,43,40\nGiza-Site-1,TX Power,43,40');
-  const [format, setFormat] = useState('csv');
-  const [scope, setScope] = useState('region');
+  const [selectedVendor, setSelectedVendor] = useState<string[]>([]);
+  const [selectedTechnology, setSelectedTechnology] = useState<string[]>([]);
   const [changes, setChanges] = useState<BulkChange[]>(MOCK_BULK_CHANGES);
-  const [showPreview, setShowPreview] = useState(false);
-  const [copied, setCopied] = useState(false);
+
+  const vendors = ['Huawei', 'Ericsson', 'Nokia', 'ZTE', 'ORAN'];
+  const technologies = ['2G', '3G', '4G', '5G', 'O-RAN'];
+
+  const filteredChanges = changes.filter(change => {
+    const vendorMatch = !selectedVendor.length || change.site.toLowerCase().includes(selectedVendor[0].toLowerCase());
+    const techMatch = !selectedTechnology.length || change.parameter.toLowerCase().includes(selectedTechnology[0].toLowerCase());
+    return vendorMatch && techMatch;
+  });
 
   const validateChanges = () => {
     setChanges(changes.map(c => ({ ...c, status: 'validated' })));
@@ -43,76 +51,85 @@ export const BulkEditor: React.FC<BulkEditorProps> = () => {
     })));
   };
 
-  const copyCommand = (cmd: string) => {
-    navigator.clipboard.writeText(cmd);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const downloadCSVTemplate = () => {
+    const template = 'site,parameter,old_value,new_value';
+    const element = document.createElement('a');
+    element.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(template));
+    element.setAttribute('download', 'bulk-changes-template.csv');
+    element.style.display = 'none';
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
   };
 
-  const successCount = changes.filter(c => c.status === 'success').length;
-  const failedCount = changes.filter(c => c.status === 'failed').length;
-  const validatedCount = changes.filter(c => c.status === 'validated').length;
+  const successCount = filteredChanges.filter(c => c.status === 'success').length;
+  const failedCount = filteredChanges.filter(c => c.status === 'failed').length;
+  const validatedCount = filteredChanges.filter(c => c.status === 'validated').length;
 
   return (
     <div className="flex flex-col h-full gap-4 p-4">
       {/* Filters & Controls */}
-      <div className="grid grid-cols-4 gap-4">
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Format</label>
-          <select
-            value={format}
-            onChange={(e) => setFormat(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-          >
-            <option value="csv">CSV</option>
-            <option value="json">JSON</option>
-            <option value="yaml">YAML</option>
-          </select>
-        </div>
+      <div className="grid grid-cols-2 gap-3">
+        <SearchableDropdown
+          label="Vendor"
+          options={vendors}
+          selected={selectedVendor}
+          onChange={setSelectedVendor}
+          placeholder="All Vendors"
+          multiSelect={false}
+          searchable={true}
+          compact={true}
+        />
 
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Scope</label>
-          <select
-            value={scope}
-            onChange={(e) => setScope(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-          >
-            <option value="all">All Sites</option>
-            <option value="region">Selected Region</option>
-            <option value="cluster">Selected Cluster</option>
-            <option value="vendor">Vendor Filter</option>
-            <option value="tech">Technology Filter</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Vendor Filter</label>
-          <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-            <option>All Vendors</option>
-            <option>Huawei</option>
-            <option>Nokia</option>
-            <option>Ericsson</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Technology</label>
-          <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-            <option>All Technologies</option>
-            <option>4G</option>
-            <option>5G</option>
-            <option>Transport</option>
-          </select>
-        </div>
+        <SearchableDropdown
+          label="Technology"
+          options={technologies}
+          selected={selectedTechnology}
+          onChange={setSelectedTechnology}
+          placeholder="All Technologies"
+          multiSelect={false}
+          searchable={true}
+          compact={true}
+        />
       </div>
 
       {/* Configuration Input */}
-      <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">Configuration Changes ({format.toUpperCase()})</label>
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <label className="block text-xs font-semibold text-muted-foreground">CSV Configuration</label>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={downloadCSVTemplate}
+              className="text-xs font-semibold text-muted-foreground cursor-pointer hover:text-foreground transition"
+            >
+              ⬇️ Download Template
+            </button>
+            <label className="text-xs font-semibold text-muted-foreground cursor-pointer hover:text-foreground transition">
+              <input
+                type="file"
+                accept=".csv"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                      const text = event.target?.result as string;
+                      setContent(text);
+                    };
+                    reader.readAsText(file);
+                  }
+                }}
+                className="hidden"
+              />
+              📁 Upload CSV
+            </label>
+          </div>
+        </div>
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          className="w-full h-32 px-3 py-2 border border-gray-300 rounded-lg font-mono text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full h-32 px-3 py-2 border border-border rounded-lg font-mono text-xs focus:outline-none focus:ring-2 focus:ring-primary/50 bg-input text-foreground"
+          placeholder="Paste CSV content or upload a file..."
         />
       </div>
 
@@ -120,97 +137,59 @@ export const BulkEditor: React.FC<BulkEditorProps> = () => {
       <div className="flex gap-2">
         <button
           onClick={validateChanges}
-          className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold transition"
+          className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 font-semibold transition"
         >
           Validate Changes
         </button>
         <button
           onClick={dryRun}
-          className="flex-1 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 font-semibold transition"
+          className="flex-1 px-4 py-2 bg-amber-600 dark:bg-amber-700 text-white rounded-lg hover:bg-amber-700 dark:hover:bg-amber-800 font-semibold transition"
         >
           Dry Run
         </button>
-        <button
-          onClick={() => setShowPreview(!showPreview)}
-          className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-semibold flex items-center justify-center gap-2 transition"
-        >
-          <ChevronDown className={`w-4 h-4 transition ${showPreview ? 'rotate-180' : ''}`} />
-          Preview
-        </button>
       </div>
 
-      {/* Diff Preview */}
-      {showPreview && (
-        <div className="border border-gray-200 rounded-lg overflow-hidden">
-          <div className="bg-gray-100 px-4 py-2 font-semibold text-sm">Diff Preview (Changes to be applied)</div>
-          <div className="p-4 bg-white space-y-2 max-h-48 overflow-y-auto">
-            <div className="grid grid-cols-5 gap-2 text-xs font-semibold text-gray-700 mb-2">
-              <div>Site</div>
-              <div>Parameter</div>
-              <div className="text-red-600">Old Value</div>
-              <div className="text-green-600">New Value</div>
-              <div>Impact</div>
-            </div>
-            {changes.map((change, i) => (
-              <div key={i} className="grid grid-cols-5 gap-2 text-xs p-2 bg-gray-50 rounded">
-                <div className="font-mono">{change.site}</div>
-                <div>{change.parameter}</div>
-                <div className="text-red-600 line-through font-mono">{change.oldValue}</div>
-                <div className="text-green-600 font-mono font-bold">{change.newValue}</div>
-                <div className={`px-2 py-0.5 rounded font-semibold ${
-                  change.status === 'failed' ? 'bg-red-100 text-red-800' :
-                  change.status === 'validated' ? 'bg-green-100 text-green-800' :
-                  'bg-yellow-100 text-yellow-800'
-                }`}>
-                  {change.status}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Execution Table */}
-      <div className="border border-gray-200 rounded-lg overflow-hidden">
-        <div className="bg-gray-100 px-4 py-2 font-semibold text-sm flex items-center justify-between">
+      <div className="border border-border rounded-lg overflow-hidden">
+        <div className="bg-muted px-4 py-2 font-semibold text-sm flex items-center justify-between">
           <span>Execution Status</span>
           <div className="flex gap-4 text-xs font-semibold">
-            <span className="text-green-700">✓ {successCount}</span>
-            <span className="text-red-700">✗ {failedCount}</span>
-            <span className="text-blue-700">~ {validatedCount}</span>
+            <span className="text-green-600 dark:text-green-400">✓ {successCount}</span>
+            <span className="text-red-600 dark:text-red-400">✗ {failedCount}</span>
+            <span className="text-primary">~ {validatedCount}</span>
           </div>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-muted/50 border-b border-border">
               <tr>
-                <th className="px-4 py-2 text-left font-semibold text-gray-700">Site</th>
-                <th className="px-4 py-2 text-left font-semibold text-gray-700">Parameter</th>
-                <th className="px-4 py-2 text-left font-semibold text-gray-700">Old</th>
-                <th className="px-4 py-2 text-left font-semibold text-gray-700">New</th>
-                <th className="px-4 py-2 text-left font-semibold text-gray-700">Status</th>
-                <th className="px-4 py-2 text-left font-semibold text-gray-700">Message</th>
+                <th className="px-4 py-2 text-left font-semibold text-muted-foreground">Site</th>
+                <th className="px-4 py-2 text-left font-semibold text-muted-foreground">Parameter</th>
+                <th className="px-4 py-2 text-left font-semibold text-muted-foreground">Old</th>
+                <th className="px-4 py-2 text-left font-semibold text-muted-foreground">New</th>
+                <th className="px-4 py-2 text-left font-semibold text-muted-foreground">Status</th>
+                <th className="px-4 py-2 text-left font-semibold text-muted-foreground">Message</th>
               </tr>
             </thead>
             <tbody>
-              {changes.map((change, i) => (
-                <tr key={i} className="border-b border-gray-200 hover:bg-gray-50">
+              {filteredChanges.map((change, i) => (
+                <tr key={i} className="border-b border-border hover:bg-muted/30">
                   <td className="px-4 py-2 font-mono">{change.site}</td>
                   <td className="px-4 py-2">{change.parameter}</td>
-                  <td className="px-4 py-2 font-mono text-red-600">{change.oldValue}</td>
-                  <td className="px-4 py-2 font-mono text-green-600 font-bold">{change.newValue}</td>
+                  <td className="px-4 py-2 font-mono text-red-600 dark:text-red-400">{change.oldValue}</td>
+                  <td className="px-4 py-2 font-mono text-green-600 dark:text-green-400 font-bold">{change.newValue}</td>
                   <td className="px-4 py-2">
                     <span className={`px-2 py-0.5 rounded font-semibold ${
-                      change.status === 'success' ? 'bg-green-100 text-green-800' :
-                      change.status === 'failed' ? 'bg-red-100 text-red-800' :
-                      change.status === 'validated' ? 'bg-blue-100 text-blue-800' :
-                      'bg-yellow-100 text-yellow-800'
+                      change.status === 'success' ? 'bg-green-100 dark:bg-green-950 text-green-800 dark:text-green-300' :
+                      change.status === 'failed' ? 'bg-red-100 dark:bg-red-950 text-red-800 dark:text-red-300' :
+                      change.status === 'validated' ? 'bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300' :
+                      'bg-yellow-100 dark:bg-yellow-950 text-yellow-800 dark:text-yellow-300'
                     }`}>
                       {change.status}
                     </span>
                   </td>
-                  <td className="px-4 py-2 text-red-600">
+                  <td className="px-4 py-2 text-red-600 dark:text-red-400">
                     {change.error && (
                       <div className="flex items-center gap-1">
                         <AlertCircle className="w-3 h-3" />
@@ -226,18 +205,18 @@ export const BulkEditor: React.FC<BulkEditorProps> = () => {
       </div>
 
       {/* Summary */}
-      <div className="grid grid-cols-3 gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+      <div className="grid grid-cols-3 gap-3 p-3 bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-lg">
         <div>
-          <p className="text-xs text-blue-600">Total Changes</p>
-          <p className="text-2xl font-bold text-blue-900">{changes.length}</p>
+          <p className="text-xs text-primary/70">Total Changes</p>
+          <p className="text-2xl font-bold text-primary">{filteredChanges.length}</p>
         </div>
         <div>
-          <p className="text-xs text-green-600">Ready to Execute</p>
-          <p className="text-2xl font-bold text-green-900">{validatedCount}</p>
+          <p className="text-xs text-green-600 dark:text-green-400">Ready to Execute</p>
+          <p className="text-2xl font-bold text-green-700 dark:text-green-400">{validatedCount}</p>
         </div>
         <div>
-          <p className="text-xs text-red-600">With Errors</p>
-          <p className="text-2xl font-bold text-red-900">{failedCount}</p>
+          <p className="text-xs text-red-600 dark:text-red-400">With Errors</p>
+          <p className="text-2xl font-bold text-red-700 dark:text-red-400">{failedCount}</p>
         </div>
       </div>
     </div>

@@ -1,17 +1,15 @@
 import React, { useState } from 'react';
-import { Terminal, Code, Settings2, Zap, FileText, Eye, RotateCcw, Package, AlertTriangle, GitCompare, Clock } from 'lucide-react';
+import { Terminal, Code, Zap, FileText, Eye, RotateCcw, AlertTriangle, GitCompare, Clock } from 'lucide-react';
 import { CommandConsole } from '../components/CommandConsole';
 import { ParameterExplorer } from '../components/ParameterExplorer';
-import { ModifyChangeEngine } from '../components/ModifyChangeEngine';
 import { BulkEditor } from '../components/BulkEditor';
 import { ScriptLibrary } from '../components/ScriptLibrary';
 import { ExecutionMonitor } from '../components/ExecutionMonitor';
 import { AuditRollbackCenter } from '../components/AuditRollbackCenter';
-import { SandboxMode } from '../components/SandboxMode';
 import { RollbackVersionControl } from '../components/RollbackVersionControl';
 import { DiffView } from '../components/DiffView';
 
-type ModuleView = 'console' | 'parameters' | 'modify' | 'bulk' | 'scripts' | 'monitor' | 'audit' | 'sandbox' | 'rollback' | 'diff';
+type ModuleView = 'console' | 'parameters' | 'bulk' | 'scripts' | 'monitor' | 'audit' | 'rollback' | 'diff';
 
 interface ModuleConfig {
   id: ModuleView;
@@ -37,13 +35,6 @@ const MODULES: ModuleConfig[] = [
     riskLevel: 'read-only'
   },
   {
-    id: 'modify',
-    label: 'Modify & Change',
-    icon: Settings2,
-    description: 'Modify parameters with full validation pipeline',
-    riskLevel: 'dangerous'
-  },
-  {
     id: 'bulk',
     label: 'Bulk Editor',
     icon: Code,
@@ -65,13 +56,6 @@ const MODULES: ModuleConfig[] = [
     riskLevel: 'read-only'
   },
   {
-    id: 'sandbox',
-    label: 'Sandbox Mode',
-    icon: Package,
-    description: 'Test commands and scripts safely',
-    riskLevel: 'safe'
-  },
-  {
     id: 'diff',
     label: 'Diff View',
     icon: GitCompare,
@@ -80,14 +64,14 @@ const MODULES: ModuleConfig[] = [
   },
   {
     id: 'rollback',
-    label: 'Rollback & Version',
+    label: 'Rollback',
     icon: RotateCcw,
     description: 'Version control and rollback with full/partial/selective modes',
     riskLevel: 'dangerous'
   },
   {
     id: 'audit',
-    label: 'Audit & Rollback',
+    label: 'Audit',
     icon: AlertTriangle,
     description: 'Complete audit trail with exportable logs',
     riskLevel: 'read-only'
@@ -105,14 +89,6 @@ export const CommandCenter: React.FC = () => {
 
   const activeModuleConfig = MODULES.find(m => m.id === activeModule)!;
 
-  const getRiskColor = (level: string) => {
-    const colors = {
-      'read-only': 'bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-800',
-      'safe': 'bg-green-100 dark:bg-green-950 text-green-800 dark:text-green-300 border-green-300 dark:border-green-800',
-      'dangerous': 'bg-red-100 dark:bg-red-950 text-red-800 dark:text-red-300 border-red-300 dark:border-red-800'
-    };
-    return colors[level as keyof typeof colors] || colors['safe'];
-  };
 
   const renderModule = () => {
     const props = { selectedTarget, onTargetChange: setSelectedTarget };
@@ -122,16 +98,12 @@ export const CommandCenter: React.FC = () => {
         return <CommandConsole {...props} />;
       case 'parameters':
         return <ParameterExplorer {...props} />;
-      case 'modify':
-        return <ModifyChangeEngine {...props} />;
       case 'bulk':
         return <BulkEditor {...props} />;
       case 'scripts':
         return <ScriptLibrary {...props} />;
       case 'monitor':
         return <ExecutionMonitor {...props} />;
-      case 'sandbox':
-        return <SandboxMode {...props} />;
       case 'diff':
         return <DiffView {...props} />;
       case 'rollback':
@@ -162,25 +134,22 @@ export const CommandCenter: React.FC = () => {
 
       {/* Module Selector */}
       <div className="bg-card border-b border-border rounded-lg p-4">
-        <div className="grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-10 gap-2">
+        <div className="grid grid-cols-8 gap-2 auto-rows-max">
           {MODULES.map(module => {
             const Icon = module.icon;
             return (
               <button
                 key={module.id}
                 onClick={() => setActiveModule(module.id)}
-                className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition ${
+                className={`flex flex-col items-center justify-center gap-1.5 p-2 rounded-lg border-2 transition min-h-[80px] ${
                   activeModule === module.id
                     ? 'border-blue-600 bg-blue-50 dark:bg-blue-950'
                     : 'border-border hover:border-primary/40 bg-card'
                 }`}
                 title={module.description}
               >
-                <Icon className={`w-4 h-4 ${activeModule === module.id ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
-                <span className="text-xs font-semibold text-center text-foreground">{module.label}</span>
-                <span className={`text-xs px-1.5 py-0.5 rounded border ${getRiskColor(module.riskLevel)}`}>
-                  {module.riskLevel}
-                </span>
+                <Icon className={`w-5 h-5 flex-shrink-0 ${activeModule === module.id ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
+                <span className="text-[10px] font-semibold text-center text-foreground line-clamp-2 leading-tight">{module.label}</span>
               </button>
             );
           })}
@@ -189,29 +158,10 @@ export const CommandCenter: React.FC = () => {
 
       {/* Active Module */}
       <div className="flex-1 bg-card rounded-lg border border-border overflow-hidden flex flex-col">
-        {/* Module Header */}
-        <div className="px-6 py-4 border-b border-border">
-          <div className="flex items-center gap-3">
-            {React.createElement(activeModuleConfig.icon, { className: 'w-5 h-5 text-blue-600 dark:text-blue-400' })}
-            <div>
-              <h2 className="text-lg font-bold text-foreground">{activeModuleConfig.label}</h2>
-              <p className="text-sm text-muted-foreground">{activeModuleConfig.description}</p>
-            </div>
-          </div>
-        </div>
-
         {/* Module Content */}
         <div className="flex-1 overflow-y-auto">
           {renderModule()}
         </div>
-      </div>
-
-      {/* Safety Notice */}
-      <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
-        <p className="text-xs text-amber-800 dark:text-amber-300">
-          <strong>⚠️ Important:</strong> All commands are vendor-native and fully audited. Changes are transactional with rollback capability. 
-          Never execute commands on production without testing in Sandbox Mode first.
-        </p>
       </div>
     </div>
   );

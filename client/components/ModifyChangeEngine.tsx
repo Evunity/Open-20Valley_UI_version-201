@@ -69,40 +69,6 @@ export const ModifyChangeEngine: React.FC<ModifyChangeEngineProps> = () => {
         </div>
       </div>
 
-      {/* Modify Form */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
-        <h3 className="font-semibold text-gray-900 mb-4">Modify Parameter</h3>
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Parameter</label>
-            <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option>TX Power</option>
-              <option>Cell Barring</option>
-              <option>DL Bandwidth</option>
-            </select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Current Value</label>
-              <input type="text" value="40" readOnly className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50" />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">New Value</label>
-              <input type="text" placeholder="42" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Change Reason</label>
-            <textarea placeholder="Why is this change needed?" rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
-          </div>
-
-          <button className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold transition">
-            Validate Change
-          </button>
-        </div>
-      </div>
     </div>
   );
 };

@@ -185,7 +185,25 @@ export function generateUnifiedTopologyGraph(): TopologyGraph {
   ): TopologyNode => {
     const id = `node_${nodeCounter++}`;
     const healthStates: HealthState[] = ['healthy', 'degraded', 'down', 'offline'];
-    const healthState = Math.random() > 0.9 ? healthStates[Math.floor(Math.random() * 3)] : 'healthy';
+
+    // More varied health state distribution - worse for deeper nodes
+    const randomHealth = Math.random();
+    let healthState: HealthState;
+    if (randomHealth > 0.87) {
+      healthState = healthStates[Math.floor(Math.random() * 4)];
+    } else if (randomHealth > 0.75) {
+      healthState = healthStates[Math.floor(Math.random() * 2)];
+    } else {
+      healthState = 'healthy';
+    }
+
+    // More vendor variety - improve probability of having a vendor
+    const vendors: Vendor[] = ['Nokia', 'Ericsson', 'Huawei', 'ZTE'];
+    const vendor = Math.random() > 0.4 ? vendors[Math.floor(Math.random() * vendors.length)] : 'Unknown';
+
+    // Increased alarms based on health state and node type
+    const alarmMultiplier = type.includes('rack') || type.includes('board') ? 1.5 : 1;
+    const healthFactor = healthState === 'down' ? 3 : healthState === 'degraded' ? 1.5 : 1;
 
     const node: TopologyNode = {
       id,
@@ -194,33 +212,33 @@ export function generateUnifiedTopologyGraph(): TopologyGraph {
       type,
       parentId,
       childrenIds: [],
-      vendor: Math.random() > 0.7 ? (['Nokia', 'Ericsson', 'Huawei', 'ZTE'][Math.floor(Math.random() * 4)] as Vendor) : 'Unknown',
+      vendor,
       technology: ['2G', '3G', '4G', '5G', 'Transport', 'IP'][Math.floor(Math.random() * 6)] as Technology,
       healthState,
       alarmSummary: {
-        critical: healthState === 'down' ? Math.floor(Math.random() * 5) + 3 : Math.floor(Math.random() * 2),
-        major: Math.floor(Math.random() * 8),
-        minor: Math.floor(Math.random() * 15),
-        warning: Math.floor(Math.random() * 30),
+        critical: Math.floor((healthState === 'down' ? Math.random() * 7 + 2 : Math.random() * 3) * alarmMultiplier * healthFactor),
+        major: Math.floor((Math.random() * 12) * alarmMultiplier * healthFactor),
+        minor: Math.floor((Math.random() * 25) * alarmMultiplier * healthFactor),
+        warning: Math.floor((Math.random() * 40) * alarmMultiplier * healthFactor),
         total: 0,
-        lastAlarm: new Date(Date.now() - Math.random() * 3600000).toISOString()
+        lastAlarm: new Date(Date.now() - Math.random() * 7200000).toISOString()
       },
       kpiSummary: {
-        availability: 99.5 - Math.random() * 4,
-        dropRate: Math.random() * 1.5,
-        throughput: 85 + Math.random() * 15,
-        latency: 10 + Math.random() * 30,
-        utilization: 40 + Math.random() * 50,
+        availability: healthState === 'down' ? 50 + Math.random() * 30 : healthState === 'degraded' ? 95 + Math.random() * 4 : 99 + Math.random() * 1,
+        dropRate: healthState === 'down' ? Math.random() * 5 : healthState === 'degraded' ? Math.random() * 2 : Math.random() * 0.5,
+        throughput: 70 + Math.random() * 30,
+        latency: 5 + Math.random() * 50,
+        utilization: 20 + Math.random() * 70,
         lastUpdate: new Date().toISOString()
       },
       dependencies: [],
-      automationLocked: Math.random() > 0.9,
+      automationLocked: Math.random() > 0.85,
       automationEligible: healthState === 'healthy',
-      lastStateChange: new Date(Date.now() - Math.random() * 3600000).toISOString(),
+      lastStateChange: new Date(Date.now() - Math.random() * 7200000).toISOString(),
       lastUpdate: new Date().toISOString(),
       stateHistory: [],
       description: `${type} - ${name}`,
-      tags: [type, config.vendor || 'unknown'],
+      tags: [type, vendor],
       ...config
     };
 
@@ -236,13 +254,17 @@ export function generateUnifiedTopologyGraph(): TopologyGraph {
   });
   nodes.set(globalNode.id, globalNode);
 
-  // Create Countries
-  const countries = ['Egypt', 'Saudi Arabia', 'UAE'];
+  // Create Countries with geo-coordinates
+  const countryCoordinates: Record<string, [number, number]> = {
+    'Egypt': [26.8, 30.8],
+    'Saudi Arabia': [23.9, 45.0],
+    'UAE': [23.4, 53.8]
+  };
   const countryNodeMap: Record<string, string> = {};
 
-  countries.forEach(country => {
+  Object.entries(countryCoordinates).forEach(([country, [lat, lon]]) => {
     const countryNode = createNode(country, 'country', globalNode.id, {
-      geoCoordinates: { latitude: 25 + Math.random() * 5, longitude: 30 + Math.random() * 20 },
+      geoCoordinates: { latitude: lat, longitude: lon },
       country,
       description: `${country} network region`
     });
@@ -251,21 +273,37 @@ export function generateUnifiedTopologyGraph(): TopologyGraph {
     countryNodeMap[country] = countryNode.id;
   });
 
-  // Create Regions per Country
-  const regionsByCountry: Record<string, string[]> = {
-    'Egypt': ['Cairo', 'Alexandria', 'Giza'],
-    'Saudi Arabia': ['Riyadh', 'Jeddah', 'Dammam'],
-    'UAE': ['Dubai', 'Abu Dhabi', 'Sharjah']
+  // Create Regions per Country with actual geographic coordinates
+  const regionCoordinates: Record<string, Record<string, [number, number]>> = {
+    'Egypt': {
+      'Cairo': [30.0444, 31.2357],
+      'Alexandria': [31.2001, 29.9187],
+      'Giza': [30.0131, 31.1989],
+      'Aswan': [24.0889, 32.9061]
+    },
+    'Saudi Arabia': {
+      'Riyadh': [24.7136, 46.6753],
+      'Jeddah': [21.5433, 39.1725],
+      'Dammam': [26.4124, 50.1971]
+    },
+    'UAE': {
+      'Dubai': [25.2048, 55.2708],
+      'Abu Dhabi': [24.4539, 54.3773],
+      'Sharjah': [25.3548, 55.3915]
+    }
   };
 
   const regionMap: Record<string, string> = {};
 
-  Object.entries(regionsByCountry).forEach(([countryName, regions]) => {
+  Object.entries(regionCoordinates).forEach(([countryName, regionCoords]) => {
     const countryNode = nodes.get(countryNodeMap[countryName])!;
 
-    regions.forEach(region => {
+    Object.entries(regionCoords).forEach(([region, [lat, lon]]) => {
       const regionNode = createNode(region, 'region', countryNode.id, {
-        geoCoordinates: { latitude: (countryNode.geoCoordinates?.latitude || 25) + (Math.random() - 0.5) * 2, longitude: (countryNode.geoCoordinates?.longitude || 40) + (Math.random() - 0.5) * 2 },
+        geoCoordinates: {
+          latitude: lat + (Math.random() - 0.5) * 0.5,
+          longitude: lon + (Math.random() - 0.5) * 0.5
+        },
         country: countryName,
         region,
         description: `${region} region - ${countryName}`
@@ -276,14 +314,17 @@ export function generateUnifiedTopologyGraph(): TopologyGraph {
     });
   });
 
-  // Create Clusters per Region (lazy-load hints only)
+  // Create Clusters per Region - OPTIMIZED (3-5 clusters per region for performance)
   Object.values(regionMap).forEach(regionId => {
     const regionNode = nodes.get(regionId)!;
-    const clusterCount = 2 + Math.floor(Math.random() * 2);
+    const clusterCount = 3 + Math.floor(Math.random() * 3); // 3-5 clusters
 
     for (let i = 0; i < clusterCount; i++) {
       const clusterNode = createNode(`${regionNode.name}-Cluster-${i + 1}`, 'cluster', regionId, {
-        geoCoordinates: regionNode.geoCoordinates,
+        geoCoordinates: {
+          latitude: (regionNode.geoCoordinates?.latitude || 25) + (Math.random() - 0.5) * 2.5,
+          longitude: (regionNode.geoCoordinates?.longitude || 40) + (Math.random() - 0.5) * 2.5
+        },
         country: regionNode.country,
         region: regionNode.region,
         description: `Cluster in ${regionNode.name}`
@@ -291,13 +332,13 @@ export function generateUnifiedTopologyGraph(): TopologyGraph {
       nodes.set(clusterNode.id, clusterNode);
       regionNode.childrenIds.push(clusterNode.id);
 
-      // Create Sites per Cluster (lazy-load)
-      const siteCount = 3 + Math.floor(Math.random() * 3);
+      // Create Sites per Cluster - OPTIMIZED (6-10 sites per cluster)
+      const siteCount = 6 + Math.floor(Math.random() * 5);
       for (let j = 0; j < siteCount; j++) {
         const siteNode = createNode(`${clusterNode.name}-Site-${j + 1}`, 'site', clusterNode.id, {
           geoCoordinates: {
-            latitude: (clusterNode.geoCoordinates?.latitude || 25) + (Math.random() - 0.5) * 1,
-            longitude: (clusterNode.geoCoordinates?.longitude || 40) + (Math.random() - 0.5) * 1
+            latitude: (clusterNode.geoCoordinates?.latitude || 25) + (Math.random() - 0.5) * 1.5,
+            longitude: (clusterNode.geoCoordinates?.longitude || 40) + (Math.random() - 0.5) * 1.5
           },
           country: regionNode.country,
           region: regionNode.region,
@@ -306,8 +347,8 @@ export function generateUnifiedTopologyGraph(): TopologyGraph {
         nodes.set(siteNode.id, siteNode);
         clusterNode.childrenIds.push(siteNode.id);
 
-        // Create Nodes per Site
-        const nodeCount = 2 + Math.floor(Math.random() * 2);
+        // Create Nodes per Site - BALANCED (3-5 nodes per site)
+        const nodeCount = 3 + Math.floor(Math.random() * 3);
         for (let k = 0; k < nodeCount; k++) {
           const rNode = createNode(`${siteNode.name}-Node-${k + 1}`, 'node', siteNode.id, {
             geoCoordinates: siteNode.geoCoordinates,
@@ -318,19 +359,19 @@ export function generateUnifiedTopologyGraph(): TopologyGraph {
           nodes.set(rNode.id, rNode);
           siteNode.childrenIds.push(rNode.id);
 
-          // Create Racks per Node
+          // Create Racks per Node (1 rack per node)
           const rackNode = createNode(`${rNode.name}-Rack-01`, 'rack', rNode.id, {
             geoCoordinates: siteNode.geoCoordinates,
             country: regionNode.country,
             region: regionNode.region,
-            capacity: { totalCapacity: 42, usedCapacity: 28, unit: 'U' },
+            capacity: { totalCapacity: 42, usedCapacity: 20 + Math.floor(Math.random() * 22), unit: 'U' },
             description: `Rack in ${rNode.name}`
           });
           nodes.set(rackNode.id, rackNode);
           rNode.childrenIds.push(rackNode.id);
 
-          // Create Boards in Rack (lazy-load)
-          const boardCount = 3 + Math.floor(Math.random() * 2);
+          // Create Boards in Rack - BALANCED (3 boards per rack)
+          const boardCount = 3;
           for (let b = 0; b < boardCount; b++) {
             const boardNode = createNode(`Board-${b + 1}`, 'board', rackNode.id, {
               geoCoordinates: siteNode.geoCoordinates,
@@ -341,7 +382,7 @@ export function generateUnifiedTopologyGraph(): TopologyGraph {
             nodes.set(boardNode.id, boardNode);
             rackNode.childrenIds.push(boardNode.id);
 
-            // Create RRUs (Radio Remote Units)
+            // Create RRUs (Radio Remote Units) - BALANCED (2-3 RRUs per board)
             const rruCount = 2 + Math.floor(Math.random() * 2);
             for (let r = 0; r < rruCount; r++) {
               const rruNode = createNode(`RRU-${r + 1}`, 'rru', boardNode.id, {
@@ -353,8 +394,8 @@ export function generateUnifiedTopologyGraph(): TopologyGraph {
               nodes.set(rruNode.id, rruNode);
               boardNode.childrenIds.push(rruNode.id);
 
-              // Create Ports
-              const portCount = 4 + Math.floor(Math.random() * 4);
+              // Create Ports - BALANCED (4-6 ports per RRU)
+              const portCount = 4 + Math.floor(Math.random() * 3);
               for (let p = 0; p < portCount; p++) {
                 const portNode = createNode(`Port-${p + 1}`, 'port', rruNode.id, {
                   geoCoordinates: siteNode.geoCoordinates,
@@ -362,24 +403,24 @@ export function generateUnifiedTopologyGraph(): TopologyGraph {
                     id: `iface_${p}`,
                     name: `Port ${p + 1}`,
                     type: ['MPLS', 'Fiber', 'Microwave', 'IP', 'Radio'][Math.floor(Math.random() * 5)] as TransportType,
-                    linkState: Math.random() > 0.95 ? 'down' : 'up',
+                    linkState: Math.random() > 0.93 ? (Math.random() > 0.5 ? 'degraded' : 'down') : 'up',
                     throughput: 1000 + Math.random() * 10000,
-                    errors: Math.floor(Math.random() * 50),
+                    errors: Math.floor(Math.random() * 100),
                     capacity: 10000,
-                    utilization: 40 + Math.random() * 40
+                    utilization: 30 + Math.random() * 60
                   }],
                   description: `Port in ${rruNode.name}`
                 });
                 nodes.set(portNode.id, portNode);
                 rruNode.childrenIds.push(portNode.id);
 
-                // Create Cells (leaf nodes)
+                // Create Cells (leaf nodes) - BALANCED (1-2 cells per port)
                 const cellCount = 1 + Math.floor(Math.random() * 2);
                 for (let c = 0; c < cellCount; c++) {
                   const cellNode = createNode(`Cell-${c + 1}`, 'cell', portNode.id, {
                     geoCoordinates: siteNode.geoCoordinates,
                     description: `Cell in ${portNode.name}`,
-                    technology: ['4G', '5G'][Math.floor(Math.random() * 2)] as Technology
+                    technology: ['2G', '3G', '4G', '5G'][Math.floor(Math.random() * 4)] as Technology
                   });
                   nodes.set(cellNode.id, cellNode);
                   portNode.childrenIds.push(cellNode.id);
