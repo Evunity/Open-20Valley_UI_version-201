@@ -128,60 +128,85 @@ export const AuditRollbackCenter: React.FC<AuditRollbackCenterProps> = () => {
   return (
     <div className="flex flex-col h-full gap-4 p-4">
       {/* Filters */}
-      <div className="space-y-2">
-        <div className="grid grid-cols-3 gap-3">
-          <SearchableDropdown
-            label="Site"
-            options={SITE_OPTIONS}
-            selected={selectedSite}
-            onChange={setSelectedSite}
-            placeholder="All Sites"
-            multiSelect={false}
-            searchable={true}
-            compact={true}
-          />
-
-          <SearchableDropdown
-            label="Technology"
-            options={TECHNOLOGY_OPTIONS}
-            selected={selectedTechnology}
-            onChange={setSelectedTechnology}
-            placeholder="All Technologies"
-            multiSelect={false}
-            searchable={true}
-            compact={true}
-          />
-
-          <SearchableDropdown
-            label="Vendor"
-            options={VENDOR_OPTIONS}
-            selected={selectedVendor}
-            onChange={setSelectedVendor}
-            placeholder="All Vendors"
-            multiSelect={false}
-            searchable={true}
-            compact={true}
-          />
+      <div className="grid grid-cols-3 gap-2">
+        {/* Site Filter */}
+        <div className="flex items-end gap-2">
+          <div className="flex-1">
+            <SearchableDropdown
+              label="Site"
+              options={SITE_OPTIONS}
+              selected={selectedSite}
+              onChange={setSelectedSite}
+              placeholder="All Sites"
+              multiSelect={false}
+              searchable={true}
+              compact={true}
+            />
+          </div>
+          {selectedSite.length > 0 && (
+            <button
+              onClick={() => setSelectedSite([])}
+              className="px-2.5 py-1.5 h-9 bg-red-100 dark:bg-red-950 hover:bg-red-200 dark:hover:bg-red-900 text-red-700 dark:text-red-400 rounded-md transition flex-shrink-0"
+              title="Clear site filter"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
         </div>
 
-        {/* Clear Filters Button */}
-        {(selectedSite.length > 0 || selectedTechnology.length > 0 || selectedVendor.length > 0) && (
-          <button
-            onClick={() => {
-              setSelectedSite([]);
-              setSelectedTechnology([]);
-              setSelectedVendor([]);
-            }}
-            className="w-full px-3 py-2 bg-red-100 dark:bg-red-950 hover:bg-red-200 dark:hover:bg-red-900 text-red-700 dark:text-red-300 rounded-lg font-semibold text-sm transition flex items-center justify-center gap-2"
-          >
-            <X className="w-4 h-4" />
-            Clear All Filters
-          </button>
-        )}
+        {/* Technology Filter */}
+        <div className="flex items-end gap-2">
+          <div className="flex-1">
+            <SearchableDropdown
+              label="Technology"
+              options={TECHNOLOGY_OPTIONS}
+              selected={selectedTechnology}
+              onChange={setSelectedTechnology}
+              placeholder="All Technologies"
+              multiSelect={false}
+              searchable={true}
+              compact={true}
+            />
+          </div>
+          {selectedTechnology.length > 0 && (
+            <button
+              onClick={() => setSelectedTechnology([])}
+              className="px-2.5 py-1.5 h-9 bg-red-100 dark:bg-red-950 hover:bg-red-200 dark:hover:bg-red-900 text-red-700 dark:text-red-400 rounded-md transition flex-shrink-0"
+              title="Clear technology filter"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+
+        {/* Vendor Filter */}
+        <div className="flex items-end gap-2">
+          <div className="flex-1">
+            <SearchableDropdown
+              label="Vendor"
+              options={VENDOR_OPTIONS}
+              selected={selectedVendor}
+              onChange={setSelectedVendor}
+              placeholder="All Vendors"
+              multiSelect={false}
+              searchable={true}
+              compact={true}
+            />
+          </div>
+          {selectedVendor.length > 0 && (
+            <button
+              onClick={() => setSelectedVendor([])}
+              className="px-2.5 py-1.5 h-9 bg-red-100 dark:bg-red-950 hover:bg-red-200 dark:hover:bg-red-900 text-red-700 dark:text-red-400 rounded-md transition flex-shrink-0"
+              title="Clear vendor filter"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Audit Log */}
-      <div className="flex-1 overflow-y-auto space-y-2">
+      <div className="flex-1 overflow-y-auto space-y-2 min-h-96">
         {filteredEntries.length === 0 ? (
           <div className="flex items-center justify-center h-full text-muted-foreground">
             <p>No audit entries found matching your filters</p>
