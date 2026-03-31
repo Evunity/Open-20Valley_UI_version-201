@@ -342,24 +342,24 @@ const TopologyManagementContent: React.FC = () => {
   return (
     <div className="topology-theme flex flex-col h-screen bg-background">
       {/* Toolbar with View Selector and Controls */}
-      <div className="bg-card border-b border-border p-4 flex flex-col gap-3">
+      <div className="bg-card border-b border-border p-3 flex flex-col gap-2">
         {/* View Selector Grid */}
-        <div className="grid grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-2 auto-rows-max">
+        <div className="flex gap-1.5 flex-wrap">
           {VIEWS.map(view => {
             const Icon = view.icon;
             return (
               <button
                 key={view.id}
                 onClick={() => setActiveView(view.id)}
-                className={`flex flex-col items-center justify-center gap-1.5 p-2 rounded-lg border-2 transition min-h-[80px] ${
+                className={`flex flex-col items-center justify-center gap-1 px-2 py-1.5 rounded-lg border-2 transition min-h-[60px] w-fit ${
                   activeView === view.id
                     ? 'border-blue-600 bg-blue-50 dark:bg-blue-950'
                     : 'border-border hover:border-primary/40 bg-card'
                 }`}
                 title={view.description}
               >
-                <Icon className={`w-5 h-5 flex-shrink-0 ${activeView === view.id ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
-                <span className="text-[10px] font-semibold text-center text-foreground line-clamp-2 leading-tight">{view.label}</span>
+                <Icon className={`w-4 h-4 flex-shrink-0 ${activeView === view.id ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
+                <span className="text-[9px] font-semibold text-center text-foreground line-clamp-1 leading-tight whitespace-nowrap">{view.label}</span>
               </button>
             );
           })}
