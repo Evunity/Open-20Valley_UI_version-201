@@ -237,41 +237,43 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
         </div>
 
         {/* Mode Selection */}
-        <div>
-          <label className="block text-xs font-semibold text-muted-foreground mb-1">Mode</label>
-          <SearchableDropdown
-            label=""
-            options={['Raw Mode (Native)', 'Guided Mode (Form-Based)', 'Script Mode (Multi-line)']}
-            selected={mode === 'raw' ? ['Raw Mode (Native)'] : mode === 'guided' ? ['Guided Mode (Form-Based)'] : ['Script Mode (Multi-line)']}
-            onChange={(selected) => {
-              const modeMap: Record<string, 'raw' | 'guided' | 'script'> = {
-                'Raw Mode (Native)': 'raw',
-                'Guided Mode (Form-Based)': 'guided',
-                'Script Mode (Multi-line)': 'script'
-              };
-              setMode(modeMap[selected[0]] || 'raw');
-            }}
-            placeholder="Select mode..."
-            multiSelect={false}
-            searchable={true}
-            compact={true}
-          />
+        <div className="flex items-end gap-3">
+          <div className="flex-1">
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">Mode</label>
+            <SearchableDropdown
+              label=""
+              options={['Raw Mode (Native)', 'Guided Mode (Form-Based)', 'Script Mode (Multi-line)']}
+              selected={mode === 'raw' ? ['Raw Mode (Native)'] : mode === 'guided' ? ['Guided Mode (Form-Based)'] : ['Script Mode (Multi-line)']}
+              onChange={(selected) => {
+                const modeMap: Record<string, 'raw' | 'guided' | 'script'> = {
+                  'Raw Mode (Native)': 'raw',
+                  'Guided Mode (Form-Based)': 'guided',
+                  'Script Mode (Multi-line)': 'script'
+                };
+                setMode(modeMap[selected[0]] || 'raw');
+              }}
+              placeholder="Select mode..."
+              multiSelect={false}
+              searchable={true}
+              compact={true}
+            />
+          </div>
+          <button
+            onClick={() => setShowAddCommand(!showAddCommand)}
+            className="text-xs px-3 py-1.5 bg-primary/10 hover:bg-primary/20 border border-primary/30 rounded text-primary font-medium transition whitespace-nowrap h-9 flex items-center"
+          >
+            + Add
+          </button>
         </div>
       </div>
 
       {/* Quick Commands */}
       <div>
-        <div className="flex items-center justify-between mb-1">
+        <div className="mb-1">
           <label className="block text-xs font-semibold text-muted-foreground flex items-center gap-1">
             <Lightbulb className="w-4 h-4 text-yellow-600" />
             Quick Commands ({selectedVendor})
           </label>
-          <button
-            onClick={() => setShowAddCommand(!showAddCommand)}
-            className="text-xs px-2 py-1 bg-primary/10 hover:bg-primary/20 border border-primary/30 rounded text-primary font-medium transition"
-          >
-            + Add
-          </button>
         </div>
 
         {showAddCommand && (
