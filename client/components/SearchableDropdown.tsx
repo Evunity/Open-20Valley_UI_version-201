@@ -109,11 +109,6 @@ export default function SearchableDropdown({
             : "border-border bg-background hover:border-primary/50"
         )}
       >
-        {multiSelect && selected.length > 1 && !isOpen && (
-          <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-sm">
-            {selected.length}
-          </div>
-        )}
 
         <div className="flex items-center gap-2 min-w-0 flex-1">
           {multiSelect ? (
