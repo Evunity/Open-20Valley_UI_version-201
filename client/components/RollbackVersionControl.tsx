@@ -142,6 +142,9 @@ export const RollbackVersionControl: React.FC<RollbackVersionControlProps> = () 
     setSnapshots(snapshots.map(s =>
       s.id === snapshotId ? { ...s, status: 'rolled_back' } : s
     ));
+    // Clear selections after successful rollback
+    setSelectedObjects(new Set());
+    setSelectedParameters(new Set());
     alert(`Rollback executed for snapshot ${snapshotId} in ${mode} mode`);
   };
 
@@ -317,12 +320,27 @@ export const RollbackVersionControl: React.FC<RollbackVersionControlProps> = () 
                 )}
 
                 {snapshot.status === 'rolled_back' && (
-                  <div className="p-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg flex items-start gap-2">
-                    <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                    <div className="text-sm text-green-800 dark:text-green-300">
-                      <p className="font-semibold">Rollback Completed</p>
-                      <p className="text-xs mt-0.5">All changes have been reverted. See audit log for details.</p>
+                  <div className="space-y-3">
+                    <div className="p-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg flex items-start gap-2">
+                      <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+                      <div className="text-sm text-green-800 dark:text-green-300">
+                        <p className="font-semibold">Rollback Completed</p>
+                        <p className="text-xs mt-0.5">All changes have been reverted. See audit log for details.</p>
+                      </div>
                     </div>
+                    <button
+                      onClick={() => {
+                        setSnapshots(snapshots.map(s =>
+                          s.id === snapshot.id ? { ...s, status: 'active' } : s
+                        ));
+                        setSelectedObjects(new Set());
+                        setSelectedParameters(new Set());
+                      }}
+                      className="w-full px-4 py-2.5 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 font-semibold flex items-center justify-center gap-2 transition"
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                      Perform Another Rollback
+                    </button>
                   </div>
                 )}
               </div>
