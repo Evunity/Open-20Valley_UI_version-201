@@ -139,7 +139,7 @@ export default function SearchableDropdown({
                   </div>
                 ))}
                 {selected.length > 1 && (
-                  <span className="text-[11px] font-medium text-primary bg-primary/8 px-1.5 py-0.5 rounded whitespace-nowrap">
+                  <span className="text-xs font-bold text-white bg-primary px-2 py-1 rounded-md whitespace-nowrap shadow-md">
                     +{selected.length - 1}
                   </span>
                 )}
