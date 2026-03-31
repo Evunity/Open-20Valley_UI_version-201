@@ -392,15 +392,15 @@ const TopologyManagementContent: React.FC = () => {
               <button
                 key={view.id}
                 onClick={() => setActiveView(view.id)}
-                className={`flex flex-col items-center justify-center gap-1 px-2 py-1.5 rounded-lg border-2 transition min-h-[60px] flex-1 min-w-[80px] ${
+                className={`flex flex-col items-center justify-center gap-2 p-4 rounded-lg border-2 transition min-h-[180px] flex-1 min-w-[100px] ${
                   activeView === view.id
                     ? 'border-blue-600 bg-blue-50 dark:bg-blue-950'
                     : 'border-border hover:border-primary/40 bg-card'
                 }`}
                 title={view.description}
               >
-                <Icon className={`w-4 h-4 flex-shrink-0 ${activeView === view.id ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
-                <span className="text-[9px] font-semibold text-center text-foreground line-clamp-1 leading-tight whitespace-nowrap">{view.label}</span>
+                <Icon className={`w-6 h-6 flex-shrink-0 ${activeView === view.id ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
+                <span className="text-xs font-semibold text-center text-foreground line-clamp-2 leading-tight">{view.label}</span>
               </button>
             );
           })}
