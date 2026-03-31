@@ -214,7 +214,7 @@ export default function FilterPanel({ onFiltersChange }: FilterPanelProps) {
       )}
 
       {/* Always-Visible Filter Dropdowns */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-2 p-3 rounded-lg border border-border bg-card">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-2 p-3 rounded-lg border border-border bg-card overflow-visible">
         {/* Country Dropdown */}
         <SearchableDropdown
           label="Country"
