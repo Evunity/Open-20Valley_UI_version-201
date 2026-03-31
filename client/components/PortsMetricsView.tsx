@@ -113,26 +113,15 @@ export const PortsMetricsView: React.FC<{ topology?: any }> = () => {
     <div className="flex flex-col h-full bg-background overflow-auto">
       {/* Header */}
       <div className="bg-card border-b border-border p-4 sticky top-0 z-10">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-2xl font-bold text-foreground">Ports & Metrics</h2>
-            <p className="text-sm text-muted-foreground">Port performance monitoring and bandwidth utilization</p>
-          </div>
-          <button className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition">
-            <Download className="w-4 h-4" />
-            Export Report
-          </button>
-        </div>
-
-        {/* Controls */}
-        <div className="flex items-center gap-4 flex-wrap">
+        <div className="flex items-center gap-6 justify-between flex-wrap">
+          {/* Site Selector */}
           <div className="flex items-center gap-2">
             <Filter className="w-4 h-4 text-muted-foreground" />
             <label className="text-sm font-medium text-foreground">Site:</label>
             <select
               value={selectedSite}
               onChange={(e) => setSelectedSite(parseInt(e.target.value))}
-              className="px-3 py-1.5 border border-border rounded-lg bg-background text-foreground text-sm"
+              className="px-3 py-1.5 border border-border rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             >
               {siteMetrics.map((site, idx) => (
                 <option key={idx} value={idx}>{site.siteName}</option>
@@ -140,17 +129,18 @@ export const PortsMetricsView: React.FC<{ topology?: any }> = () => {
             </select>
           </div>
 
+          {/* Time Range Selector */}
           <div className="flex items-center gap-2">
             <label className="text-sm font-medium text-foreground">Time Range:</label>
-            <div className="flex gap-1 p-1 bg-muted rounded-lg">
+            <div className="flex gap-1 p-1 bg-muted rounded-lg border border-border">
               {(['24h', '7d', '30d'] as const).map(range => (
                 <button
                   key={range}
                   onClick={() => setTimeRange(range)}
-                  className={`px-3 py-1 rounded text-xs font-medium transition ${
+                  className={`px-4 py-1.5 rounded text-xs font-semibold transition-colors cursor-pointer ${
                     timeRange === range
                       ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:text-foreground'
+                      : 'bg-background text-muted-foreground hover:text-foreground hover:bg-muted/50'
                   }`}
                 >
                   {range}
@@ -158,6 +148,12 @@ export const PortsMetricsView: React.FC<{ topology?: any }> = () => {
               ))}
             </div>
           </div>
+
+          {/* Export Button */}
+          <button className="flex items-center gap-2 px-4 py-1.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition">
+            <Download className="w-4 h-4" />
+            Export
+          </button>
         </div>
       </div>
 
