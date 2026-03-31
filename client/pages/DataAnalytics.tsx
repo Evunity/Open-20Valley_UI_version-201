@@ -614,7 +614,17 @@ export default function DataAnalytics() {
                 recommendation: "Plan upgrade timeline",
               },
             ].map((item, idx) => (
-              <div key={item.area} className="p-4 rounded-lg border border-red-200 bg-red-50">
+              <div
+                key={item.area}
+                className={cn(
+                  "p-4 rounded-lg border",
+                  item.risk === "Critical"
+                    ? "border-red-200 bg-red-50"
+                    : item.risk === "High"
+                      ? "border-orange-200 bg-orange-50"
+                      : "border-yellow-200 bg-yellow-50"
+                )}
+              >
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <p className="font-semibold text-foreground">{item.area}</p>
@@ -623,7 +633,16 @@ export default function DataAnalytics() {
                       <span className="font-semibold">{item.speed}</span>
                     </p>
                   </div>
-                  <span className="px-2 py-1 rounded text-xs font-semibold bg-red-200 text-red-700">
+                  <span
+                    className={cn(
+                      "px-2 py-1 rounded text-xs font-semibold",
+                      item.risk === "Critical"
+                        ? "bg-red-200 text-red-700"
+                        : item.risk === "High"
+                          ? "bg-orange-200 text-orange-700"
+                          : "bg-yellow-200 text-yellow-700"
+                    )}
+                  >
                     {item.risk}
                   </span>
                 </div>
