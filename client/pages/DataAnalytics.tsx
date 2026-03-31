@@ -814,7 +814,7 @@ export default function DataAnalytics() {
         </div>
 
         {/* Heatmap: Hourly/Daily Utilization Pattern */}
-        <div className="card-elevated rounded-xl border border-border/50 p-6">
+        <div className="card-elevated rounded-xl border border-border/50 p-6 flex flex-col min-h-[420px]">
           {(() => {
             // Determine if showing hourly or daily based on date range
             const daysDiff = getDaysDifference(filters.dateRange);
@@ -863,7 +863,7 @@ export default function DataAnalytics() {
                     </div>
                   )}
                 </div>
-                <div className="overflow-x-auto -mx-6 px-6">
+                <div className="flex-1 overflow-x-auto -mx-6 px-6">
                   <div className="w-full">
                     {/* Column headers */}
                     <div className="flex gap-0.5 mb-2">
@@ -906,7 +906,7 @@ export default function DataAnalytics() {
                     ))}
                   </div>
                 </div>
-                <div className="flex justify-center gap-2 sm:gap-4 mt-6 text-xs flex-wrap">
+                <div className="flex justify-center gap-2 sm:gap-4 mt-auto pt-6 text-xs flex-wrap">
                   <div className="flex items-center gap-1 sm:gap-2">
                     <div className="w-4 h-3 sm:w-6 sm:h-4 rounded bg-green-400 dark:bg-green-600"></div>
                     <span>0-40%</span>
