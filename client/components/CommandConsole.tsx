@@ -236,41 +236,26 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
           </div>
         </div>
 
-        {/* Optional Selection Row */}
-        <div className="grid grid-cols-2 gap-3">
-          {/* Mode Selection */}
-          <div>
-            <label className="block text-xs font-semibold text-muted-foreground mb-1">Mode</label>
-            <SearchableDropdown
-              label=""
-              options={['Raw Mode (Native)', 'Guided Mode (Form-Based)', 'Script Mode (Multi-line)']}
-              selected={mode === 'raw' ? ['Raw Mode (Native)'] : mode === 'guided' ? ['Guided Mode (Form-Based)'] : ['Script Mode (Multi-line)']}
-              onChange={(selected) => {
-                const modeMap: Record<string, 'raw' | 'guided' | 'script'> = {
-                  'Raw Mode (Native)': 'raw',
-                  'Guided Mode (Form-Based)': 'guided',
-                  'Script Mode (Multi-line)': 'script'
-                };
-                setMode(modeMap[selected[0]] || 'raw');
-              }}
-              placeholder="Select mode..."
-              multiSelect={false}
-              searchable={true}
-              compact={true}
-            />
-          </div>
-
-          {/* Context */}
-          <div>
-            <label className="block text-xs font-semibold text-muted-foreground mb-1">Target Context</label>
-            <input
-              type="text"
-              placeholder="Global → Country → Region"
-              value={selectedTarget.site ? `${selectedTarget.site}` : 'Global'}
-              readOnly
-              className="w-full px-3 py-1.5 border border-border rounded-lg bg-input text-foreground text-sm"
-            />
-          </div>
+        {/* Mode Selection */}
+        <div>
+          <label className="block text-xs font-semibold text-muted-foreground mb-1">Mode</label>
+          <SearchableDropdown
+            label=""
+            options={['Raw Mode (Native)', 'Guided Mode (Form-Based)', 'Script Mode (Multi-line)']}
+            selected={mode === 'raw' ? ['Raw Mode (Native)'] : mode === 'guided' ? ['Guided Mode (Form-Based)'] : ['Script Mode (Multi-line)']}
+            onChange={(selected) => {
+              const modeMap: Record<string, 'raw' | 'guided' | 'script'> = {
+                'Raw Mode (Native)': 'raw',
+                'Guided Mode (Form-Based)': 'guided',
+                'Script Mode (Multi-line)': 'script'
+              };
+              setMode(modeMap[selected[0]] || 'raw');
+            }}
+            placeholder="Select mode..."
+            multiSelect={false}
+            searchable={true}
+            compact={true}
+          />
         </div>
       </div>
 
@@ -324,7 +309,7 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
           </div>
         )}
 
-        <div className="grid grid-cols-3 gap-1.5">
+        <div className="grid grid-cols-3 gap-1.5 mb-3">
           {getQuickCommands().map((cmd, i) => {
             const isCustom = i < (customCommands[selectedVendor]?.length || 0);
             return (
@@ -356,30 +341,6 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
             );
           })}
         </div>
-      </div>
-
-      {/* Console Display */}
-      <div className="flex-1 bg-gray-900 border border-gray-800 rounded-lg overflow-y-auto font-mono text-xs p-4">
-        <div className="text-green-400">
-          <p>$ OpenValley Command Console - {selectedVendor}</p>
-          <p>$ Type commands below. Press Enter to execute.</p>
-          <p>$ All commands are audited and logged.</p>
-          <p></p>
-
-          {history.map((entry) => (
-            <div key={entry.id} className="mb-3">
-              <p className="text-blue-400">{entry.timestamp} $ {entry.command}</p>
-              <pre className={`text-xs whitespace-pre-wrap ${
-                entry.status === 'success' ? 'text-green-300' :
-                entry.status === 'error' ? 'text-red-300' :
-                'text-yellow-300'
-              }`}>
-                {entry.output}
-              </pre>
-            </div>
-          ))}
-        </div>
-        <div ref={consoleEndRef} />
       </div>
 
       {/* Command Input - Mode Specific */}
@@ -543,12 +504,36 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
               : 'bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800'
           }`}>
             <p className={isValid ? 'text-green-800 dark:text-green-300' : 'text-red-800 dark:text-red-300'}>
-              {isValid ? '✓ Valid syntax' : '✗ Invalid syntax'} 
-              {getCommandSyntaxValidation(command).matchedKeyword && 
+              {isValid ? '✓ Valid syntax' : '✗ Invalid syntax'}
+              {getCommandSyntaxValidation(command).matchedKeyword &&
                 ` - ${COMMAND_HINTS[getCommandSyntaxValidation(command).matchedKeyword || '']}`}
             </p>
           </div>
         )}
+      </div>
+
+      {/* Console Display */}
+      <div className="flex-1 bg-gray-900 border border-gray-800 rounded-lg overflow-y-auto font-mono text-xs p-4">
+        <div className="text-green-400">
+          <p>$ OpenValley Command Console - {selectedVendor}</p>
+          <p>$ Type commands below. Press Enter to execute.</p>
+          <p>$ All commands are audited and logged.</p>
+          <p></p>
+
+          {history.map((entry) => (
+            <div key={entry.id} className="mb-3">
+              <p className="text-blue-400">{entry.timestamp} $ {entry.command}</p>
+              <pre className={`text-xs whitespace-pre-wrap ${
+                entry.status === 'success' ? 'text-green-300' :
+                entry.status === 'error' ? 'text-red-300' :
+                'text-yellow-300'
+              }`}>
+                {entry.output}
+              </pre>
+            </div>
+          ))}
+        </div>
+        <div ref={consoleEndRef} />
       </div>
 
       {/* Recent Commands */}
