@@ -1,5 +1,5 @@
 /** @import must precede all other statements */
-@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -150,6 +150,22 @@
     --sidebar-ring: 270 100% 42%;
 
     --radius: 0.5rem;
+
+    /* Typography tokens */
+    --font-family-sans: "Manrope", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-size-page-title: 1.45rem;
+    --font-size-section-title: 1.0625rem;
+    --font-size-subsection-title: 0.925rem;
+    --font-size-card-title: 0.835rem;
+    --font-size-body: 0.835rem;
+    --font-size-label: 0.67rem;
+    --font-size-meta: 0.72rem;
+    --font-size-button: 0.82rem;
+    --font-size-input: 0.82rem;
+    --font-size-badge: 0.68rem;
+    --tracking-default: 0.006em;
+    --tracking-heading: 0.008em;
+    --tracking-label: 0.05em;
   }
 
   .dark {
@@ -298,14 +314,16 @@
   }
 
   html {
-    font-size: 16px;
+    font-size: 15.5px;
   }
 
   body {
     @apply bg-background text-foreground;
-    font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    font-size: 0.9375rem;
-    line-height: 1.45;
+    font-family: var(--font-family-sans);
+    font-size: 0.9rem;
+    font-weight: 450;
+    line-height: 1.42;
+    letter-spacing: var(--tracking-default);
     background-image: radial-gradient(circle at 12% 0%, hsl(var(--primary) / 0.08), transparent 38%);
   }
 
@@ -325,31 +343,43 @@
   }
 
   h1 {
-    @apply text-[1.75rem] font-semibold leading-tight;
+    @apply font-semibold leading-tight;
+    font-size: 1.65rem;
+    letter-spacing: var(--tracking-heading);
   }
 
   h2 {
-    @apply text-[1.3rem] font-semibold leading-snug;
+    @apply font-semibold leading-snug;
+    font-size: 1.2rem;
+    letter-spacing: var(--tracking-heading);
   }
 
   h3 {
-    @apply text-[1.05rem] font-semibold leading-snug;
+    @apply font-semibold leading-snug;
+    font-size: 0.98rem;
+    letter-spacing: var(--tracking-heading);
   }
 
   h4 {
-    @apply text-base font-semibold;
+    @apply font-semibold;
+    font-size: 0.9rem;
+    letter-spacing: var(--tracking-heading);
   }
 
   h5 {
-    @apply text-base font-semibold;
+    @apply font-semibold;
+    font-size: 0.88rem;
+    letter-spacing: var(--tracking-heading);
   }
 
   h6 {
     @apply text-sm font-semibold;
+    letter-spacing: var(--tracking-heading);
   }
 
   p {
-    @apply text-sm leading-6;
+    @apply text-sm leading-5;
+    letter-spacing: var(--tracking-default);
   }
 
   pre,
@@ -363,47 +393,69 @@
 @layer components {
   /* Typography tokens */
   .typo-page-title {
-    @apply text-[1.55rem] leading-tight font-semibold text-foreground;
+    @apply leading-tight font-semibold text-foreground;
+    font-size: var(--font-size-page-title);
+    letter-spacing: var(--tracking-heading);
   }
 
   .typo-section-title {
-    @apply text-[1.125rem] leading-snug font-semibold text-foreground;
+    @apply leading-snug font-semibold text-foreground;
+    font-size: var(--font-size-section-title);
+    letter-spacing: var(--tracking-heading);
   }
 
   .typo-subsection-title {
-    @apply text-[0.95rem] leading-snug font-semibold text-foreground;
+    @apply leading-snug font-semibold text-foreground;
+    font-size: var(--font-size-subsection-title);
+    letter-spacing: var(--tracking-heading);
   }
 
   .typo-card-title {
-    @apply text-[0.875rem] leading-snug font-semibold text-foreground;
+    @apply leading-snug font-semibold text-foreground;
+    font-size: var(--font-size-card-title);
+    letter-spacing: var(--tracking-heading);
   }
 
   .typo-body {
-    @apply text-[0.875rem] leading-5 text-foreground;
+    @apply leading-5 text-foreground;
+    font-size: var(--font-size-body);
+    letter-spacing: var(--tracking-default);
   }
 
   .typo-label {
-    @apply text-[0.7rem] leading-4 font-semibold text-muted-foreground uppercase tracking-wide;
+    @apply leading-4 font-semibold text-muted-foreground uppercase;
+    font-size: var(--font-size-label);
+    letter-spacing: var(--tracking-label);
   }
 
   .typo-meta {
-    @apply text-[0.75rem] leading-4 text-muted-foreground;
+    @apply leading-4 text-muted-foreground;
+    font-size: var(--font-size-meta);
+    letter-spacing: calc(var(--tracking-default) + 0.002em);
   }
 
   .typo-button {
-    @apply text-[0.85rem] leading-5 font-medium;
+    @apply leading-5 font-semibold;
+    font-size: var(--font-size-button);
+    letter-spacing: calc(var(--tracking-default) + 0.002em);
   }
 
   .typo-input {
-    @apply text-[0.85rem] leading-5 text-foreground placeholder:text-muted-foreground;
+    @apply leading-5 text-foreground placeholder:text-muted-foreground;
+    font-size: var(--font-size-input);
+    letter-spacing: var(--tracking-default);
   }
 
   .typo-tab {
-    @apply text-[0.85rem] leading-5 font-medium;
+    @apply leading-5 font-semibold;
+    font-size: var(--font-size-button);
+    letter-spacing: calc(var(--tracking-default) + 0.002em);
   }
 
   .typo-badge {
-    @apply text-[0.7rem] leading-4 font-semibold;
+    @apply leading-4 font-semibold;
+    font-size: var(--font-size-badge);
+    letter-spacing: calc(var(--tracking-default) + 0.004em);
   }
 
   /* Layout rhythm tokens */
@@ -515,14 +567,16 @@
 
   /* Global table alignment system */
   .app-content-theme table {
-    @apply w-full text-sm border-collapse;
+    @apply w-full border-collapse;
+    font-size: 0.82rem;
+    letter-spacing: var(--tracking-default);
     table-layout: fixed;
   }
 
   .app-content-theme table thead th {
     @apply px-3 py-2 text-left align-middle font-semibold text-muted-foreground;
     line-height: 1.25rem;
-    letter-spacing: 0.01em;
+    letter-spacing: calc(var(--tracking-default) + 0.006em);
   }
 
   .app-content-theme table tbody td {
