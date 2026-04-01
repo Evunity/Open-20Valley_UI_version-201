@@ -12,15 +12,41 @@
    * Colors expressed as HSL for Tailwind integration
    */
   :root {
+    /* Design-system semantic base */
+    --bg-app: 260 22% 99%;
+    --bg-surface-1: 0 0% 100%;
+    --bg-surface-2: 255 35% 97%;
+    --bg-surface-3: 255 30% 94%;
+    --bg-elevated: 0 0% 100%;
+
+    --text-primary: 252 24% 13%;
+    --text-secondary: 252 14% 31%;
+    --text-muted: 252 12% 44%;
+    --text-disabled: 252 8% 60%;
+
+    --border-subtle: 252 20% 86%;
+    --border-strong: 252 18% 72%;
+    --chip-bg: 252 40% 94%;
+    --chip-fg: 252 26% 24%;
+
+    --input-bg: 0 0% 100%;
+    --input-fg: 252 24% 13%;
+    --input-border: 252 22% 82%;
+
+    --tooltip-bg: 0 0% 100%;
+    --tooltip-fg: 252 24% 13%;
+    --card-bg: 0 0% 100%;
+    --card-fg: 252 24% 13%;
+
     /* Neutrals */
-    --background: 0 0% 100%;
-    --foreground: 210 15% 8%;
+    --background: var(--bg-app);
+    --foreground: var(--text-primary);
 
-    --card: 0 0% 100%;
-    --card-foreground: 210 15% 8%;
+    --card: var(--card-bg);
+    --card-foreground: var(--card-fg);
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 210 15% 8%;
+    --popover: var(--tooltip-bg);
+    --popover-foreground: var(--tooltip-fg);
 
     /* Primary - Open Valley Deep Purple (Modern, Premium) */
     --primary: 270 100% 42%;
@@ -39,12 +65,12 @@
     --destructive-foreground: 0 0% 100%;
 
     /* Muted - Light Gray */
-    --muted: 210 10% 92%;
-    --muted-foreground: 210 10% 40%;
+    --muted: var(--bg-surface-3);
+    --muted-foreground: var(--text-muted);
 
     /* Border & Input */
-    --border: 210 10% 88%;
-    --input: 210 10% 95%;
+    --border: var(--border-subtle);
+    --input: var(--input-border);
     --ring: 270 100% 42%;
 
     /* Status Colors - Aligned with Purple Theme */
@@ -52,6 +78,22 @@
     --status-degraded: 38 92% 50%;
     --status-critical: 0 84.2% 60.2%;
     --status-pending: 270 80% 56%;
+
+    /* Semantic contrast pairs for tinted surfaces */
+    --success: 142 72% 42%;
+    --success-foreground: 142 80% 16%;
+    --success-surface: 142 76% 95%;
+    --success-border: 142 50% 78%;
+
+    --warning: 38 92% 52%;
+    --warning-foreground: 35 92% 20%;
+    --warning-surface: 45 100% 95%;
+    --warning-border: 42 88% 76%;
+
+    --info: 220 90% 56%;
+    --info-foreground: 224 76% 22%;
+    --info-surface: 214 100% 95%;
+    --info-border: 214 82% 78%;
 
     /* Sidebar */
     --sidebar-background: 270 30% 96%;
@@ -67,15 +109,41 @@
   }
 
   .dark {
+    /* Premium dark system */
+    --bg-app: 262 28% 9%;
+    --bg-surface-1: 262 24% 12%;
+    --bg-surface-2: 261 22% 15%;
+    --bg-surface-3: 261 20% 19%;
+    --bg-elevated: 262 22% 18%;
+
+    --text-primary: 248 35% 96%;
+    --text-secondary: 248 20% 86%;
+    --text-muted: 248 14% 74%;
+    --text-disabled: 248 10% 56%;
+
+    --border-subtle: 258 19% 28%;
+    --border-strong: 258 20% 40%;
+    --chip-bg: 258 20% 23%;
+    --chip-fg: 248 32% 92%;
+
+    --input-bg: 261 22% 16%;
+    --input-fg: 248 35% 96%;
+    --input-border: 258 18% 34%;
+
+    --tooltip-bg: 261 22% 14%;
+    --tooltip-fg: 248 35% 96%;
+    --card-bg: 262 24% 14%;
+    --card-fg: 248 35% 96%;
+
     /* Neutrals - Better contrast for dark mode */
-    --background: 270 20% 10%;
-    --foreground: 210 10% 98%;
+    --background: var(--bg-app);
+    --foreground: var(--text-primary);
 
-    --card: 270 20% 16%;
-    --card-foreground: 210 10% 98%;
+    --card: var(--card-bg);
+    --card-foreground: var(--card-fg);
 
-    --popover: 270 20% 16%;
-    --popover-foreground: 210 10% 98%;
+    --popover: var(--tooltip-bg);
+    --popover-foreground: var(--tooltip-fg);
 
     /* Primary - Purple - Brighter for visibility with WHITE foreground text */
     --primary: 270 80% 60%;
@@ -94,12 +162,12 @@
     --destructive-foreground: 0 0% 100%;
 
     /* Muted - Better contrast */
-    --muted: 270 15% 45%;
-    --muted-foreground: 210 10% 75%;
+    --muted: var(--bg-surface-3);
+    --muted-foreground: var(--text-muted);
 
     /* Border & Input - More visible */
-    --border: 270 20% 35%;
-    --input: 270 20% 22%;
+    --border: var(--border-subtle);
+    --input: var(--input-border);
     --ring: 270 80% 60%;
 
     /* Status Colors */
@@ -107,6 +175,22 @@
     --status-degraded: 38 92% 55%;
     --status-critical: 0 84.2% 65%;
     --status-pending: 270 75% 65%;
+
+    /* Semantic contrast pairs for tinted dark surfaces */
+    --success: 142 70% 52%;
+    --success-foreground: 142 82% 88%;
+    --success-surface: 142 50% 18%;
+    --success-border: 142 42% 32%;
+
+    --warning: 42 95% 62%;
+    --warning-foreground: 42 92% 88%;
+    --warning-surface: 36 48% 18%;
+    --warning-border: 36 46% 34%;
+
+    --info: 215 96% 66%;
+    --info-foreground: 213 100% 90%;
+    --info-surface: 222 45% 18%;
+    --info-border: 222 35% 34%;
 
     /* Sidebar - More visible with WHITE text */
     --sidebar-background: 270 25% 12%;
@@ -134,6 +218,17 @@
     font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     font-size: 0.9375rem;
     line-height: 1.45;
+    background-image: radial-gradient(circle at 12% 0%, hsl(var(--primary) / 0.08), transparent 38%);
+  }
+
+  :where(input, textarea, select):not([type="checkbox"]):not([type="radio"]):not([type="range"]) {
+    background-color: hsl(var(--input-bg));
+    color: hsl(var(--input-fg));
+    border-color: hsl(var(--input-border));
+  }
+
+  :where(input, textarea)::placeholder {
+    color: hsl(var(--text-muted));
   }
 
   :where(p, span, li, a, button, label, td, th) {
@@ -286,6 +381,30 @@
 
   .card-subtle {
     @apply rounded-lg border border-border bg-card;
+  }
+
+  .surface-success {
+    background-color: hsl(var(--success-surface));
+    color: hsl(var(--success-foreground));
+    border-color: hsl(var(--success-border));
+  }
+
+  .surface-warning {
+    background-color: hsl(var(--warning-surface));
+    color: hsl(var(--warning-foreground));
+    border-color: hsl(var(--warning-border));
+  }
+
+  .surface-info {
+    background-color: hsl(var(--info-surface));
+    color: hsl(var(--info-foreground));
+    border-color: hsl(var(--info-border));
+  }
+
+  .surface-destructive {
+    background-color: hsl(var(--destructive) / 0.16);
+    color: hsl(var(--destructive-foreground));
+    border-color: hsl(var(--destructive) / 0.35);
   }
 
   /* Button styles */
@@ -501,6 +620,36 @@
     border-radius: 0.65rem;
   }
 
+  .dark :where(input, textarea, select):not([type="checkbox"]):not([type="radio"]):not([type="range"]) {
+    color: hsl(var(--foreground));
+    border-color: hsl(var(--input));
+  }
+
+  .dark :where(input, textarea)::placeholder {
+    color: hsl(var(--muted-foreground));
+    opacity: 0.95;
+  }
+
+  .dark :where([role="dialog"], [data-radix-popper-content-wrapper]) :where(.text-muted-foreground, [class*="text-slate-500"], [class*="text-gray-500"], [class*="text-gray-400"]) {
+    color: hsl(var(--muted-foreground)) !important;
+  }
+
+  .dark :where(.bg-white, .bg-slate-50, .bg-gray-50, .bg-gray-100) {
+    background-color: hsl(var(--bg-surface-1)) !important;
+  }
+
+  .dark :where(.border-gray-200, .border-gray-300, .border-slate-200) {
+    border-color: hsl(var(--border-subtle)) !important;
+  }
+
+  .dark :where(.text-gray-900, .text-slate-900, .text-black) {
+    color: hsl(var(--text-primary)) !important;
+  }
+
+  .dark :where(.text-gray-700, .text-gray-600, .text-slate-700, .text-slate-600) {
+    color: hsl(var(--text-secondary)) !important;
+  }
+
   /* Dark-mode parity patch for module content that still uses light utility classes */
   .dark .app-content-theme [class~="bg-white"],
   .dark .app-content-theme [class~="bg-gray-50"],
@@ -517,7 +666,11 @@
   .dark .app-content-theme [class~="bg-indigo-50"],
   .dark .app-content-theme [class~="bg-purple-50"],
   .dark .app-content-theme [class~="bg-emerald-50"],
-  .dark .app-content-theme [class~="bg-amber-50"] {
+  .dark .app-content-theme [class~="bg-amber-50"],
+  .dark .app-content-theme [class~="bg-yellow-50"],
+  .dark .app-content-theme [class~="bg-green-50"],
+  .dark .app-content-theme [class~="bg-red-50"],
+  .dark .app-content-theme [class~="bg-orange-50"] {
     background-color: hsl(var(--muted) / 0.25) !important;
   }
 
@@ -532,8 +685,23 @@
   .dark .app-content-theme [class~="text-gray-600"],
   .dark .app-content-theme [class~="text-gray-500"],
   .dark .app-content-theme [class~="text-slate-700"],
-  .dark .app-content-theme [class~="text-slate-600"] {
+  .dark .app-content-theme [class~="text-slate-600"],
+  .dark .app-content-theme [class~="text-blue-700"],
+  .dark .app-content-theme [class~="text-green-700"],
+  .dark .app-content-theme [class~="text-red-700"],
+  .dark .app-content-theme [class~="text-yellow-700"],
+  .dark .app-content-theme [class~="text-orange-700"],
+  .dark .app-content-theme [class~="text-purple-700"] {
     color: hsl(var(--muted-foreground)) !important;
+  }
+
+  .dark .app-content-theme [class~="text-blue-600"],
+  .dark .app-content-theme [class~="text-green-600"],
+  .dark .app-content-theme [class~="text-red-600"],
+  .dark .app-content-theme [class~="text-yellow-600"],
+  .dark .app-content-theme [class~="text-orange-600"],
+  .dark .app-content-theme [class~="text-purple-600"] {
+    color: hsl(var(--foreground)) !important;
   }
 
   .dark .app-content-theme [class~="border-gray-200"],
@@ -556,6 +724,106 @@
 
   .dark .app-content-theme [class~="after:bg-white"]::after {
     background-color: hsl(var(--foreground)) !important;
+  }
+
+  .dark .app-content-theme [class*="bg-green-500/10"],
+  .dark .app-content-theme [class*="bg-green-500/20"] {
+    background-color: hsl(var(--success-surface)) !important;
+    color: hsl(var(--success-foreground)) !important;
+    border-color: hsl(var(--success-border)) !important;
+  }
+
+  .dark .app-content-theme [class*="bg-yellow-500/10"],
+  .dark .app-content-theme [class*="bg-yellow-500/20"],
+  .dark .app-content-theme [class*="bg-orange-500/10"],
+  .dark .app-content-theme [class*="bg-orange-500/20"] {
+    background-color: hsl(var(--warning-surface)) !important;
+    color: hsl(var(--warning-foreground)) !important;
+    border-color: hsl(var(--warning-border)) !important;
+  }
+
+  .dark .app-content-theme [class*="bg-blue-500/10"],
+  .dark .app-content-theme [class*="bg-blue-500/20"],
+  .dark .app-content-theme [class*="bg-purple-500/10"],
+  .dark .app-content-theme [class*="bg-purple-500/20"] {
+    background-color: hsl(var(--info-surface)) !important;
+    color: hsl(var(--info-foreground)) !important;
+    border-color: hsl(var(--info-border)) !important;
+  }
+
+  .dark .app-content-theme [class*="bg-red-500/10"],
+  .dark .app-content-theme [class*="bg-red-500/20"] {
+    background-color: hsl(var(--destructive) / 0.18) !important;
+    color: hsl(var(--destructive-foreground)) !important;
+    border-color: hsl(var(--destructive) / 0.35) !important;
+  }
+
+  .dark [class*="bg-green-500/10"][class*="text-green-700"],
+  .dark [class*="bg-green-500/20"][class*="text-green-700"] {
+    background-color: hsl(var(--success-surface)) !important;
+    color: hsl(var(--success-foreground)) !important;
+    border-color: hsl(var(--success-border)) !important;
+  }
+
+  .dark [class*="bg-yellow-500/10"][class*="text-yellow-700"],
+  .dark [class*="bg-yellow-500/20"][class*="text-yellow-700"],
+  .dark [class*="bg-orange-500/10"][class*="text-orange-700"],
+  .dark [class*="bg-orange-500/20"][class*="text-orange-700"] {
+    background-color: hsl(var(--warning-surface)) !important;
+    color: hsl(var(--warning-foreground)) !important;
+    border-color: hsl(var(--warning-border)) !important;
+  }
+
+  .dark [class*="bg-blue-500/10"][class*="text-blue-700"],
+  .dark [class*="bg-blue-500/20"][class*="text-blue-700"],
+  .dark [class*="bg-purple-500/10"][class*="text-purple-700"],
+  .dark [class*="bg-purple-500/20"][class*="text-purple-700"] {
+    background-color: hsl(var(--info-surface)) !important;
+    color: hsl(var(--info-foreground)) !important;
+    border-color: hsl(var(--info-border)) !important;
+  }
+
+  .dark [class*="bg-red-500/10"][class*="text-red-700"],
+  .dark [class*="bg-red-500/20"][class*="text-red-700"] {
+    background-color: hsl(var(--destructive) / 0.18) !important;
+    color: hsl(var(--destructive-foreground)) !important;
+    border-color: hsl(var(--destructive) / 0.35) !important;
+  }
+
+  .dark .recharts-cartesian-axis-tick-value,
+  .dark .recharts-text,
+  .dark .recharts-legend-item-text {
+    fill: hsl(var(--muted-foreground)) !important;
+    color: hsl(var(--muted-foreground)) !important;
+  }
+
+  .dark .recharts-default-tooltip {
+    background-color: hsl(var(--popover)) !important;
+    border-color: hsl(var(--border)) !important;
+    color: hsl(var(--popover-foreground)) !important;
+  }
+
+  .dark .recharts-tooltip-item,
+  .dark .recharts-tooltip-label {
+    color: hsl(var(--popover-foreground)) !important;
+  }
+
+  .leaflet-container {
+    background: hsl(var(--muted) / 0.2);
+  }
+
+  .leaflet-popup-content-wrapper,
+  .leaflet-popup-tip {
+    background: hsl(var(--card));
+    color: hsl(var(--card-foreground));
+    border: 1px solid hsl(var(--border));
+    box-shadow: 0 10px 20px hsl(var(--background) / 0.45);
+  }
+
+  .leaflet-control-attribution {
+    background: hsl(var(--card) / 0.85) !important;
+    color: hsl(var(--muted-foreground)) !important;
+    border: 1px solid hsl(var(--border));
   }
 
   /* Settings module: ensure native form controls are dark-surface aware */

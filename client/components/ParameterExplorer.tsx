@@ -200,14 +200,14 @@ export const ParameterExplorer: React.FC<ParameterExplorerProps> = ({ selectedTa
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-xs font-semibold text-gray-700 mb-1">Technology</p>
-                      <p className="text-sm font-semibold text-gray-900 bg-white border border-gray-200 rounded px-3 py-2">
+                      <p className="text-xs font-semibold text-muted-foreground mb-1">Technology</p>
+                      <p className="text-sm font-semibold text-foreground bg-card border border-border rounded px-3 py-2">
                         {param.technology}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs font-semibold text-gray-700 mb-1">Vendor</p>
-                      <p className="text-sm font-semibold text-gray-900 bg-white border border-gray-200 rounded px-3 py-2">
+                      <p className="text-xs font-semibold text-muted-foreground mb-1">Vendor</p>
+                      <p className="text-sm font-semibold text-foreground bg-card border border-border rounded px-3 py-2">
                         {param.vendor}
                       </p>
                     </div>
@@ -215,24 +215,24 @@ export const ParameterExplorer: React.FC<ParameterExplorerProps> = ({ selectedTa
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-gray-400" />
+                      <Clock className="w-4 h-4 text-muted-foreground" />
                       <div>
-                        <p className="text-xs text-gray-600">Last Modified</p>
-                        <p className="text-sm font-semibold text-gray-900">{param.lastModified}</p>
+                        <p className="text-xs text-muted-foreground">Last Modified</p>
+                        <p className="text-sm font-semibold text-foreground">{param.lastModified}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <User className="w-4 h-4 text-gray-400" />
+                      <User className="w-4 h-4 text-muted-foreground" />
                       <div>
-                        <p className="text-xs text-gray-600">Modified By</p>
-                        <p className="text-sm font-semibold text-gray-900">{param.modifiedBy}</p>
+                        <p className="text-xs text-muted-foreground">Modified By</p>
+                        <p className="text-sm font-semibold text-foreground">{param.modifiedBy}</p>
                       </div>
                     </div>
                   </div>
 
                   {param.currentValue !== param.defaultValue && (
-                    <div className="p-2 bg-amber-50 border border-amber-200 rounded">
-                      <p className="text-xs text-amber-800">
+                    <div className="p-2 surface-warning border rounded">
+                      <p className="text-xs text-current">
                         <strong>⚠️</strong> This parameter has been modified from default
                       </p>
                     </div>
@@ -245,8 +245,8 @@ export const ParameterExplorer: React.FC<ParameterExplorerProps> = ({ selectedTa
       </div>
 
       {/* Summary */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-        <p className="text-sm text-blue-900">
+      <div className="surface-info border rounded-lg p-3">
+        <p className="text-sm text-current">
           Showing <strong>{filteredParams.length}</strong> of <strong>{MOCK_PARAMETERS.length}</strong> parameters
         </p>
       </div>

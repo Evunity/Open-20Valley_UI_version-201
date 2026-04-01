@@ -79,12 +79,12 @@ export default function TimeInputWithAmPm({
             onChange(timeStr);
           }}
           disabled={disabled}
-          className="flex-1 px-2 py-1 rounded border border-border text-sm bg-background disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 h-9 px-2.5 py-1 rounded-md border border-input bg-input text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-50 disabled:cursor-not-allowed"
           title="Select time (24-hour format)"
         />
 
         {/* AM/PM Toggle */}
-        <div className="flex border border-border rounded-lg bg-background overflow-hidden">
+        <div className="flex border border-input rounded-lg bg-input overflow-hidden">
           <button
             onClick={() => handlePeriodChange("AM")}
             disabled={disabled}
@@ -92,7 +92,7 @@ export default function TimeInputWithAmPm({
               "px-2.5 py-1 text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
               period === "AM"
                 ? "bg-primary text-primary-foreground"
-                : "bg-background text-muted-foreground hover:text-foreground"
+                : "bg-input text-muted-foreground hover:bg-muted/40 hover:text-foreground"
             )}
             title="AM - Morning (00:00 - 11:59)"
           >
@@ -106,7 +106,7 @@ export default function TimeInputWithAmPm({
               "px-2.5 py-1 text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
               period === "PM"
                 ? "bg-primary text-primary-foreground"
-                : "bg-background text-muted-foreground hover:text-foreground"
+                : "bg-input text-muted-foreground hover:bg-muted/40 hover:text-foreground"
             )}
             title="PM - Afternoon/Evening (12:00 - 23:59)"
           >

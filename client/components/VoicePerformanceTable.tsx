@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ChevronUp, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SeverityBadge } from "@/components/ui/severity-badge";
 
 interface PerformanceData {
   name: string;
@@ -72,22 +73,6 @@ export default function VoicePerformanceTable({
     if (status.includes("Degraded") || status.includes("Congested"))
       return "bg-status-critical/10";
     return "bg-status-degraded/10";
-  };
-
-  const getPriorityColor = (priority?: string) => {
-    if (!priority) return "bg-gray-100 text-gray-700";
-    switch (priority) {
-      case "Critical":
-        return "bg-status-critical/20 text-status-critical";
-      case "High":
-        return "bg-status-degraded/20 text-status-degraded";
-      case "Medium":
-        return "bg-yellow-100 text-yellow-700";
-      case "Low":
-        return "bg-green-100 text-green-700";
-      default:
-        return "bg-gray-100 text-gray-700";
-    }
   };
 
   const sortedData = getSortedData();
@@ -231,9 +216,7 @@ export default function VoicePerformanceTable({
                 {data.some((d) => d.priority) && (
                   <td className="px-2 md:px-4 py-3 text-center">
                     {row.priority && (
-                      <span className={cn("inline-block px-2 py-1 rounded text-xs font-semibold", getPriorityColor(row.priority))}>
-                        {row.priority}
-                      </span>
+                      <SeverityBadge severity={row.priority}>{row.priority}</SeverityBadge>
                     )}
                   </td>
                 )}
