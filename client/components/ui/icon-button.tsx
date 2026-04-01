@@ -12,7 +12,7 @@ const iconButtonVariants = cva(
         success: "bg-[hsl(var(--success-surface))] text-[hsl(var(--success-foreground))] border-[hsl(var(--success-border))] hover:bg-[hsl(var(--success-surface))/0.85]",
         warning: "bg-[hsl(var(--warning-surface))] text-[hsl(var(--warning-foreground))] border-[hsl(var(--warning-border))] hover:bg-[hsl(var(--warning-surface))/0.85]",
         destructive:
-          "bg-[hsl(var(--destructive)/0.2)] text-destructive-foreground border-[hsl(var(--destructive)/0.42)] hover:bg-[hsl(var(--destructive)/0.3)]",
+          "bg-[hsl(var(--destructive-surface))] text-[hsl(var(--destructive-surface-foreground))] border-[hsl(var(--destructive-surface-border))] hover:bg-[hsl(var(--destructive-surface))/0.88]",
       },
       size: {
         default: "h-9 w-9",

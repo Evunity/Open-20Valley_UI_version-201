@@ -17,12 +17,12 @@ const badgeVariants = cva(
         warning:
           "border-transparent bg-[hsl(var(--warning-surface))] text-[hsl(var(--warning-foreground))] hover:bg-[hsl(var(--warning-surface))/0.9]",
         info: "border-transparent bg-[hsl(var(--info-surface))] text-[hsl(var(--info-foreground))] hover:bg-[hsl(var(--info-surface))/0.9]",
-        low: "border-[hsl(var(--success-border))] bg-[hsl(var(--success-surface))] text-[hsl(var(--success-foreground))]",
+        low: "border-[hsl(var(--severity-low-border))] bg-[hsl(var(--severity-low-bg))] text-[hsl(var(--severity-low-fg))]",
         medium:
-          "border-[hsl(42_62%_46%)] bg-[hsl(42_58%_24%)] text-[hsl(48_100%_92%)] dark:border-[hsl(42_58%_48%)] dark:bg-[hsl(42_54%_26%)] dark:text-[hsl(48_100%_94%)]",
-        high: "border-[hsl(24_76%_46%)] bg-[hsl(24_70%_24%)] text-[hsl(36_100%_92%)] dark:border-[hsl(24_70%_50%)] dark:bg-[hsl(24_66%_27%)] dark:text-[hsl(36_100%_94%)]",
+          "border-[hsl(var(--severity-medium-border))] bg-[hsl(var(--severity-medium-bg))] text-[hsl(var(--severity-medium-fg))]",
+        high: "border-[hsl(var(--severity-high-border))] bg-[hsl(var(--severity-high-bg))] text-[hsl(var(--severity-high-fg))]",
         critical:
-          "border-[hsl(352_66%_50%)] bg-[hsl(352_58%_26%)] text-[hsl(345_100%_94%)] dark:border-[hsl(352_64%_54%)] dark:bg-[hsl(352_56%_30%)] dark:text-[hsl(345_100%_96%)]",
+          "border-[hsl(var(--severity-critical-border))] bg-[hsl(var(--severity-critical-bg))] text-[hsl(var(--severity-critical-fg))]",
         destructive:
           "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
         outline: "text-foreground border-border",

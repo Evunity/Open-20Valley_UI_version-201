@@ -21,7 +21,7 @@ const buttonVariants = cva(
         warning:
           "bg-[hsl(var(--warning-surface))] text-[hsl(var(--warning-foreground))] border border-[hsl(var(--warning-border))] hover:bg-[hsl(var(--warning-surface))/0.85]",
         "destructive-soft":
-          "bg-[hsl(var(--destructive)/0.2)] text-destructive-foreground border border-[hsl(var(--destructive)/0.4)] hover:bg-[hsl(var(--destructive)/0.28)]",
+          "bg-[hsl(var(--destructive-surface))] text-[hsl(var(--destructive-surface-foreground))] border border-[hsl(var(--destructive-surface-border))] hover:bg-[hsl(var(--destructive-surface))/0.88]",
         utility:
           "bg-card text-foreground border border-border hover:bg-muted/70 data-[state=active]:bg-accent/70 data-[state=active]:text-accent-foreground",
         ghost: "text-foreground hover:bg-accent/70 hover:text-accent-foreground",

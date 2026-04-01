@@ -628,21 +628,21 @@ export default function DataAnalytics() {
                   item.risk === "Critical"
                     ? "surface-destructive"
                     : item.risk === "High"
-                      ? "bg-[hsl(24_68%_24%)] text-[hsl(36_100%_92%)] border-[hsl(24_70%_40%)]"
+                      ? "bg-[hsl(var(--severity-high-surface))] text-[hsl(var(--severity-high-fg))] border-[hsl(var(--severity-high-border))]"
                       : "surface-warning"
                 )}
               >
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <p className="font-semibold text-foreground">{item.area}</p>
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <p className="font-semibold text-current">{item.area}</p>
+                    <p className="text-xs text-current/80 mt-1">
                       Data Volume: <span className="font-semibold">{item.volume}</span> | Speed:{" "}
                       <span className="font-semibold">{item.speed}</span>
                     </p>
                   </div>
                   <SeverityBadge severity={item.risk}>{item.risk}</SeverityBadge>
                 </div>
-                <p className="text-sm text-foreground">
+                <p className="text-sm text-current">
                   <span className="font-semibold">Recommendation:</span> {item.recommendation}
                 </p>
               </div>
@@ -1064,15 +1064,15 @@ export default function DataAnalytics() {
                 insight.severity === "Critical"
                   ? "surface-destructive"
                   : insight.severity === "High"
-                    ? "bg-[hsl(24_68%_24%)] text-[hsl(36_100%_92%)] border border-[hsl(24_70%_40%)]"
+                    ? "bg-[hsl(var(--severity-high-surface))] text-[hsl(var(--severity-high-fg))] border border-[hsl(var(--severity-high-border))]"
                     : "surface-warning";
 
               return (
                 <div key={insight.id} className={cn("p-4 rounded-lg border", severityColor)}>
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1">
-                      <p className="font-semibold text-foreground">{insight.title}</p>
-                      <p className="text-sm text-muted-foreground mt-1">{insight.description}</p>
+                      <p className="font-semibold text-current">{insight.title}</p>
+                      <p className="text-sm text-current/80 mt-1">{insight.description}</p>
                     </div>
                     <SeverityBadge
                       severity={insight.severity}
@@ -1082,12 +1082,12 @@ export default function DataAnalytics() {
                     </SeverityBadge>
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs text-current/75">
                       {new Date(insight.timestamp).toLocaleTimeString()}
                     </span>
                     {insight.affectedFilters.length > 0 && (
                       <div className="flex items-center gap-1 flex-wrap">
-                        <span className="text-xs text-muted-foreground">Affected:</span>
+                        <span className="text-xs text-current/75">Affected:</span>
                         {insight.affectedFilters.map((filter, idx) => (
                           <span
                             key={filter}
