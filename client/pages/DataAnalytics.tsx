@@ -82,6 +82,21 @@ export default function DataAnalytics() {
     () => generateHourlyUtilizationHeatmap(heatmapDate),
     [heatmapDate]
   );
+  const heatmapRegions = ["North", "South", "East", "West", "Central"];
+  const heatmapLegendItems = [
+    { label: "Low (<40%)", colorClass: "bg-green-300" },
+    { label: "Medium (40-60%)", colorClass: "bg-yellow-300" },
+    { label: "High (60-80%)", colorClass: "bg-orange-400" },
+    { label: "Critical (>80%)", colorClass: "bg-red-500" },
+  ];
+  const getHeatmapCellColor = (intensity: "low" | "medium" | "high" | "critical") =>
+    intensity === "critical"
+      ? "bg-red-500"
+      : intensity === "high"
+        ? "bg-orange-400"
+        : intensity === "medium"
+          ? "bg-yellow-300"
+          : "bg-green-300";
 
   // Generate data insights
   const dataInsights = useMemo(
@@ -650,22 +665,22 @@ export default function DataAnalytics() {
         </div>
 
         {/* Heatmaps: Time vs Region & Technology Capacity Stress - Side by Side */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
           {/* Heatmap: Time vs Region Capacity Stress */}
-          <div className="card-elevated rounded-xl border border-border/50 p-6 flex flex-col min-h-[420px]">
+          <div className="card-elevated rounded-xl border border-border/50 p-6 flex flex-col min-h-[500px] h-full">
             <h3 className="text-lg font-bold text-foreground mb-4">
               Capacity Stress by Time & Region (Heatmap)
             </h3>
-            <div className="flex-1 flex flex-col">
-              <div className="overflow-x-auto">
-                <div className="inline-block w-full">
+            <div className="flex-1 flex flex-col justify-between gap-5">
+              <div className="flex-1 overflow-x-auto">
+                <div className="min-w-[40rem] w-full space-y-1">
                   {/* Column headers (Regions) */}
-                  <div className="flex gap-1 mb-2">
-                    <div className="w-20"></div>
-                    {["North", "South", "East", "West", "Central"].map((region) => (
+                  <div className="grid grid-cols-[5.5rem_repeat(5,minmax(0,1fr))] gap-2 mb-2">
+                    <div></div>
+                    {heatmapRegions.map((region) => (
                       <div
                         key={region}
-                        className="w-24 text-center text-xs font-semibold text-muted-foreground"
+                        className="text-center text-xs font-semibold text-muted-foreground"
                       >
                         {region}
                       </div>
@@ -674,26 +689,17 @@ export default function DataAnalytics() {
 
                   {/* Heatmap rows */}
                   {timeRegionHeatmap.map((row) => (
-                    <div key={row.name} className="flex gap-1 mb-2">
-                      <div className="w-20 text-xs font-semibold text-muted-foreground">
+                    <div key={row.name} className="grid grid-cols-[5.5rem_repeat(5,minmax(0,1fr))] gap-2">
+                      <div className="text-xs font-semibold text-muted-foreground flex items-center">
                         {row.name}
                       </div>
                       {row.cells.map((cell, cellIdx) => {
-                        const bgColor =
-                          cell.intensity === "critical"
-                            ? "bg-red-500"
-                            : cell.intensity === "high"
-                              ? "bg-orange-400"
-                              : cell.intensity === "medium"
-                                ? "bg-yellow-300"
-                                : "bg-green-300";
-
                         return (
                           <div
                             key={`${row.name}-cell-${cellIdx}`}
                             className={cn(
-                              "w-24 h-16 rounded flex items-center justify-center text-sm font-bold text-gray-900",
-                              bgColor
+                              "h-[3.6rem] rounded-md flex items-center justify-center text-sm font-semibold text-gray-900 shadow-sm",
+                              getHeatmapCellColor(cell.intensity)
                             )}
                             title={`${row.name} - ${cell.value.toFixed(1)}%`}
                           >
@@ -705,42 +711,34 @@ export default function DataAnalytics() {
                   ))}
                 </div>
               </div>
-              <div className="flex gap-2 mt-6 text-xs flex-wrap justify-center">
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-4 rounded bg-green-300"></div>
-                  <span>Low (&lt;40%)</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-4 rounded bg-yellow-300"></div>
-                  <span>Medium (40-60%)</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-4 rounded bg-orange-400"></div>
-                  <span>High (60-80%)</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-4 rounded bg-red-500"></div>
-                  <span>Critical (&gt;80%)</span>
+              <div className="overflow-x-auto">
+                <div className="flex flex-nowrap items-center justify-center gap-4 text-xs leading-none min-w-max pb-1">
+                  {heatmapLegendItems.map((item) => (
+                    <div key={item.label} className="flex items-center gap-2 whitespace-nowrap">
+                      <div className={cn("w-6 h-4 rounded-sm", item.colorClass)}></div>
+                      <span className="text-muted-foreground">{item.label}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
           </div>
 
           {/* Heatmap: Technology vs Capacity Stress */}
-          <div className="card-elevated rounded-xl border border-border/50 p-6 flex flex-col min-h-[420px]">
+          <div className="card-elevated rounded-xl border border-border/50 p-6 flex flex-col min-h-[500px] h-full">
             <h3 className="text-lg font-bold text-foreground mb-4">
               Technology Performance by Region (Heatmap)
             </h3>
-            <div className="flex-1 flex flex-col">
-              <div className="overflow-x-auto">
-                <div className="inline-block w-full">
+            <div className="flex-1 flex flex-col justify-between gap-5">
+              <div className="flex-1 overflow-x-auto">
+                <div className="min-w-[40rem] w-full space-y-1">
                   {/* Column headers (Regions) */}
-                  <div className="flex gap-1 mb-2">
-                    <div className="w-20"></div>
-                    {["North", "South", "East", "West", "Central"].map((region) => (
+                  <div className="grid grid-cols-[5.5rem_repeat(5,minmax(0,1fr))] gap-2 mb-2">
+                    <div></div>
+                    {heatmapRegions.map((region) => (
                       <div
                         key={region}
-                        className="w-24 text-center text-xs font-semibold text-muted-foreground"
+                        className="text-center text-xs font-semibold text-muted-foreground"
                       >
                         {region}
                       </div>
@@ -749,26 +747,17 @@ export default function DataAnalytics() {
 
                   {/* Heatmap rows */}
                   {techCapacityHeatmap.map((row) => (
-                    <div key={row.name} className="flex gap-1 mb-2">
-                      <div className="w-20 text-xs font-semibold text-muted-foreground">
+                    <div key={row.name} className="grid grid-cols-[5.5rem_repeat(5,minmax(0,1fr))] gap-2">
+                      <div className="text-xs font-semibold text-muted-foreground flex items-center">
                         {row.name}
                       </div>
                       {row.cells.map((cell, cellIdx) => {
-                        const bgColor =
-                          cell.intensity === "critical"
-                            ? "bg-red-500"
-                            : cell.intensity === "high"
-                              ? "bg-orange-400"
-                              : cell.intensity === "medium"
-                                ? "bg-yellow-300"
-                                : "bg-green-300";
-
                         return (
                           <div
                             key={`${row.name}-cell-${cellIdx}`}
                             className={cn(
-                              "w-24 h-16 rounded flex items-center justify-center text-sm font-bold text-gray-900",
-                              bgColor
+                              "h-[3.6rem] rounded-md flex items-center justify-center text-sm font-semibold text-gray-900 shadow-sm",
+                              getHeatmapCellColor(cell.intensity)
                             )}
                             title={`${row.name} - ${cell.value.toFixed(1)}%`}
                           >
@@ -780,22 +769,14 @@ export default function DataAnalytics() {
                   ))}
                 </div>
               </div>
-              <div className="flex gap-2 mt-6 text-xs flex-wrap justify-center">
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-4 rounded bg-green-300"></div>
-                  <span>Low Stress</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-4 rounded bg-yellow-300"></div>
-                  <span>Medium Stress</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-4 rounded bg-orange-400"></div>
-                  <span>High Stress</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-4 rounded bg-red-500"></div>
-                  <span>Critical</span>
+              <div className="overflow-x-auto">
+                <div className="flex flex-nowrap items-center justify-center gap-4 text-xs leading-none min-w-max pb-1">
+                  {heatmapLegendItems.map((item) => (
+                    <div key={item.label} className="flex items-center gap-2 whitespace-nowrap">
+                      <div className={cn("w-6 h-4 rounded-sm", item.colorClass)}></div>
+                      <span className="text-muted-foreground">{item.label}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
