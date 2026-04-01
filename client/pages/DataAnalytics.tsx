@@ -667,15 +667,15 @@ export default function DataAnalytics() {
         {/* Heatmaps: Time vs Region & Technology Capacity Stress - Side by Side */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
           {/* Heatmap: Time vs Region Capacity Stress */}
-          <div className="card-elevated rounded-xl border border-border/50 p-6 flex flex-col min-h-[500px] h-full">
+          <div className="card-elevated rounded-xl border border-border/50 p-6 flex flex-col min-h-[430px] h-full">
             <h3 className="text-lg font-bold text-foreground mb-4">
               Capacity Stress by Time & Region (Heatmap)
             </h3>
             <div className="flex-1 flex flex-col justify-between gap-5">
-              <div className="flex-1 overflow-x-auto">
-                <div className="min-w-[40rem] w-full space-y-1">
+              <div className="flex-1 min-w-0">
+                <div className="w-full space-y-1">
                   {/* Column headers (Regions) */}
-                  <div className="grid grid-cols-[5.5rem_repeat(5,minmax(0,1fr))] gap-2 mb-2">
+                  <div className="grid grid-cols-[4.5rem_repeat(5,minmax(0,1fr))] gap-2 mb-2">
                     <div></div>
                     {heatmapRegions.map((region) => (
                       <div
@@ -689,7 +689,7 @@ export default function DataAnalytics() {
 
                   {/* Heatmap rows */}
                   {timeRegionHeatmap.map((row) => (
-                    <div key={row.name} className="grid grid-cols-[5.5rem_repeat(5,minmax(0,1fr))] gap-2">
+                    <div key={row.name} className="grid grid-cols-[4.5rem_repeat(5,minmax(0,1fr))] gap-2">
                       <div className="text-xs font-semibold text-muted-foreground flex items-center">
                         {row.name}
                       </div>
@@ -698,7 +698,7 @@ export default function DataAnalytics() {
                           <div
                             key={`${row.name}-cell-${cellIdx}`}
                             className={cn(
-                              "h-[3.6rem] rounded-md flex items-center justify-center text-sm font-semibold text-gray-900 shadow-sm",
+                              "h-11 lg:h-12 rounded-md flex items-center justify-center text-xs lg:text-sm font-semibold text-gray-900 shadow-sm",
                               getHeatmapCellColor(cell.intensity)
                             )}
                             title={`${row.name} - ${cell.value.toFixed(1)}%`}
@@ -711,10 +711,10 @@ export default function DataAnalytics() {
                   ))}
                 </div>
               </div>
-              <div className="overflow-x-auto">
-                <div className="flex flex-nowrap items-center justify-center gap-4 text-xs leading-none min-w-max pb-1">
+              <div>
+                <div className="grid grid-cols-4 gap-2 text-[11px] lg:text-xs leading-none">
                   {heatmapLegendItems.map((item) => (
-                    <div key={item.label} className="flex items-center gap-2 whitespace-nowrap">
+                    <div key={item.label} className="flex items-center justify-center gap-1.5 whitespace-nowrap">
                       <div className={cn("w-6 h-4 rounded-sm", item.colorClass)}></div>
                       <span className="text-muted-foreground">{item.label}</span>
                     </div>
@@ -725,15 +725,15 @@ export default function DataAnalytics() {
           </div>
 
           {/* Heatmap: Technology vs Capacity Stress */}
-          <div className="card-elevated rounded-xl border border-border/50 p-6 flex flex-col min-h-[500px] h-full">
+          <div className="card-elevated rounded-xl border border-border/50 p-6 flex flex-col min-h-[430px] h-full">
             <h3 className="text-lg font-bold text-foreground mb-4">
               Technology Performance by Region (Heatmap)
             </h3>
             <div className="flex-1 flex flex-col justify-between gap-5">
-              <div className="flex-1 overflow-x-auto">
-                <div className="min-w-[40rem] w-full space-y-1">
+              <div className="flex-1 min-w-0">
+                <div className="w-full space-y-1">
                   {/* Column headers (Regions) */}
-                  <div className="grid grid-cols-[5.5rem_repeat(5,minmax(0,1fr))] gap-2 mb-2">
+                  <div className="grid grid-cols-[4.5rem_repeat(5,minmax(0,1fr))] gap-2 mb-2">
                     <div></div>
                     {heatmapRegions.map((region) => (
                       <div
@@ -747,7 +747,7 @@ export default function DataAnalytics() {
 
                   {/* Heatmap rows */}
                   {techCapacityHeatmap.map((row) => (
-                    <div key={row.name} className="grid grid-cols-[5.5rem_repeat(5,minmax(0,1fr))] gap-2">
+                    <div key={row.name} className="grid grid-cols-[4.5rem_repeat(5,minmax(0,1fr))] gap-2">
                       <div className="text-xs font-semibold text-muted-foreground flex items-center">
                         {row.name}
                       </div>
@@ -756,7 +756,7 @@ export default function DataAnalytics() {
                           <div
                             key={`${row.name}-cell-${cellIdx}`}
                             className={cn(
-                              "h-[3.6rem] rounded-md flex items-center justify-center text-sm font-semibold text-gray-900 shadow-sm",
+                              "h-11 lg:h-12 rounded-md flex items-center justify-center text-xs lg:text-sm font-semibold text-gray-900 shadow-sm",
                               getHeatmapCellColor(cell.intensity)
                             )}
                             title={`${row.name} - ${cell.value.toFixed(1)}%`}
@@ -769,10 +769,10 @@ export default function DataAnalytics() {
                   ))}
                 </div>
               </div>
-              <div className="overflow-x-auto">
-                <div className="flex flex-nowrap items-center justify-center gap-4 text-xs leading-none min-w-max pb-1">
+              <div>
+                <div className="grid grid-cols-4 gap-2 text-[11px] lg:text-xs leading-none">
                   {heatmapLegendItems.map((item) => (
-                    <div key={item.label} className="flex items-center gap-2 whitespace-nowrap">
+                    <div key={item.label} className="flex items-center justify-center gap-1.5 whitespace-nowrap">
                       <div className={cn("w-6 h-4 rounded-sm", item.colorClass)}></div>
                       <span className="text-muted-foreground">{item.label}</span>
                     </div>
