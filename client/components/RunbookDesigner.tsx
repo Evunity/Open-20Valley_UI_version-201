@@ -221,14 +221,14 @@ export const RunbookDesigner: React.FC<{
             </button>
             <button
               onClick={() => duplicateStep(selectedStepId!)}
-              className="w-full px-2 py-1.5 text-xs font-bold rounded-lg bg-muted text-muted-foreground hover:bg-muted/80 transition flex items-center justify-center gap-1"
+              className="w-full px-2 py-1.5 text-xs font-bold rounded-lg bg-card text-foreground border border-border hover:bg-muted/70 transition flex items-center justify-center gap-1"
             >
               <Copy className="w-3 h-3" /> Duplicate
             </button>
             <button
               onClick={() => deleteStep(selectedStepId!)}
               disabled={runbook.steps.length === 1}
-              className="w-full px-2 py-1.5 text-xs font-bold rounded-lg bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900 transition flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full px-2 py-1.5 text-xs font-bold rounded-lg bg-[hsl(var(--destructive)/0.2)] text-destructive-foreground border border-[hsl(var(--destructive)/0.4)] hover:bg-[hsl(var(--destructive)/0.28)] transition flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Trash2 className="w-3 h-3" /> Delete
             </button>
@@ -257,8 +257,8 @@ export const RunbookDesigner: React.FC<{
                 className={cn(
                   'w-full px-3 py-2 text-xs font-bold rounded-lg transition flex items-center justify-center gap-2',
                   runbook.active
-                    ? 'bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300'
-                    : 'bg-muted text-muted-foreground'
+                    ? 'bg-[hsl(var(--success-surface))] text-[hsl(var(--success-foreground))] border border-[hsl(var(--success-border))]'
+                    : 'bg-card text-foreground border border-border'
                 )}
               >
                 {runbook.active ? <Play className="w-3 h-3" /> : <Pause className="w-3 h-3" />}

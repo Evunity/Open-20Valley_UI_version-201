@@ -556,13 +556,13 @@ export const VisualWorkflowBuilder: React.FC<{
           <div className="border-t border-border p-3 space-y-2">
             <button
               onClick={() => duplicateNode(selectedNode)}
-              className="w-full px-2 py-1.5 text-xs font-semibold rounded-lg bg-muted text-foreground hover:bg-muted/80 transition flex items-center justify-center gap-1"
+              className="w-full px-2 py-1.5 text-xs font-semibold rounded-lg bg-card text-foreground border border-border hover:bg-muted/70 transition flex items-center justify-center gap-1"
             >
               <Copy className="w-3 h-3" /> Duplicate
             </button>
             <button
               onClick={() => deleteNode(selectedNode)}
-              className="w-full px-2 py-1.5 text-xs font-semibold rounded-lg bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900 transition flex items-center justify-center gap-1"
+              className="w-full px-2 py-1.5 text-xs font-semibold rounded-lg bg-[hsl(var(--destructive)/0.2)] text-destructive-foreground border border-[hsl(var(--destructive)/0.4)] hover:bg-[hsl(var(--destructive)/0.28)] transition flex items-center justify-center gap-1"
             >
               <Trash2 className="w-3 h-3" /> Delete
             </button>

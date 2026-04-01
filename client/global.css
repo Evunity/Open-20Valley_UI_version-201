@@ -1,5 +1,5 @@
 /** @import must precede all other statements */
-@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -23,6 +23,14 @@
     --text-secondary: 252 14% 31%;
     --text-muted: 252 12% 44%;
     --text-disabled: 252 8% 60%;
+
+    /* Canonical semantic aliases */
+    --surface: var(--bg-surface-1);
+    --surface-elevated: var(--bg-elevated);
+    --surface-muted: var(--bg-surface-3);
+    --fg-primary: var(--text-primary);
+    --fg-secondary: var(--text-secondary);
+    --fg-muted: var(--text-muted);
 
     --border-subtle: 252 20% 86%;
     --border-strong: 252 18% 72%;
@@ -84,16 +92,52 @@
     --success-foreground: 142 80% 16%;
     --success-surface: 142 76% 95%;
     --success-border: 142 50% 78%;
+    --surface-tinted-success: var(--success-surface);
+    --fg-on-success: var(--success-foreground);
 
     --warning: 38 92% 52%;
     --warning-foreground: 35 92% 20%;
     --warning-surface: 45 100% 95%;
     --warning-border: 42 88% 76%;
+    --surface-tinted-warning: var(--warning-surface);
+    --fg-on-warning: var(--warning-foreground);
 
-    --info: 220 90% 56%;
-    --info-foreground: 224 76% 22%;
-    --info-surface: 214 100% 95%;
-    --info-border: 214 82% 78%;
+    --info: 258 72% 54%;
+    --info-foreground: 258 36% 24%;
+    --info-surface: 258 56% 94%;
+    --info-border: 258 38% 78%;
+
+    --destructive-surface: 352 72% 94%;
+    --destructive-surface-foreground: 350 58% 26%;
+    --destructive-surface-border: 352 54% 78%;
+    --surface-tinted-danger: var(--destructive-surface);
+    --fg-on-danger: var(--destructive-surface-foreground);
+
+    --status-success-bg: 142 54% 88%;
+    --status-success-fg: 145 64% 24%;
+    --status-danger-bg: 352 56% 89%;
+    --status-danger-fg: 350 64% 28%;
+
+    /* Severity system (light) */
+    --severity-low-bg: 142 46% 93%;
+    --severity-low-fg: 145 52% 24%;
+    --severity-low-border: 145 34% 72%;
+    --severity-low-surface: 142 42% 96%;
+
+    --severity-medium-bg: 44 72% 91%;
+    --severity-medium-fg: 38 62% 24%;
+    --severity-medium-border: 40 58% 72%;
+    --severity-medium-surface: 44 70% 95%;
+
+    --severity-high-bg: 26 82% 90%;
+    --severity-high-fg: 22 62% 24%;
+    --severity-high-border: 24 64% 70%;
+    --severity-high-surface: 26 78% 95%;
+
+    --severity-critical-bg: 352 72% 91%;
+    --severity-critical-fg: 348 58% 25%;
+    --severity-critical-border: 352 58% 72%;
+    --severity-critical-surface: 352 68% 95%;
 
     /* Sidebar */
     --sidebar-background: 270 30% 96%;
@@ -106,6 +150,22 @@
     --sidebar-ring: 270 100% 42%;
 
     --radius: 0.5rem;
+
+    /* Typography tokens */
+    --font-family-sans: "Manrope", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-size-page-title: 1.45rem;
+    --font-size-section-title: 1.0625rem;
+    --font-size-subsection-title: 0.925rem;
+    --font-size-card-title: 0.835rem;
+    --font-size-body: 0.835rem;
+    --font-size-label: 0.67rem;
+    --font-size-meta: 0.72rem;
+    --font-size-button: 0.82rem;
+    --font-size-input: 0.82rem;
+    --font-size-badge: 0.68rem;
+    --tracking-default: 0.006em;
+    --tracking-heading: 0.008em;
+    --tracking-label: 0.05em;
   }
 
   .dark {
@@ -120,6 +180,14 @@
     --text-secondary: 248 20% 86%;
     --text-muted: 248 14% 74%;
     --text-disabled: 248 10% 56%;
+
+    /* Canonical semantic aliases */
+    --surface: var(--bg-surface-1);
+    --surface-elevated: var(--bg-elevated);
+    --surface-muted: var(--bg-surface-3);
+    --fg-primary: var(--text-primary);
+    --fg-secondary: var(--text-secondary);
+    --fg-muted: var(--text-muted);
 
     --border-subtle: 258 19% 28%;
     --border-strong: 258 20% 40%;
@@ -181,16 +249,52 @@
     --success-foreground: 142 82% 88%;
     --success-surface: 142 50% 18%;
     --success-border: 142 42% 32%;
+    --surface-tinted-success: var(--success-surface);
+    --fg-on-success: var(--success-foreground);
 
     --warning: 42 95% 62%;
     --warning-foreground: 42 92% 88%;
     --warning-surface: 36 48% 18%;
     --warning-border: 36 46% 34%;
+    --surface-tinted-warning: var(--warning-surface);
+    --fg-on-warning: var(--warning-foreground);
 
-    --info: 215 96% 66%;
-    --info-foreground: 213 100% 90%;
-    --info-surface: 222 45% 18%;
-    --info-border: 222 35% 34%;
+    --info: 262 88% 70%;
+    --info-foreground: 258 36% 90%;
+    --info-surface: 262 28% 20%;
+    --info-border: 262 24% 38%;
+
+    --destructive-surface: 352 42% 20%;
+    --destructive-surface-foreground: 350 96% 92%;
+    --destructive-surface-border: 352 40% 36%;
+    --surface-tinted-danger: var(--destructive-surface);
+    --fg-on-danger: var(--destructive-surface-foreground);
+
+    --status-success-bg: 142 38% 24%;
+    --status-success-fg: 142 78% 90%;
+    --status-danger-bg: 352 36% 25%;
+    --status-danger-fg: 352 92% 92%;
+
+    /* Severity system (dark) */
+    --severity-low-bg: 146 42% 24%;
+    --severity-low-fg: 146 70% 90%;
+    --severity-low-border: 146 40% 42%;
+    --severity-low-surface: 146 34% 18%;
+
+    --severity-medium-bg: 45 64% 32%;
+    --severity-medium-fg: 52 100% 95%;
+    --severity-medium-border: 46 62% 52%;
+    --severity-medium-surface: 46 48% 22%;
+
+    --severity-high-bg: 22 72% 36%;
+    --severity-high-fg: 38 100% 96%;
+    --severity-high-border: 24 74% 56%;
+    --severity-high-surface: 24 54% 24%;
+
+    --severity-critical-bg: 352 68% 42%;
+    --severity-critical-fg: 0 0% 100%;
+    --severity-critical-border: 352 72% 60%;
+    --severity-critical-surface: 352 56% 26%;
 
     /* Sidebar - More visible with WHITE text */
     --sidebar-background: 270 25% 12%;
@@ -210,14 +314,16 @@
   }
 
   html {
-    font-size: 16px;
+    font-size: 15.5px;
   }
 
   body {
     @apply bg-background text-foreground;
-    font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    font-size: 0.9375rem;
-    line-height: 1.45;
+    font-family: var(--font-family-sans);
+    font-size: 0.9rem;
+    font-weight: 450;
+    line-height: 1.42;
+    letter-spacing: var(--tracking-default);
     background-image: radial-gradient(circle at 12% 0%, hsl(var(--primary) / 0.08), transparent 38%);
   }
 
@@ -237,31 +343,43 @@
   }
 
   h1 {
-    @apply text-[1.75rem] font-semibold leading-tight;
+    @apply font-semibold leading-tight;
+    font-size: 1.65rem;
+    letter-spacing: var(--tracking-heading);
   }
 
   h2 {
-    @apply text-[1.3rem] font-semibold leading-snug;
+    @apply font-semibold leading-snug;
+    font-size: 1.2rem;
+    letter-spacing: var(--tracking-heading);
   }
 
   h3 {
-    @apply text-[1.05rem] font-semibold leading-snug;
+    @apply font-semibold leading-snug;
+    font-size: 0.98rem;
+    letter-spacing: var(--tracking-heading);
   }
 
   h4 {
-    @apply text-base font-semibold;
+    @apply font-semibold;
+    font-size: 0.9rem;
+    letter-spacing: var(--tracking-heading);
   }
 
   h5 {
-    @apply text-base font-semibold;
+    @apply font-semibold;
+    font-size: 0.88rem;
+    letter-spacing: var(--tracking-heading);
   }
 
   h6 {
     @apply text-sm font-semibold;
+    letter-spacing: var(--tracking-heading);
   }
 
   p {
-    @apply text-sm leading-6;
+    @apply text-sm leading-5;
+    letter-spacing: var(--tracking-default);
   }
 
   pre,
@@ -275,47 +393,69 @@
 @layer components {
   /* Typography tokens */
   .typo-page-title {
-    @apply text-[1.55rem] leading-tight font-semibold text-foreground;
+    @apply leading-tight font-semibold text-foreground;
+    font-size: var(--font-size-page-title);
+    letter-spacing: var(--tracking-heading);
   }
 
   .typo-section-title {
-    @apply text-[1.125rem] leading-snug font-semibold text-foreground;
+    @apply leading-snug font-semibold text-foreground;
+    font-size: var(--font-size-section-title);
+    letter-spacing: var(--tracking-heading);
   }
 
   .typo-subsection-title {
-    @apply text-[0.95rem] leading-snug font-semibold text-foreground;
+    @apply leading-snug font-semibold text-foreground;
+    font-size: var(--font-size-subsection-title);
+    letter-spacing: var(--tracking-heading);
   }
 
   .typo-card-title {
-    @apply text-[0.875rem] leading-snug font-semibold text-foreground;
+    @apply leading-snug font-semibold text-foreground;
+    font-size: var(--font-size-card-title);
+    letter-spacing: var(--tracking-heading);
   }
 
   .typo-body {
-    @apply text-[0.875rem] leading-5 text-foreground;
+    @apply leading-5 text-foreground;
+    font-size: var(--font-size-body);
+    letter-spacing: var(--tracking-default);
   }
 
   .typo-label {
-    @apply text-[0.7rem] leading-4 font-semibold text-muted-foreground uppercase tracking-wide;
+    @apply leading-4 font-semibold text-muted-foreground uppercase;
+    font-size: var(--font-size-label);
+    letter-spacing: var(--tracking-label);
   }
 
   .typo-meta {
-    @apply text-[0.75rem] leading-4 text-muted-foreground;
+    @apply leading-4 text-muted-foreground;
+    font-size: var(--font-size-meta);
+    letter-spacing: calc(var(--tracking-default) + 0.002em);
   }
 
   .typo-button {
-    @apply text-[0.85rem] leading-5 font-medium;
+    @apply leading-5 font-semibold;
+    font-size: var(--font-size-button);
+    letter-spacing: calc(var(--tracking-default) + 0.002em);
   }
 
   .typo-input {
-    @apply text-[0.85rem] leading-5 text-foreground placeholder:text-muted-foreground;
+    @apply leading-5 text-foreground placeholder:text-muted-foreground;
+    font-size: var(--font-size-input);
+    letter-spacing: var(--tracking-default);
   }
 
   .typo-tab {
-    @apply text-[0.85rem] leading-5 font-medium;
+    @apply leading-5 font-semibold;
+    font-size: var(--font-size-button);
+    letter-spacing: calc(var(--tracking-default) + 0.002em);
   }
 
   .typo-badge {
-    @apply text-[0.7rem] leading-4 font-semibold;
+    @apply leading-4 font-semibold;
+    font-size: var(--font-size-badge);
+    letter-spacing: calc(var(--tracking-default) + 0.004em);
   }
 
   /* Layout rhythm tokens */
@@ -402,9 +542,9 @@
   }
 
   .surface-destructive {
-    background-color: hsl(var(--destructive) / 0.16);
-    color: hsl(var(--destructive-foreground));
-    border-color: hsl(var(--destructive) / 0.35);
+    background-color: hsl(var(--destructive-surface));
+    color: hsl(var(--destructive-surface-foreground));
+    border-color: hsl(var(--destructive-surface-border));
   }
 
   /* Button styles */
@@ -427,14 +567,16 @@
 
   /* Global table alignment system */
   .app-content-theme table {
-    @apply w-full text-sm border-collapse;
+    @apply w-full border-collapse;
+    font-size: 0.82rem;
+    letter-spacing: var(--tracking-default);
     table-layout: fixed;
   }
 
   .app-content-theme table thead th {
     @apply px-3 py-2 text-left align-middle font-semibold text-muted-foreground;
     line-height: 1.25rem;
-    letter-spacing: 0.01em;
+    letter-spacing: calc(var(--tracking-default) + 0.006em);
   }
 
   .app-content-theme table tbody td {
@@ -795,6 +937,28 @@
   .dark .recharts-legend-item-text {
     fill: hsl(var(--muted-foreground)) !important;
     color: hsl(var(--muted-foreground)) !important;
+  }
+
+  /* Global chart hover/cursor styling to avoid default light hover blocks */
+  .recharts-rectangle.recharts-tooltip-cursor,
+  .recharts-sector.recharts-tooltip-cursor,
+  .recharts-curve.recharts-tooltip-cursor {
+    fill: hsl(var(--muted) / 0.24) !important;
+    stroke: hsl(var(--border) / 0.55) !important;
+    stroke-width: 1px !important;
+  }
+
+  .dark .recharts-rectangle.recharts-tooltip-cursor,
+  .dark .recharts-sector.recharts-tooltip-cursor,
+  .dark .recharts-curve.recharts-tooltip-cursor {
+    fill: hsl(var(--bg-surface-3) / 0.5) !important;
+    stroke: hsl(var(--border-strong) / 0.75) !important;
+  }
+
+  .recharts-bar-rectangle:focus-visible,
+  .recharts-sector:focus-visible {
+    outline: 2px solid hsl(var(--ring) / 0.5);
+    outline-offset: 1px;
   }
 
   .dark .recharts-default-tooltip {
