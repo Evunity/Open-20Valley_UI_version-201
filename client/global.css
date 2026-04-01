@@ -95,6 +95,27 @@
     --info-surface: 258 56% 94%;
     --info-border: 258 38% 78%;
 
+    /* Severity system (light) */
+    --severity-low-bg: 142 46% 93%;
+    --severity-low-fg: 145 52% 24%;
+    --severity-low-border: 145 34% 72%;
+    --severity-low-surface: 142 42% 96%;
+
+    --severity-medium-bg: 44 72% 91%;
+    --severity-medium-fg: 38 62% 24%;
+    --severity-medium-border: 40 58% 72%;
+    --severity-medium-surface: 44 70% 95%;
+
+    --severity-high-bg: 26 82% 90%;
+    --severity-high-fg: 22 62% 24%;
+    --severity-high-border: 24 64% 70%;
+    --severity-high-surface: 26 78% 95%;
+
+    --severity-critical-bg: 352 72% 91%;
+    --severity-critical-fg: 348 58% 25%;
+    --severity-critical-border: 352 58% 72%;
+    --severity-critical-surface: 352 68% 95%;
+
     /* Sidebar */
     --sidebar-background: 270 30% 96%;
     --sidebar-foreground: 270 30% 25%;
@@ -191,6 +212,27 @@
     --info-foreground: 258 36% 90%;
     --info-surface: 262 28% 20%;
     --info-border: 262 24% 38%;
+
+    /* Severity system (dark) */
+    --severity-low-bg: 146 42% 24%;
+    --severity-low-fg: 146 70% 90%;
+    --severity-low-border: 146 40% 42%;
+    --severity-low-surface: 146 34% 18%;
+
+    --severity-medium-bg: 42 54% 27%;
+    --severity-medium-fg: 48 100% 92%;
+    --severity-medium-border: 42 52% 44%;
+    --severity-medium-surface: 42 42% 19%;
+
+    --severity-high-bg: 24 60% 30%;
+    --severity-high-fg: 35 100% 93%;
+    --severity-high-border: 24 58% 48%;
+    --severity-high-surface: 24 45% 20%;
+
+    --severity-critical-bg: 352 56% 31%;
+    --severity-critical-fg: 345 100% 95%;
+    --severity-critical-border: 352 52% 48%;
+    --severity-critical-surface: 352 45% 21%;
 
     /* Sidebar - More visible with WHITE text */
     --sidebar-background: 270 25% 12%;
