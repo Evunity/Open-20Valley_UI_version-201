@@ -36,6 +36,7 @@ import {
 import { getDaysDifference } from "@/utils/dashboardData";
 import { Zap, TrendingUp, Activity, Gauge, Wifi, Clock, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SeverityBadge } from "@/components/ui/severity-badge";
 
 export default function DataAnalytics() {
   const { toast } = useToast();
@@ -625,10 +626,10 @@ export default function DataAnalytics() {
                 className={cn(
                   "p-4 rounded-lg border",
                   item.risk === "Critical"
-                    ? "border-red-200 bg-red-50"
+                    ? "surface-destructive"
                     : item.risk === "High"
-                      ? "border-orange-200 bg-orange-50"
-                      : "border-yellow-200 bg-yellow-50"
+                      ? "bg-[hsl(24_68%_24%)] text-[hsl(36_100%_92%)] border-[hsl(24_70%_40%)]"
+                      : "surface-warning"
                 )}
               >
                 <div className="flex items-start justify-between mb-3">
@@ -639,18 +640,7 @@ export default function DataAnalytics() {
                       <span className="font-semibold">{item.speed}</span>
                     </p>
                   </div>
-                  <span
-                    className={cn(
-                      "px-2 py-1 rounded text-xs font-semibold",
-                      item.risk === "Critical"
-                        ? "bg-red-200 text-red-700"
-                        : item.risk === "High"
-                          ? "bg-orange-200 text-orange-700"
-                          : "bg-yellow-200 text-yellow-700"
-                    )}
-                  >
-                    {item.risk}
-                  </span>
+                  <SeverityBadge severity={item.risk}>{item.risk}</SeverityBadge>
                 </div>
                 <p className="text-sm text-foreground">
                   <span className="font-semibold">Recommendation:</span> {item.recommendation}
@@ -1072,17 +1062,10 @@ export default function DataAnalytics() {
             {dataInsights.map((insight) => {
               const severityColor =
                 insight.severity === "Critical"
-                  ? "bg-red-50 border-red-200"
+                  ? "surface-destructive"
                   : insight.severity === "High"
-                    ? "bg-orange-50 border-orange-200"
-                    : "bg-yellow-50 border-yellow-200";
-
-              const severityBadgeColor =
-                insight.severity === "Critical"
-                  ? "bg-red-200 text-red-800"
-                  : insight.severity === "High"
-                    ? "bg-orange-200 text-orange-800"
-                    : "bg-yellow-200 text-yellow-800";
+                    ? "bg-[hsl(24_68%_24%)] text-[hsl(36_100%_92%)] border border-[hsl(24_70%_40%)]"
+                    : "surface-warning";
 
               return (
                 <div key={insight.id} className={cn("p-4 rounded-lg border", severityColor)}>
@@ -1091,14 +1074,12 @@ export default function DataAnalytics() {
                       <p className="font-semibold text-foreground">{insight.title}</p>
                       <p className="text-sm text-muted-foreground mt-1">{insight.description}</p>
                     </div>
-                    <span
-                      className={cn(
-                        "px-2 py-1 rounded text-xs font-semibold flex-shrink-0 ml-3",
-                        severityBadgeColor
-                      )}
+                    <SeverityBadge
+                      severity={insight.severity}
+                      className="flex-shrink-0 ml-3"
                     >
                       {insight.severity}
-                    </span>
+                    </SeverityBadge>
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-xs text-muted-foreground">

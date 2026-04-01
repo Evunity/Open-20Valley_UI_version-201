@@ -149,15 +149,15 @@ export const AutomationCommandCenter: React.FC<AutomationCommandCenterProps> = (
       </div>
 
       {/* Live Autonomy Feed */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm flex-1 flex flex-col">
+      <div className="bg-card rounded-lg border border-border p-4 shadow-sm flex-1 flex flex-col">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+          <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
             <Zap className="w-4 h-4 text-amber-500 animate-pulse" />
             Live Autonomy Feed
           </h3>
           <button
             onClick={() => setIsPaused(!isPaused)}
-            className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition"
+            className="px-2 py-1 text-xs bg-muted text-foreground rounded hover:bg-muted/80 transition border border-border"
           >
             {isPaused ? 'Resume' : 'Pause'}
           </button>
@@ -169,30 +169,30 @@ export const AutomationCommandCenter: React.FC<AutomationCommandCenterProps> = (
               key={event.id}
               className={`p-3 rounded-lg border-l-4 ${
                 event.status === 'success'
-                  ? 'bg-green-50 border-l-green-500'
+                  ? 'surface-success border-l-[hsl(var(--success))]'
                   : event.status === 'pending'
-                  ? 'bg-amber-50 border-l-amber-500'
-                  : 'bg-red-50 border-l-red-500'
+                  ? 'surface-warning border-l-[hsl(var(--warning))]'
+                  : 'surface-destructive border-l-[hsl(var(--destructive))]'
               }`}
             >
               <div className="flex items-start gap-2">
-                <Activity className="w-4 h-4 mt-0.5 flex-shrink-0 text-gray-600" />
+                <Activity className="w-4 h-4 mt-0.5 flex-shrink-0 text-muted-foreground" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-gray-900">{event.action}</p>
-                  <p className="text-xs text-gray-600 mt-0.5">
+                  <p className="text-xs font-semibold text-foreground">{event.action}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
                     {event.scope} • {event.impact}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     {new Date(event.timestamp).toLocaleTimeString()}
                   </p>
                 </div>
                 <span
                   className={`px-2 py-1 text-xs font-semibold rounded-full flex-shrink-0 ${
                     event.status === 'success'
-                      ? 'bg-green-100 text-green-800'
+                      ? 'surface-success border'
                       : event.status === 'pending'
-                      ? 'bg-amber-100 text-amber-800'
-                      : 'bg-red-100 text-red-800'
+                      ? 'surface-warning border'
+                      : 'surface-destructive border'
                   }`}
                 >
                   {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
@@ -204,12 +204,12 @@ export const AutomationCommandCenter: React.FC<AutomationCommandCenterProps> = (
       </div>
 
       {/* Blast Radius Info */}
-      <div className="bg-blue-50 rounded-lg border border-blue-200 p-4">
+      <div className="surface-info rounded-lg border p-4">
         <div className="flex items-start gap-2">
-          <AlertCircle className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-          <div className="text-xs text-blue-900">
+          <AlertCircle className="w-4 h-4 text-current mt-0.5 flex-shrink-0" />
+          <div className="text-xs text-current">
             <p className="font-semibold mb-1">Blast Radius Map</p>
-            <p className="text-blue-800">
+            <p className="text-current/90">
               Click on regions in the alarm topology to see automations affecting them. {activities.length} active automations detected.
             </p>
           </div>
@@ -219,18 +219,18 @@ export const AutomationCommandCenter: React.FC<AutomationCommandCenterProps> = (
       {/* All Activities Modal */}
       {showAllActivities && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg border border-gray-200 max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between p-4 border-b border-gray-200">
-              <h2 className="text-lg font-bold text-gray-900">All Automation Activities</h2>
+          <div className="bg-card rounded-lg border border-border max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b border-border">
+              <h2 className="text-lg font-bold text-foreground">All Automation Activities</h2>
               <button
                 onClick={() => setShowAllActivities(false)}
-                className="text-gray-500 hover:text-gray-700 text-xl"
+                className="text-muted-foreground hover:text-foreground text-xl"
               >
                 ✕
               </button>
             </div>
             <div className="flex-1 overflow-y-auto">
-              <div className="divide-y divide-gray-200">
+              <div className="divide-y divide-border">
                 {activities.map((activity) => (
                   <div
                     key={activity.id}
@@ -238,24 +238,24 @@ export const AutomationCommandCenter: React.FC<AutomationCommandCenterProps> = (
                       setSelectedActivity(activity);
                       setShowAllActivities(false);
                     }}
-                    className="p-4 hover:bg-gray-50 cursor-pointer transition"
+                    className="p-4 hover:bg-muted/40 cursor-pointer transition"
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold text-gray-900">{activity.name}</h3>
+                          <h3 className="font-semibold text-foreground">{activity.name}</h3>
                           <span className={`text-xs px-2 py-1 rounded ${
-                            activity.risk === 'high' ? 'bg-red-100 text-red-800' :
-                            activity.risk === 'medium' ? 'bg-amber-100 text-amber-800' :
-                            'bg-green-100 text-green-800'
+                            activity.risk === 'high' ? 'surface-destructive border' :
+                            activity.risk === 'medium' ? 'surface-warning border' :
+                            'surface-success border'
                           }`}>
                             {activity.risk.toUpperCase()}
                           </span>
                         </div>
-                        <p className="text-sm text-gray-600 mb-2">
+                        <p className="text-sm text-muted-foreground mb-2">
                           <strong>Trigger:</strong> {activity.triggerEvent.description}
                         </p>
-                        <div className="flex gap-3 text-xs text-gray-600">
+                        <div className="flex gap-3 text-xs text-muted-foreground">
                           <span>📍 {activity.affectedObjects.join(', ')}</span>
                           <span>⏱️ {new Date(activity.createdAt).toLocaleTimeString()}</span>
                           <span>👥 {activity.subscribersSaved.toLocaleString()} subscribers saved</span>

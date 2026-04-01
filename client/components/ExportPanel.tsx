@@ -43,9 +43,9 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
   ];
 
   const FORMATS: { id: ExportFormat; label: string; icon: React.ReactNode; color: string }[] = [
-    { id: 'png', label: 'PNG Image', icon: <Image className="w-4 h-4" />, color: 'bg-blue-100 text-blue-700' },
-    { id: 'pdf', label: 'PDF Report', icon: <FileText className="w-4 h-4" />, color: 'bg-red-100 text-red-700' },
-    { id: 'json', label: 'JSON Data', icon: <FileJson className="w-4 h-4" />, color: 'bg-green-100 text-green-700' }
+    { id: 'png', label: 'PNG Image', icon: <Image className="w-4 h-4" />, color: 'surface-info border' },
+    { id: 'pdf', label: 'PDF Report', icon: <FileText className="w-4 h-4" />, color: 'surface-destructive border' },
+    { id: 'json', label: 'JSON Data', icon: <FileJson className="w-4 h-4" />, color: 'surface-success border' }
   ];
 
   const generateMetadata = () => {
@@ -180,15 +180,15 @@ startxref
   };
 
   return (
-    <div className="w-full flex flex-col gap-4 bg-white rounded-lg border border-gray-200 p-4">
+    <div className="w-full flex flex-col gap-4 bg-card rounded-lg border border-border p-4 text-card-foreground">
       <div className="flex items-center gap-2">
-        <Download className="w-5 h-5 text-blue-600" />
-        <h3 className="font-semibold text-gray-900">Export & Reporting</h3>
+        <Download className="w-5 h-5 text-[hsl(var(--info))]" />
+        <h3 className="font-semibold text-foreground">Export & Reporting</h3>
       </div>
 
       {/* Export Type Selection */}
       <div className="flex flex-col gap-2">
-        <p className="text-sm font-semibold text-gray-700">Export Type</p>
+        <p className="text-sm font-semibold text-muted-foreground">Export Type</p>
         <div className="grid grid-cols-2 gap-2">
           {EXPORT_TYPES.map(type => (
             <button
@@ -196,12 +196,12 @@ startxref
               onClick={() => setSelectedType(type.id)}
               className={`p-2 rounded-lg border-2 text-left transition ${
                 selectedType === type.id
-                  ? 'border-blue-600 bg-blue-50'
-                  : 'border-gray-200 hover:border-gray-300'
+                  ? 'border-primary bg-primary/15 text-foreground'
+                  : 'border-border hover:border-primary/40 bg-card'
               }`}
             >
-              <p className="text-sm font-semibold text-gray-900">{type.label}</p>
-              <p className="text-xs text-gray-600">{type.description}</p>
+              <p className="text-sm font-semibold text-foreground">{type.label}</p>
+              <p className="text-xs text-muted-foreground">{type.description}</p>
             </button>
           ))}
         </div>
@@ -209,7 +209,7 @@ startxref
 
       {/* Format Selection */}
       <div className="flex flex-col gap-2">
-        <p className="text-sm font-semibold text-gray-700">Format</p>
+        <p className="text-sm font-semibold text-muted-foreground">Format</p>
         <div className="grid grid-cols-3 gap-2">
           {FORMATS.map(format => (
             <button
@@ -218,7 +218,7 @@ startxref
               className={`p-3 rounded-lg border-2 flex flex-col items-center gap-1 transition ${
                 selectedFormat === format.id
                   ? `border-current ${format.color}`
-                  : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                  : 'border-border hover:border-primary/40 text-foreground bg-card'
               }`}
             >
               {format.icon}
@@ -229,7 +229,7 @@ startxref
       </div>
 
       {/* Options */}
-      <div className="flex flex-col gap-2 p-3 bg-gray-50 rounded-lg">
+      <div className="flex flex-col gap-2 p-3 bg-muted/45 rounded-lg border border-border/60">
         <label className="flex items-center gap-2 cursor-pointer">
           <input
             type="checkbox"
@@ -237,7 +237,7 @@ startxref
             onChange={(e) => setIncludeMetadata(e.target.checked)}
             className="w-4 h-4 rounded"
           />
-          <span className="text-sm text-gray-700">Include metadata (user, tenant, version)</span>
+          <span className="text-sm text-foreground">Include metadata (user, tenant, version)</span>
         </label>
         <label className="flex items-center gap-2 cursor-pointer">
           <input
@@ -246,7 +246,7 @@ startxref
             onChange={(e) => setIncludeTimestamp(e.target.checked)}
             className="w-4 h-4 rounded"
           />
-          <span className="text-sm text-gray-700">Include timestamp</span>
+          <span className="text-sm text-foreground">Include timestamp</span>
         </label>
         <label className="flex items-center gap-2 cursor-pointer">
           <input
@@ -255,15 +255,15 @@ startxref
             onChange={(e) => setIncludeFilters(e.target.checked)}
             className="w-4 h-4 rounded"
           />
-          <span className="text-sm text-gray-700">Include active filters</span>
+          <span className="text-sm text-foreground">Include active filters</span>
         </label>
       </div>
 
       {/* Metadata Preview */}
       {includeMetadata && (
-        <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-          <p className="text-xs font-semibold text-blue-900 mb-2">Metadata Preview</p>
-          <div className="space-y-1 text-xs text-blue-800 font-mono">
+        <div className="p-3 surface-info rounded-lg border">
+          <p className="text-xs font-semibold text-current mb-2">Metadata Preview</p>
+          <div className="space-y-1 text-xs text-current/90 font-mono">
             <p>Time: {new Date().toISOString()}</p>
             <p>View: {currentView}</p>
             <p>Objects: {topology.length}</p>
@@ -278,14 +278,14 @@ startxref
         <button
           onClick={handleExport}
           disabled={isExporting}
-          className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50"
+          className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition disabled:opacity-50"
         >
           {isExporting ? 'Exporting...' : `Export as ${selectedFormat.toUpperCase()}`}
         </button>
         {selectedFormat === 'json' && (
           <button
             onClick={copyExportJSON}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition flex items-center gap-2"
+            className="px-4 py-2 bg-muted text-foreground rounded-lg font-semibold hover:bg-muted/80 transition flex items-center gap-2 border border-border"
             title="Copy JSON to clipboard"
           >
             {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
@@ -294,7 +294,7 @@ startxref
       </div>
 
       {/* Info */}
-      <p className="text-xs text-gray-600 text-center">
+      <p className="text-xs text-muted-foreground text-center">
         Exports include full context: topology data, KPIs, alarms, and vendor information
       </p>
     </div>

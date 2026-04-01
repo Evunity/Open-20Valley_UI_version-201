@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { TrendingUp, TrendingDown } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { SeverityBadge } from "@/components/ui/severity-badge";
 
 export interface KPICardProps {
   label: string;
@@ -94,20 +95,9 @@ export default function KPICard({
         </div>
 
         {priority && (
-          <span
-            className={cn(
-              "text-xs font-bold px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-sm",
-              priority === "Critical"
-                ? "bg-status-critical text-white"
-                : priority === "High"
-                  ? "bg-status-degraded text-white"
-                  : priority === "Medium"
-                    ? "bg-yellow-500 text-white"
-                    : "bg-status-healthy text-white"
-            )}
-          >
+          <SeverityBadge severity={priority} className="whitespace-nowrap shadow-sm">
             {priority} Priority
-          </span>
+          </SeverityBadge>
         )}
       </div>
 
