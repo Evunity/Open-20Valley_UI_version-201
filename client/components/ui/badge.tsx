@@ -19,10 +19,10 @@ const badgeVariants = cva(
         info: "border-transparent bg-[hsl(var(--info-surface))] text-[hsl(var(--info-foreground))] hover:bg-[hsl(var(--info-surface))/0.9]",
         low: "border-[hsl(var(--success-border))] bg-[hsl(var(--success-surface))] text-[hsl(var(--success-foreground))]",
         medium:
-          "border-[hsl(var(--warning-border))] bg-[hsl(var(--warning-surface))] text-[hsl(var(--warning-foreground))]",
-        high: "border-[hsl(24_82%_44%)] bg-[hsl(24_70%_22%)] text-[hsl(35_90%_88%)] dark:border-[hsl(24_70%_40%)] dark:bg-[hsl(24_68%_24%)] dark:text-[hsl(36_100%_92%)]",
+          "border-[hsl(42_62%_46%)] bg-[hsl(42_58%_24%)] text-[hsl(48_100%_92%)] dark:border-[hsl(42_58%_48%)] dark:bg-[hsl(42_54%_26%)] dark:text-[hsl(48_100%_94%)]",
+        high: "border-[hsl(24_76%_46%)] bg-[hsl(24_70%_24%)] text-[hsl(36_100%_92%)] dark:border-[hsl(24_70%_50%)] dark:bg-[hsl(24_66%_27%)] dark:text-[hsl(36_100%_94%)]",
         critical:
-          "border-[hsl(350_65%_40%)] bg-[hsl(350_55%_22%)] text-[hsl(345_100%_92%)] dark:border-[hsl(350_58%_48%)] dark:bg-[hsl(350_52%_24%)] dark:text-[hsl(345_100%_94%)]",
+          "border-[hsl(352_66%_50%)] bg-[hsl(352_58%_26%)] text-[hsl(345_100%_94%)] dark:border-[hsl(352_64%_54%)] dark:bg-[hsl(352_56%_30%)] dark:text-[hsl(345_100%_96%)]",
         destructive:
           "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
         outline: "text-foreground border-border",

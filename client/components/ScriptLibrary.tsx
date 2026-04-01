@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, Copy, Trash2, Play, Tag, AlertTriangle, Zap, Clock } from 'lucide-react';
 import SearchableDropdown from './SearchableDropdown';
+import { IconButton } from '@/components/ui/icon-button';
 
 interface ScriptLibraryProps {
   selectedTarget: any;
@@ -428,27 +429,27 @@ export const ScriptLibrary: React.FC<ScriptLibraryProps> = () => {
                 </div>
 
                 <div className="flex gap-2 ml-4">
-                  <button
+                  <IconButton
                     onClick={() => executeScript(script.id)}
-                    className="p-2 hover:bg-blue-100 rounded transition"
+                    variant="active"
                     title="Run script"
                   >
-                    <Play className="w-4 h-4 text-blue-600" />
-                  </button>
-                  <button
+                    <Play />
+                  </IconButton>
+                  <IconButton
                     onClick={() => copyScript(script)}
-                    className={`p-2 rounded transition ${copiedId === script.id ? 'bg-green-100' : 'hover:bg-gray-200'}`}
+                    variant={copiedId === script.id ? 'success' : 'default'}
                     title={copiedId === script.id ? 'Copied!' : 'Copy script'}
                   >
-                    <Copy className={`w-4 h-4 ${copiedId === script.id ? 'text-green-600' : 'text-gray-600'}`} />
-                  </button>
-                  <button
+                    <Copy />
+                  </IconButton>
+                  <IconButton
                     onClick={() => deleteScript(script.id)}
-                    className="p-2 hover:bg-red-100 rounded transition"
+                    variant="destructive"
                     title="Delete script"
                   >
-                    <Trash2 className="w-4 h-4 text-red-600" />
-                  </button>
+                    <Trash2 />
+                  </IconButton>
                 </div>
               </div>
 
@@ -461,11 +462,11 @@ export const ScriptLibrary: React.FC<ScriptLibraryProps> = () => {
 
               {/* Rollback */}
               <div className="text-xs">
-                <div className="p-2 bg-amber-50 rounded flex items-start gap-1">
-                  <AlertTriangle className="w-3 h-3 text-amber-600 mt-0.5 flex-shrink-0" />
+                <div className="p-2 surface-warning border rounded flex items-start gap-1">
+                  <AlertTriangle className="w-3 h-3 text-current mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="font-semibold text-amber-900">Rollback:</p>
-                    <p className="text-amber-700">{script.rollbackInstructions}</p>
+                    <p className="font-semibold text-current">Rollback:</p>
+                    <p className="text-current/90">{script.rollbackInstructions}</p>
                   </div>
                 </div>
               </div>

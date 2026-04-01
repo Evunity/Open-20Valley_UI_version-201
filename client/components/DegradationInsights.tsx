@@ -1,6 +1,7 @@
-import { AlertCircle, TrendingDown, TrendingUp } from "lucide-react";
+import { AlertCircle, AlertTriangle, TrendingDown, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { DetectionInsight } from "@/utils/analyticsData";
+import { SeverityBadge } from "@/components/ui/severity-badge";
 
 interface DegradationInsightsProps {
   insights: DetectionInsight[];
@@ -18,7 +19,7 @@ export default function DegradationInsights({ insights }: DegradationInsightsPro
       case "High":
         return "border-status-degraded/30 bg-status-degraded/5";
       case "Medium":
-        return "border-yellow-200/30 bg-yellow-50";
+        return "border-[hsl(42_58%_48%/0.45)] bg-[hsl(42_54%_24%)]";
       default:
         return "border-border/30 bg-card";
     }
@@ -31,22 +32,9 @@ export default function DegradationInsights({ insights }: DegradationInsightsPro
       case "High":
         return "text-status-degraded";
       case "Medium":
-        return "text-yellow-700";
+        return "text-[hsl(48_100%_92%)]";
       default:
         return "text-foreground";
-    }
-  };
-
-  const getSeverityBadgeColor = (severity: string) => {
-    switch (severity) {
-      case "Critical":
-        return "bg-status-critical/20 text-status-critical";
-      case "High":
-        return "bg-status-degraded/20 text-status-degraded";
-      case "Medium":
-        return "bg-yellow-100 text-yellow-700";
-      default:
-        return "bg-muted text-foreground";
     }
   };
 
@@ -100,7 +88,7 @@ export default function DegradationInsights({ insights }: DegradationInsightsPro
         <div
           key={insight.id}
           className={cn(
-            "p-4 rounded-lg border transition-all duration-200 hover:shadow-md",
+            "p-4 rounded-lg border transition-all duration-200 hover:shadow-md shadow-sm",
             getSeverityColor(insight.severity)
           )}
         >
@@ -136,15 +124,13 @@ export default function DegradationInsights({ insights }: DegradationInsightsPro
                   </div>
                   <p className="text-sm text-muted-foreground mt-2">{insight.description}</p>
                 </div>
-                <span
-                  className={cn(
-                    "px-2 py-1 rounded text-xs font-semibold whitespace-nowrap flex-shrink-0",
-                    getSeverityBadgeColor(insight.severity)
-                  )}
-                >
-                  {insight.severity}
-                </span>
-              </div>
+                    <SeverityBadge
+                      severity={insight.severity}
+                      className="whitespace-nowrap flex-shrink-0"
+                    >
+                      {insight.severity}
+                    </SeverityBadge>
+                  </div>
 
               {/* Metadata */}
               <div className="flex items-center gap-4 text-xs text-muted-foreground mt-3 pt-3 border-t border-current/10">
