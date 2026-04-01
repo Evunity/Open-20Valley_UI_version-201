@@ -90,10 +90,10 @@
     --warning-surface: 45 100% 95%;
     --warning-border: 42 88% 76%;
 
-    --info: 220 90% 56%;
-    --info-foreground: 224 76% 22%;
-    --info-surface: 214 100% 95%;
-    --info-border: 214 82% 78%;
+    --info: 258 72% 54%;
+    --info-foreground: 258 36% 24%;
+    --info-surface: 258 56% 94%;
+    --info-border: 258 38% 78%;
 
     /* Sidebar */
     --sidebar-background: 270 30% 96%;
@@ -187,10 +187,10 @@
     --warning-surface: 36 48% 18%;
     --warning-border: 36 46% 34%;
 
-    --info: 215 96% 66%;
-    --info-foreground: 213 100% 90%;
-    --info-surface: 222 45% 18%;
-    --info-border: 222 35% 34%;
+    --info: 262 88% 70%;
+    --info-foreground: 258 36% 90%;
+    --info-surface: 262 28% 20%;
+    --info-border: 262 24% 38%;
 
     /* Sidebar - More visible with WHITE text */
     --sidebar-background: 270 25% 12%;

@@ -23,7 +23,7 @@ const buttonVariants = cva(
         "destructive-soft":
           "bg-[hsl(var(--destructive)/0.2)] text-destructive-foreground border border-[hsl(var(--destructive)/0.4)] hover:bg-[hsl(var(--destructive)/0.28)]",
         utility:
-          "bg-[hsl(var(--info-surface))] text-[hsl(var(--info-foreground))] border border-[hsl(var(--info-border))] hover:bg-[hsl(var(--info-surface))/0.85]",
+          "bg-card text-foreground border border-border hover:bg-muted/70 data-[state=active]:bg-accent/70 data-[state=active]:text-accent-foreground",
         ghost: "text-foreground hover:bg-accent/70 hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:text-primary/80 hover:underline",
       },
