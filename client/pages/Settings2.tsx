@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Settings,
   Sliders,
@@ -64,9 +64,29 @@ export default function Settings2() {
   const handleSave = () => {
     // Save system config to localStorage
     localStorage.setItem('systemConfig', JSON.stringify(systemConfig));
+    document.documentElement.lang = systemConfig.language.toLowerCase();
+    document.documentElement.setAttribute('data-timezone', systemConfig.timezone);
     setSavedStatus('Settings saved successfully');
     setTimeout(() => setSavedStatus(null), 3000);
   };
+
+  useEffect(() => {
+    const storedConfig = localStorage.getItem('systemConfig');
+    if (!storedConfig) return;
+
+    try {
+      const parsedConfig = JSON.parse(storedConfig);
+      setSystemConfig(prev => ({ ...prev, ...parsedConfig }));
+      if (parsedConfig.language) {
+        document.documentElement.lang = String(parsedConfig.language).toLowerCase();
+      }
+      if (parsedConfig.timezone) {
+        document.documentElement.setAttribute('data-timezone', String(parsedConfig.timezone));
+      }
+    } catch (error) {
+      console.error('Failed to load saved system config:', error);
+    }
+  }, []);
 
   const handleEditNorthbound = (name: string) => {
     setEditingIntegration({ type: 'northbound', name });
@@ -174,6 +194,12 @@ export default function Settings2() {
       {/* Content Area */}
       <div className="flex-1 overflow-y-auto">
         <div className="p-2 md:p-2 max-w-full">
+          {savedStatus && (
+            <div className="mb-3 rounded-lg bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 p-3 text-green-700 dark:text-green-300 flex items-center gap-2">
+              <CheckCircle className="w-4 h-4" />
+              {savedStatus}
+            </div>
+          )}
 
           {/* 1. System Configuration */}
           {activeTab === 'system-config' && (
@@ -1006,12 +1032,6 @@ export default function Settings2() {
             </button>
           </div>
 
-          {savedStatus && (
-            <div className="mt-4 rounded-lg bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 p-4 text-green-700 dark:text-green-300 flex items-center gap-2">
-              <CheckCircle className="w-4 h-4" />
-              {savedStatus}
-            </div>
-          )}
         </div>
       </div>
     </div>
