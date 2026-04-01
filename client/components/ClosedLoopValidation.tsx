@@ -84,72 +84,72 @@ export const ClosedLoopValidation: React.FC = () => {
   };
 
   return (
-    <div className="w-full flex flex-col h-full gap-4 p-4 bg-gray-50 overflow-y-auto">
+    <div className="w-full flex flex-col h-full gap-4 p-4 bg-background overflow-y-auto">
       {/* Header */}
       <div className="flex items-center gap-2">
         <CheckCircle className="w-5 h-5 text-green-600" />
-        <h2 className="text-lg font-bold text-gray-900">Closed Loop Validation</h2>
+        <h2 className="text-lg font-bold text-foreground">Closed Loop Validation</h2>
       </div>
 
       {/* Automation Summary */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4">
+      <div className="bg-card rounded-lg border border-border p-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <p className="text-xs text-gray-600 font-semibold">Automation</p>
-            <p className="text-sm font-bold text-gray-900 mt-1">Restart DU – Cluster East</p>
+            <p className="text-xs text-muted-foreground font-semibold">Automation</p>
+            <p className="text-sm font-bold text-foreground mt-1">Restart DU – Cluster East</p>
           </div>
           <div>
-            <p className="text-xs text-gray-600 font-semibold">Execution Status</p>
-            <p className="text-sm font-bold text-green-600 mt-1">✓ Completed Successfully</p>
+            <p className="text-xs text-muted-foreground font-semibold">Execution Status</p>
+            <p className="text-sm font-bold text-[hsl(var(--success))] mt-1">✓ Completed Successfully</p>
           </div>
           <div>
-            <p className="text-xs text-gray-600 font-semibold">Duration</p>
-            <p className="text-sm font-bold text-gray-900 mt-1">45 seconds</p>
+            <p className="text-xs text-muted-foreground font-semibold">Duration</p>
+            <p className="text-sm font-bold text-foreground mt-1">45 seconds</p>
           </div>
           <div>
-            <p className="text-xs text-gray-600 font-semibold">Validation</p>
-            <p className="text-sm font-bold text-green-600 mt-1">✓ Validated</p>
+            <p className="text-xs text-muted-foreground font-semibold">Validation</p>
+            <p className="text-sm font-bold text-[hsl(var(--success))] mt-1">✓ Validated</p>
           </div>
         </div>
       </div>
 
       {/* Timeline */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4">
-        <p className="text-xs font-semibold text-gray-700 mb-4">Recovery Timeline</p>
+      <div className="bg-card rounded-lg border border-border p-4">
+        <p className="text-xs font-semibold text-muted-foreground mb-4">Recovery Timeline</p>
         <div className="flex gap-3 text-xs">
           <div className="flex flex-col items-center flex-1">
-            <div className="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center font-bold mb-2">
+            <div className="w-8 h-8 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center font-bold mb-2 shadow-sm">
               1
             </div>
-            <p className="font-semibold text-gray-900">Issue Detected</p>
-            <p className="text-gray-600 mt-1">14:32:15 UTC</p>
+            <p className="font-semibold text-foreground">Issue Detected</p>
+            <p className="text-muted-foreground mt-1">14:32:15 UTC</p>
           </div>
           <div className="flex-1 flex items-center pt-6">
-            <div className="w-full h-1 bg-green-300" />
+            <div className="w-full h-1 bg-border" />
           </div>
           <div className="flex flex-col items-center flex-1">
-            <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold mb-2">
+            <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold mb-2 shadow-sm">
               2
             </div>
-            <p className="font-semibold text-gray-900">Action Taken</p>
-            <p className="text-gray-600 mt-1">14:32:45 UTC</p>
+            <p className="font-semibold text-foreground">Action Taken</p>
+            <p className="text-muted-foreground mt-1">14:32:45 UTC</p>
           </div>
           <div className="flex-1 flex items-center pt-6">
-            <div className="w-full h-1 bg-green-300" />
+            <div className="w-full h-1 bg-border" />
           </div>
           <div className="flex flex-col items-center flex-1">
-            <div className="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center font-bold mb-2">
+            <div className="w-8 h-8 rounded-full bg-[hsl(var(--success))] text-white flex items-center justify-center font-bold mb-2 shadow-sm">
               3
             </div>
-            <p className="font-semibold text-gray-900">Normalized</p>
-            <p className="text-gray-600 mt-1">14:33:20 UTC</p>
+            <p className="font-semibold text-foreground">Normalized</p>
+            <p className="text-muted-foreground mt-1">14:33:20 UTC</p>
           </div>
         </div>
       </div>
 
       {/* Recovery Curves */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4 flex-1 flex flex-col">
-        <p className="text-xs font-semibold text-gray-700 mb-3">KPI Recovery Curves</p>
+      <div className="bg-card rounded-lg border border-border p-4 flex-1 flex flex-col">
+        <p className="text-xs font-semibold text-muted-foreground mb-3">KPI Recovery Curves</p>
 
         {/* Metric Selector */}
         <div className="flex gap-2 mb-4">
@@ -160,7 +160,7 @@ export const ClosedLoopValidation: React.FC = () => {
               className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition ${
                 selectedMetric === idx
                   ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  : 'bg-muted text-foreground hover:bg-muted/70'
               }`}
             >
               {metric.label.split(' ')[0]}

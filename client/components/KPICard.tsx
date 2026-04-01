@@ -77,6 +77,21 @@ export default function KPICard({
     }
   };
 
+  const getPriorityPillClass = (p: NonNullable<KPICardProps["priority"]>) => {
+    switch (p) {
+      case "Critical":
+        return "surface-destructive border";
+      case "High":
+        return "surface-warning border";
+      case "Medium":
+        return "surface-info border";
+      case "Low":
+        return "surface-success border";
+      default:
+        return "bg-muted text-foreground border border-border";
+    }
+  };
+
   const isPositiveChange = change && change >= 0;
 
   return (
@@ -97,13 +112,7 @@ export default function KPICard({
           <span
             className={cn(
               "text-xs font-bold px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-sm",
-              priority === "Critical"
-                ? "bg-status-critical text-white"
-                : priority === "High"
-                  ? "bg-status-degraded text-white"
-                  : priority === "Medium"
-                    ? "bg-yellow-500 text-white"
-                    : "bg-status-healthy text-white"
+              getPriorityPillClass(priority)
             )}
           >
             {priority} Priority

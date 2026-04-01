@@ -107,10 +107,10 @@ export const DiffView: React.FC<DiffViewProps> = () => {
 
   const getStatusColor = (status: string) => {
     const colors = {
-      'identical': 'bg-green-50 border-green-200',
-      'different': 'bg-red-50 border-red-200',
-      'missing_left': 'bg-yellow-50 border-yellow-200',
-      'missing_right': 'bg-yellow-50 border-yellow-200'
+      'identical': 'surface-success border',
+      'different': 'surface-destructive border',
+      'missing_left': 'surface-warning border',
+      'missing_right': 'surface-warning border'
     };
     return colors[status as keyof typeof colors] || colors.identical;
   };
@@ -239,7 +239,7 @@ export const DiffView: React.FC<DiffViewProps> = () => {
       {/* Diff List */}
       <div className="flex-1 overflow-y-auto space-y-2">
         {selectedParameters.size === 0 ? (
-          <div className="flex items-center justify-center h-full text-gray-500">
+          <div className="flex items-center justify-center h-full text-muted-foreground">
             <p>Please select at least one parameter to compare</p>
           </div>
         ) : (
@@ -249,11 +249,11 @@ export const DiffView: React.FC<DiffViewProps> = () => {
             className={`border-2 rounded-lg p-3 transition ${getStatusColor(diff.status)}`}
           >
             <div className="flex items-center justify-between mb-2">
-              <p className="font-semibold text-gray-900">{diff.parameter}</p>
+              <p className="font-semibold text-foreground">{diff.parameter}</p>
               <span className={`text-xs px-2 py-0.5 rounded font-semibold ${
-                diff.status === 'identical' ? 'bg-green-200 text-green-800' :
-                diff.status === 'different' ? 'bg-red-200 text-red-800' :
-                'bg-yellow-200 text-yellow-800'
+                diff.status === 'identical' ? 'surface-success border' :
+                diff.status === 'different' ? 'surface-destructive border' :
+                'surface-warning border'
               }`}>
                 {diff.status === 'identical' ? '✓ Same' :
                  diff.status === 'different' ? '✗ Different' :
@@ -264,19 +264,19 @@ export const DiffView: React.FC<DiffViewProps> = () => {
 
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <p className="text-xs font-semibold text-gray-700 mb-1">{diff.left.label}</p>
-                <p className="text-sm font-mono bg-white p-2 rounded border border-gray-300">
+                <p className="text-xs font-semibold text-muted-foreground mb-1">{diff.left.label}</p>
+                <p className="text-sm font-mono bg-card p-2 rounded border border-border text-foreground">
                   {diff.left.value}
                 </p>
               </div>
 
               <div className="flex items-center justify-center">
-                <ArrowRight className="w-4 h-4 text-gray-400" />
+                <ArrowRight className="w-4 h-4 text-muted-foreground" />
               </div>
 
               <div>
-                <p className="text-xs font-semibold text-gray-700 mb-1">{diff.right.label}</p>
-                <p className="text-sm font-mono bg-white p-2 rounded border border-gray-300">
+                <p className="text-xs font-semibold text-muted-foreground mb-1">{diff.right.label}</p>
+                <p className="text-sm font-mono bg-card p-2 rounded border border-border text-foreground">
                   {diff.right.value}
                 </p>
               </div>
@@ -287,7 +287,7 @@ export const DiffView: React.FC<DiffViewProps> = () => {
       </div>
 
       {/* Export */}
-      <button className="w-full px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 font-semibold flex items-center justify-center gap-2 transition">
+      <button className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 font-semibold flex items-center justify-center gap-2 transition shadow-sm">
         <Download className="w-4 h-4" />
         Export Diff Report
       </button>
