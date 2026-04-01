@@ -53,6 +53,22 @@
     --status-critical: 0 84.2% 60.2%;
     --status-pending: 270 80% 56%;
 
+    /* Semantic contrast pairs for tinted surfaces */
+    --success: 142 72% 42%;
+    --success-foreground: 142 80% 16%;
+    --success-surface: 142 76% 95%;
+    --success-border: 142 50% 78%;
+
+    --warning: 38 92% 52%;
+    --warning-foreground: 35 92% 20%;
+    --warning-surface: 45 100% 95%;
+    --warning-border: 42 88% 76%;
+
+    --info: 220 90% 56%;
+    --info-foreground: 224 76% 22%;
+    --info-surface: 214 100% 95%;
+    --info-border: 214 82% 78%;
+
     /* Sidebar */
     --sidebar-background: 270 30% 96%;
     --sidebar-foreground: 270 30% 25%;
@@ -107,6 +123,22 @@
     --status-degraded: 38 92% 55%;
     --status-critical: 0 84.2% 65%;
     --status-pending: 270 75% 65%;
+
+    /* Semantic contrast pairs for tinted dark surfaces */
+    --success: 142 70% 52%;
+    --success-foreground: 142 82% 88%;
+    --success-surface: 142 50% 18%;
+    --success-border: 142 42% 32%;
+
+    --warning: 42 95% 62%;
+    --warning-foreground: 42 92% 88%;
+    --warning-surface: 36 48% 18%;
+    --warning-border: 36 46% 34%;
+
+    --info: 215 96% 66%;
+    --info-foreground: 213 100% 90%;
+    --info-surface: 222 45% 18%;
+    --info-border: 222 35% 34%;
 
     /* Sidebar - More visible with WHITE text */
     --sidebar-background: 270 25% 12%;
@@ -286,6 +318,24 @@
 
   .card-subtle {
     @apply rounded-lg border border-border bg-card;
+  }
+
+  .surface-success {
+    background-color: hsl(var(--success-surface));
+    color: hsl(var(--success-foreground));
+    border-color: hsl(var(--success-border));
+  }
+
+  .surface-warning {
+    background-color: hsl(var(--warning-surface));
+    color: hsl(var(--warning-foreground));
+    border-color: hsl(var(--warning-border));
+  }
+
+  .surface-info {
+    background-color: hsl(var(--info-surface));
+    color: hsl(var(--info-foreground));
+    border-color: hsl(var(--info-border));
   }
 
   /* Button styles */
@@ -517,7 +567,11 @@
   .dark .app-content-theme [class~="bg-indigo-50"],
   .dark .app-content-theme [class~="bg-purple-50"],
   .dark .app-content-theme [class~="bg-emerald-50"],
-  .dark .app-content-theme [class~="bg-amber-50"] {
+  .dark .app-content-theme [class~="bg-amber-50"],
+  .dark .app-content-theme [class~="bg-yellow-50"],
+  .dark .app-content-theme [class~="bg-green-50"],
+  .dark .app-content-theme [class~="bg-red-50"],
+  .dark .app-content-theme [class~="bg-orange-50"] {
     background-color: hsl(var(--muted) / 0.25) !important;
   }
 
@@ -532,8 +586,23 @@
   .dark .app-content-theme [class~="text-gray-600"],
   .dark .app-content-theme [class~="text-gray-500"],
   .dark .app-content-theme [class~="text-slate-700"],
-  .dark .app-content-theme [class~="text-slate-600"] {
+  .dark .app-content-theme [class~="text-slate-600"],
+  .dark .app-content-theme [class~="text-blue-700"],
+  .dark .app-content-theme [class~="text-green-700"],
+  .dark .app-content-theme [class~="text-red-700"],
+  .dark .app-content-theme [class~="text-yellow-700"],
+  .dark .app-content-theme [class~="text-orange-700"],
+  .dark .app-content-theme [class~="text-purple-700"] {
     color: hsl(var(--muted-foreground)) !important;
+  }
+
+  .dark .app-content-theme [class~="text-blue-600"],
+  .dark .app-content-theme [class~="text-green-600"],
+  .dark .app-content-theme [class~="text-red-600"],
+  .dark .app-content-theme [class~="text-yellow-600"],
+  .dark .app-content-theme [class~="text-orange-600"],
+  .dark .app-content-theme [class~="text-purple-600"] {
+    color: hsl(var(--foreground)) !important;
   }
 
   .dark .app-content-theme [class~="border-gray-200"],
@@ -556,6 +625,56 @@
 
   .dark .app-content-theme [class~="after:bg-white"]::after {
     background-color: hsl(var(--foreground)) !important;
+  }
+
+  .dark .app-content-theme [class*="bg-green-500/10"],
+  .dark .app-content-theme [class*="bg-green-500/20"] {
+    background-color: hsl(var(--success-surface)) !important;
+    color: hsl(var(--success-foreground)) !important;
+    border-color: hsl(var(--success-border)) !important;
+  }
+
+  .dark .app-content-theme [class*="bg-yellow-500/10"],
+  .dark .app-content-theme [class*="bg-yellow-500/20"],
+  .dark .app-content-theme [class*="bg-orange-500/10"],
+  .dark .app-content-theme [class*="bg-orange-500/20"] {
+    background-color: hsl(var(--warning-surface)) !important;
+    color: hsl(var(--warning-foreground)) !important;
+    border-color: hsl(var(--warning-border)) !important;
+  }
+
+  .dark .app-content-theme [class*="bg-blue-500/10"],
+  .dark .app-content-theme [class*="bg-blue-500/20"],
+  .dark .app-content-theme [class*="bg-purple-500/10"],
+  .dark .app-content-theme [class*="bg-purple-500/20"] {
+    background-color: hsl(var(--info-surface)) !important;
+    color: hsl(var(--info-foreground)) !important;
+    border-color: hsl(var(--info-border)) !important;
+  }
+
+  .dark .app-content-theme [class*="bg-red-500/10"],
+  .dark .app-content-theme [class*="bg-red-500/20"] {
+    background-color: hsl(var(--destructive) / 0.18) !important;
+    color: hsl(var(--destructive-foreground)) !important;
+    border-color: hsl(var(--destructive) / 0.35) !important;
+  }
+
+  .dark .recharts-cartesian-axis-tick-value,
+  .dark .recharts-text,
+  .dark .recharts-legend-item-text {
+    fill: hsl(var(--muted-foreground)) !important;
+    color: hsl(var(--muted-foreground)) !important;
+  }
+
+  .dark .recharts-default-tooltip {
+    background-color: hsl(var(--popover)) !important;
+    border-color: hsl(var(--border)) !important;
+    color: hsl(var(--popover-foreground)) !important;
+  }
+
+  .dark .recharts-tooltip-item,
+  .dark .recharts-tooltip-label {
+    color: hsl(var(--popover-foreground)) !important;
   }
 
   /* Settings module: ensure native form controls are dark-surface aware */
