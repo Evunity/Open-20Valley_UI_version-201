@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Settings,
   Sliders,
@@ -38,9 +38,36 @@ export default function Settings() {
   const [language, setLanguage] = useState('English');
 
   const handleSave = () => {
+    localStorage.setItem('legacySystemConfig', JSON.stringify({
+      systemName,
+      timezone,
+      dateFormat,
+      language,
+      maintenanceMode
+    }));
+    document.documentElement.lang = language.toLowerCase();
+    document.documentElement.setAttribute('data-timezone', timezone);
     setSavedStatus('Settings saved successfully');
     setTimeout(() => setSavedStatus(null), 3000);
   };
+
+  useEffect(() => {
+    const storedConfig = localStorage.getItem('legacySystemConfig');
+    if (!storedConfig) return;
+
+    try {
+      const parsedConfig = JSON.parse(storedConfig);
+      if (parsedConfig.systemName) setSystemName(parsedConfig.systemName);
+      if (parsedConfig.timezone) setTimezone(parsedConfig.timezone);
+      if (parsedConfig.dateFormat) setDateFormat(parsedConfig.dateFormat);
+      if (parsedConfig.language) setLanguage(parsedConfig.language);
+      if (typeof parsedConfig.maintenanceMode === 'boolean') {
+        setMaintenanceMode(parsedConfig.maintenanceMode);
+      }
+    } catch (error) {
+      console.error('Failed to load saved legacy system config:', error);
+    }
+  }, []);
 
   const tabs = [
     { id: 'system', label: 'System Configuration', icon: Settings },
@@ -91,6 +118,11 @@ export default function Settings() {
       {/* Content Area */}
       <div className="flex-1 overflow-y-auto">
         <div className="p-8">
+          {savedStatus && (
+            <div className="mb-4 rounded-lg bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 p-4 text-green-700 dark:text-green-300">
+              ✓ {savedStatus}
+            </div>
+          )}
           {/* System Configuration */}
           {activeTab === 'system' && (
             <div className="space-y-6">
@@ -516,11 +548,6 @@ export default function Settings() {
             </button>
           </div>
 
-          {savedStatus && (
-            <div className="mt-4 rounded-lg bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 p-4 text-green-700 dark:text-green-300">
-              ✓ {savedStatus}
-            </div>
-          )}
         </div>
       </div>
     </div>

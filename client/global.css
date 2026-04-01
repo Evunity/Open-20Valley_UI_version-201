@@ -1,5 +1,5 @@
 /** @import must precede all other statements */
-@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -152,20 +152,20 @@
     --radius: 0.5rem;
 
     /* Typography tokens */
-    --font-family-sans: "Manrope", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    --font-size-page-title: 1.45rem;
-    --font-size-section-title: 1.0625rem;
-    --font-size-subsection-title: 0.925rem;
-    --font-size-card-title: 0.835rem;
-    --font-size-body: 0.835rem;
-    --font-size-label: 0.67rem;
-    --font-size-meta: 0.72rem;
-    --font-size-button: 0.82rem;
-    --font-size-input: 0.82rem;
-    --font-size-badge: 0.68rem;
-    --tracking-default: 0.006em;
-    --tracking-heading: 0.008em;
-    --tracking-label: 0.05em;
+    --font-family-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-size-page-title: 1.56rem;
+    --font-size-section-title: 1.14rem;
+    --font-size-subsection-title: 0.99rem;
+    --font-size-card-title: 0.9rem;
+    --font-size-body: 0.9rem;
+    --font-size-label: 0.73rem;
+    --font-size-meta: 0.78rem;
+    --font-size-button: 0.88rem;
+    --font-size-input: 0.88rem;
+    --font-size-badge: 0.74rem;
+    --tracking-default: 0.012em;
+    --tracking-heading: 0.016em;
+    --tracking-label: 0.06em;
   }
 
   .dark {
@@ -314,15 +314,15 @@
   }
 
   html {
-    font-size: 15.5px;
+    font-size: 16px;
   }
 
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-family-sans);
-    font-size: 0.9rem;
-    font-weight: 450;
-    line-height: 1.42;
+    font-size: 0.96rem;
+    font-weight: 500;
+    line-height: 1.48;
     letter-spacing: var(--tracking-default);
     background-image: radial-gradient(circle at 12% 0%, hsl(var(--primary) / 0.08), transparent 38%);
   }
@@ -344,31 +344,31 @@
 
   h1 {
     @apply font-semibold leading-tight;
-    font-size: 1.65rem;
+    font-size: 1.78rem;
     letter-spacing: var(--tracking-heading);
   }
 
   h2 {
     @apply font-semibold leading-snug;
-    font-size: 1.2rem;
+    font-size: 1.28rem;
     letter-spacing: var(--tracking-heading);
   }
 
   h3 {
     @apply font-semibold leading-snug;
-    font-size: 0.98rem;
+    font-size: 1.04rem;
     letter-spacing: var(--tracking-heading);
   }
 
   h4 {
     @apply font-semibold;
-    font-size: 0.9rem;
+    font-size: 0.96rem;
     letter-spacing: var(--tracking-heading);
   }
 
   h5 {
     @apply font-semibold;
-    font-size: 0.88rem;
+    font-size: 0.94rem;
     letter-spacing: var(--tracking-heading);
   }
 
@@ -568,20 +568,20 @@
   /* Global table alignment system */
   .app-content-theme table {
     @apply w-full border-collapse;
-    font-size: 0.82rem;
+    font-size: 0.88rem;
     letter-spacing: var(--tracking-default);
     table-layout: fixed;
   }
 
   .app-content-theme table thead th {
     @apply px-3 py-2 text-left align-middle font-semibold text-muted-foreground;
-    line-height: 1.25rem;
+    line-height: 1.35rem;
     letter-spacing: calc(var(--tracking-default) + 0.006em);
   }
 
   .app-content-theme table tbody td {
     @apply px-3 py-2 align-middle text-foreground;
-    line-height: 1.25rem;
+    line-height: 1.35rem;
   }
 
   .app-content-theme table tbody tr {
