@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Zap, CheckCircle, AlertCircle, Clock, Pause, Play, X, RotateCcw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface ExecutionMonitorProps {
   selectedTarget: any;
@@ -133,10 +135,11 @@ export const ExecutionMonitor: React.FC<ExecutionMonitorProps> = () => {
               <div className="p-4 bg-gray-50 border-t border-gray-200 space-y-3">
                 {/* Error Message */}
                 {exec.errorMessage && (
-                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                    <p className="text-xs font-semibold text-red-900 mb-1">Error</p>
-                    <p className="text-sm text-red-800">{exec.errorMessage}</p>
-                  </div>
+                  <Alert variant="destructive" className="p-3">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle className="text-xs font-semibold">Error</AlertTitle>
+                    <AlertDescription className="text-sm">{exec.errorMessage}</AlertDescription>
+                  </Alert>
                 )}
 
                 {/* Stats */}
@@ -159,41 +162,45 @@ export const ExecutionMonitor: React.FC<ExecutionMonitorProps> = () => {
                 <div className="flex gap-2">
                   {exec.status === 'running' && (
                     <>
-                      <button
+                      <Button
                         onClick={() => pauseExecution(exec.id)}
-                        className="flex-1 px-3 py-2 bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 font-semibold text-sm flex items-center justify-center gap-2 transition"
+                        variant="warning"
+                        className="flex-1 text-sm"
                       >
                         <Pause className="w-4 h-4" />
                         Pause
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         onClick={() => cancelExecution(exec.id)}
-                        className="flex-1 px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 font-semibold text-sm flex items-center justify-center gap-2 transition"
+                        variant="destructive-soft"
+                        className="flex-1 text-sm"
                       >
                         <X className="w-4 h-4" />
                         Cancel
-                      </button>
+                      </Button>
                     </>
                   )}
 
                   {exec.status === 'paused' && (
-                    <button
+                    <Button
                       onClick={() => resumeExecution(exec.id)}
-                      className="flex-1 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 font-semibold text-sm flex items-center justify-center gap-2 transition"
+                      variant="utility"
+                      className="flex-1 text-sm"
                     >
                       <Play className="w-4 h-4" />
                       Resume
-                    </button>
+                    </Button>
                   )}
 
                   {exec.status === 'error' && (
-                    <button
+                    <Button
                       onClick={() => retryExecution(exec.id)}
-                      className="flex-1 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 font-semibold text-sm flex items-center justify-center gap-2 transition"
+                      variant="utility"
+                      className="flex-1 text-sm"
                     >
                       <RotateCcw className="w-4 h-4" />
                       Retry Failed
-                    </button>
+                    </Button>
                   )}
                 </div>
               </div>
