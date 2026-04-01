@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ChevronUp, ChevronDown } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { SeverityBadge } from "@/components/ui/severity-badge";
+import { PriorityChip } from "@/components/ui/priority-chip";
+import { StatusPill } from "@/components/ui/status-pill";
 
 interface PerformanceData {
   name: string;
@@ -59,20 +59,10 @@ export default function VoicePerformanceTable({
     });
   };
 
-  const getStatusColor = (status: string) => {
-    if (status.includes("High quality") || status.includes("High performance"))
-      return "text-status-healthy";
-    if (status.includes("Degraded") || status.includes("Congested"))
-      return "text-status-critical";
-    return "text-status-degraded";
-  };
-
-  const getStatusBgColor = (status: string) => {
-    if (status.includes("High quality") || status.includes("High performance"))
-      return "bg-status-healthy/10";
-    if (status.includes("Degraded") || status.includes("Congested"))
-      return "bg-status-critical/10";
-    return "bg-status-degraded/10";
+  const getStatusTone = (status: string): "success" | "danger" | "neutral" => {
+    if (status.includes("High quality") || status.includes("High performance")) return "success";
+    if (status.includes("Degraded") || status.includes("Congested")) return "danger";
+    return "neutral";
   };
 
   const sortedData = getSortedData();
@@ -203,20 +193,14 @@ export default function VoicePerformanceTable({
                   </td>
                 )}
                 <td className="px-2 md:px-4 py-3 text-center">
-                  <span
-                    className={cn(
-                      "inline-block px-2 py-1 rounded text-xs font-semibold",
-                      getStatusBgColor(row.status),
-                      getStatusColor(row.status)
-                    )}
-                  >
+                  <StatusPill tone={getStatusTone(row.status)} className="px-2 py-1">
                     {row.status}
-                  </span>
+                  </StatusPill>
                 </td>
                 {data.some((d) => d.priority) && (
                   <td className="px-2 md:px-4 py-3 text-center">
                     {row.priority && (
-                      <SeverityBadge severity={row.priority}>{row.priority}</SeverityBadge>
+                      <PriorityChip priority={row.priority} />
                     )}
                   </td>
                 )}

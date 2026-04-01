@@ -24,6 +24,14 @@
     --text-muted: 252 12% 44%;
     --text-disabled: 252 8% 60%;
 
+    /* Canonical semantic aliases */
+    --surface: var(--bg-surface-1);
+    --surface-elevated: var(--bg-elevated);
+    --surface-muted: var(--bg-surface-3);
+    --fg-primary: var(--text-primary);
+    --fg-secondary: var(--text-secondary);
+    --fg-muted: var(--text-muted);
+
     --border-subtle: 252 20% 86%;
     --border-strong: 252 18% 72%;
     --chip-bg: 252 40% 94%;
@@ -84,11 +92,15 @@
     --success-foreground: 142 80% 16%;
     --success-surface: 142 76% 95%;
     --success-border: 142 50% 78%;
+    --surface-tinted-success: var(--success-surface);
+    --fg-on-success: var(--success-foreground);
 
     --warning: 38 92% 52%;
     --warning-foreground: 35 92% 20%;
     --warning-surface: 45 100% 95%;
     --warning-border: 42 88% 76%;
+    --surface-tinted-warning: var(--warning-surface);
+    --fg-on-warning: var(--warning-foreground);
 
     --info: 258 72% 54%;
     --info-foreground: 258 36% 24%;
@@ -98,6 +110,13 @@
     --destructive-surface: 352 72% 94%;
     --destructive-surface-foreground: 350 58% 26%;
     --destructive-surface-border: 352 54% 78%;
+    --surface-tinted-danger: var(--destructive-surface);
+    --fg-on-danger: var(--destructive-surface-foreground);
+
+    --status-success-bg: 142 54% 88%;
+    --status-success-fg: 145 64% 24%;
+    --status-danger-bg: 352 56% 89%;
+    --status-danger-fg: 350 64% 28%;
 
     /* Severity system (light) */
     --severity-low-bg: 142 46% 93%;
@@ -145,6 +164,14 @@
     --text-secondary: 248 20% 86%;
     --text-muted: 248 14% 74%;
     --text-disabled: 248 10% 56%;
+
+    /* Canonical semantic aliases */
+    --surface: var(--bg-surface-1);
+    --surface-elevated: var(--bg-elevated);
+    --surface-muted: var(--bg-surface-3);
+    --fg-primary: var(--text-primary);
+    --fg-secondary: var(--text-secondary);
+    --fg-muted: var(--text-muted);
 
     --border-subtle: 258 19% 28%;
     --border-strong: 258 20% 40%;
@@ -206,11 +233,15 @@
     --success-foreground: 142 82% 88%;
     --success-surface: 142 50% 18%;
     --success-border: 142 42% 32%;
+    --surface-tinted-success: var(--success-surface);
+    --fg-on-success: var(--success-foreground);
 
     --warning: 42 95% 62%;
     --warning-foreground: 42 92% 88%;
     --warning-surface: 36 48% 18%;
     --warning-border: 36 46% 34%;
+    --surface-tinted-warning: var(--warning-surface);
+    --fg-on-warning: var(--warning-foreground);
 
     --info: 262 88% 70%;
     --info-foreground: 258 36% 90%;
@@ -220,6 +251,13 @@
     --destructive-surface: 352 42% 20%;
     --destructive-surface-foreground: 350 96% 92%;
     --destructive-surface-border: 352 40% 36%;
+    --surface-tinted-danger: var(--destructive-surface);
+    --fg-on-danger: var(--destructive-surface-foreground);
+
+    --status-success-bg: 142 38% 24%;
+    --status-success-fg: 142 78% 90%;
+    --status-danger-bg: 352 36% 25%;
+    --status-danger-fg: 352 92% 92%;
 
     /* Severity system (dark) */
     --severity-low-bg: 146 42% 24%;

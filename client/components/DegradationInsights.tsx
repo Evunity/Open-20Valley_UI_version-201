@@ -1,7 +1,7 @@
 import { AlertCircle, AlertTriangle, TrendingDown, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { DetectionInsight } from "@/utils/analyticsData";
-import { SeverityBadge } from "@/components/ui/severity-badge";
+import { PriorityChip } from "@/components/ui/priority-chip";
 
 interface DegradationInsightsProps {
   insights: DetectionInsight[];
@@ -15,26 +15,39 @@ export default function DegradationInsights({ insights }: DegradationInsightsPro
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case "Critical":
-        return "border-status-critical/30 bg-status-critical/5";
+        return "border-[hsl(var(--severity-critical-border))] bg-[hsl(var(--severity-critical-surface))] text-[hsl(var(--severity-critical-fg))]";
       case "High":
-        return "border-status-degraded/30 bg-status-degraded/5";
+        return "border-[hsl(var(--severity-high-border))] bg-[hsl(var(--severity-high-surface))] text-[hsl(var(--severity-high-fg))]";
       case "Medium":
-        return "border-[hsl(42_58%_48%/0.45)] bg-[hsl(42_54%_24%)]";
+        return "border-[hsl(var(--severity-medium-border))] bg-[hsl(var(--severity-medium-surface))] text-[hsl(var(--severity-medium-fg))]";
       default:
-        return "border-border/30 bg-card";
+        return "border-border/30 bg-[hsl(var(--surface))] text-[hsl(var(--fg-primary))]";
     }
   };
 
   const getSeverityTextColor = (severity: string) => {
     switch (severity) {
       case "Critical":
-        return "text-status-critical";
+        return "text-[hsl(var(--severity-critical-fg))]";
       case "High":
-        return "text-status-degraded";
+        return "text-[hsl(var(--severity-high-fg))]";
       case "Medium":
-        return "text-[hsl(48_100%_92%)]";
+        return "text-[hsl(var(--severity-medium-fg))]";
       default:
-        return "text-foreground";
+        return "text-[hsl(var(--fg-primary))]";
+    }
+  };
+
+  const getIconSurface = (severity: string) => {
+    switch (severity) {
+      case "Critical":
+        return "bg-[hsl(var(--severity-critical-bg))]";
+      case "High":
+        return "bg-[hsl(var(--severity-high-bg))]";
+      case "Medium":
+        return "bg-[hsl(var(--severity-medium-bg))]";
+      default:
+        return "bg-[hsl(var(--surface-muted))]";
     }
   };
 
@@ -97,7 +110,7 @@ export default function DegradationInsights({ insights }: DegradationInsightsPro
             <div
               className={cn(
                 "flex-shrink-0 p-2 rounded-lg",
-                `bg-${insight.severity === "Critical" ? "status-critical" : insight.severity === "High" ? "status-degraded" : "yellow"}/10`
+                getIconSurface(insight.severity)
               )}
             >
               <div className={getSeverityTextColor(insight.severity)}>
@@ -122,25 +135,20 @@ export default function DegradationInsights({ insights }: DegradationInsightsPro
                       {getTypeLabel(insight.type)}
                     </span>
                   </div>
-                  <p className="text-sm text-muted-foreground mt-2">{insight.description}</p>
+                  <p className="text-sm text-current/80 mt-2">{insight.description}</p>
                 </div>
-                    <SeverityBadge
-                      severity={insight.severity}
-                      className="whitespace-nowrap flex-shrink-0"
-                    >
-                      {insight.severity}
-                    </SeverityBadge>
+                    <PriorityChip priority={insight.severity} className="flex-shrink-0" />
                   </div>
 
               {/* Metadata */}
-              <div className="flex items-center gap-4 text-xs text-muted-foreground mt-3 pt-3 border-t border-current/10">
+              <div className="flex items-center gap-4 text-xs text-current/75 mt-3 pt-3 border-t border-current/15">
                 <span>{formatTimestamp(insight.timestamp)}</span>
                 {insight.affectedFilters.length > 0 && (
                   <>
-                    <span className="text-muted-foreground/50">•</span>
+                    <span className="text-current/40">•</span>
                     <span className="flex items-center gap-1">
                       Affected:{" "}
-                      <span className="font-medium text-foreground">
+                      <span className="font-medium text-current">
                         {insight.affectedFilters.join(", ")}
                       </span>
                     </span>

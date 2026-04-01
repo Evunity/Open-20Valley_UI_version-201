@@ -1,7 +1,8 @@
 import { cn } from "@/lib/utils";
 import { TrendingUp, TrendingDown } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { SeverityBadge } from "@/components/ui/severity-badge";
+import { PriorityChip } from "@/components/ui/priority-chip";
+import { StatusPill } from "@/components/ui/status-pill";
 
 export interface KPICardProps {
   label: string;
@@ -27,13 +28,13 @@ export default function KPICard({
   const getStatusColor = (s: string) => {
     switch (s) {
       case "healthy":
-        return "border-status-healthy/20 bg-status-healthy/5";
+        return "border-[hsl(var(--success-border))] bg-[hsl(var(--surface-tinted-success))]";
       case "degraded":
-        return "border-status-degraded/20 bg-status-degraded/5";
+        return "border-[hsl(var(--warning-border))] bg-[hsl(var(--surface-tinted-warning))]";
       case "critical":
-        return "border-status-critical/20 bg-status-critical/5";
+        return "border-[hsl(var(--destructive-surface-border))] bg-[hsl(var(--surface-tinted-danger))]";
       default:
-        return "border-border bg-card";
+        return "border-border bg-[hsl(var(--surface))]";
     }
   };
 
@@ -66,13 +67,13 @@ export default function KPICard({
   const getPriorityBorderColor = (p?: string) => {
     switch (p) {
       case "Critical":
-        return "border-l-4 border-l-status-critical";
+        return "border-l-4 border-l-[hsl(var(--severity-critical-border))]";
       case "High":
-        return "border-l-4 border-l-status-degraded";
+        return "border-l-4 border-l-[hsl(var(--severity-high-border))]";
       case "Medium":
-        return "border-l-4 border-l-yellow-500";
+        return "border-l-4 border-l-[hsl(var(--severity-medium-border))]";
       case "Low":
-        return "border-l-4 border-l-status-healthy";
+        return "border-l-4 border-l-[hsl(var(--severity-low-border))]";
       default:
         return "";
     }
@@ -95,9 +96,7 @@ export default function KPICard({
         </div>
 
         {priority && (
-          <SeverityBadge severity={priority} className="whitespace-nowrap shadow-sm">
-            {priority} Priority
-          </SeverityBadge>
+          <PriorityChip priority={priority} showSuffix />
         )}
       </div>
 
@@ -117,14 +116,7 @@ export default function KPICard({
       {/* Change vs Period */}
       {change !== undefined && (
         <div className="flex items-center gap-2">
-          <div
-            className={cn(
-              "flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold",
-              isPositiveChange
-                ? "bg-status-healthy/20 text-status-healthy"
-                : "bg-status-critical/20 text-status-critical"
-            )}
-          >
+          <StatusPill tone={isPositiveChange ? "success" : "danger"} className="px-2 py-1">
             {isPositiveChange ? (
               <TrendingUp className="w-3 h-3" />
             ) : (
@@ -132,7 +124,7 @@ export default function KPICard({
             )}
             {isPositiveChange ? "+" : ""}
             {change.toFixed(2)}%
-          </div>
+          </StatusPill>
           {comparison && <span className="text-xs text-muted-foreground">{comparison}</span>}
         </div>
       )}
