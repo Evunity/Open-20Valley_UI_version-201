@@ -37,6 +37,8 @@ import { getDaysDifference } from "@/utils/dashboardData";
 import { Zap, TrendingUp, Activity, Gauge, Wifi, Clock, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SeverityBadge } from "@/components/ui/severity-badge";
+import { PriorityChip } from "@/components/ui/priority-chip";
+import { StatusPill } from "@/components/ui/status-pill";
 
 export default function DataAnalytics() {
   const { toast } = useToast();
@@ -171,6 +173,12 @@ export default function DataAnalytics() {
       ],
     };
   }, [trendData]);
+
+  const getSuccessRateTone = (successRate: number): "success" | "danger" | "neutral" => {
+    if (successRate > 98) return "success";
+    if (successRate > 96) return "neutral";
+    return "danger";
+  };
 
   const handleExport = () => {
     const wb = XLSX.utils.book_new();
@@ -516,18 +524,9 @@ export default function DataAnalytics() {
               <div key={item.area} className="p-4 rounded-lg border border-border/50 hover:bg-muted/50">
                 <div className="flex items-center justify-between mb-2">
                   <p className="font-semibold text-foreground">{item.area}</p>
-                  <span
-                    className={cn(
-                      "px-2 py-1 rounded text-xs font-semibold",
-                      item.status === "critical"
-                        ? "bg-red-100 text-red-700"
-                        : item.status === "high"
-                          ? "bg-orange-100 text-orange-700"
-                          : "bg-yellow-100 text-yellow-700"
-                    )}
-                  >
-                    {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
-                  </span>
+                  <PriorityChip
+                    priority={item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+                  />
                 </div>
                 <div className="grid grid-cols-3 gap-4 text-sm">
                   <div>
@@ -1132,12 +1131,6 @@ export default function DataAnalytics() {
                     .filter((v) => filters.vendors.includes(v.name))
                     .sort((a, b) => b.call_success_rate - a.call_success_rate)
                     .map((vendor, idx) => {
-                      const statusColor =
-                        vendor.call_success_rate > 98
-                          ? "bg-green-100"
-                          : vendor.call_success_rate > 96
-                            ? "bg-yellow-100"
-                            : "bg-red-100";
                       const performanceRank = idx + 1;
                       return (
                         <tr key={vendor.name} className="border-b border-border/50 hover:bg-muted/50">
@@ -1157,11 +1150,9 @@ export default function DataAnalytics() {
                           </td>
                           <td className="py-2 px-4 text-right">{vendor.count.toLocaleString()}</td>
                           <td className="py-2 px-4 text-center">
-                            <span
-                              className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor}`}
-                            >
+                            <StatusPill tone={getSuccessRateTone(vendor.call_success_rate)}>
                               {vendor.call_success_rate.toFixed(1)}%
-                            </span>
+                            </StatusPill>
                           </td>
                         </tr>
                       );
@@ -1628,12 +1619,6 @@ export default function DataAnalytics() {
               <tbody>
                 {vendorBreakdown.map((vendor, idx) => {
                   const failureCount = Math.round((vendor.count * vendor.drop_rate) / 100);
-                  const statusColor =
-                    vendor.call_success_rate > 98
-                      ? "bg-green-100"
-                      : vendor.call_success_rate > 96
-                        ? "bg-yellow-100"
-                        : "bg-red-100";
                   return (
                     <tr key={vendor.name} className="border-b border-border/50 hover:bg-muted/50">
                       <td className="py-3 px-2 md:px-4 font-medium text-foreground text-left">{vendor.name}</td>
@@ -1642,11 +1627,9 @@ export default function DataAnalytics() {
                       <td className="py-3 px-2 md:px-4 text-right text-foreground font-medium tabular-nums">{avgSpeed.toFixed(2)} Mbps</td>
                       <td className="py-3 px-2 md:px-4 text-right text-foreground font-medium tabular-nums">{avgLatency.toFixed(2)} ms</td>
                       <td className="py-3 px-2 md:px-4 text-center">
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor}`}
-                        >
+                        <StatusPill tone={getSuccessRateTone(vendor.call_success_rate)}>
                           {vendor.call_success_rate.toFixed(2)}%
-                        </span>
+                        </StatusPill>
                       </td>
                     </tr>
                   );
@@ -1680,12 +1663,6 @@ export default function DataAnalytics() {
               <tbody>
                 {techBreakdown.map((tech, idx) => {
                   const failureCount = Math.round((tech.count * tech.drop_rate) / 100);
-                  const statusColor =
-                    tech.call_success_rate > 98
-                      ? "bg-green-100"
-                      : tech.call_success_rate > 96
-                        ? "bg-yellow-100"
-                        : "bg-red-100";
                   return (
                     <tr key={tech.name} className="border-b border-border/50 hover:bg-muted/50">
                       <td className="py-3 px-2 md:px-4 font-medium text-foreground text-left">{tech.name}</td>
@@ -1694,11 +1671,9 @@ export default function DataAnalytics() {
                       <td className="py-3 px-2 md:px-4 text-right text-foreground font-medium tabular-nums">{avgSpeed.toFixed(2)} Mbps</td>
                       <td className="py-3 px-2 md:px-4 text-right text-foreground font-medium tabular-nums">{avgLatency.toFixed(2)} ms</td>
                       <td className="py-3 px-2 md:px-4 text-center">
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor}`}
-                        >
+                        <StatusPill tone={getSuccessRateTone(tech.call_success_rate)}>
                           {tech.call_success_rate.toFixed(2)}%
-                        </span>
+                        </StatusPill>
                       </td>
                     </tr>
                   );
@@ -1727,12 +1702,6 @@ export default function DataAnalytics() {
               <tbody>
                 {regionBreakdown.map((region, idx) => {
                   const failureCount = Math.round((region.count * region.drop_rate) / 100);
-                  const statusColor =
-                    region.call_success_rate > 98
-                      ? "bg-green-100"
-                      : region.call_success_rate > 96
-                        ? "bg-yellow-100"
-                        : "bg-red-100";
                   return (
                     <tr key={region.name} className="border-b border-border/50 hover:bg-muted/50">
                       <td className="py-3 px-2 md:px-4 font-medium text-foreground text-left">{region.name}</td>
@@ -1741,11 +1710,9 @@ export default function DataAnalytics() {
                       <td className="py-3 px-2 md:px-4 text-right text-foreground font-medium tabular-nums">{avgSpeed.toFixed(2)} Mbps</td>
                       <td className="py-3 px-2 md:px-4 text-right text-foreground font-medium tabular-nums">{avgLatency.toFixed(2)} ms</td>
                       <td className="py-3 px-2 md:px-4 text-center">
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor}`}
-                        >
+                        <StatusPill tone={getSuccessRateTone(region.call_success_rate)}>
                           {region.call_success_rate.toFixed(2)}%
-                        </span>
+                        </StatusPill>
                       </td>
                     </tr>
                   );
@@ -1771,12 +1738,6 @@ export default function DataAnalytics() {
               <tbody>
                 {clusterBreakdown.map((cluster, idx) => {
                   const failureCount = Math.round((cluster.count * cluster.drop_rate) / 100);
-                  const statusColor =
-                    cluster.call_success_rate > 98
-                      ? "bg-green-100"
-                      : cluster.call_success_rate > 96
-                        ? "bg-yellow-100"
-                        : "bg-red-100";
                   return (
                     <tr key={cluster.name} className="border-b border-border/50 hover:bg-muted/50">
                       <td className="py-3 px-2 md:px-4 font-medium text-foreground text-left">{cluster.name}</td>
@@ -1785,11 +1746,9 @@ export default function DataAnalytics() {
                       <td className="py-3 px-2 md:px-4 text-right text-foreground font-medium tabular-nums">{avgSpeed.toFixed(2)} Mbps</td>
                       <td className="py-3 px-2 md:px-4 text-right text-foreground font-medium tabular-nums">{avgLatency.toFixed(2)} ms</td>
                       <td className="py-3 px-2 md:px-4 text-center">
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor}`}
-                        >
+                        <StatusPill tone={getSuccessRateTone(cluster.call_success_rate)}>
                           {cluster.call_success_rate.toFixed(2)}%
-                        </span>
+                        </StatusPill>
                       </td>
                     </tr>
                   );

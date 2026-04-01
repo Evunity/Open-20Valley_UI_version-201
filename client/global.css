@@ -265,20 +265,20 @@
     --severity-low-border: 146 40% 42%;
     --severity-low-surface: 146 34% 18%;
 
-    --severity-medium-bg: 42 54% 27%;
-    --severity-medium-fg: 48 100% 92%;
-    --severity-medium-border: 42 52% 44%;
-    --severity-medium-surface: 42 42% 19%;
+    --severity-medium-bg: 45 64% 32%;
+    --severity-medium-fg: 52 100% 95%;
+    --severity-medium-border: 46 62% 52%;
+    --severity-medium-surface: 46 48% 22%;
 
-    --severity-high-bg: 24 60% 30%;
-    --severity-high-fg: 35 100% 93%;
-    --severity-high-border: 24 58% 48%;
-    --severity-high-surface: 24 45% 20%;
+    --severity-high-bg: 22 72% 36%;
+    --severity-high-fg: 38 100% 96%;
+    --severity-high-border: 24 74% 56%;
+    --severity-high-surface: 24 54% 24%;
 
-    --severity-critical-bg: 352 56% 31%;
-    --severity-critical-fg: 345 100% 95%;
-    --severity-critical-border: 352 52% 48%;
-    --severity-critical-surface: 352 45% 21%;
+    --severity-critical-bg: 352 68% 42%;
+    --severity-critical-fg: 0 0% 100%;
+    --severity-critical-border: 352 72% 60%;
+    --severity-critical-surface: 352 56% 26%;
 
     /* Sidebar - More visible with WHITE text */
     --sidebar-background: 270 25% 12%;
