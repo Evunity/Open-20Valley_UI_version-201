@@ -87,35 +87,24 @@ const MapController: React.FC<{ onZoom?: (level: number) => void }> = ({ onZoom 
 
   return (
     <div
-      style={{
-        position: 'absolute',
-        top: '20px',
-        right: '20px',
-        zIndex: 1000,
-        display: 'flex',
-        gap: '8px',
-        backgroundColor: 'white',
-        padding: '8px',
-        borderRadius: '8px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-      }}
+      className="absolute top-5 right-5 z-[1000] flex gap-2 rounded-lg border border-border bg-card/95 p-2 shadow-lg backdrop-blur-sm"
     >
       <button
         onClick={handleZoomIn}
-        className="p-2 hover:bg-gray-100 rounded transition"
+        className="p-2 hover:bg-muted rounded transition-colors"
         title="Zoom in"
       >
-        <ZoomIn className="w-4 h-4 text-gray-700" />
+        <ZoomIn className="w-4 h-4 text-foreground" />
       </button>
       <button
         onClick={handleZoomOut}
-        className="p-2 hover:bg-gray-100 rounded transition"
+        className="p-2 hover:bg-muted rounded transition-colors"
         title="Zoom out"
       >
-        <ZoomOut className="w-4 h-4 text-gray-700" />
+        <ZoomOut className="w-4 h-4 text-foreground" />
       </button>
-      <div className="w-px bg-gray-300" />
-      <span className="text-xs font-semibold text-gray-700 flex items-center px-2">
+      <div className="w-px bg-border" />
+      <span className="text-xs font-semibold text-foreground flex items-center px-2">
         Zoom: {zoomLevel}
       </span>
     </div>
@@ -195,7 +184,7 @@ export const GeospatialNetworkMap: React.FC<GeospatialNetworkMapProps> = ({
                 }}
               >
                 <Popup>
-                  <div className="min-w-[280px]">
+                  <div className="min-w-[280px] text-foreground">
                     <h4 className="font-bold text-sm mb-2">{obj.name}</h4>
                     <div className="space-y-1 text-xs">
                       <p><span className="font-semibold">Type:</span> {obj.type}</p>
@@ -206,10 +195,10 @@ export const GeospatialNetworkMap: React.FC<GeospatialNetworkMapProps> = ({
                         <span className="font-semibold">Status:</span>{' '}
                         <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
                           obj.healthState === 'healthy'
-                            ? 'bg-green-100 text-green-800'
+                            ? 'surface-success border'
                             : obj.healthState === 'degraded'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-red-100 text-red-800'
+                            ? 'surface-warning border'
+                            : 'bg-destructive/20 text-destructive-foreground border border-destructive/35'
                         }`}>
                           {obj.healthState.toUpperCase()}
                         </span>
@@ -297,10 +286,10 @@ export const GeospatialNetworkMap: React.FC<GeospatialNetworkMapProps> = ({
             <div className="text-right">
               <span className={`inline-block text-sm font-bold px-4 py-2 rounded-lg mb-2 ${
                 selectedObject.healthState === 'healthy'
-                  ? 'bg-green-100 dark:bg-green-950/50 text-green-800 dark:text-green-200'
+                  ? 'surface-success border'
                   : selectedObject.healthState === 'degraded'
-                  ? 'bg-yellow-100 dark:bg-yellow-950/50 text-yellow-800 dark:text-yellow-200'
-                  : 'bg-red-100 dark:bg-red-950/50 text-red-800 dark:text-red-200'
+                  ? 'surface-warning border'
+                  : 'bg-destructive/20 text-destructive-foreground border border-destructive/35'
               }`}>
                 {selectedObject.healthState.toUpperCase()}
               </span>
