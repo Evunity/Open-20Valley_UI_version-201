@@ -12,15 +12,41 @@
    * Colors expressed as HSL for Tailwind integration
    */
   :root {
+    /* Design-system semantic base */
+    --bg-app: 260 22% 99%;
+    --bg-surface-1: 0 0% 100%;
+    --bg-surface-2: 255 35% 97%;
+    --bg-surface-3: 255 30% 94%;
+    --bg-elevated: 0 0% 100%;
+
+    --text-primary: 252 24% 13%;
+    --text-secondary: 252 14% 31%;
+    --text-muted: 252 12% 44%;
+    --text-disabled: 252 8% 60%;
+
+    --border-subtle: 252 20% 86%;
+    --border-strong: 252 18% 72%;
+    --chip-bg: 252 40% 94%;
+    --chip-fg: 252 26% 24%;
+
+    --input-bg: 0 0% 100%;
+    --input-fg: 252 24% 13%;
+    --input-border: 252 22% 82%;
+
+    --tooltip-bg: 0 0% 100%;
+    --tooltip-fg: 252 24% 13%;
+    --card-bg: 0 0% 100%;
+    --card-fg: 252 24% 13%;
+
     /* Neutrals */
-    --background: 0 0% 100%;
-    --foreground: 210 15% 8%;
+    --background: var(--bg-app);
+    --foreground: var(--text-primary);
 
-    --card: 0 0% 100%;
-    --card-foreground: 210 15% 8%;
+    --card: var(--card-bg);
+    --card-foreground: var(--card-fg);
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 210 15% 8%;
+    --popover: var(--tooltip-bg);
+    --popover-foreground: var(--tooltip-fg);
 
     /* Primary - Open Valley Deep Purple (Modern, Premium) */
     --primary: 270 100% 42%;
@@ -39,12 +65,12 @@
     --destructive-foreground: 0 0% 100%;
 
     /* Muted - Light Gray */
-    --muted: 210 10% 92%;
-    --muted-foreground: 210 10% 40%;
+    --muted: var(--bg-surface-3);
+    --muted-foreground: var(--text-muted);
 
     /* Border & Input */
-    --border: 210 10% 88%;
-    --input: 210 10% 95%;
+    --border: var(--border-subtle);
+    --input: var(--input-border);
     --ring: 270 100% 42%;
 
     /* Status Colors - Aligned with Purple Theme */
@@ -83,15 +109,41 @@
   }
 
   .dark {
+    /* Premium dark system */
+    --bg-app: 262 28% 9%;
+    --bg-surface-1: 262 24% 12%;
+    --bg-surface-2: 261 22% 15%;
+    --bg-surface-3: 261 20% 19%;
+    --bg-elevated: 262 22% 18%;
+
+    --text-primary: 248 35% 96%;
+    --text-secondary: 248 20% 86%;
+    --text-muted: 248 14% 74%;
+    --text-disabled: 248 10% 56%;
+
+    --border-subtle: 258 19% 28%;
+    --border-strong: 258 20% 40%;
+    --chip-bg: 258 20% 23%;
+    --chip-fg: 248 32% 92%;
+
+    --input-bg: 261 22% 16%;
+    --input-fg: 248 35% 96%;
+    --input-border: 258 18% 34%;
+
+    --tooltip-bg: 261 22% 14%;
+    --tooltip-fg: 248 35% 96%;
+    --card-bg: 262 24% 14%;
+    --card-fg: 248 35% 96%;
+
     /* Neutrals - Better contrast for dark mode */
-    --background: 270 20% 10%;
-    --foreground: 210 10% 98%;
+    --background: var(--bg-app);
+    --foreground: var(--text-primary);
 
-    --card: 270 20% 16%;
-    --card-foreground: 210 10% 98%;
+    --card: var(--card-bg);
+    --card-foreground: var(--card-fg);
 
-    --popover: 270 20% 16%;
-    --popover-foreground: 210 10% 98%;
+    --popover: var(--tooltip-bg);
+    --popover-foreground: var(--tooltip-fg);
 
     /* Primary - Purple - Brighter for visibility with WHITE foreground text */
     --primary: 270 80% 60%;
@@ -110,12 +162,12 @@
     --destructive-foreground: 0 0% 100%;
 
     /* Muted - Better contrast */
-    --muted: 270 15% 45%;
-    --muted-foreground: 210 10% 75%;
+    --muted: var(--bg-surface-3);
+    --muted-foreground: var(--text-muted);
 
     /* Border & Input - More visible */
-    --border: 270 20% 35%;
-    --input: 270 20% 22%;
+    --border: var(--border-subtle);
+    --input: var(--input-border);
     --ring: 270 80% 60%;
 
     /* Status Colors */
@@ -166,6 +218,17 @@
     font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     font-size: 0.9375rem;
     line-height: 1.45;
+    background-image: radial-gradient(circle at 12% 0%, hsl(var(--primary) / 0.08), transparent 38%);
+  }
+
+  :where(input, textarea, select):not([type="checkbox"]):not([type="radio"]):not([type="range"]) {
+    background-color: hsl(var(--input-bg));
+    color: hsl(var(--input-fg));
+    border-color: hsl(var(--input-border));
+  }
+
+  :where(input, textarea)::placeholder {
+    color: hsl(var(--text-muted));
   }
 
   :where(p, span, li, a, button, label, td, th) {
@@ -569,6 +632,22 @@
 
   .dark :where([role="dialog"], [data-radix-popper-content-wrapper]) :where(.text-muted-foreground, [class*="text-slate-500"], [class*="text-gray-500"], [class*="text-gray-400"]) {
     color: hsl(var(--muted-foreground)) !important;
+  }
+
+  .dark :where(.bg-white, .bg-slate-50, .bg-gray-50, .bg-gray-100) {
+    background-color: hsl(var(--bg-surface-1)) !important;
+  }
+
+  .dark :where(.border-gray-200, .border-gray-300, .border-slate-200) {
+    border-color: hsl(var(--border-subtle)) !important;
+  }
+
+  .dark :where(.text-gray-900, .text-slate-900, .text-black) {
+    color: hsl(var(--text-primary)) !important;
+  }
+
+  .dark :where(.text-gray-700, .text-gray-600, .text-slate-700, .text-slate-600) {
+    color: hsl(var(--text-secondary)) !important;
   }
 
   /* Dark-mode parity patch for module content that still uses light utility classes */
