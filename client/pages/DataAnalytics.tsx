@@ -1206,11 +1206,11 @@ export default function DataAnalytics() {
         </div>
 
         {/* Vendor Segmentation */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
           {Object.entries(vendorSegmented).map(([segment, vendors]) =>
             vendors.length > 0 ? (
-              <div key={segment} className="card-elevated rounded-xl border border-border/50 p-6">
-                <div className="flex items-center justify-between mb-4">
+              <div key={segment} className="card-elevated rounded-xl border border-border/50 p-4 lg:p-5">
+                <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <div
                       className={cn(
@@ -1230,14 +1230,14 @@ export default function DataAnalytics() {
                     {vendors.length}
                   </span>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   {vendors.map((vendor, idx) => (
                     <div
                       key={vendor.name}
-                      className="p-3 rounded border border-border/50 hover:bg-muted/30 transition-colors"
+                      className="px-3 py-2.5 rounded border border-border/50 hover:bg-muted/30 transition-colors"
                     >
                       <p className="font-medium text-sm text-foreground">{vendor.name}</p>
-                      <div className="grid grid-cols-3 gap-2 mt-2 text-xs">
+                      <div className="grid grid-cols-3 gap-1.5 mt-1.5 text-xs">
                         <div>
                           <p className="text-muted-foreground">Success</p>
                           <p className="font-semibold">{vendor.call_success_rate.toFixed(1)}%</p>
@@ -1260,11 +1260,11 @@ export default function DataAnalytics() {
         </div>
 
         {/* Technology Segmentation */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
           {Object.entries(techSegmented).map(([segment, techs]) =>
             techs.length > 0 ? (
-              <div key={segment} className="card-elevated rounded-xl border border-border/50 p-6">
-                <div className="flex items-center justify-between mb-4">
+              <div key={segment} className="card-elevated rounded-xl border border-border/50 p-4 lg:p-5">
+                <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <div
                       className={cn(
@@ -1284,14 +1284,14 @@ export default function DataAnalytics() {
                     {techs.length}
                   </span>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   {techs.map((tech, idx) => (
                     <div
                       key={tech.name}
-                      className="p-3 rounded border border-border/50 hover:bg-muted/30 transition-colors"
+                      className="px-3 py-2.5 rounded border border-border/50 hover:bg-muted/30 transition-colors"
                     >
                       <p className="font-medium text-sm text-foreground">{tech.name}</p>
-                      <div className="grid grid-cols-3 gap-2 mt-2 text-xs">
+                      <div className="grid grid-cols-3 gap-1.5 mt-1.5 text-xs">
                         <div>
                           <p className="text-muted-foreground">Success</p>
                           <p className="font-semibold">{tech.call_success_rate.toFixed(1)}%</p>
@@ -1314,11 +1314,11 @@ export default function DataAnalytics() {
         </div>
 
         {/* Region Segmentation */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
           {Object.entries(regionSegmented).map(([segment, regions]) =>
             regions.length > 0 ? (
-              <div key={segment} className="card-elevated rounded-xl border border-border/50 p-6">
-                <div className="flex items-center justify-between mb-4">
+              <div key={segment} className="card-elevated rounded-xl border border-border/50 p-4 lg:p-5">
+                <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <div
                       className={cn(
@@ -1338,14 +1338,14 @@ export default function DataAnalytics() {
                     {regions.length}
                   </span>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   {regions.map((region, idx) => (
                     <div
                       key={region.name}
-                      className="p-3 rounded border border-border/50 hover:bg-muted/30 transition-colors"
+                      className="px-3 py-2.5 rounded border border-border/50 hover:bg-muted/30 transition-colors"
                     >
                       <p className="font-medium text-sm text-foreground">{region.name}</p>
-                      <div className="grid grid-cols-3 gap-2 mt-2 text-xs">
+                      <div className="grid grid-cols-3 gap-1.5 mt-1.5 text-xs">
                         <div>
                           <p className="text-muted-foreground">Success</p>
                           <p className="font-semibold">{region.call_success_rate.toFixed(1)}%</p>
@@ -1368,11 +1368,11 @@ export default function DataAnalytics() {
         </div>
 
         {/* Cluster Segmentation */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
           {Object.entries(clusterSegmented).map(([segment, clusters]) =>
             clusters.length > 0 ? (
-              <div key={segment} className="card-elevated rounded-xl border border-border/50 p-6">
-                <div className="flex items-center justify-between mb-4">
+              <div key={segment} className="card-elevated rounded-xl border border-border/50 p-4 lg:p-5">
+                <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <div
                       className={cn(
@@ -1392,14 +1392,14 @@ export default function DataAnalytics() {
                     {clusters.length}
                   </span>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   {clusters.map((cluster, idx) => (
                     <div
                       key={cluster.name}
-                      className="p-3 rounded border border-border/50 hover:bg-muted/30 transition-colors"
+                      className="px-3 py-2.5 rounded border border-border/50 hover:bg-muted/30 transition-colors"
                     >
                       <p className="font-medium text-sm text-foreground">{cluster.name}</p>
-                      <div className="grid grid-cols-3 gap-2 mt-2 text-xs">
+                      <div className="grid grid-cols-3 gap-1.5 mt-1.5 text-xs">
                         <div>
                           <p className="text-muted-foreground">Success</p>
                           <p className="font-semibold">{cluster.call_success_rate.toFixed(1)}%</p>

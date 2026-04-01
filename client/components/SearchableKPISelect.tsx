@@ -55,6 +55,8 @@ export default function SearchableKPISelect({
   }, []);
 
   const selectedKPIs = AVAILABLE_KPIS.filter((kpi) => value.includes(kpi.id));
+  const showInlineInput =
+    value.length === 0 || isOpen || isInputFocused || searchTerm.trim().length > 0;
 
   return (
     <div ref={containerRef} className="relative w-full">
@@ -90,8 +92,9 @@ export default function SearchableKPISelect({
 
           <div
             className={cn(
-              "flex items-center flex-1",
-              value.length === 0 ? "gap-1.5 min-w-[180px]" : "gap-0 min-w-[56px]"
+              "flex items-center transition-all",
+              value.length === 0 ? "flex-1 gap-1.5 min-w-[180px]" : "gap-0",
+              showInlineInput ? "flex-1 min-w-[56px]" : "w-0 min-w-0 overflow-hidden"
             )}
           >
             {value.length === 0 && (
