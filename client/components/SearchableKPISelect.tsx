@@ -55,8 +55,8 @@ export default function SearchableKPISelect({
   }, []);
 
   const selectedKPIs = AVAILABLE_KPIS.filter((kpi) => value.includes(kpi.id));
-  const showInlineInput =
-    value.length === 0 || isOpen || isInputFocused || searchTerm.trim().length > 0;
+  const showInlineInput = value.length === 0 || isOpen || searchTerm.trim().length > 0;
+  const isCompactSelectedState = value.length > 0 && !showInlineInput;
 
   return (
     <div ref={containerRef} className="relative w-full">
@@ -70,7 +70,12 @@ export default function SearchableKPISelect({
         )}
         onClick={() => setIsOpen(true)}
       >
-        <div className="flex flex-1 min-w-0 items-center gap-1.5 flex-wrap content-start">
+        <div
+          className={cn(
+            "flex min-w-0 items-center gap-1.5 flex-wrap content-start",
+            isCompactSelectedState ? "flex-none" : "flex-1"
+          )}
+        >
           {selectedKPIs.map((kpi) => (
             <div
               key={kpi.id}
@@ -90,40 +95,41 @@ export default function SearchableKPISelect({
             </div>
           ))}
 
-          <div
-            className={cn(
-              "flex items-center transition-all",
-              value.length === 0 ? "flex-1 gap-1.5 min-w-[180px]" : "gap-0",
-              showInlineInput ? "flex-1 min-w-[56px]" : "w-0 min-w-0 overflow-hidden"
-            )}
-          >
-            {value.length === 0 && (
-              <Search
-                className={cn(
-                  "w-4 h-4 transition-colors flex-shrink-0 stroke-2",
-                  isOpen ? "text-primary" : "text-muted-foreground/70"
-                )}
-              />
-            )}
-            <input
-              type="text"
+          {showInlineInput && (
+            <div
               className={cn(
-                "bg-transparent outline-none typo-input font-medium h-7",
-                value.length === 0 ? "flex-1 min-w-[120px]" : "flex-1 min-w-[56px]"
+                "flex items-center transition-all",
+                value.length === 0 ? "flex-1 gap-1.5 min-w-[180px]" : "flex-1 gap-0 min-w-[56px]"
               )}
-              placeholder={
-                value.length === 0 ? placeholder : isInputFocused ? "Add KPI..." : ""
-              }
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onFocus={() => setIsInputFocused(true)}
-              onBlur={() => setIsInputFocused(false)}
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsOpen(true);
-              }}
-            />
-          </div>
+            >
+              {value.length === 0 && (
+                <Search
+                  className={cn(
+                    "w-4 h-4 transition-colors flex-shrink-0 stroke-2",
+                    isOpen ? "text-primary" : "text-muted-foreground/70"
+                  )}
+                />
+              )}
+              <input
+                type="text"
+                className={cn(
+                  "bg-transparent outline-none typo-input font-medium h-7",
+                  value.length === 0 ? "flex-1 min-w-[120px]" : "flex-1 min-w-[56px]"
+                )}
+                placeholder={
+                  value.length === 0 ? placeholder : isInputFocused ? "Add KPI..." : ""
+                }
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onFocus={() => setIsInputFocused(true)}
+                onBlur={() => setIsInputFocused(false)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsOpen(true);
+                }}
+              />
+            </div>
+          )}
         </div>
 
       </div>
