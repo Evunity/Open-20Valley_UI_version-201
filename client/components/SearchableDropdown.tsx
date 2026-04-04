@@ -110,16 +110,16 @@ export default function SearchableDropdown({
         )}
       >
 
-        <div className="flex items-center gap-1.5 min-w-0 flex-1">
+        <div className="flex items-center gap-1.5 min-w-0 flex-1 overflow-hidden pr-1">
           {multiSelect ? (
             selected.length > 0 ? (
-              <div className="flex items-center gap-1.5 min-w-0">
+              <div className="flex items-center gap-1.5 min-w-0 max-w-full flex-nowrap overflow-hidden">
                 {selected.slice(0, 1).map((item) => (
                   <div
                     key={item}
-                    className="inline-flex items-center gap-1 h-6 px-2 rounded-full border border-primary/25 bg-primary/10 text-primary text-[11px] font-semibold whitespace-nowrap flex-shrink-0"
+                    className="inline-flex items-center gap-1 h-6 px-2 rounded-full border border-primary/25 bg-primary/10 text-primary text-[11px] font-semibold min-w-0 max-w-[130px] sm:max-w-[180px] flex-shrink"
                   >
-                    <span className="truncate max-w-[96px] leading-none">{item}</span>
+                    <span className="truncate min-w-0 leading-none">{item}</span>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -134,7 +134,7 @@ export default function SearchableDropdown({
                   </div>
                 ))}
                 {selected.length > 1 && (
-                  <span className="inline-flex items-center h-6 px-2 rounded-full border border-border/80 bg-muted/70 text-[11px] font-semibold text-muted-foreground whitespace-nowrap">
+                  <span className="inline-flex items-center h-6 px-2 rounded-full border border-border/80 bg-muted/70 text-[11px] font-semibold text-muted-foreground whitespace-nowrap flex-shrink-0">
                     +{selected.length - 1}
                   </span>
                 )}
