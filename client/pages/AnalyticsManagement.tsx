@@ -248,7 +248,7 @@ export default function AnalyticsManagement() {
   ]);
 
   useEffect(() => {
-    if (appliedSelectedKPIs.length !== 2 && kpiDisplayMode === "combined") {
+    if (appliedSelectedKPIs.length <= 1 && kpiDisplayMode === "combined") {
       setKpiDisplayMode("separate");
     }
   }, [appliedSelectedKPIs.length, kpiDisplayMode]);
@@ -312,19 +312,31 @@ export default function AnalyticsManagement() {
     regenerateVersion,
   ]);
 
-  const combinedKPIData = useMemo(() => {
-    if (appliedSelectedKPIs.length !== 2) return [];
-    const [firstKPI, secondKPI] = appliedSelectedKPIs;
-    const firstData = chartDataMap[firstKPI.id] || [];
-    const secondData = chartDataMap[secondKPI.id] || [];
-    const secondLookup = new Map(secondData.map((point: any) => [point.time, point.value]));
+  const combinedSeriesMeta = useMemo(
+    () =>
+      appliedSelectedKPIs.map((kpi) => ({
+        id: kpi.id,
+        label: `${kpi.name} (${kpi.id})`,
+        data: chartDataMap[kpi.id] || [],
+      })),
+    [appliedSelectedKPIs, chartDataMap]
+  );
 
-    return firstData.map((point: any) => ({
-      time: point.time,
-      [firstKPI.id]: point.value,
-      [secondKPI.id]: secondLookup.get(point.time) ?? null,
-    }));
-  }, [appliedSelectedKPIs, chartDataMap]);
+  const combinedKPIData = useMemo(() => {
+    if (combinedSeriesMeta.length <= 1) return [];
+    const timeMap = new Map<string, Record<string, any>>();
+
+    combinedSeriesMeta.forEach((series) => {
+      series.data.forEach((point: any) => {
+        if (!timeMap.has(point.time)) {
+          timeMap.set(point.time, { time: point.time });
+        }
+        timeMap.get(point.time)![series.label] = point.value;
+      });
+    });
+
+    return Array.from(timeMap.values());
+  }, [combinedSeriesMeta]);
 
   const handleSaveView = () => {
     if (!saveViewName.trim()) return;
@@ -1216,7 +1228,7 @@ export default function AnalyticsManagement() {
             </button>
           </div>
 
-          {appliedSelectedKPIs.length === 2 && (
+          {appliedSelectedKPIs.length > 1 && (
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold text-muted-foreground">Display mode:</span>
               <button
@@ -1244,11 +1256,11 @@ export default function AnalyticsManagement() {
             </div>
           )}
 
-          {appliedSelectedKPIs.length === 2 && kpiDisplayMode === "combined" ? (
+          {appliedSelectedKPIs.length > 1 && kpiDisplayMode === "combined" ? (
             <TrendChartContainer
-              title={`${appliedSelectedKPIs[0].name} vs ${appliedSelectedKPIs[1].name}`}
+              title={`Combined KPI View (${appliedSelectedKPIs.length} KPIs)`}
               data={combinedKPIData}
-              dataKeys={[appliedSelectedKPIs[0].id, appliedSelectedKPIs[1].id]}
+              dataKeys={combinedSeriesMeta.map((series) => series.label)}
               exportable
               zoomable
               defaultChartType="line"
