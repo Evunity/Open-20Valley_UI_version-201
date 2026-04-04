@@ -61,10 +61,10 @@ export default function SearchableKPISelect({
       {/* Selected Tags & Input */}
       <div
         className={cn(
-          "w-full min-h-[2.5rem] px-2.5 py-1.5 rounded-lg border bg-background typo-input transition-all flex items-start gap-2 cursor-text shadow-sm",
+          "w-full min-h-[2.5rem] px-2.5 py-1.5 rounded-lg border typo-input transition-colors flex items-center gap-2 cursor-text bg-card/80 dark:bg-muted/20",
           isOpen
-            ? "border-primary ring-2 ring-primary/20 shadow-lg"
-            : "border-border hover:border-primary/40 focus-within:ring-2 focus-within:ring-primary/40 focus-within:border-primary"
+            ? "border-primary/60 ring-1 ring-primary/35"
+            : "border-border/70 hover:border-primary/35 focus-within:border-primary/55 focus-within:ring-1 focus-within:ring-primary/30"
         )}
         onClick={() => setIsOpen(true)}
       >
@@ -77,7 +77,7 @@ export default function SearchableKPISelect({
           {selectedKPIs.map((kpi) => (
             <div
               key={kpi.id}
-              className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary/15 text-primary typo-badge hover:bg-primary/25 transition-colors border border-primary/20 shrink-0"
+              className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary/15 text-primary typo-badge hover:bg-primary/25 transition-colors border border-primary/25 shrink-0"
             >
               {kpi.label}
               <button
@@ -103,12 +103,12 @@ export default function SearchableKPISelect({
               <Search
                 className={cn(
                   "w-4 h-4 transition-colors flex-shrink-0 stroke-2",
-                  isOpen ? "text-primary" : "text-muted-foreground/70"
+                  isOpen ? "text-primary/90" : "text-muted-foreground"
                 )}
               />
               <input
                 type="text"
-                className="bg-transparent outline-none typo-input font-medium h-7 flex-1 min-w-[120px]"
+                className="bg-transparent outline-none typo-input font-medium h-7 flex-1 min-w-[120px] text-foreground placeholder:text-muted-foreground/75"
                 placeholder={placeholder}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -128,11 +128,11 @@ export default function SearchableKPISelect({
         <div className="absolute top-full left-0 right-0 mt-2 rounded-lg border border-border bg-card shadow-xl z-50 max-h-64 overflow-y-auto">
           {value.length > 0 && (
             <div className="sticky top-0 z-10 bg-card border-b border-border/60 p-2.5">
-              <div className="flex items-center gap-2 px-2.5 h-9 rounded-md border border-border bg-background">
-                <Search className="w-4 h-4 text-muted-foreground/70 flex-shrink-0" />
+              <div className="flex items-center gap-2 px-2.5 h-9 rounded-md border border-border/60 bg-muted/20 focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/25 transition-colors">
+                <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                 <input
                   type="text"
-                  className="bg-transparent outline-none typo-input flex-1 min-w-0"
+                  className="bg-transparent outline-none typo-input flex-1 min-w-0 text-foreground placeholder:text-muted-foreground/75"
                   placeholder="Search KPIs..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
