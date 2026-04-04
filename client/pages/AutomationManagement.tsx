@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Eye, Hammer, Lock, Plus, Settings, Brain, Lightbulb, Shield, Map, TrendingUp } from 'lucide-react';
+import { Eye, Hammer, Lock, Plus, Settings, Brain, Lightbulb, Shield, Map, TrendingUp, Search, Play, Pause, Calendar, Pencil, Trash2, Copy } from 'lucide-react';
 import { AutomationCommandCenter } from '../components/AutomationCommandCenter';
 import { AutomationBuilder } from '../components/AutomationBuilder';
 import { WorkflowBuilder } from '../components/WorkflowBuilder';
@@ -24,6 +24,7 @@ type WorkspaceType =
   | 'learning_engine'
   | 'trust_scoring'
   | 'builder'
+  | 'workflow_library'
   | 'runbook'
   | 'policy'
   | 'orchestrator'
@@ -45,6 +46,7 @@ const WORKSPACES: WorkspaceTab[] = [
   { id: 'trust_scoring', label: 'Trust Score', domain: 'awareness' },
   // Design Layer
   { id: 'builder', label: 'Builder', domain: 'design' },
+  { id: 'workflow_library', label: 'Saved Workflows', domain: 'design' },
   { id: 'runbook', label: 'Runbook Designer', domain: 'design' },
   { id: 'policy', label: 'Policy & Guardrails', domain: 'design' },
   // Execution Layer
@@ -73,6 +75,33 @@ interface SavedRunbook {
   createdAt: string;
 }
 
+type WorkflowStatus = 'draft' | 'active' | 'inactive';
+type WorkflowDay = 'Mon' | 'Tue' | 'Wed' | 'Thu' | 'Fri' | 'Sat' | 'Sun';
+
+interface WorkflowSchedule {
+  enabled: boolean;
+  daysOfWeek: WorkflowDay[];
+  startTime: string;
+  endTime: string;
+  timezone: string;
+}
+
+interface SavedWorkflowRecord {
+  id: string;
+  name: string;
+  description: string;
+  status: WorkflowStatus;
+  createdAt: string;
+  updatedAt: string;
+  triggerType: string;
+  nodeCount: number;
+  schedule: WorkflowSchedule;
+  owner: string;
+  lastRun?: string;
+  nextRun?: string;
+  definition: any;
+}
+
 export const AutomationManagement: React.FC = () => {
   const [activeDomain, setActiveDomain] = useState<SuperDomain>('awareness');
   const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceType>('command_center');
@@ -82,6 +111,12 @@ export const AutomationManagement: React.FC = () => {
   const [showPolicyDialog, setShowPolicyDialog] = useState(false);
   const [policies, setPolicies] = useState(generateMockPolicies());
   const [runbooks, setRunbooks] = useState<SavedRunbook[]>([]);
+  const [savedWorkflows, setSavedWorkflows] = useState<SavedWorkflowRecord[]>([]);
+  const [workflowSearch, setWorkflowSearch] = useState('');
+  const [workflowStatusFilter, setWorkflowStatusFilter] = useState<'all' | WorkflowStatus>('all');
+  const [editingWorkflowId, setEditingWorkflowId] = useState<string | null>(null);
+  const [deleteWorkflowId, setDeleteWorkflowId] = useState<string | null>(null);
+  const [scheduleWorkflowId, setScheduleWorkflowId] = useState<string | null>(null);
   const [policyForm, setPolicyForm] = useState<PolicyForm>({
     name: '',
     description: '',
@@ -89,6 +124,33 @@ export const AutomationManagement: React.FC = () => {
     constraints: []
   });
   const [currentConstraint, setCurrentConstraint] = useState('');
+
+  const defaultSchedule: WorkflowSchedule = {
+    enabled: false,
+    daysOfWeek: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+    startTime: '09:00',
+    endTime: '18:00',
+    timezone: 'UTC',
+  };
+
+  const getScheduleSummary = (schedule: WorkflowSchedule, status: WorkflowStatus) => {
+    if (status === 'inactive') return 'Inactive';
+    if (!schedule.enabled) return 'Active: Daily, 24h';
+    const dayText = schedule.daysOfWeek.length === 7 ? 'Daily' : schedule.daysOfWeek.join(', ');
+    return `Scheduled: ${dayText}, ${schedule.startTime}-${schedule.endTime}`;
+  };
+
+  const workflowBeingEdited = editingWorkflowId
+    ? savedWorkflows.find((wf) => wf.id === editingWorkflowId)
+    : null;
+
+  const filteredWorkflows = savedWorkflows.filter((workflow) => {
+    const matchesSearch = workflow.name.toLowerCase().includes(workflowSearch.toLowerCase());
+    const matchesStatus = workflowStatusFilter === 'all' || workflow.status === workflowStatusFilter;
+    return matchesSearch && matchesStatus;
+  });
+  const workflowForSchedule = savedWorkflows.find((workflow) => workflow.id === scheduleWorkflowId);
+  const workflowForDelete = savedWorkflows.find((workflow) => workflow.id === deleteWorkflowId);
 
   const domainWorkspaces = WORKSPACES.filter(w => w.domain === activeDomain);
   const currentDomain = DOMAINS.find(d => d.id === activeDomain);
@@ -107,11 +169,41 @@ export const AutomationManagement: React.FC = () => {
       case 'builder':
         return showBuilder ? (
           <WorkflowBuilder
-            onSave={() => {
+            initialWorkflow={workflowBeingEdited?.definition}
+            onSave={(workflow) => {
+              const triggerNode = workflow.nodes.find((node: any) => node.type === 'trigger');
+              const now = new Date().toISOString();
+              setSavedWorkflows((previous) => {
+                const existing = previous.find((item) => item.id === workflow.id);
+                const baseRecord: SavedWorkflowRecord = {
+                  id: workflow.id,
+                  name: workflow.name,
+                  description: workflow.description || 'No description provided',
+                  status: workflow.active ? 'active' : existing?.status || 'draft',
+                  createdAt: existing?.createdAt || now,
+                  updatedAt: now,
+                  triggerType: triggerNode?.label || triggerNode?.type || 'Manual Trigger',
+                  nodeCount: workflow.nodes.length,
+                  schedule: existing?.schedule || defaultSchedule,
+                  owner: existing?.owner || 'Automation Operator',
+                  lastRun: existing?.lastRun,
+                  nextRun: existing?.nextRun,
+                  definition: workflow,
+                };
+
+                if (existing) {
+                  return previous.map((item) => (item.id === workflow.id ? baseRecord : item));
+                }
+                return [baseRecord, ...previous];
+              });
               setShowBuilder(false);
-              alert('✓ Automation workflow saved successfully!');
+              setEditingWorkflowId(null);
+              setActiveWorkspace('workflow_library');
             }}
-            onCancel={() => setShowBuilder(false)}
+            onCancel={() => {
+              setShowBuilder(false);
+              setEditingWorkflowId(null);
+            }}
           />
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center p-4 bg-background">
@@ -188,6 +280,135 @@ export const AutomationManagement: React.FC = () => {
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+        );
+
+      case 'workflow_library':
+        return (
+          <div className="flex-1 overflow-y-auto p-4 bg-background">
+            <div className="max-w-6xl mx-auto space-y-4">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                <div>
+                  <h2 className="text-lg font-bold text-foreground">Workflow Library</h2>
+                  <p className="text-xs text-muted-foreground">Manage saved workflows, lifecycle state, and working-hour schedules.</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setEditingWorkflowId(null);
+                    setShowBuilder(true);
+                    setActiveWorkspace('builder');
+                  }}
+                  className="px-3 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:bg-primary/90 transition flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  New Workflow
+                </button>
+              </div>
+
+              <div className="bg-card border border-border rounded-lg p-3 flex flex-col md:flex-row gap-2 md:items-center">
+                <div className="flex items-center gap-2 flex-1">
+                  <Search className="w-4 h-4 text-muted-foreground" />
+                  <input
+                    value={workflowSearch}
+                    onChange={(e) => setWorkflowSearch(e.target.value)}
+                    placeholder="Search workflow by name..."
+                    className="w-full bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground"
+                  />
+                </div>
+                <select
+                  value={workflowStatusFilter}
+                  onChange={(e) => setWorkflowStatusFilter(e.target.value as any)}
+                  className="px-2 py-1.5 rounded border border-border bg-background text-xs"
+                >
+                  <option value="all">All statuses</option>
+                  <option value="draft">Draft</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+
+              <div className="bg-card border border-border rounded-lg overflow-hidden">
+                <div className="grid grid-cols-12 gap-2 px-3 py-2 text-[11px] font-semibold text-muted-foreground border-b border-border bg-muted/30">
+                  <div className="col-span-3">Workflow</div>
+                  <div className="col-span-1">Status</div>
+                  <div className="col-span-1">Trigger</div>
+                  <div className="col-span-1">Nodes</div>
+                  <div className="col-span-3">Schedule</div>
+                  <div className="col-span-1">Updated</div>
+                  <div className="col-span-2 text-right">Actions</div>
+                </div>
+                {filteredWorkflows.length === 0 ? (
+                  <div className="p-8 text-center text-sm text-muted-foreground">
+                    No saved workflows yet. Save one from Builder to manage it here.
+                  </div>
+                ) : (
+                  filteredWorkflows.map((workflow) => (
+                    <div key={workflow.id} className="grid grid-cols-12 gap-2 px-3 py-2.5 border-b border-border/60 text-xs items-center hover:bg-muted/20">
+                      <div className="col-span-3 min-w-0">
+                        <p className="font-semibold text-foreground truncate">{workflow.name}</p>
+                        <p className="text-muted-foreground truncate">{workflow.description}</p>
+                      </div>
+                      <div className="col-span-1">
+                        <span className={`px-2 py-1 rounded-full text-[10px] font-semibold ${
+                          workflow.status === 'active'
+                            ? 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300'
+                            : workflow.status === 'inactive'
+                              ? 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
+                              : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                        }`}>
+                          {workflow.status}
+                        </span>
+                      </div>
+                      <div className="col-span-1 text-muted-foreground">{workflow.triggerType}</div>
+                      <div className="col-span-1 text-muted-foreground">{workflow.nodeCount}</div>
+                      <div className="col-span-3 text-muted-foreground">{getScheduleSummary(workflow.schedule, workflow.status)}</div>
+                      <div className="col-span-1 text-muted-foreground">{new Date(workflow.updatedAt).toLocaleDateString()}</div>
+                      <div className="col-span-2 flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => {
+                            setEditingWorkflowId(workflow.id);
+                            setShowBuilder(true);
+                            setActiveWorkspace('builder');
+                          }}
+                          className="p-1.5 rounded border border-border hover:bg-muted"
+                          title="Open/Edit"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => setSavedWorkflows((prev) => prev.map((item) => item.id === workflow.id ? { ...item, status: item.status === 'active' ? 'inactive' : 'active' } : item))}
+                          className="p-1.5 rounded border border-border hover:bg-muted"
+                          title="Activate/Deactivate"
+                        >
+                          {workflow.status === 'active' ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+                        </button>
+                        <button
+                          onClick={() => setScheduleWorkflowId(workflow.id)}
+                          className="p-1.5 rounded border border-border hover:bg-muted"
+                          title="Schedule"
+                        >
+                          <Calendar className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => setSavedWorkflows((prev) => [{ ...workflow, id: `workflow_${Date.now()}`, name: `${workflow.name} (Copy)`, status: 'draft', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }, ...prev])}
+                          className="p-1.5 rounded border border-border hover:bg-muted"
+                          title="Duplicate"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => setDeleteWorkflowId(workflow.id)}
+                          className="p-1.5 rounded border border-destructive/40 text-destructive hover:bg-destructive/10"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           </div>
         );
@@ -317,6 +538,153 @@ export const AutomationManagement: React.FC = () => {
       <div className="flex-1 overflow-hidden flex">
         {renderWorkspaceContent()}
       </div>
+
+      {/* Schedule Editor Modal */}
+      {workflowForSchedule && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-lg bg-card border border-border rounded-lg p-5 space-y-4">
+            <div>
+              <h3 className="text-base font-bold text-foreground">Schedule Workflow</h3>
+              <p className="text-xs text-muted-foreground mt-1">{workflowForSchedule.name}</p>
+            </div>
+
+            <label className="flex items-center gap-2 text-sm text-foreground">
+              <input
+                type="checkbox"
+                checked={workflowForSchedule.schedule.enabled}
+                onChange={(e) => {
+                  const enabled = e.target.checked;
+                  setSavedWorkflows((prev) =>
+                    prev.map((item) =>
+                      item.id === workflowForSchedule.id
+                        ? { ...item, schedule: { ...item.schedule, enabled }, updatedAt: new Date().toISOString() }
+                        : item
+                    )
+                  );
+                }}
+              />
+              Enable scheduling window
+            </label>
+
+            <div>
+              <p className="text-xs font-semibold text-foreground mb-2">Days of Week</p>
+              <div className="grid grid-cols-7 gap-1">
+                {(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as WorkflowDay[]).map((day) => {
+                  const selected = workflowForSchedule.schedule.daysOfWeek.includes(day);
+                  return (
+                    <button
+                      key={day}
+                      onClick={() => {
+                        setSavedWorkflows((prev) =>
+                          prev.map((item) => {
+                            if (item.id !== workflowForSchedule.id) return item;
+                            const days = selected
+                              ? item.schedule.daysOfWeek.filter((d) => d !== day)
+                              : [...item.schedule.daysOfWeek, day];
+                            return { ...item, schedule: { ...item.schedule, daysOfWeek: days }, updatedAt: new Date().toISOString() };
+                          })
+                        );
+                      }}
+                      className={`px-2 py-1 rounded text-xs border ${selected ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-border text-muted-foreground'}`}
+                    >
+                      {day}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-semibold text-foreground block mb-1">Start Time</label>
+                <input
+                  type="time"
+                  value={workflowForSchedule.schedule.startTime}
+                  onChange={(e) =>
+                    setSavedWorkflows((prev) =>
+                      prev.map((item) =>
+                        item.id === workflowForSchedule.id
+                          ? { ...item, schedule: { ...item.schedule, startTime: e.target.value }, updatedAt: new Date().toISOString() }
+                          : item
+                      )
+                    )
+                  }
+                  className="w-full px-2 py-1.5 rounded border border-border bg-background text-sm"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-foreground block mb-1">End Time</label>
+                <input
+                  type="time"
+                  value={workflowForSchedule.schedule.endTime}
+                  onChange={(e) =>
+                    setSavedWorkflows((prev) =>
+                      prev.map((item) =>
+                        item.id === workflowForSchedule.id
+                          ? { ...item, schedule: { ...item.schedule, endTime: e.target.value }, updatedAt: new Date().toISOString() }
+                          : item
+                      )
+                    )
+                  }
+                  className="w-full px-2 py-1.5 rounded border border-border bg-background text-sm"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-foreground block mb-1">Timezone</label>
+              <input
+                type="text"
+                value={workflowForSchedule.schedule.timezone}
+                onChange={(e) =>
+                  setSavedWorkflows((prev) =>
+                    prev.map((item) =>
+                      item.id === workflowForSchedule.id
+                        ? { ...item, schedule: { ...item.schedule, timezone: e.target.value }, updatedAt: new Date().toISOString() }
+                        : item
+                    )
+                  )
+                }
+                className="w-full px-2 py-1.5 rounded border border-border bg-background text-sm"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button onClick={() => setScheduleWorkflowId(null)} className="px-3 py-1.5 rounded border border-border text-sm hover:bg-muted">
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {workflowForDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md bg-card border border-border rounded-lg p-5 space-y-4">
+            <div>
+              <h3 className="text-base font-bold text-foreground">Delete Workflow</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Are you sure you want to delete <span className="font-semibold text-foreground">{workflowForDelete.name}</span>? This cannot be undone.
+              </p>
+            </div>
+            <div className="flex items-center justify-end gap-2">
+              <button onClick={() => setDeleteWorkflowId(null)} className="px-3 py-1.5 rounded border border-border text-sm hover:bg-muted">
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setSavedWorkflows((prev) => prev.filter((item) => item.id !== workflowForDelete.id));
+                  setDeleteWorkflowId(null);
+                }}
+                className="px-3 py-1.5 rounded bg-destructive text-destructive-foreground text-sm"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Human-in-Loop Approval Dialog */}
       <HumanInLoopDialog
