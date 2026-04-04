@@ -71,6 +71,7 @@ export default function AnalyticsManagement() {
   const [generatedTime, setGeneratedTime] = useState<Date | null>(null);
   const [isGenerated, setIsGenerated] = useState(false);
   const [showKPIDropdown, setShowKPIDropdown] = useState(false);
+  const [kpiDisplayMode, setKpiDisplayMode] = useState<"combined" | "separate">("separate");
   const [regenerateVersion, setRegenerateVersion] = useState(0);
   const [appliedSelectedKPIs, setAppliedSelectedKPIs] = useState<KPI[]>([]);
   const [appliedScope, setAppliedScope] = useState<SavedView["scope"]>("Network");
@@ -247,6 +248,12 @@ export default function AnalyticsManagement() {
   ]);
 
   useEffect(() => {
+    if (appliedSelectedKPIs.length !== 2 && kpiDisplayMode === "combined") {
+      setKpiDisplayMode("separate");
+    }
+  }, [appliedSelectedKPIs.length, kpiDisplayMode]);
+
+  useEffect(() => {
     if (!showKPIDropdown) return;
 
     const handlePointerDownOutside = (event: MouseEvent) => {
@@ -304,6 +311,20 @@ export default function AnalyticsManagement() {
     selectedCell,
     regenerateVersion,
   ]);
+
+  const combinedKPIData = useMemo(() => {
+    if (appliedSelectedKPIs.length !== 2) return [];
+    const [firstKPI, secondKPI] = appliedSelectedKPIs;
+    const firstData = chartDataMap[firstKPI.id] || [];
+    const secondData = chartDataMap[secondKPI.id] || [];
+    const secondLookup = new Map(secondData.map((point: any) => [point.time, point.value]));
+
+    return firstData.map((point: any) => ({
+      time: point.time,
+      [firstKPI.id]: point.value,
+      [secondKPI.id]: secondLookup.get(point.time) ?? null,
+    }));
+  }, [appliedSelectedKPIs, chartDataMap]);
 
   const handleSaveView = () => {
     if (!saveViewName.trim()) return;
@@ -1195,22 +1216,61 @@ export default function AnalyticsManagement() {
             </button>
           </div>
 
-          {appliedSelectedKPIs.map((kpi) => {
-            const selectedLabel = selectedNetwork || selectedRegion || selectedCluster || selectedSite || selectedCell || "All";
-            const kpiChartData = chartDataMap[kpi.id] || [];
+          {appliedSelectedKPIs.length === 2 && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-muted-foreground">Display mode:</span>
+              <button
+                onClick={() => setKpiDisplayMode("combined")}
+                className={cn(
+                  "px-2.5 py-1 rounded text-xs border transition-colors",
+                  kpiDisplayMode === "combined"
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-background text-foreground border-border hover:bg-muted"
+                )}
+              >
+                Combined
+              </button>
+              <button
+                onClick={() => setKpiDisplayMode("separate")}
+                className={cn(
+                  "px-2.5 py-1 rounded text-xs border transition-colors",
+                  kpiDisplayMode === "separate"
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-background text-foreground border-border hover:bg-muted"
+                )}
+              >
+                Separate
+              </button>
+            </div>
+          )}
 
-            return (
-              <TrendChartContainer
-                key={kpi.id}
-                title={`${kpi.name} (${selectedLabel})`}
-                data={kpiChartData}
-                dataKeys={["value"]}
-                exportable
-                zoomable
-                defaultChartType="line"
-              />
-            );
-          })}
+          {appliedSelectedKPIs.length === 2 && kpiDisplayMode === "combined" ? (
+            <TrendChartContainer
+              title={`${appliedSelectedKPIs[0].name} vs ${appliedSelectedKPIs[1].name}`}
+              data={combinedKPIData}
+              dataKeys={[appliedSelectedKPIs[0].id, appliedSelectedKPIs[1].id]}
+              exportable
+              zoomable
+              defaultChartType="line"
+            />
+          ) : (
+            appliedSelectedKPIs.map((kpi) => {
+              const selectedLabel = selectedNetwork || selectedRegion || selectedCluster || selectedSite || selectedCell || "All";
+              const kpiChartData = chartDataMap[kpi.id] || [];
+
+              return (
+                <TrendChartContainer
+                  key={kpi.id}
+                  title={`${kpi.name} (${selectedLabel})`}
+                  data={kpiChartData}
+                  dataKeys={["value"]}
+                  exportable
+                  zoomable
+                  defaultChartType="line"
+                />
+              );
+            })
+          )}
 
           {/* KPI Details Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
