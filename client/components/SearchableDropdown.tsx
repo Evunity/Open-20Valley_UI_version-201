@@ -110,22 +110,22 @@ export default function SearchableDropdown({
         )}
       >
 
-        <div className="flex items-center gap-2 min-w-0 flex-1">
+        <div className="flex items-center gap-1.5 min-w-0 flex-1">
           {multiSelect ? (
             selected.length > 0 ? (
-              <div className="flex items-center gap-1 min-w-0">
+              <div className="flex items-center gap-1.5 min-w-0">
                 {selected.slice(0, 1).map((item) => (
                   <div
                     key={item}
-                    className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-primary/8 text-primary text-[11px] font-medium whitespace-nowrap flex-shrink-0"
+                    className="inline-flex items-center gap-1 h-6 px-2 rounded-full border border-primary/25 bg-primary/10 text-primary text-[11px] font-semibold whitespace-nowrap flex-shrink-0"
                   >
-                    <span className="truncate max-w-[80px]">{item}</span>
+                    <span className="truncate max-w-[96px] leading-none">{item}</span>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         removeOption(item);
                       }}
-                      className="hover:opacity-70 transition-opacity flex-shrink-0 p-0 w-3 h-3"
+                      className="hover:opacity-80 transition-opacity flex-shrink-0 w-4 h-4 inline-flex items-center justify-center rounded-full hover:bg-primary/15"
                       type="button"
                       aria-label={`Remove ${item}`}
                     >
@@ -134,7 +134,7 @@ export default function SearchableDropdown({
                   </div>
                 ))}
                 {selected.length > 1 && (
-                  <span className="text-xs font-bold text-white bg-primary px-2 py-1 rounded-md whitespace-nowrap shadow-md">
+                  <span className="inline-flex items-center h-6 px-2 rounded-full border border-border/80 bg-muted/70 text-[11px] font-semibold text-muted-foreground whitespace-nowrap">
                     +{selected.length - 1}
                   </span>
                 )}
@@ -151,7 +151,7 @@ export default function SearchableDropdown({
 
         <ChevronDown
           className={cn(
-            "w-4 h-4 text-muted-foreground flex-shrink-0 transition-transform",
+            "w-4 h-4 text-muted-foreground flex-shrink-0 transition-transform ml-2",
             isOpen && "transform rotate-180"
           )}
         />

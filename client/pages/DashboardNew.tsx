@@ -683,37 +683,27 @@ export default function DashboardNew() {
 
   return (
     <div className="space-y-3 pb-3">
-      {/* ===== HEADER SECTION ===== */}
-      <div className="space-y-2.5">
-        <div className="layout-page-header">
-          <div className="space-y-1">
-            <h1 className="typo-page-title">Network Operations Dashboard</h1>
-            <p className="typo-body text-muted-foreground">
-              Real-time monitoring and AI-driven insights across your infrastructure
-            </p>
-          </div>
-          <button
-            onClick={exportToExcel}
-            className="inline-flex control-height items-center gap-2 px-4 rounded-lg border border-border bg-primary text-primary-foreground hover:bg-primary/90 transition-colors typo-button"
-          >
-            <Download className="w-4 h-4" />
-            Export to Excel
-          </button>
-        </div>
-
-        {/* Global Filter Panel */}
-        <FilterPanel />
-      </div>
+      {/* Global Filter Panel */}
+      <FilterPanel />
 
       {/* ===== KPI SECTION ===== */}
       <div className="space-y-2.5">
         <div className="space-y-1.5 mb-1">
-          <div className="space-y-1">
-            <h2 className="typo-section-title">Key Performance Indicators</h2>
-            <p className="typo-meta">
-              Real-time metrics reflecting current filters ({selectedKPIIds.length} of{" "}
-              {AVAILABLE_KPIS.length} displayed)
-            </p>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="space-y-1">
+              <h2 className="typo-section-title">Key Performance Indicators</h2>
+              <p className="typo-meta">
+                Real-time metrics reflecting current filters ({selectedKPIIds.length} of{" "}
+                {AVAILABLE_KPIS.length} displayed)
+              </p>
+            </div>
+            <button
+              onClick={exportToExcel}
+              className="inline-flex control-height items-center gap-2 px-4 rounded-lg border border-border bg-primary text-primary-foreground hover:bg-primary/90 transition-colors typo-button shrink-0"
+            >
+              <Download className="w-4 h-4" />
+              Export to Excel
+            </button>
           </div>
 
           {/* Searchable KPI Dropdown */}
