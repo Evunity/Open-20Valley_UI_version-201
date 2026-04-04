@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { ChevronDown, X, Search, Check } from "lucide-react";
+import { X, Search, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AVAILABLE_KPIS } from "@/constants/kpis";
 
@@ -126,12 +126,6 @@ export default function SearchableKPISelect({
           </div>
         </div>
 
-        <ChevronDown
-            className={cn(
-              "w-4 h-4 text-muted-foreground transition-transform duration-200 flex-shrink-0",
-              isOpen ? "rotate-180 text-primary" : ""
-            )}
-        />
       </div>
 
       {/* Dropdown Menu */}
