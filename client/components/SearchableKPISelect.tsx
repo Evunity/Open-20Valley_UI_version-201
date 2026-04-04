@@ -18,7 +18,6 @@ export default function SearchableKPISelect({
 }: SearchableKPISelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [isInputFocused, setIsInputFocused] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Filter KPIs based on search
@@ -55,8 +54,7 @@ export default function SearchableKPISelect({
   }, []);
 
   const selectedKPIs = AVAILABLE_KPIS.filter((kpi) => value.includes(kpi.id));
-  const showInlineInput = value.length === 0 || isOpen || searchTerm.trim().length > 0;
-  const isCompactSelectedState = value.length > 0 && !showInlineInput;
+  const showInlineTriggerInput = value.length === 0;
 
   return (
     <div ref={containerRef} className="relative w-full">
@@ -73,7 +71,7 @@ export default function SearchableKPISelect({
         <div
           className={cn(
             "flex min-w-0 items-center gap-1.5 flex-wrap content-start",
-            isCompactSelectedState ? "flex-none" : "flex-1"
+            showInlineTriggerInput ? "flex-1" : "w-full"
           )}
         >
           {selectedKPIs.map((kpi) => (
@@ -95,34 +93,25 @@ export default function SearchableKPISelect({
             </div>
           ))}
 
-          {showInlineInput && (
+          {showInlineTriggerInput && (
             <div
               className={cn(
                 "flex items-center transition-all",
-                value.length === 0 ? "flex-1 gap-1.5 min-w-[180px]" : "flex-1 gap-0 min-w-[56px]"
+                "flex-1 gap-1.5 min-w-[180px]"
               )}
             >
-              {value.length === 0 && (
-                <Search
-                  className={cn(
-                    "w-4 h-4 transition-colors flex-shrink-0 stroke-2",
-                    isOpen ? "text-primary" : "text-muted-foreground/70"
-                  )}
-                />
-              )}
+              <Search
+                className={cn(
+                  "w-4 h-4 transition-colors flex-shrink-0 stroke-2",
+                  isOpen ? "text-primary" : "text-muted-foreground/70"
+                )}
+              />
               <input
                 type="text"
-                className={cn(
-                  "bg-transparent outline-none typo-input font-medium h-7",
-                  value.length === 0 ? "flex-1 min-w-[120px]" : "flex-1 min-w-[56px]"
-                )}
-                placeholder={
-                  value.length === 0 ? placeholder : isInputFocused ? "Add KPI..." : ""
-                }
+                className="bg-transparent outline-none typo-input font-medium h-7 flex-1 min-w-[120px]"
+                placeholder={placeholder}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                onFocus={() => setIsInputFocused(true)}
-                onBlur={() => setIsInputFocused(false)}
                 onClick={(e) => {
                   e.stopPropagation();
                   setIsOpen(true);
@@ -137,6 +126,21 @@ export default function SearchableKPISelect({
       {/* Dropdown Menu */}
       {isOpen && (
         <div className="absolute top-full left-0 right-0 mt-2 rounded-lg border border-border bg-card shadow-xl z-50 max-h-64 overflow-y-auto">
+          {value.length > 0 && (
+            <div className="sticky top-0 z-10 bg-card border-b border-border/60 p-2.5">
+              <div className="flex items-center gap-2 px-2.5 h-9 rounded-md border border-border bg-background">
+                <Search className="w-4 h-4 text-muted-foreground/70 flex-shrink-0" />
+                <input
+                  type="text"
+                  className="bg-transparent outline-none typo-input flex-1 min-w-0"
+                  placeholder="Search KPIs..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </div>
+            </div>
+          )}
           {filteredKPIs.length > 0 ? (
             <div className="divide-y divide-border/50">
               {filteredKPIs.map((kpi, index) => {
