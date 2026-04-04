@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, TrendingUp, CheckCircle, Clock, AlertCircle, Zap } from 'lucide-react';
+import { Activity, TrendingUp, CheckCircle, Clock, AlertCircle, Zap, XCircle, ShieldCheck } from 'lucide-react';
 import {
   AutomationMetrics,
   AutomationActivity,
   LiveAutonomyEvent,
   generateMockAutomationMetrics,
   generateMockAutomationActivity,
-  generateMockLiveEvents,
-  getStatusColor
+  generateMockLiveEvents
 } from '../utils/automationData';
 
 interface AutomationCommandCenterProps {
@@ -21,6 +20,7 @@ export const AutomationCommandCenter: React.FC<AutomationCommandCenterProps> = (
   const [isPaused, setIsPaused] = useState(false);
   const [showAllActivities, setShowAllActivities] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<AutomationActivity | null>(null);
+  const [selectedLiveEvent, setSelectedLiveEvent] = useState<LiveAutonomyEvent | null>(null);
 
   // Simulate live updates - slower (10 seconds instead of 4)
   useEffect(() => {
@@ -28,20 +28,7 @@ export const AutomationCommandCenter: React.FC<AutomationCommandCenterProps> = (
 
     const interval = setInterval(() => {
       setLiveEvents(prev => {
-        const newEvent: LiveAutonomyEvent = {
-          id: `event_${Date.now()}`,
-          timestamp: new Date().toISOString(),
-          action: [
-            'AI triggered Cell Outage Recovery',
-            'Restarted DU – Cluster East',
-            'Failover initiated for transport link',
-            'Parameter correction applied',
-            'KPI threshold auto-recovery started'
-          ][Math.floor(Math.random() * 5)],
-          scope: ['Cluster East', 'Region North', 'Site Alexandria'][Math.floor(Math.random() * 3)],
-          status: ['success', 'success', 'pending'][Math.floor(Math.random() * 3)] as any,
-          impact: `Impact: ${Math.floor(Math.random() * 30000 + 1000)} subscribers`
-        };
+        const newEvent = generateMockLiveEvents(1)[0];
         return [newEvent, ...prev.slice(0, 7)];
       });
 
@@ -119,7 +106,10 @@ export const AutomationCommandCenter: React.FC<AutomationCommandCenterProps> = (
           {activities.slice(0, 5).map((activity, idx) => (
             <div key={activity.id} className="flex items-center gap-1 flex-shrink-0">
               <div
-                onClick={() => setSelectedActivity(activity)}
+                onClick={() => {
+                  setSelectedActivity(activity);
+                  onActivitySelect?.(activity);
+                }}
                 className="flex flex-col items-center gap-1 p-2 bg-gray-50 rounded border border-gray-200 hover:bg-gray-100 cursor-pointer transition min-w-fit"
               >
                 <div className="flex gap-0.5">
@@ -167,13 +157,14 @@ export const AutomationCommandCenter: React.FC<AutomationCommandCenterProps> = (
           {liveEvents.map((event) => (
             <div
               key={event.id}
+              onClick={() => setSelectedLiveEvent(event)}
               className={`p-3 rounded-lg border-l-4 ${
                 event.status === 'success'
                   ? 'surface-success border-l-[hsl(var(--success))]'
                   : event.status === 'pending'
                   ? 'surface-warning border-l-[hsl(var(--warning))]'
                   : 'surface-destructive border-l-[hsl(var(--destructive))]'
-              }`}
+              } hover:shadow-sm cursor-pointer transition`}
             >
               <div className="flex items-start gap-2">
                 <Activity className="w-4 h-4 mt-0.5 flex-shrink-0 text-muted-foreground" />
@@ -198,10 +189,106 @@ export const AutomationCommandCenter: React.FC<AutomationCommandCenterProps> = (
                   {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
                 </span>
               </div>
+              <p className="mt-2 text-[10px] text-muted-foreground">
+                Click for event inspector
+              </p>
             </div>
           ))}
         </div>
       </div>
+
+      {selectedLiveEvent && (
+        <div className="fixed inset-0 z-50 flex">
+          <button
+            className="flex-1 bg-black/40"
+            onClick={() => setSelectedLiveEvent(null)}
+            aria-label="Close event inspector backdrop"
+          />
+          <div className="w-full max-w-2xl h-full bg-card border-l border-border shadow-2xl overflow-y-auto">
+            <div className="sticky top-0 bg-card/95 backdrop-blur border-b border-border p-4 flex items-start justify-between gap-3">
+              <div>
+                <p className="text-xs text-muted-foreground">Live Autonomy Event Inspector</p>
+                <h3 className="text-lg font-bold text-foreground">{selectedLiveEvent.action}</h3>
+                <p className="text-xs text-muted-foreground mt-1">{selectedLiveEvent.scope} • {selectedLiveEvent.category}</p>
+              </div>
+              <button onClick={() => setSelectedLiveEvent(null)} className="text-muted-foreground hover:text-foreground">
+                <XCircle className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-4 space-y-4 text-sm">
+              <section className="rounded-lg border border-border p-3 space-y-2">
+                <h4 className="font-semibold text-foreground">Event Summary</h4>
+                <p className="text-muted-foreground">{selectedLiveEvent.explanation}</p>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <p><span className="text-muted-foreground">Status:</span> {selectedLiveEvent.status}</p>
+                  <p><span className="text-muted-foreground">Severity:</span> {selectedLiveEvent.impactDetails.severity}</p>
+                  <p><span className="text-muted-foreground">Trigger Time:</span> {new Date(selectedLiveEvent.triggerTime).toLocaleTimeString()}</p>
+                  <p><span className="text-muted-foreground">Started:</span> {new Date(selectedLiveEvent.startedAt).toLocaleTimeString()}</p>
+                  <p><span className="text-muted-foreground">Ended:</span> {selectedLiveEvent.endedAt ? new Date(selectedLiveEvent.endedAt).toLocaleTimeString() : `In progress (${selectedLiveEvent.progress || 0}%)`}</p>
+                </div>
+              </section>
+
+              <section className="rounded-lg border border-border p-3 space-y-2">
+                <h4 className="font-semibold text-foreground">Trigger / Cause</h4>
+                <p className="text-muted-foreground">{selectedLiveEvent.triggerReason}</p>
+              </section>
+
+              <section className="rounded-lg border border-border p-3 space-y-2">
+                <h4 className="font-semibold text-foreground">Action Taken & Decision Logic</h4>
+                <p className="text-muted-foreground">{selectedLiveEvent.actionTaken}</p>
+                <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
+                  {selectedLiveEvent.decisionPath.map((step, idx) => <li key={idx}>{step}</li>)}
+                </ul>
+              </section>
+
+              <section className="rounded-lg border border-border p-3 space-y-2">
+                <h4 className="font-semibold text-foreground">Impact & Related Entities</h4>
+                <p className="text-muted-foreground">{selectedLiveEvent.impact}</p>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <p>Subscribers: {selectedLiveEvent.impactDetails.subscribersAffected.toLocaleString()}</p>
+                  <p>Services: {selectedLiveEvent.impactDetails.servicesAffected.join(', ')}</p>
+                  <p>Region/Site: {selectedLiveEvent.location.region} / {selectedLiveEvent.location.site}</p>
+                  <p>Cluster/Vendor: {selectedLiveEvent.location.cluster} / {selectedLiveEvent.location.vendor}</p>
+                  <p>KPI: {selectedLiveEvent.relatedEntities.kpi}</p>
+                  <p>Alarm: {selectedLiveEvent.relatedEntities.alarmId}</p>
+                </div>
+              </section>
+
+              <section className="rounded-lg border border-border p-3 space-y-2">
+                <h4 className="font-semibold text-foreground">Outcome / Audit</h4>
+                <p className="text-muted-foreground">{selectedLiveEvent.outcome}</p>
+                {selectedLiveEvent.rollback && (
+                  <p className="text-xs surface-warning border rounded p-2">
+                    Rollback {selectedLiveEvent.rollback.status}: {selectedLiveEvent.rollback.reason}
+                  </p>
+                )}
+                {selectedLiveEvent.failureReason && (
+                  <p className="text-xs surface-destructive border rounded p-2">
+                    Failure reason: {selectedLiveEvent.failureReason}
+                  </p>
+                )}
+                <p className="text-xs text-muted-foreground flex items-center gap-1"><ShieldCheck className="w-3 h-3" /> Policy {selectedLiveEvent.audit.policyId} • Model {selectedLiveEvent.audit.modelVersion} • Runbook {selectedLiveEvent.audit.runbookId}</p>
+              </section>
+
+              <section className="rounded-lg border border-border p-3 space-y-2">
+                <h4 className="font-semibold text-foreground">Timeline</h4>
+                <div className="space-y-2">
+                  {selectedLiveEvent.timeline.map((step, idx) => (
+                    <div key={idx} className="flex items-start gap-2 text-xs">
+                      <span className={`mt-0.5 w-2 h-2 rounded-full ${step.state === 'done' ? 'bg-green-500' : step.state === 'running' ? 'bg-amber-500' : 'bg-red-500'}`} />
+                      <div>
+                        <p className="font-semibold text-foreground">{step.label} • {new Date(step.time).toLocaleTimeString()}</p>
+                        <p className="text-muted-foreground">{step.detail}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Blast Radius Info */}
       <div className="surface-info rounded-lg border p-4">
@@ -236,6 +323,7 @@ export const AutomationCommandCenter: React.FC<AutomationCommandCenterProps> = (
                     key={activity.id}
                     onClick={() => {
                       setSelectedActivity(activity);
+                      onActivitySelect?.(activity);
                       setShowAllActivities(false);
                     }}
                     className="p-4 hover:bg-muted/40 cursor-pointer transition"

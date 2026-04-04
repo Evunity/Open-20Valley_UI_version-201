@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Save, Trash2, Download, Eye, EyeOff, ChevronDown, Search, X, RotateCcw, Calendar, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import * as XLSX from "xlsx";
@@ -87,6 +87,7 @@ export default function AnalyticsManagement() {
   const [selectedSite, setSelectedSite] = useState<string | null>(null);
   const [selectedCell, setSelectedCell] = useState<string | null>(null);
   const [openScopeDropdown, setOpenScopeDropdown] = useState<string | null>(null);
+  const kpiDropdownRef = useRef<HTMLDivElement>(null);
 
   // Available filter options
   const allTechnologies = ["2G", "3G", "4G", "5G", "O-RAN"];
@@ -244,6 +245,30 @@ export default function AnalyticsManagement() {
     selectedSite,
     selectedCell,
   ]);
+
+  useEffect(() => {
+    if (!showKPIDropdown) return;
+
+    const handlePointerDownOutside = (event: MouseEvent) => {
+      if (!kpiDropdownRef.current?.contains(event.target as Node)) {
+        setShowKPIDropdown(false);
+      }
+    };
+
+    const handleEscapeClose = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setShowKPIDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointerDownOutside);
+    document.addEventListener("keydown", handleEscapeClose);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDownOutside);
+      document.removeEventListener("keydown", handleEscapeClose);
+    };
+  }, [showKPIDropdown]);
 
   // Generate chart data for all selected KPIs
   const chartDataMap = useMemo(() => {
@@ -448,7 +473,7 @@ export default function AnalyticsManagement() {
       {/* Header - Search bar with Views and Save buttons on one row */}
       <div className="flex items-center gap-1.5 flex-wrap">
         {/* KPI Search Bar - Flex left */}
-        <div className="relative flex-1 min-w-[200px]">
+        <div ref={kpiDropdownRef} className="relative flex-1 min-w-[200px]">
           <div className={cn("bg-card border rounded p-1.5 flex items-center gap-1.5 transition-all shadow-sm", showKPIDropdown ? "border-primary ring-1 ring-primary/30 shadow-md" : "border-border hover:border-primary/30")}>
             <Search className="w-3.5 h-3.5 text-primary flex-shrink-0 stroke-2" />
             <input

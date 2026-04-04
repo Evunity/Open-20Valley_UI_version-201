@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Eye, Hammer, Lock, Plus, Settings, Brain, Lightbulb, Shield, Map, TrendingUp } from 'lucide-react';
+import { Eye, Hammer, Lock, Plus, Settings, Brain, Lightbulb, Shield, Map, TrendingUp, Search, Play, Pause, Calendar, Pencil, Trash2, Copy, Cpu, SlidersHorizontal } from 'lucide-react';
 import { AutomationCommandCenter } from '../components/AutomationCommandCenter';
 import { AutomationBuilder } from '../components/AutomationBuilder';
 import { WorkflowBuilder } from '../components/WorkflowBuilder';
@@ -24,6 +24,8 @@ type WorkspaceType =
   | 'learning_engine'
   | 'trust_scoring'
   | 'builder'
+  | 'workflow_library'
+  | 'ai_models'
   | 'runbook'
   | 'policy'
   | 'orchestrator'
@@ -45,6 +47,8 @@ const WORKSPACES: WorkspaceTab[] = [
   { id: 'trust_scoring', label: 'Trust Score', domain: 'awareness' },
   // Design Layer
   { id: 'builder', label: 'Builder', domain: 'design' },
+  { id: 'workflow_library', label: 'Saved Workflows', domain: 'design' },
+  { id: 'ai_models', label: 'AI Models', domain: 'design' },
   { id: 'runbook', label: 'Runbook Designer', domain: 'design' },
   { id: 'policy', label: 'Policy & Guardrails', domain: 'design' },
   // Execution Layer
@@ -73,6 +77,56 @@ interface SavedRunbook {
   createdAt: string;
 }
 
+type WorkflowStatus = 'draft' | 'active' | 'inactive';
+type WorkflowDay = 'Mon' | 'Tue' | 'Wed' | 'Thu' | 'Fri' | 'Sat' | 'Sun';
+
+interface WorkflowSchedule {
+  enabled: boolean;
+  daysOfWeek: WorkflowDay[];
+  startTime: string;
+  endTime: string;
+  timezone: string;
+}
+
+interface SavedWorkflowRecord {
+  id: string;
+  name: string;
+  description: string;
+  status: WorkflowStatus;
+  createdAt: string;
+  updatedAt: string;
+  triggerType: string;
+  nodeCount: number;
+  schedule: WorkflowSchedule;
+  owner: string;
+  lastRun?: string;
+  nextRun?: string;
+  definition: any;
+}
+
+type ModelStatus = 'draft' | 'active' | 'inactive';
+interface AIModelTemplate {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  requiredFields: Array<{ key: string; label: string; type: 'text' | 'number' | 'select'; options?: string[] }>;
+}
+
+interface ConfiguredModelRecord {
+  id: string;
+  templateId: string;
+  modelName: string;
+  category: string;
+  status: ModelStatus;
+  schedule: WorkflowSchedule;
+  inputs: Record<string, string>;
+  scope: string;
+  owner: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export const AutomationManagement: React.FC = () => {
   const [activeDomain, setActiveDomain] = useState<SuperDomain>('awareness');
   const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceType>('command_center');
@@ -82,6 +136,31 @@ export const AutomationManagement: React.FC = () => {
   const [showPolicyDialog, setShowPolicyDialog] = useState(false);
   const [policies, setPolicies] = useState(generateMockPolicies());
   const [runbooks, setRunbooks] = useState<SavedRunbook[]>([]);
+  const [savedWorkflows, setSavedWorkflows] = useState<SavedWorkflowRecord[]>([]);
+  const [workflowSearch, setWorkflowSearch] = useState('');
+  const [workflowStatusFilter, setWorkflowStatusFilter] = useState<'all' | WorkflowStatus>('all');
+  const [editingWorkflowId, setEditingWorkflowId] = useState<string | null>(null);
+  const [deleteWorkflowId, setDeleteWorkflowId] = useState<string | null>(null);
+  const [scheduleWorkflowId, setScheduleWorkflowId] = useState<string | null>(null);
+  const [aiModelsTab, setAiModelsTab] = useState<'setup' | 'management'>('setup');
+  const [modelSearch, setModelSearch] = useState('');
+  const [selectedModelTemplateId, setSelectedModelTemplateId] = useState<string>('');
+  const [configuredModels, setConfiguredModels] = useState<ConfiguredModelRecord[]>([]);
+  const [modelFormInputs, setModelFormInputs] = useState<Record<string, string>>({});
+  const [modelFormName, setModelFormName] = useState('');
+  const [modelFormScope, setModelFormScope] = useState('Network');
+  const [modelFormSchedule, setModelFormSchedule] = useState<WorkflowSchedule>({
+    enabled: false,
+    daysOfWeek: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+    startTime: '09:00',
+    endTime: '18:00',
+    timezone: 'UTC',
+  });
+  const [modelFormErrors, setModelFormErrors] = useState<string[]>([]);
+  const [editingModelId, setEditingModelId] = useState<string | null>(null);
+  const [modelManagementSearch, setModelManagementSearch] = useState('');
+  const [modelStatusFilter, setModelStatusFilter] = useState<'all' | ModelStatus>('all');
+  const [modelCategoryFilter, setModelCategoryFilter] = useState<'all' | string>('all');
   const [policyForm, setPolicyForm] = useState<PolicyForm>({
     name: '',
     description: '',
@@ -90,8 +169,154 @@ export const AutomationManagement: React.FC = () => {
   });
   const [currentConstraint, setCurrentConstraint] = useState('');
 
+  const aiModelTemplates: AIModelTemplate[] = [
+    {
+      id: 'anomaly_detection',
+      name: 'Anomaly Detection',
+      category: 'Detection',
+      description: 'Detects abnormal KPI and alarm behavior patterns in near real time.',
+      requiredFields: [
+        { key: 'kpiSource', label: 'KPI Source', type: 'select', options: ['RAN KPI Stream', 'Transport KPI Stream', 'Core KPI Stream'] },
+        { key: 'sensitivity', label: 'Sensitivity (1-10)', type: 'number' },
+        { key: 'threshold', label: 'Anomaly Threshold', type: 'number' },
+      ],
+    },
+    {
+      id: 'forecasting',
+      name: 'Traffic Forecasting',
+      category: 'Forecasting',
+      description: 'Forecasts future traffic and congestion risk for proactive operations.',
+      requiredFields: [
+        { key: 'historyWindow', label: 'History Window (days)', type: 'number' },
+        { key: 'predictionHorizon', label: 'Prediction Horizon (hours)', type: 'number' },
+        { key: 'dataSource', label: 'Data Source', type: 'select', options: ['Data Lake', 'Streaming Bus', 'Warehouse'] },
+      ],
+    },
+    {
+      id: 'root_cause',
+      name: 'Root Cause Analyzer',
+      category: 'RCA',
+      description: 'Correlates alarms/KPIs to identify probable root cause with decision hints.',
+      requiredFields: [
+        { key: 'alarmSource', label: 'Alarm Source', type: 'select', options: ['OSS Alarm Feed', 'Unified Alarm Bus'] },
+        { key: 'confidenceFloor', label: 'Minimum Confidence %', type: 'number' },
+        { key: 'dependencyGraph', label: 'Dependency Graph Version', type: 'text' },
+      ],
+    },
+    {
+      id: 'recommendation',
+      name: 'Optimization Recommender',
+      category: 'Optimization',
+      description: 'Recommends autonomous optimization actions based on policy constraints.',
+      requiredFields: [
+        { key: 'policyProfile', label: 'Policy Profile', type: 'select', options: ['Conservative', 'Balanced', 'Aggressive'] },
+        { key: 'targetKPI', label: 'Target KPI', type: 'select', options: ['CSSR', 'Latency', 'Drop Rate', 'Throughput'] },
+        { key: 'outputDestination', label: 'Output Destination', type: 'text' },
+      ],
+    },
+  ];
+
+  const defaultSchedule: WorkflowSchedule = {
+    enabled: false,
+    daysOfWeek: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+    startTime: '09:00',
+    endTime: '18:00',
+    timezone: 'UTC',
+  };
+
+  const getScheduleSummary = (schedule: WorkflowSchedule, status: WorkflowStatus) => {
+    if (status === 'inactive') return 'Inactive';
+    if (!schedule.enabled) return 'Active: Daily, 24h';
+    const dayText = schedule.daysOfWeek.length === 7 ? 'Daily' : schedule.daysOfWeek.join(', ');
+    return `Scheduled: ${dayText}, ${schedule.startTime}-${schedule.endTime}`;
+  };
+
+  const workflowBeingEdited = editingWorkflowId
+    ? savedWorkflows.find((wf) => wf.id === editingWorkflowId)
+    : null;
+
+  const filteredWorkflows = savedWorkflows.filter((workflow) => {
+    const matchesSearch = workflow.name.toLowerCase().includes(workflowSearch.toLowerCase());
+    const matchesStatus = workflowStatusFilter === 'all' || workflow.status === workflowStatusFilter;
+    return matchesSearch && matchesStatus;
+  });
+  const workflowForSchedule = savedWorkflows.find((workflow) => workflow.id === scheduleWorkflowId);
+  const workflowForDelete = savedWorkflows.find((workflow) => workflow.id === deleteWorkflowId);
+  const selectedModelTemplate = aiModelTemplates.find((model) => model.id === selectedModelTemplateId) || null;
+  const filteredModelTemplates = aiModelTemplates.filter((template) =>
+    template.name.toLowerCase().includes(modelSearch.toLowerCase()) ||
+    template.category.toLowerCase().includes(modelSearch.toLowerCase())
+  );
+  const filteredConfiguredModels = configuredModels.filter((model) => {
+    const searchMatch = model.modelName.toLowerCase().includes(modelManagementSearch.toLowerCase());
+    const statusMatch = modelStatusFilter === 'all' || model.status === modelStatusFilter;
+    const categoryMatch = modelCategoryFilter === 'all' || model.category === modelCategoryFilter;
+    return searchMatch && statusMatch && categoryMatch;
+  });
+
   const domainWorkspaces = WORKSPACES.filter(w => w.domain === activeDomain);
   const currentDomain = DOMAINS.find(d => d.id === activeDomain);
+
+  const resetModelSetupForm = () => {
+    setEditingModelId(null);
+    setSelectedModelTemplateId('');
+    setModelFormName('');
+    setModelFormScope('Network');
+    setModelFormInputs({});
+    setModelFormSchedule({
+      enabled: false,
+      daysOfWeek: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+      startTime: '09:00',
+      endTime: '18:00',
+      timezone: 'UTC',
+    });
+    setModelFormErrors([]);
+  };
+
+  const validateModelForm = () => {
+    if (!selectedModelTemplate) return ['Please select a model template.'];
+    const errors: string[] = [];
+    if (!modelFormName.trim()) errors.push('Model name is required.');
+    selectedModelTemplate.requiredFields.forEach((field) => {
+      if (!modelFormInputs[field.key]?.toString().trim()) {
+        errors.push(`${field.label} is required.`);
+      }
+    });
+    if (modelFormSchedule.enabled && (!modelFormSchedule.startTime || !modelFormSchedule.endTime)) {
+      errors.push('Start and end time are required when scheduling is enabled.');
+    }
+    return errors;
+  };
+
+  const handleSaveModelConfiguration = () => {
+    const errors = validateModelForm();
+    setModelFormErrors(errors);
+    if (errors.length > 0 || !selectedModelTemplate) return;
+
+    const now = new Date().toISOString();
+    const record: ConfiguredModelRecord = {
+      id: editingModelId || `model_${Date.now()}`,
+      templateId: selectedModelTemplate.id,
+      modelName: modelFormName,
+      category: selectedModelTemplate.category,
+      status: editingModelId ? configuredModels.find((item) => item.id === editingModelId)?.status || 'draft' : 'draft',
+      schedule: modelFormSchedule,
+      inputs: modelFormInputs,
+      scope: modelFormScope,
+      owner: 'AI Operations Team',
+      createdAt: editingModelId ? configuredModels.find((item) => item.id === editingModelId)?.createdAt || now : now,
+      updatedAt: now,
+    };
+
+    setConfiguredModels((prev) => {
+      if (editingModelId) {
+        return prev.map((item) => (item.id === editingModelId ? record : item));
+      }
+      return [record, ...prev];
+    });
+    setAiModelsTab('management');
+    resetModelSetupForm();
+  };
 
   const renderWorkspaceContent = () => {
     switch (activeWorkspace) {
@@ -107,11 +332,41 @@ export const AutomationManagement: React.FC = () => {
       case 'builder':
         return showBuilder ? (
           <WorkflowBuilder
-            onSave={() => {
+            initialWorkflow={workflowBeingEdited?.definition}
+            onSave={(workflow) => {
+              const triggerNode = workflow.nodes.find((node: any) => node.type === 'trigger');
+              const now = new Date().toISOString();
+              setSavedWorkflows((previous) => {
+                const existing = previous.find((item) => item.id === workflow.id);
+                const baseRecord: SavedWorkflowRecord = {
+                  id: workflow.id,
+                  name: workflow.name,
+                  description: workflow.description || 'No description provided',
+                  status: workflow.active ? 'active' : existing?.status || 'draft',
+                  createdAt: existing?.createdAt || now,
+                  updatedAt: now,
+                  triggerType: triggerNode?.label || triggerNode?.type || 'Manual Trigger',
+                  nodeCount: workflow.nodes.length,
+                  schedule: existing?.schedule || defaultSchedule,
+                  owner: existing?.owner || 'Automation Operator',
+                  lastRun: existing?.lastRun,
+                  nextRun: existing?.nextRun,
+                  definition: workflow,
+                };
+
+                if (existing) {
+                  return previous.map((item) => (item.id === workflow.id ? baseRecord : item));
+                }
+                return [baseRecord, ...previous];
+              });
               setShowBuilder(false);
-              alert('✓ Automation workflow saved successfully!');
+              setEditingWorkflowId(null);
+              setActiveWorkspace('workflow_library');
             }}
-            onCancel={() => setShowBuilder(false)}
+            onCancel={() => {
+              setShowBuilder(false);
+              setEditingWorkflowId(null);
+            }}
           />
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center p-4 bg-background">
@@ -186,6 +441,382 @@ export const AutomationManagement: React.FC = () => {
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
+      case 'workflow_library':
+        return (
+          <div className="flex-1 overflow-y-auto p-4 bg-background">
+            <div className="max-w-6xl mx-auto space-y-4">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                <div>
+                  <h2 className="text-lg font-bold text-foreground">Workflow Library</h2>
+                  <p className="text-xs text-muted-foreground">Manage saved workflows, lifecycle state, and working-hour schedules.</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setEditingWorkflowId(null);
+                    setShowBuilder(true);
+                    setActiveWorkspace('builder');
+                  }}
+                  className="px-3 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:bg-primary/90 transition flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  New Workflow
+                </button>
+              </div>
+
+              <div className="bg-card border border-border rounded-lg p-3 flex flex-col md:flex-row gap-2 md:items-center">
+                <div className="flex items-center gap-2 flex-1">
+                  <Search className="w-4 h-4 text-muted-foreground" />
+                  <input
+                    value={workflowSearch}
+                    onChange={(e) => setWorkflowSearch(e.target.value)}
+                    placeholder="Search workflow by name..."
+                    className="w-full bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground"
+                  />
+                </div>
+                <select
+                  value={workflowStatusFilter}
+                  onChange={(e) => setWorkflowStatusFilter(e.target.value as any)}
+                  className="px-2 py-1.5 rounded border border-border bg-background text-xs"
+                >
+                  <option value="all">All statuses</option>
+                  <option value="draft">Draft</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+
+              <div className="bg-card border border-border rounded-lg overflow-hidden">
+                <div className="grid grid-cols-12 gap-2 px-3 py-2 text-[11px] font-semibold text-muted-foreground border-b border-border bg-muted/30">
+                  <div className="col-span-3">Workflow</div>
+                  <div className="col-span-1">Status</div>
+                  <div className="col-span-1">Trigger</div>
+                  <div className="col-span-1">Nodes</div>
+                  <div className="col-span-3">Schedule</div>
+                  <div className="col-span-1">Updated</div>
+                  <div className="col-span-2 text-right">Actions</div>
+                </div>
+                {filteredWorkflows.length === 0 ? (
+                  <div className="p-8 text-center text-sm text-muted-foreground">
+                    No saved workflows yet. Save one from Builder to manage it here.
+                  </div>
+                ) : (
+                  filteredWorkflows.map((workflow) => (
+                    <div key={workflow.id} className="grid grid-cols-12 gap-2 px-3 py-2.5 border-b border-border/60 text-xs items-center hover:bg-muted/20">
+                      <div className="col-span-3 min-w-0">
+                        <p className="font-semibold text-foreground truncate">{workflow.name}</p>
+                        <p className="text-muted-foreground truncate">{workflow.description}</p>
+                      </div>
+                      <div className="col-span-1">
+                        <span className={`px-2 py-1 rounded-full text-[10px] font-semibold ${
+                          workflow.status === 'active'
+                            ? 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300'
+                            : workflow.status === 'inactive'
+                              ? 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
+                              : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                        }`}>
+                          {workflow.status}
+                        </span>
+                      </div>
+                      <div className="col-span-1 text-muted-foreground">{workflow.triggerType}</div>
+                      <div className="col-span-1 text-muted-foreground">{workflow.nodeCount}</div>
+                      <div className="col-span-3 text-muted-foreground">{getScheduleSummary(workflow.schedule, workflow.status)}</div>
+                      <div className="col-span-1 text-muted-foreground">{new Date(workflow.updatedAt).toLocaleDateString()}</div>
+                      <div className="col-span-2 flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => {
+                            setEditingWorkflowId(workflow.id);
+                            setShowBuilder(true);
+                            setActiveWorkspace('builder');
+                          }}
+                          className="p-1.5 rounded border border-border hover:bg-muted"
+                          title="Open/Edit"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => setSavedWorkflows((prev) => prev.map((item) => item.id === workflow.id ? { ...item, status: item.status === 'active' ? 'inactive' : 'active' } : item))}
+                          className="p-1.5 rounded border border-border hover:bg-muted"
+                          title="Activate/Deactivate"
+                        >
+                          {workflow.status === 'active' ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+                        </button>
+                        <button
+                          onClick={() => setScheduleWorkflowId(workflow.id)}
+                          className="p-1.5 rounded border border-border hover:bg-muted"
+                          title="Schedule"
+                        >
+                          <Calendar className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => setSavedWorkflows((prev) => [{ ...workflow, id: `workflow_${Date.now()}`, name: `${workflow.name} (Copy)`, status: 'draft', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }, ...prev])}
+                          className="p-1.5 rounded border border-border hover:bg-muted"
+                          title="Duplicate"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => setDeleteWorkflowId(workflow.id)}
+                          className="p-1.5 rounded border border-destructive/40 text-destructive hover:bg-destructive/10"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'ai_models':
+        return (
+          <div className="flex-1 overflow-y-auto p-4 bg-background">
+            <div className="max-w-6xl mx-auto space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-bold text-foreground flex items-center gap-2"><Cpu className="w-5 h-5 text-primary" /> AI Models</h2>
+                  <p className="text-xs text-muted-foreground">Configure, schedule, and manage operational AI models.</p>
+                </div>
+              </div>
+
+              <div className="flex gap-1 bg-muted/40 p-1 rounded-lg w-fit">
+                <button
+                  onClick={() => setAiModelsTab('setup')}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-md ${aiModelsTab === 'setup' ? 'bg-card border border-border text-foreground' : 'text-muted-foreground'}`}
+                >
+                  Model Setup
+                </button>
+                <button
+                  onClick={() => setAiModelsTab('management')}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-md ${aiModelsTab === 'management' ? 'bg-card border border-border text-foreground' : 'text-muted-foreground'}`}
+                >
+                  Model Management
+                </button>
+              </div>
+
+              {aiModelsTab === 'setup' ? (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  <div className="bg-card border border-border rounded-lg p-3 space-y-3">
+                    <div className="flex items-center gap-2 border border-border rounded-md px-2.5 py-2">
+                      <Search className="w-4 h-4 text-muted-foreground" />
+                      <input
+                        value={modelSearch}
+                        onChange={(e) => setModelSearch(e.target.value)}
+                        placeholder="Search model..."
+                        className="w-full bg-transparent outline-none text-sm"
+                      />
+                    </div>
+                    <div className="space-y-2 max-h-[480px] overflow-y-auto">
+                      {filteredModelTemplates.map((template) => (
+                        <button
+                          key={template.id}
+                          onClick={() => {
+                            setSelectedModelTemplateId(template.id);
+                            setModelFormErrors([]);
+                          }}
+                          className={`w-full text-left p-3 rounded-lg border transition ${selectedModelTemplateId === template.id ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/30'}`}
+                        >
+                          <p className="text-sm font-semibold text-foreground">{template.name}</p>
+                          <p className="text-[11px] text-muted-foreground mt-1">{template.category} • {template.description}</p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="lg:col-span-2 bg-card border border-border rounded-lg p-4 space-y-4">
+                    {!selectedModelTemplate ? (
+                      <div className="h-full min-h-[320px] flex items-center justify-center text-sm text-muted-foreground">
+                        Select a model from the left panel to configure required inputs.
+                      </div>
+                    ) : (
+                      <>
+                        <div className="space-y-1">
+                          <h3 className="text-base font-bold text-foreground">{selectedModelTemplate.name} Setup</h3>
+                          <p className="text-xs text-muted-foreground">{selectedModelTemplate.description}</p>
+                        </div>
+
+                        {modelFormErrors.length > 0 && (
+                          <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive space-y-1">
+                            {modelFormErrors.map((error, idx) => <p key={idx}>• {error}</p>)}
+                          </div>
+                        )}
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-xs font-semibold text-foreground block mb-1">Configured Model Name *</label>
+                            <input
+                              value={modelFormName}
+                              onChange={(e) => setModelFormName(e.target.value)}
+                              className="w-full px-3 py-2 rounded border border-border bg-background text-sm"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs font-semibold text-foreground block mb-1">Scope *</label>
+                            <select
+                              value={modelFormScope}
+                              onChange={(e) => setModelFormScope(e.target.value)}
+                              className="w-full px-3 py-2 rounded border border-border bg-background text-sm"
+                            >
+                              <option>Network</option>
+                              <option>Region</option>
+                              <option>Cluster</option>
+                              <option>Site</option>
+                            </select>
+                          </div>
+
+                          {selectedModelTemplate.requiredFields.map((field) => (
+                            <div key={field.key}>
+                              <label className="text-xs font-semibold text-foreground block mb-1">{field.label} *</label>
+                              {field.type === 'select' ? (
+                                <select
+                                  value={modelFormInputs[field.key] || ''}
+                                  onChange={(e) => setModelFormInputs((prev) => ({ ...prev, [field.key]: e.target.value }))}
+                                  className="w-full px-3 py-2 rounded border border-border bg-background text-sm"
+                                >
+                                  <option value="">Select...</option>
+                                  {field.options?.map((option) => <option key={option}>{option}</option>)}
+                                </select>
+                              ) : (
+                                <input
+                                  type={field.type}
+                                  value={modelFormInputs[field.key] || ''}
+                                  onChange={(e) => setModelFormInputs((prev) => ({ ...prev, [field.key]: e.target.value }))}
+                                  className="w-full px-3 py-2 rounded border border-border bg-background text-sm"
+                                />
+                              )}
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="rounded-lg border border-border p-3 space-y-3">
+                          <h4 className="text-sm font-semibold text-foreground flex items-center gap-2"><SlidersHorizontal className="w-4 h-4" /> Scheduling</h4>
+                          <label className="flex items-center gap-2 text-xs text-foreground">
+                            <input
+                              type="checkbox"
+                              checked={modelFormSchedule.enabled}
+                              onChange={(e) => setModelFormSchedule((prev) => ({ ...prev, enabled: e.target.checked }))}
+                            />
+                            Enable schedule window (disable = always active)
+                          </label>
+                          <div className="grid grid-cols-7 gap-1">
+                            {(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as WorkflowDay[]).map((day) => {
+                              const selected = modelFormSchedule.daysOfWeek.includes(day);
+                              return (
+                                <button
+                                  key={day}
+                                  onClick={() =>
+                                    setModelFormSchedule((prev) => ({
+                                      ...prev,
+                                      daysOfWeek: selected ? prev.daysOfWeek.filter((d) => d !== day) : [...prev.daysOfWeek, day],
+                                    }))
+                                  }
+                                  className={`px-2 py-1 rounded text-xs border ${selected ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground'}`}
+                                >
+                                  {day}
+                                </button>
+                              );
+                            })}
+                          </div>
+                          <div className="grid grid-cols-3 gap-2">
+                            <input type="time" value={modelFormSchedule.startTime} onChange={(e) => setModelFormSchedule((prev) => ({ ...prev, startTime: e.target.value }))} className="px-2 py-1.5 rounded border border-border bg-background text-sm" />
+                            <input type="time" value={modelFormSchedule.endTime} onChange={(e) => setModelFormSchedule((prev) => ({ ...prev, endTime: e.target.value }))} className="px-2 py-1.5 rounded border border-border bg-background text-sm" />
+                            <input value={modelFormSchedule.timezone} onChange={(e) => setModelFormSchedule((prev) => ({ ...prev, timezone: e.target.value }))} className="px-2 py-1.5 rounded border border-border bg-background text-sm" placeholder="Timezone" />
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-end gap-2">
+                          <button onClick={resetModelSetupForm} className="px-3 py-1.5 rounded border border-border text-sm hover:bg-muted">Reset</button>
+                          <button onClick={handleSaveModelConfiguration} className="px-3 py-1.5 rounded bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90">
+                            {editingModelId ? 'Update Model' : 'Save Configuration'}
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="bg-card border border-border rounded-lg p-3 grid grid-cols-1 md:grid-cols-4 gap-2">
+                    <input value={modelManagementSearch} onChange={(e) => setModelManagementSearch(e.target.value)} placeholder="Search configured model..." className="px-2 py-1.5 rounded border border-border bg-background text-sm md:col-span-2" />
+                    <select value={modelStatusFilter} onChange={(e) => setModelStatusFilter(e.target.value as any)} className="px-2 py-1.5 rounded border border-border bg-background text-sm">
+                      <option value="all">All status</option>
+                      <option value="draft">Draft</option>
+                      <option value="active">Active</option>
+                      <option value="inactive">Inactive</option>
+                    </select>
+                    <select value={modelCategoryFilter} onChange={(e) => setModelCategoryFilter(e.target.value)} className="px-2 py-1.5 rounded border border-border bg-background text-sm">
+                      <option value="all">All categories</option>
+                      {[...new Set(configuredModels.map((model) => model.category))].map((cat) => <option key={cat}>{cat}</option>)}
+                    </select>
+                  </div>
+
+                  <div className="bg-card border border-border rounded-lg overflow-hidden">
+                    <div className="grid grid-cols-12 gap-2 px-3 py-2 text-[11px] font-semibold text-muted-foreground border-b border-border bg-muted/30">
+                      <div className="col-span-3">Model</div>
+                      <div className="col-span-2">Category</div>
+                      <div className="col-span-1">Status</div>
+                      <div className="col-span-3">Schedule</div>
+                      <div className="col-span-1">Updated</div>
+                      <div className="col-span-2 text-right">Actions</div>
+                    </div>
+                    {filteredConfiguredModels.length === 0 ? (
+                      <div className="p-8 text-center text-sm text-muted-foreground">No configured models found.</div>
+                    ) : (
+                      filteredConfiguredModels.map((model) => (
+                        <div key={model.id} className="grid grid-cols-12 gap-2 px-3 py-2.5 border-b border-border/60 text-xs items-center hover:bg-muted/20">
+                          <div className="col-span-3">
+                            <p className="font-semibold text-foreground">{model.modelName}</p>
+                            <p className="text-muted-foreground">{model.scope} • {model.owner}</p>
+                          </div>
+                          <div className="col-span-2 text-muted-foreground">{model.category}</div>
+                          <div className="col-span-1">
+                            <span className={`px-2 py-1 rounded-full text-[10px] font-semibold ${model.status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300' : model.status === 'inactive' ? 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'}`}>{model.status}</span>
+                          </div>
+                          <div className="col-span-3 text-muted-foreground">{getScheduleSummary(model.schedule, model.status === 'draft' ? 'active' : model.status)}</div>
+                          <div className="col-span-1 text-muted-foreground">{new Date(model.updatedAt).toLocaleDateString()}</div>
+                          <div className="col-span-2 flex items-center justify-end gap-1">
+                            <button
+                              onClick={() => {
+                                setAiModelsTab('setup');
+                                setEditingModelId(model.id);
+                                setSelectedModelTemplateId(model.templateId);
+                                setModelFormName(model.modelName);
+                                setModelFormScope(model.scope);
+                                setModelFormInputs(model.inputs);
+                                setModelFormSchedule(model.schedule);
+                              }}
+                              className="p-1.5 rounded border border-border hover:bg-muted"
+                              title="Edit model"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => setConfiguredModels((prev) => prev.map((item) => item.id === model.id ? { ...item, status: item.status === 'active' ? 'inactive' : 'active', updatedAt: new Date().toISOString() } : item))}
+                              className="p-1.5 rounded border border-border hover:bg-muted"
+                              title="Activate/Deactivate"
+                            >
+                              {model.status === 'active' ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+                            </button>
+                            <button
+                              onClick={() => setConfiguredModels((prev) => prev.filter((item) => item.id !== model.id))}
+                              className="p-1.5 rounded border border-destructive/40 text-destructive hover:bg-destructive/10"
+                              title="Delete model"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -317,6 +948,153 @@ export const AutomationManagement: React.FC = () => {
       <div className="flex-1 overflow-hidden flex">
         {renderWorkspaceContent()}
       </div>
+
+      {/* Schedule Editor Modal */}
+      {workflowForSchedule && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-lg bg-card border border-border rounded-lg p-5 space-y-4">
+            <div>
+              <h3 className="text-base font-bold text-foreground">Schedule Workflow</h3>
+              <p className="text-xs text-muted-foreground mt-1">{workflowForSchedule.name}</p>
+            </div>
+
+            <label className="flex items-center gap-2 text-sm text-foreground">
+              <input
+                type="checkbox"
+                checked={workflowForSchedule.schedule.enabled}
+                onChange={(e) => {
+                  const enabled = e.target.checked;
+                  setSavedWorkflows((prev) =>
+                    prev.map((item) =>
+                      item.id === workflowForSchedule.id
+                        ? { ...item, schedule: { ...item.schedule, enabled }, updatedAt: new Date().toISOString() }
+                        : item
+                    )
+                  );
+                }}
+              />
+              Enable scheduling window
+            </label>
+
+            <div>
+              <p className="text-xs font-semibold text-foreground mb-2">Days of Week</p>
+              <div className="grid grid-cols-7 gap-1">
+                {(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as WorkflowDay[]).map((day) => {
+                  const selected = workflowForSchedule.schedule.daysOfWeek.includes(day);
+                  return (
+                    <button
+                      key={day}
+                      onClick={() => {
+                        setSavedWorkflows((prev) =>
+                          prev.map((item) => {
+                            if (item.id !== workflowForSchedule.id) return item;
+                            const days = selected
+                              ? item.schedule.daysOfWeek.filter((d) => d !== day)
+                              : [...item.schedule.daysOfWeek, day];
+                            return { ...item, schedule: { ...item.schedule, daysOfWeek: days }, updatedAt: new Date().toISOString() };
+                          })
+                        );
+                      }}
+                      className={`px-2 py-1 rounded text-xs border ${selected ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-border text-muted-foreground'}`}
+                    >
+                      {day}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-semibold text-foreground block mb-1">Start Time</label>
+                <input
+                  type="time"
+                  value={workflowForSchedule.schedule.startTime}
+                  onChange={(e) =>
+                    setSavedWorkflows((prev) =>
+                      prev.map((item) =>
+                        item.id === workflowForSchedule.id
+                          ? { ...item, schedule: { ...item.schedule, startTime: e.target.value }, updatedAt: new Date().toISOString() }
+                          : item
+                      )
+                    )
+                  }
+                  className="w-full px-2 py-1.5 rounded border border-border bg-background text-sm"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-foreground block mb-1">End Time</label>
+                <input
+                  type="time"
+                  value={workflowForSchedule.schedule.endTime}
+                  onChange={(e) =>
+                    setSavedWorkflows((prev) =>
+                      prev.map((item) =>
+                        item.id === workflowForSchedule.id
+                          ? { ...item, schedule: { ...item.schedule, endTime: e.target.value }, updatedAt: new Date().toISOString() }
+                          : item
+                      )
+                    )
+                  }
+                  className="w-full px-2 py-1.5 rounded border border-border bg-background text-sm"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-foreground block mb-1">Timezone</label>
+              <input
+                type="text"
+                value={workflowForSchedule.schedule.timezone}
+                onChange={(e) =>
+                  setSavedWorkflows((prev) =>
+                    prev.map((item) =>
+                      item.id === workflowForSchedule.id
+                        ? { ...item, schedule: { ...item.schedule, timezone: e.target.value }, updatedAt: new Date().toISOString() }
+                        : item
+                    )
+                  )
+                }
+                className="w-full px-2 py-1.5 rounded border border-border bg-background text-sm"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button onClick={() => setScheduleWorkflowId(null)} className="px-3 py-1.5 rounded border border-border text-sm hover:bg-muted">
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {workflowForDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md bg-card border border-border rounded-lg p-5 space-y-4">
+            <div>
+              <h3 className="text-base font-bold text-foreground">Delete Workflow</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Are you sure you want to delete <span className="font-semibold text-foreground">{workflowForDelete.name}</span>? This cannot be undone.
+              </p>
+            </div>
+            <div className="flex items-center justify-end gap-2">
+              <button onClick={() => setDeleteWorkflowId(null)} className="px-3 py-1.5 rounded border border-border text-sm hover:bg-muted">
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setSavedWorkflows((prev) => prev.filter((item) => item.id !== workflowForDelete.id));
+                  setDeleteWorkflowId(null);
+                }}
+                className="px-3 py-1.5 rounded bg-destructive text-destructive-foreground text-sm"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Human-in-Loop Approval Dialog */}
       <HumanInLoopDialog
