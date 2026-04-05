@@ -9,9 +9,29 @@ import 'leaflet/dist/leaflet.css';
 interface GeospatialNetworkMapProps {
   topology: TopologyObject[];
   layers: LayerSettings;
+  customLayers?: CustomMapLayer[];
   selectedObject?: TopologyObject | null;
   onObjectSelect?: (object: TopologyObject) => void;
   showPredictiveRisks?: boolean;
+}
+
+export type CustomLayerType = 'ran' | 'transport' | 'alarms' | 'custom-markers' | 'kpi-coverage' | 'region-boundary' | 'site-group';
+
+export interface CustomLayerMarker {
+  id: string;
+  latitude: number;
+  longitude: number;
+  label: string;
+}
+
+export interface CustomMapLayer {
+  id: string;
+  name: string;
+  type: CustomLayerType;
+  sourceType?: string;
+  visible: boolean;
+  color: string;
+  markers: CustomLayerMarker[];
 }
 
 // Custom marker icons for different health states
@@ -114,18 +134,28 @@ const MapController: React.FC<{ onZoom?: (level: number) => void }> = ({ onZoom 
 export const GeospatialNetworkMap: React.FC<GeospatialNetworkMapProps> = ({
   topology,
   layers,
+  customLayers = [],
   selectedObject,
   onObjectSelect,
   showPredictiveRisks = false
 }) => {
   const [zoomLevel, setZoomLevel] = useState(6);
 
-  // Filter objects with valid geo coordinates - only show important types to reduce clutter
-  const geoObjects = topology.filter(obj =>
-    obj.geoCoordinates &&
-    obj.type !== 'country' &&
-    (obj.type === 'site' || obj.type === 'cluster' || obj.type === 'region')
-  );
+  const RAN_TYPES = new Set(['region', 'cluster', 'site', 'cell', 'sector', 'ran', 'rru', 'bbu']);
+  const TRANSPORT_TYPES = new Set(['transport', 'interface', 'port', 'board', 'shelf', 'cabinet', 'rack', 'link', 'equipment', 'module']);
+
+  // Filter objects with valid geo coordinates and enforce layer visibility semantics.
+  const geoObjects = topology.filter(obj => {
+    if (!obj.geoCoordinates || obj.type === 'country') return false;
+    const isRan = RAN_TYPES.has(obj.type);
+    const isTransport = TRANSPORT_TYPES.has(obj.type);
+
+    if (layers.ranOnly && !isRan) return false;
+    if (layers.transportOnly && !isTransport) return false;
+
+    // Default behavior: show known map-capable categories.
+    return isRan || isTransport;
+  });
 
   // Calculate statistics
   const healthyCount = geoObjects.filter(o => o.healthState === 'healthy').length;
@@ -173,6 +203,7 @@ export const GeospatialNetworkMap: React.FC<GeospatialNetworkMapProps> = ({
             ];
 
             const alarmCount = obj.alarmSummary.critical + obj.alarmSummary.major;
+            const markerLabel = layers.alarms && alarmCount > 0 ? `${obj.name} • ${alarmCount} alarms` : obj.name;
 
             return (
               <Marker
@@ -185,7 +216,7 @@ export const GeospatialNetworkMap: React.FC<GeospatialNetworkMapProps> = ({
               >
                 <Popup>
                   <div className="min-w-[280px] text-foreground">
-                    <h4 className="font-bold text-sm mb-2">{obj.name}</h4>
+                    <h4 className="font-bold text-sm mb-2">{markerLabel}</h4>
                     <div className="space-y-1 text-xs">
                       <p><span className="font-semibold">Type:</span> {obj.type}</p>
                       <p><span className="font-semibold">Vendor:</span> {obj.vendor || 'Unknown'}</p>
@@ -212,6 +243,69 @@ export const GeospatialNetworkMap: React.FC<GeospatialNetworkMapProps> = ({
               </Marker>
             );
           })}
+
+          {/* Alarm overlay markers */}
+          {layers.alarms && geoObjects
+            .filter(obj => (obj.alarmSummary.critical + obj.alarmSummary.major) > 0)
+            .map(obj => {
+              if (!obj.geoCoordinates) return null;
+              const alarmCount = obj.alarmSummary.critical + obj.alarmSummary.major;
+              const alarmIcon = L.divIcon({
+                className: 'alarm-overlay-marker',
+                html: `<div style="position:relative;width:26px;height:26px;display:flex;align-items:center;justify-content:center;">
+                        <span style="position:absolute;width:24px;height:24px;border-radius:9999px;border:2px solid #ef4444;background:rgba(239,68,68,0.2);animation:pulse 1.8s ease-in-out infinite;"></span>
+                        <span style="position:relative;background:#ef4444;color:white;border-radius:9999px;min-width:18px;height:18px;padding:0 4px;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;">${alarmCount}</span>
+                      </div>`,
+                iconSize: [26, 26],
+                iconAnchor: [13, 13],
+                popupAnchor: [0, -12]
+              });
+
+              return (
+                <Marker
+                  key={`alarm-${obj.id}`}
+                  position={[obj.geoCoordinates.latitude, obj.geoCoordinates.longitude]}
+                  icon={alarmIcon}
+                >
+                  <Popup>
+                    <div className="text-xs">
+                      <p className="font-semibold text-foreground">{obj.name}</p>
+                      <p className="text-muted-foreground">Active alarms: {alarmCount}</p>
+                    </div>
+                  </Popup>
+                </Marker>
+              );
+            })}
+
+          {/* User-created map layers */}
+          {customLayers
+            .filter(layer => layer.visible)
+            .flatMap(layer =>
+              layer.markers.map(marker => {
+                const customIcon = L.divIcon({
+                  className: 'custom-user-layer-marker',
+                  html: `<div style="width:14px;height:14px;border-radius:9999px;background:${layer.color};border:2px solid white;box-shadow:0 1px 6px rgba(0,0,0,0.35);"></div>`,
+                  iconSize: [14, 14],
+                  iconAnchor: [7, 7],
+                  popupAnchor: [0, -8]
+                });
+                return (
+                  <Marker
+                    key={`${layer.id}-${marker.id}`}
+                    position={[marker.latitude, marker.longitude]}
+                    icon={customIcon}
+                  >
+                    <Popup>
+                      <div className="text-xs min-w-[190px]">
+                        <p className="font-semibold text-foreground">{layer.name}</p>
+                        <p className="text-muted-foreground">Type: {layer.type}</p>
+                        <p className="text-muted-foreground">Marker: {marker.label}</p>
+                      </div>
+                    </Popup>
+                  </Marker>
+                );
+              })
+            )}
 
           {/* Map controls */}
           <MapController onZoom={setZoomLevel} />

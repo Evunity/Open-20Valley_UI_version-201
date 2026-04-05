@@ -7,7 +7,7 @@ import { TimelineReplayView } from '../components/TimelineReplayView';
 import { LayerSettings } from '../components/LayerControlPanel';
 import { ExportPanel } from '../components/ExportPanel';
 import { MultiTenantAwareness } from '../components/MultiTenantAwareness';
-import { GeospatialNetworkMap } from '../components/GeospatialNetworkMap';
+import { CustomLayerType, CustomMapLayer, GeospatialNetworkMap } from '../components/GeospatialNetworkMap';
 import { EditableTreeView } from '../components/EditableTreeView';
 import { DependencyGraph } from '../components/DependencyGraph';
 import { PortsMetricsView } from '../components/PortsMetricsView';
@@ -33,6 +33,16 @@ const VIEWS: TopologyViewConfig[] = [
   { id: 'ports-metrics', label: 'Ports & Metrics', icon: Activity, description: 'Port performance and bandwidth metrics' }
 ];
 
+const BUILT_IN_LAYER_TYPES: { label: string; value: CustomLayerType }[] = [
+  { label: 'RAN', value: 'ran' },
+  { label: 'Transport', value: 'transport' },
+  { label: 'Alarms', value: 'alarms' },
+  { label: 'Custom markers', value: 'custom-markers' },
+  { label: 'KPI/coverage layer', value: 'kpi-coverage' },
+  { label: 'Region boundary layer', value: 'region-boundary' },
+  { label: 'Site group layer', value: 'site-group' }
+];
+
 /**
  * Internal component - uses topology context
  */
@@ -56,6 +66,7 @@ const TopologyManagementContent: React.FC = () => {
   const [showPredictiveRisks, setShowPredictiveRisks] = useState(true);
   const [showExportPanel, setShowExportPanel] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [showAddLayerForm, setShowAddLayerForm] = useState(false);
   const [layers, setLayers] = useState<LayerSettings>({
     alarms: true,
     kpi: true,
@@ -65,6 +76,14 @@ const TopologyManagementContent: React.FC = () => {
     vendorOverlay: true,
     transportOnly: false,
     ranOnly: false
+  });
+  const [customLayers, setCustomLayers] = useState<CustomMapLayer[]>([]);
+  const [newLayerDraft, setNewLayerDraft] = useState({
+    name: '',
+    type: 'custom-markers' as CustomLayerType,
+    sourceType: 'manual',
+    visible: true,
+    color: '#0ea5e9'
   });
 
   const hierarchyLevels: Record<string, string[]> = {
@@ -172,6 +191,51 @@ const TopologyManagementContent: React.FC = () => {
       .slice(0, 5);
   }, [filteredNodes]);
 
+  const createLayerMarkers = React.useCallback((layerType: CustomLayerType) => {
+    const geoNodes = visibleNodes.filter((node) => node.geoCoordinates);
+    const ranTypes = new Set(['region', 'cluster', 'site', 'cell', 'sector', 'ran', 'rru', 'bbu']);
+    const transportTypes = new Set(['transport', 'interface', 'port', 'board', 'shelf', 'cabinet', 'rack', 'link', 'equipment', 'module']);
+
+    const sourceNodes = geoNodes.filter((node) => {
+      if (layerType === 'ran') return ranTypes.has(node.type);
+      if (layerType === 'transport') return transportTypes.has(node.type);
+      if (layerType === 'alarms') return node.alarmSummary.critical + node.alarmSummary.major > 0;
+      return true;
+    }).slice(0, 40);
+
+    return sourceNodes.map((node, index) => ({
+      id: `${node.id}-${index}`,
+      latitude: (node.geoCoordinates?.latitude || 25) + (Math.random() - 0.5) * 0.05,
+      longitude: (node.geoCoordinates?.longitude || 45) + (Math.random() - 0.5) * 0.05,
+      label: node.name
+    }));
+  }, [visibleNodes]);
+
+  const handleCreateLayer = () => {
+    const trimmedName = newLayerDraft.name.trim();
+    if (!trimmedName) return;
+
+    const layer: CustomMapLayer = {
+      id: `layer-${Date.now()}`,
+      name: trimmedName,
+      type: newLayerDraft.type,
+      sourceType: newLayerDraft.sourceType,
+      visible: newLayerDraft.visible,
+      color: newLayerDraft.color,
+      markers: createLayerMarkers(newLayerDraft.type)
+    };
+
+    setCustomLayers((prev) => [layer, ...prev]);
+    setNewLayerDraft({
+      name: '',
+      type: 'custom-markers',
+      sourceType: 'manual',
+      visible: true,
+      color: '#0ea5e9'
+    });
+    setShowAddLayerForm(false);
+  };
+
 
   const renderMapView = () => (
     <div className="w-full h-full flex flex-col bg-background dark:bg-background overflow-y-auto">
@@ -264,6 +328,7 @@ const TopologyManagementContent: React.FC = () => {
           <GeospatialNetworkMap
             topology={filteredNodes}
             layers={layers}
+            customLayers={customLayers}
             selectedObject={selectedNode}
             onObjectSelect={(node) => selectNode(node.id)}
             showPredictiveRisks={showPredictiveRisks}
@@ -281,6 +346,66 @@ const TopologyManagementContent: React.FC = () => {
               {/* Layers Control Panel - Inline */}
               <div className="flex flex-col rounded-lg border border-border/70 bg-background p-3">
                 <h4 className="font-semibold text-sm text-foreground mb-3">Layers</h4>
+                <button
+                  onClick={() => setShowAddLayerForm((prev) => !prev)}
+                  className="w-full mb-3 px-3 py-2 rounded-md border border-dashed border-primary/40 text-primary text-xs font-semibold hover:bg-primary/5 transition"
+                >
+                  + Add Layer
+                </button>
+
+                {showAddLayerForm && (
+                  <div className="mb-3 rounded-md border border-border/70 bg-muted/20 p-2.5 space-y-2">
+                    <input
+                      type="text"
+                      value={newLayerDraft.name}
+                      onChange={(e) => setNewLayerDraft((prev) => ({ ...prev, name: e.target.value }))}
+                      placeholder="Layer name"
+                      className="w-full h-8 rounded border border-border bg-background px-2 text-xs"
+                    />
+                    <select
+                      value={newLayerDraft.type}
+                      onChange={(e) => setNewLayerDraft((prev) => ({ ...prev, type: e.target.value as CustomLayerType }))}
+                      className="w-full h-8 rounded border border-border bg-background px-2 text-xs"
+                    >
+                      {BUILT_IN_LAYER_TYPES.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        type="text"
+                        value={newLayerDraft.sourceType}
+                        onChange={(e) => setNewLayerDraft((prev) => ({ ...prev, sourceType: e.target.value }))}
+                        placeholder="Data source"
+                        className="w-full h-8 rounded border border-border bg-background px-2 text-xs"
+                      />
+                      <input
+                        type="color"
+                        value={newLayerDraft.color}
+                        onChange={(e) => setNewLayerDraft((prev) => ({ ...prev, color: e.target.value }))}
+                        className="w-full h-8 rounded border border-border bg-background px-1"
+                      />
+                    </div>
+                    <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <input
+                        type="checkbox"
+                        checked={newLayerDraft.visible}
+                        onChange={(e) => setNewLayerDraft((prev) => ({ ...prev, visible: e.target.checked }))}
+                        className="w-3.5 h-3.5"
+                      />
+                      Visible by default
+                    </label>
+                    <button
+                      onClick={handleCreateLayer}
+                      disabled={!newLayerDraft.name.trim()}
+                      className="w-full h-8 rounded bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Create Layer
+                    </button>
+                  </div>
+                )}
 
                 {/* Filter Layers */}
                 <div className="space-y-2">
@@ -344,6 +469,35 @@ const TopologyManagementContent: React.FC = () => {
                     }`} />
                   </button>
                 </div>
+
+                {customLayers.length > 0 && (
+                  <div className="mt-3 border-t border-border/60 pt-3 space-y-2">
+                    <p className="text-[11px] uppercase tracking-wide font-semibold text-muted-foreground">Custom Layers</p>
+                    {customLayers.map((layer) => (
+                      <div key={layer.id} className="rounded-md border border-border/60 bg-card p-2">
+                        <button
+                          onClick={() => setCustomLayers((prev) => prev.map((existing) => (
+                            existing.id === layer.id ? { ...existing, visible: !existing.visible } : existing
+                          )))}
+                          className="w-full flex items-center gap-2 text-left"
+                        >
+                          {layer.visible ? <Eye className="w-4 h-4 text-blue-600" /> : <EyeOff className="w-4 h-4 text-muted-foreground" />}
+                          <span className="text-xs font-medium text-foreground flex-1 truncate">{layer.name}</span>
+                          <span className="text-[10px] text-muted-foreground capitalize">{layer.type.replace('-', ' ')}</span>
+                        </button>
+                        <div className="mt-2 flex items-center justify-between">
+                          <span className="text-[10px] text-muted-foreground truncate">Source: {layer.sourceType || 'manual'}</span>
+                          <button
+                            onClick={() => setCustomLayers((prev) => prev.filter((existing) => existing.id !== layer.id))}
+                            className="text-[10px] text-destructive hover:underline"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Multi-Tenant Control Panel */}
