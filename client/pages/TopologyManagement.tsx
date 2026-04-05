@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Map, GitBranch, Network, Box, Layers, ZoomIn, Route, Clock, Eye, EyeOff, Edit2, Activity, AlertTriangle, TrendingUp } from 'lucide-react';
+import { Map, GitBranch, Network, Box, Layers, ZoomIn, Route, Clock, Eye, EyeOff, Edit2, Activity, AlertTriangle, TrendingUp, Plus, X, Search } from 'lucide-react';
 import { RackView } from '../components/RackView';
 import { TransportPathView } from '../components/TransportPathView';
 import { ImpactAnalysisView } from '../components/ImpactAnalysisView';
@@ -66,7 +66,9 @@ const TopologyManagementContent: React.FC = () => {
   const [showPredictiveRisks, setShowPredictiveRisks] = useState(true);
   const [showExportPanel, setShowExportPanel] = useState(false);
   const [editMode, setEditMode] = useState(false);
-  const [showAddLayerForm, setShowAddLayerForm] = useState(false);
+  const [isAddLayerModalOpen, setIsAddLayerModalOpen] = useState(false);
+  const [addLayerError, setAddLayerError] = useState<string | null>(null);
+  const [placeSearch, setPlaceSearch] = useState('');
   const [layers, setLayers] = useState<LayerSettings>({
     alarms: true,
     kpi: true,
@@ -81,7 +83,8 @@ const TopologyManagementContent: React.FC = () => {
   const [newLayerDraft, setNewLayerDraft] = useState({
     name: '',
     type: 'site-group' as CustomLayerType,
-    sourceType: 'cluster',
+    sourceType: 'site',
+    placeId: '',
     visible: true,
     color: '#0ea5e9'
   });
@@ -191,39 +194,51 @@ const TopologyManagementContent: React.FC = () => {
       .slice(0, 5);
   }, [filteredNodes]);
 
-  const createLayerMarkers = React.useCallback((layerType: CustomLayerType, sourceType: string) => {
-    const geoNodes = visibleNodes.filter((node) => node.geoCoordinates);
-    const ranTypes = new Set(['region', 'cluster', 'site', 'cell', 'sector', 'ran', 'rru', 'bbu']);
-    const transportTypes = new Set(['transport', 'interface', 'port', 'board', 'shelf', 'cabinet', 'rack', 'link', 'equipment', 'module']);
-
-    const sourceNodes = geoNodes.filter((node) => {
-      if (layerType === 'ran' || sourceType === 'ran') return ranTypes.has(node.type);
-      if (layerType === 'transport' || sourceType === 'transport') return transportTypes.has(node.type);
-      if (layerType === 'alarms') return node.alarmSummary.critical + node.alarmSummary.major > 0;
-      if (sourceType === 'cluster') return node.type === 'cluster';
-      if (sourceType === 'site') return node.type === 'site';
-      if (sourceType === 'region') return node.type === 'region';
-      return true;
-    }).slice(0, 40);
-
-    return sourceNodes.map((node, index) => {
-      const alarmCount = node.alarmSummary.critical + node.alarmSummary.major;
-      return {
-      id: `${node.id}-${index}`,
-      latitude: node.geoCoordinates?.latitude || 25,
-      longitude: node.geoCoordinates?.longitude || 45,
-      label: node.name,
-      sourceType: node.type,
-      healthState: node.healthState,
-      vendor: node.vendor,
-      alarmCount
-    };
-    });
+  const selectablePlaces = React.useMemo(() => {
+    const seen = new Set<string>();
+    return visibleNodes
+      .filter((node) => node.geoCoordinates && ['region', 'cluster', 'site', 'rack', 'cell'].includes(node.type))
+      .map((node) => ({
+        id: node.id,
+        name: node.name,
+        type: node.type,
+        latitude: node.geoCoordinates?.latitude || 0,
+        longitude: node.geoCoordinates?.longitude || 0,
+      }))
+      .filter((place) => {
+        const key = `${place.name}-${place.type}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .sort((a, b) => a.name.localeCompare(b.name));
   }, [visibleNodes]);
+
+  const filteredPlaces = React.useMemo(() => {
+    if (!placeSearch.trim()) return selectablePlaces.slice(0, 40);
+    const search = placeSearch.toLowerCase();
+    return selectablePlaces
+      .filter((place) => place.name.toLowerCase().includes(search) || place.type.toLowerCase().includes(search))
+      .slice(0, 40);
+  }, [placeSearch, selectablePlaces]);
 
   const handleCreateLayer = () => {
     const trimmedName = newLayerDraft.name.trim();
-    if (!trimmedName) return;
+    if (!trimmedName) {
+      setAddLayerError('Layer name is required.');
+      return;
+    }
+    if (!newLayerDraft.placeId) {
+      setAddLayerError('Please select a location/place.');
+      return;
+    }
+
+    const selectedPlace = selectablePlaces.find((place) => place.id === newLayerDraft.placeId);
+    if (!selectedPlace) {
+      setAddLayerError('Selected place could not be resolved to coordinates.');
+      return;
+    }
+    setAddLayerError(null);
 
     const layer: CustomMapLayer = {
       id: `layer-${Date.now()}`,
@@ -232,23 +247,30 @@ const TopologyManagementContent: React.FC = () => {
       sourceType: newLayerDraft.sourceType,
       visible: newLayerDraft.visible,
       color: newLayerDraft.color,
-      objectCount: 0,
-      markers: []
+      objectCount: 1,
+      markers: [{
+        id: `${newLayerDraft.placeId}-custom`,
+        latitude: selectedPlace.latitude,
+        longitude: selectedPlace.longitude,
+        label: selectedPlace.name,
+        sourceType: selectedPlace.type,
+        healthState: 'unknown',
+        vendor: 'Unknown',
+        alarmCount: 0
+      }]
     };
-
-    const markers = createLayerMarkers(newLayerDraft.type, newLayerDraft.sourceType);
-    layer.markers = markers;
-    layer.objectCount = markers.length;
 
     setCustomLayers((prev) => [layer, ...prev]);
     setNewLayerDraft({
       name: '',
       type: 'site-group',
-      sourceType: 'cluster',
+      sourceType: 'site',
+      placeId: '',
       visible: true,
       color: '#0ea5e9'
     });
-    setShowAddLayerForm(false);
+    setPlaceSearch('');
+    setIsAddLayerModalOpen(false);
   };
 
 
@@ -330,6 +352,17 @@ const TopologyManagementContent: React.FC = () => {
                   />
                   <span className="whitespace-nowrap">Predictive AI</span>
                 </label>
+                <button
+                  onClick={() => {
+                    setAddLayerError(null);
+                    setIsAddLayerModalOpen(true);
+                  }}
+                  className="h-9 px-3 rounded text-xs font-semibold border border-border bg-input text-foreground hover:border-primary/40 transition flex items-center gap-1.5"
+                  title="Create a location-based map layer item"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  + Add Layer
+                </button>
               </>
             )}
           </div>
@@ -360,79 +393,7 @@ const TopologyManagementContent: React.FC = () => {
             <div className="overflow-y-auto p-3 space-y-3 max-h-[calc(100vh-16rem)]">
               {/* Layers Control Panel - Inline */}
               <div className="flex flex-col rounded-lg border border-border/70 bg-background p-3">
-                <div className="mb-3 flex items-center justify-between gap-2">
-                  <h4 className="font-semibold text-sm text-foreground">Layers</h4>
-                  <button
-                    onClick={() => setShowAddLayerForm((prev) => !prev)}
-                    className="px-2.5 py-1 rounded-md border border-primary/40 text-primary text-xs font-semibold hover:bg-primary/5 transition"
-                  >
-                    + Add Layer
-                  </button>
-                </div>
-
-                {showAddLayerForm && (
-                  <div className="mb-3 rounded-md border border-border/70 bg-muted/20 p-2.5 space-y-2">
-                    <input
-                      type="text"
-                      value={newLayerDraft.name}
-                      onChange={(e) => setNewLayerDraft((prev) => ({ ...prev, name: e.target.value }))}
-                      placeholder="Layer name"
-                      className="w-full h-8 rounded border border-border bg-background px-2 text-xs"
-                    />
-                    <select
-                      value={newLayerDraft.type}
-                      onChange={(e) => {
-                        const nextType = e.target.value as CustomLayerType;
-                        const suggestedSource =
-                          nextType === 'ran' ? 'ran' :
-                          nextType === 'transport' ? 'transport' :
-                          nextType === 'alarms' ? 'alarms' :
-                          nextType === 'region-boundary' ? 'region' :
-                          nextType === 'site-group' ? 'site' :
-                          'cluster';
-                        setNewLayerDraft((prev) => ({ ...prev, type: nextType, sourceType: suggestedSource }));
-                      }}
-                      className="w-full h-8 rounded border border-border bg-background px-2 text-xs"
-                    >
-                      {BUILT_IN_LAYER_TYPES.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                    <div className="grid grid-cols-2 gap-2">
-                      <input
-                        type="text"
-                        value={newLayerDraft.sourceType}
-                        onChange={(e) => setNewLayerDraft((prev) => ({ ...prev, sourceType: e.target.value }))}
-                        placeholder="Source type (cluster/site/region/ran/transport)"
-                        className="w-full h-8 rounded border border-border bg-background px-2 text-xs"
-                      />
-                      <input
-                        type="color"
-                        value={newLayerDraft.color}
-                        onChange={(e) => setNewLayerDraft((prev) => ({ ...prev, color: e.target.value }))}
-                        className="w-full h-8 rounded border border-border bg-background px-1"
-                      />
-                    </div>
-                    <label className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <input
-                        type="checkbox"
-                        checked={newLayerDraft.visible}
-                        onChange={(e) => setNewLayerDraft((prev) => ({ ...prev, visible: e.target.checked }))}
-                        className="w-3.5 h-3.5"
-                      />
-                      Visible by default
-                    </label>
-                    <button
-                      onClick={handleCreateLayer}
-                      disabled={!newLayerDraft.name.trim()}
-                      className="w-full h-8 rounded bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Create Layer
-                    </button>
-                  </div>
-                )}
+                <h4 className="font-semibold text-sm text-foreground mb-3">Layers</h4>
 
                 {/* Filter Layers */}
                 <div className="space-y-2">
@@ -616,6 +577,138 @@ const TopologyManagementContent: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {isAddLayerModalOpen && (
+        <div className="fixed inset-0 z-[1200] bg-black/50 flex items-center justify-center p-4">
+          <div className="w-full max-w-lg rounded-xl border border-border bg-card shadow-2xl">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+              <div>
+                <h4 className="text-sm font-semibold text-foreground">Add Map Layer Item</h4>
+                <p className="text-[11px] text-muted-foreground">Create a real geospatial item using a supported place.</p>
+              </div>
+              <button
+                onClick={() => {
+                  setIsAddLayerModalOpen(false);
+                  setAddLayerError(null);
+                }}
+                className="p-1.5 rounded hover:bg-muted transition"
+                aria-label="Close Add Layer modal"
+              >
+                <X className="w-4 h-4 text-muted-foreground" />
+              </button>
+            </div>
+
+            <div className="p-4 space-y-3">
+              <div>
+                <label className="text-xs font-semibold text-foreground">Layer Name</label>
+                <input
+                  type="text"
+                  value={newLayerDraft.name}
+                  onChange={(e) => setNewLayerDraft((prev) => ({ ...prev, name: e.target.value }))}
+                  placeholder="e.g. Cairo VIP Ops Layer"
+                  className="mt-1 w-full h-9 rounded border border-border bg-background px-2 text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-foreground">Layer Type</label>
+                <select
+                  value={newLayerDraft.type}
+                  onChange={(e) => {
+                    const nextType = e.target.value as CustomLayerType;
+                    const suggestedSource =
+                      nextType === 'ran' ? 'ran' :
+                      nextType === 'transport' ? 'transport' :
+                      nextType === 'alarms' ? 'alarms' :
+                      nextType === 'region-boundary' ? 'region' :
+                      nextType === 'site-group' ? 'site' :
+                      'cluster';
+                    setNewLayerDraft((prev) => ({ ...prev, type: nextType, sourceType: suggestedSource }));
+                  }}
+                  className="mt-1 w-full h-9 rounded border border-border bg-background px-2 text-sm"
+                >
+                  {BUILT_IN_LAYER_TYPES.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-foreground">Location / Place</label>
+                <div className="mt-1 relative">
+                  <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-2 top-2.5" />
+                  <input
+                    type="text"
+                    value={placeSearch}
+                    onChange={(e) => setPlaceSearch(e.target.value)}
+                    placeholder="Search place (e.g. Cairo, Dammam)"
+                    className="w-full h-9 rounded border border-border bg-background pl-7 pr-2 text-sm"
+                  />
+                </div>
+                <div className="mt-2 max-h-36 overflow-y-auto rounded border border-border bg-background">
+                  {filteredPlaces.map((place) => (
+                    <button
+                      key={place.id}
+                      onClick={() => setNewLayerDraft((prev) => ({ ...prev, placeId: place.id, sourceType: place.type }))}
+                      className={`w-full px-2 py-1.5 text-left text-xs border-b last:border-b-0 border-border/40 hover:bg-muted/50 ${
+                        newLayerDraft.placeId === place.id ? 'bg-blue-50 dark:bg-blue-950/30' : ''
+                      }`}
+                    >
+                      <span className="font-medium text-foreground">{place.name}</span>
+                      <span className="text-muted-foreground ml-1 capitalize">({place.type})</span>
+                    </button>
+                  ))}
+                  {filteredPlaces.length === 0 && (
+                    <p className="px-2 py-2 text-xs text-muted-foreground">No matching places found.</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs font-semibold text-foreground">Color (optional)</label>
+                  <input
+                    type="color"
+                    value={newLayerDraft.color}
+                    onChange={(e) => setNewLayerDraft((prev) => ({ ...prev, color: e.target.value }))}
+                    className="mt-1 w-full h-9 rounded border border-border bg-background px-1"
+                  />
+                </div>
+                <label className="flex items-center gap-2 text-xs text-muted-foreground mt-5">
+                  <input
+                    type="checkbox"
+                    checked={newLayerDraft.visible}
+                    onChange={(e) => setNewLayerDraft((prev) => ({ ...prev, visible: e.target.checked }))}
+                    className="w-3.5 h-3.5"
+                  />
+                  Visible by default
+                </label>
+              </div>
+
+              {addLayerError && (
+                <p className="text-xs text-destructive">{addLayerError}</p>
+              )}
+            </div>
+
+            <div className="px-4 py-3 border-t border-border flex items-center justify-end gap-2">
+              <button
+                onClick={() => setIsAddLayerModalOpen(false)}
+                className="h-9 px-3 rounded border border-border text-xs font-semibold hover:bg-muted/50 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreateLayer}
+                className="h-9 px-3 rounded bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 transition"
+              >
+                Create Layer Item
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 
