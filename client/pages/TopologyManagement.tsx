@@ -361,7 +361,7 @@ const TopologyManagementContent: React.FC = () => {
                   title="Create a location-based map layer item"
                 >
                   <Plus className="w-3.5 h-3.5" />
-                  + Add Layer
+                  Add Layer
                 </button>
               </>
             )}
