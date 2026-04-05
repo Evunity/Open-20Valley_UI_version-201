@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Map, GitBranch, Network, Box, Layers, ZoomIn, Route, Clock, Eye, EyeOff, Edit2, Activity } from 'lucide-react';
+import { Map, GitBranch, Network, Box, Layers, ZoomIn, Route, Clock, Eye, EyeOff, Edit2, Activity, AlertTriangle, TrendingUp } from 'lucide-react';
 import { RackView } from '../components/RackView';
 import { TransportPathView } from '../components/TransportPathView';
 import { ImpactAnalysisView } from '../components/ImpactAnalysisView';
 import { TimelineReplayView } from '../components/TimelineReplayView';
 import { LayerSettings } from '../components/LayerControlPanel';
-import { PredictiveRiskHighlight } from '../components/PredictiveRiskHighlight';
 import { ExportPanel } from '../components/ExportPanel';
 import { MultiTenantAwareness } from '../components/MultiTenantAwareness';
 import { GeospatialNetworkMap } from '../components/GeospatialNetworkMap';
@@ -143,9 +142,39 @@ const TopologyManagementContent: React.FC = () => {
     return filtered;
   }, [visibleNodes, selectedCountry, selectedHierarchyLevel, layers, getCountryAncestor, hierarchyLevels]);
 
+  const predictiveInsights = React.useMemo(() => {
+    return filteredNodes
+      .filter((node) => node.type === 'cluster' || node.type === 'site')
+      .map((node) => {
+        const alarmPressure = node.alarmSummary.critical * 20 + node.alarmSummary.major * 10;
+        const utilizationPressure = node.kpiSummary.utilization > 75 ? node.kpiSummary.utilization - 70 : 0;
+        const latencyPressure = node.kpiSummary.latency > 25 ? node.kpiSummary.latency - 20 : 0;
+        const riskScore = Math.min(99, Math.round(alarmPressure + utilizationPressure + latencyPressure));
+        const riskLevel = riskScore >= 75 ? 'High' : riskScore >= 45 ? 'Medium' : 'Low';
+        return {
+          id: node.id,
+          name: node.name,
+          type: node.type,
+          riskScore,
+          riskLevel,
+          utilization: node.kpiSummary.utilization,
+          latency: node.kpiSummary.latency,
+          timeframe: riskLevel === 'High' ? '15-30 min' : riskLevel === 'Medium' ? '30-60 min' : '1-2 hr',
+          recommendation:
+            riskLevel === 'High'
+              ? 'Run proactive load-shift and trigger anomaly diagnostics.'
+              : riskLevel === 'Medium'
+                ? 'Monitor counters and pre-stage mitigation workflow.'
+                : 'Keep under observation with baseline checks.',
+        };
+      })
+      .sort((a, b) => b.riskScore - a.riskScore)
+      .slice(0, 5);
+  }, [filteredNodes]);
+
 
   const renderMapView = () => (
-    <div className="w-full h-full flex flex-col bg-background dark:bg-background overflow-hidden">
+    <div className="w-full h-full flex flex-col bg-background dark:bg-background overflow-y-auto">
       {/* Filter Status Indicators with Controls */}
       {(selectedCountry || selectedHierarchyLevel !== 'all' || layers.ranOnly || layers.transportOnly || layers.alarms || filteredNodes.length < visibleNodes.length || activeView === 'map') && (
         <div className="flex gap-2 px-4 py-2 flex-wrap items-center justify-between">
@@ -333,8 +362,53 @@ const TopologyManagementContent: React.FC = () => {
               <div className="rounded-lg border border-border/70 bg-background p-3">
                 <h4 className="font-semibold text-sm text-foreground mb-3">Predictive Insights</h4>
                 {showPredictiveRisks ? (
-                  <div className="max-h-72 overflow-y-auto pr-1">
-                    <PredictiveRiskHighlight topology={filteredNodes} isEnabled={showPredictiveRisks} />
+                  <div className="space-y-2.5">
+                    {predictiveInsights.length > 0 ? predictiveInsights.map((risk) => (
+                      <div
+                        key={risk.id}
+                        className="rounded-lg border border-border/70 bg-card p-3"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-foreground truncate">{risk.name}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5 capitalize">{risk.type} • ETA {risk.timeframe}</p>
+                          </div>
+                          <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${
+                            risk.riskLevel === 'High'
+                              ? 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300'
+                              : risk.riskLevel === 'Medium'
+                                ? 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300'
+                                : 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300'
+                          }`}>
+                            {risk.riskLevel}
+                          </span>
+                        </div>
+
+                        <div className="mt-2 grid grid-cols-2 gap-2 text-[11px] text-muted-foreground">
+                          <div className="rounded-md bg-muted/40 p-2">
+                            <p className="text-[10px] uppercase tracking-wide">Risk Score</p>
+                            <p className="text-sm font-bold text-foreground">{risk.riskScore}%</p>
+                          </div>
+                          <div className="rounded-md bg-muted/40 p-2">
+                            <p className="text-[10px] uppercase tracking-wide">Util/Latency</p>
+                            <p className="text-sm font-bold text-foreground">{risk.utilization.toFixed(0)}% / {risk.latency.toFixed(0)}ms</p>
+                          </div>
+                        </div>
+
+                        <div className="mt-2 flex items-start gap-1.5 text-xs text-muted-foreground">
+                          <TrendingUp className="w-3.5 h-3.5 mt-0.5 text-primary flex-shrink-0" />
+                          <p>{risk.recommendation}</p>
+                        </div>
+                      </div>
+                    )) : (
+                      <div className="rounded-lg border border-dashed border-border p-3 text-xs text-muted-foreground">
+                        No high-confidence predictive hotspots in the current filtered scope.
+                      </div>
+                    )}
+                    <div className="rounded-md bg-muted/40 px-2.5 py-2 text-[11px] text-muted-foreground flex items-center gap-1.5">
+                      <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
+                      Predictions refresh with current filters and active map scope.
+                    </div>
                   </div>
                 ) : (
                   <p className="text-xs text-muted-foreground">
