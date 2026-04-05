@@ -277,7 +277,7 @@ const TopologyManagementContent: React.FC = () => {
               <h3 className="font-semibold text-sm text-foreground">Geospatial Controls</h3>
               <p className="text-[11px] text-muted-foreground mt-0.5">Layers, tenant awareness, and export actions</p>
             </div>
-            <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-3">
+            <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-3 flex flex-col">
               {/* Layers Control Panel - Inline */}
               <div className="flex flex-col rounded-lg border border-border/70 bg-background p-3">
                 <h4 className="font-semibold text-sm text-foreground mb-3">Layers</h4>
@@ -428,6 +428,20 @@ const TopologyManagementContent: React.FC = () => {
                   />
                 </div>
               )}
+
+              <div className="rounded-lg border border-border/70 bg-background p-3 mt-auto">
+                <h4 className="font-semibold text-sm text-foreground mb-2">Operational Snapshot</h4>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="rounded-md bg-muted/40 p-2">
+                    <p className="text-muted-foreground">Visible Nodes</p>
+                    <p className="text-sm font-bold text-foreground">{filteredNodes.length}</p>
+                  </div>
+                  <div className="rounded-md bg-muted/40 p-2">
+                    <p className="text-muted-foreground">Country Scope</p>
+                    <p className="text-sm font-bold text-foreground truncate">{selectedCountry || 'All'}</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

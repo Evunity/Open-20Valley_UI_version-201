@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Download, FileJson, Image, FileText, Copy, Check } from 'lucide-react';
+import { Download, FileJson, Image, Copy, Check } from 'lucide-react';
 import { TopologyObject } from '../utils/topologyData';
 
-type ExportFormat = 'png' | 'pdf' | 'json';
+type ExportFormat = 'png' | 'json';
 type ExportType = 'map' | 'dependency' | 'impact' | 'rack' | 'path';
 
 interface ExportConfig {
@@ -44,7 +44,6 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
 
   const FORMATS: { id: ExportFormat; label: string; icon: React.ReactNode; color: string }[] = [
     { id: 'png', label: 'PNG Image', icon: <Image className="w-4 h-4" />, color: 'surface-info border' },
-    { id: 'pdf', label: 'PDF Report', icon: <FileText className="w-4 h-4" />, color: 'surface-destructive border' },
     { id: 'json', label: 'JSON Data', icon: <FileJson className="w-4 h-4" />, color: 'surface-success border' }
   ];
 
@@ -115,11 +114,6 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
           downloadFile(blob, `topology-${selectedType}-${Date.now()}.png`);
         }
       });
-    } else if (selectedFormat === 'pdf') {
-      // Simulate PDF export
-      const content = generatePDFContent();
-      const blob = new Blob([content], { type: 'application/pdf' });
-      downloadFile(blob, `topology-${selectedType}-${Date.now()}.pdf`);
     }
 
     onExport?.(config);
@@ -135,41 +129,6 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-  };
-
-  const generatePDFContent = () => {
-    const metadata = generateMetadata();
-    return `
-%PDF-1.4
-1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
-2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
-3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]/Contents 4 0 R>>endobj
-4 0 obj<</Length 200>>stream
-BT
-/F1 24 Tf 50 750 Td
-(Topology Export Report) Tj
-0 -40 Td
-/F1 12 Tf
-(Exported: ${metadata.timestamp}) Tj
-0 -20 Td
-(View: ${metadata.view}) Tj
-0 -20 Td
-(Objects: ${metadata.objectCount}) Tj
-ET
-endstream
-endobj
-xref
-0 5
-0000000000 65535 f
-0000000009 00000 n
-0000000058 00000 n
-0000000115 00000 n
-0000000194 00000 n
-trailer<</Size 5/Root 1 0 R>>
-startxref
-446
-%%EOF
-`;
   };
 
   const copyExportJSON = () => {
@@ -210,7 +169,7 @@ startxref
       {/* Format Selection */}
       <div className="flex flex-col gap-2">
         <p className="text-sm font-semibold text-muted-foreground">Format</p>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 gap-2">
           {FORMATS.map(format => (
             <button
               key={format.id}
