@@ -229,7 +229,7 @@ const TopologyManagementContent: React.FC = () => {
       )}
 
       {/* Main content grid - Map fills width with responsive sidebar */}
-      <div className="grid flex-1 gap-3 p-3 min-h-0 grid-cols-1 lg:grid-cols-[minmax(0,1fr)_18rem]">
+      <div className="grid flex-1 gap-3 p-3 min-h-0 grid-cols-1 lg:grid-cols-[minmax(0,1fr)_22rem]">
         {/* Main map area - Takes available space */}
         <div className="flex-1 min-w-0 min-h-0">
           <GeospatialNetworkMap
@@ -318,33 +318,46 @@ const TopologyManagementContent: React.FC = () => {
               </div>
 
               {/* Multi-Tenant Control Panel */}
-              <MultiTenantAwareness
-                topology={filteredNodes}
-                selectedCountry={selectedCountry}
-                selectedTenant={selectedTenant}
-                onCountryChange={setSelectedCountry}
-                onTenantChange={setSelectedTenant}
-              />
+              <div className="rounded-lg border border-border/70 bg-background p-3">
+                <h4 className="font-semibold text-sm text-foreground mb-3">Country & Tenant Scope</h4>
+                <MultiTenantAwareness
+                  topology={filteredNodes}
+                  selectedCountry={selectedCountry}
+                  selectedTenant={selectedTenant}
+                  onCountryChange={setSelectedCountry}
+                  onTenantChange={setSelectedTenant}
+                />
+              </div>
+
+              {/* Predictive Insights Panel */}
+              <div className="rounded-lg border border-border/70 bg-background p-3">
+                <h4 className="font-semibold text-sm text-foreground mb-3">Predictive Insights</h4>
+                {showPredictiveRisks ? (
+                  <div className="max-h-72 overflow-y-auto pr-1">
+                    <PredictiveRiskHighlight topology={filteredNodes} isEnabled={showPredictiveRisks} />
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    Enable <span className="font-semibold text-foreground">Predictive AI</span> to view projected risks and hotspot insights.
+                  </p>
+                )}
+              </div>
 
               {/* Export Panel */}
               {showExportPanel && (
-                <ExportPanel
-                  topology={filteredNodes}
-                  currentView="geospatial-map"
-                  filters={{ country: selectedCountry, tenant: selectedTenant }}
-                />
+                <div className="rounded-lg border border-border/70 bg-background p-3">
+                  <h4 className="font-semibold text-sm text-foreground mb-3">Export</h4>
+                  <ExportPanel
+                    topology={filteredNodes}
+                    currentView="geospatial-map"
+                    filters={{ country: selectedCountry, tenant: selectedTenant }}
+                  />
+                </div>
               )}
             </div>
           </div>
         </div>
       </div>
-
-      {/* Predictive Risk Panel */}
-      {showPredictiveRisks && (
-        <div className="max-h-60 overflow-y-auto">
-          <PredictiveRiskHighlight topology={filteredNodes} isEnabled={showPredictiveRisks} />
-        </div>
-      )}
     </div>
   );
 
