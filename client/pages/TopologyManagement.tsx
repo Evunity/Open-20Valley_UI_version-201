@@ -34,13 +34,13 @@ const VIEWS: TopologyViewConfig[] = [
 ];
 
 const BUILT_IN_LAYER_TYPES: { label: string; value: CustomLayerType }[] = [
-  { label: 'RAN', value: 'ran' },
-  { label: 'Transport', value: 'transport' },
-  { label: 'Alarms', value: 'alarms' },
-  { label: 'Custom markers', value: 'custom-markers' },
-  { label: 'KPI/coverage layer', value: 'kpi-coverage' },
-  { label: 'Region boundary layer', value: 'region-boundary' },
-  { label: 'Site group layer', value: 'site-group' }
+  { label: 'Cluster marker group', value: 'site-group' },
+  { label: 'RAN equipment group', value: 'ran' },
+  { label: 'Transport group', value: 'transport' },
+  { label: 'Alarm hotspot group', value: 'alarms' },
+  { label: 'Region boundary group', value: 'region-boundary' },
+  { label: 'KPI/coverage group', value: 'kpi-coverage' },
+  { label: 'Custom marker group', value: 'custom-markers' }
 ];
 
 /**
@@ -80,8 +80,8 @@ const TopologyManagementContent: React.FC = () => {
   const [customLayers, setCustomLayers] = useState<CustomMapLayer[]>([]);
   const [newLayerDraft, setNewLayerDraft] = useState({
     name: '',
-    type: 'custom-markers' as CustomLayerType,
-    sourceType: 'manual',
+    type: 'site-group' as CustomLayerType,
+    sourceType: 'cluster',
     visible: true,
     color: '#0ea5e9'
   });
@@ -191,24 +191,34 @@ const TopologyManagementContent: React.FC = () => {
       .slice(0, 5);
   }, [filteredNodes]);
 
-  const createLayerMarkers = React.useCallback((layerType: CustomLayerType) => {
+  const createLayerMarkers = React.useCallback((layerType: CustomLayerType, sourceType: string) => {
     const geoNodes = visibleNodes.filter((node) => node.geoCoordinates);
     const ranTypes = new Set(['region', 'cluster', 'site', 'cell', 'sector', 'ran', 'rru', 'bbu']);
     const transportTypes = new Set(['transport', 'interface', 'port', 'board', 'shelf', 'cabinet', 'rack', 'link', 'equipment', 'module']);
 
     const sourceNodes = geoNodes.filter((node) => {
-      if (layerType === 'ran') return ranTypes.has(node.type);
-      if (layerType === 'transport') return transportTypes.has(node.type);
+      if (layerType === 'ran' || sourceType === 'ran') return ranTypes.has(node.type);
+      if (layerType === 'transport' || sourceType === 'transport') return transportTypes.has(node.type);
       if (layerType === 'alarms') return node.alarmSummary.critical + node.alarmSummary.major > 0;
+      if (sourceType === 'cluster') return node.type === 'cluster';
+      if (sourceType === 'site') return node.type === 'site';
+      if (sourceType === 'region') return node.type === 'region';
       return true;
     }).slice(0, 40);
 
-    return sourceNodes.map((node, index) => ({
+    return sourceNodes.map((node, index) => {
+      const alarmCount = node.alarmSummary.critical + node.alarmSummary.major;
+      return {
       id: `${node.id}-${index}`,
-      latitude: (node.geoCoordinates?.latitude || 25) + (Math.random() - 0.5) * 0.05,
-      longitude: (node.geoCoordinates?.longitude || 45) + (Math.random() - 0.5) * 0.05,
-      label: node.name
-    }));
+      latitude: node.geoCoordinates?.latitude || 25,
+      longitude: node.geoCoordinates?.longitude || 45,
+      label: node.name,
+      sourceType: node.type,
+      healthState: node.healthState,
+      vendor: node.vendor,
+      alarmCount
+    };
+    });
   }, [visibleNodes]);
 
   const handleCreateLayer = () => {
@@ -222,14 +232,19 @@ const TopologyManagementContent: React.FC = () => {
       sourceType: newLayerDraft.sourceType,
       visible: newLayerDraft.visible,
       color: newLayerDraft.color,
-      markers: createLayerMarkers(newLayerDraft.type)
+      objectCount: 0,
+      markers: []
     };
+
+    const markers = createLayerMarkers(newLayerDraft.type, newLayerDraft.sourceType);
+    layer.markers = markers;
+    layer.objectCount = markers.length;
 
     setCustomLayers((prev) => [layer, ...prev]);
     setNewLayerDraft({
       name: '',
-      type: 'custom-markers',
-      sourceType: 'manual',
+      type: 'site-group',
+      sourceType: 'cluster',
       visible: true,
       color: '#0ea5e9'
     });
@@ -345,13 +360,15 @@ const TopologyManagementContent: React.FC = () => {
             <div className="overflow-y-auto p-3 space-y-3 max-h-[calc(100vh-16rem)]">
               {/* Layers Control Panel - Inline */}
               <div className="flex flex-col rounded-lg border border-border/70 bg-background p-3">
-                <h4 className="font-semibold text-sm text-foreground mb-3">Layers</h4>
-                <button
-                  onClick={() => setShowAddLayerForm((prev) => !prev)}
-                  className="w-full mb-3 px-3 py-2 rounded-md border border-dashed border-primary/40 text-primary text-xs font-semibold hover:bg-primary/5 transition"
-                >
-                  + Add Layer
-                </button>
+                <div className="mb-3 flex items-center justify-between gap-2">
+                  <h4 className="font-semibold text-sm text-foreground">Layers</h4>
+                  <button
+                    onClick={() => setShowAddLayerForm((prev) => !prev)}
+                    className="px-2.5 py-1 rounded-md border border-primary/40 text-primary text-xs font-semibold hover:bg-primary/5 transition"
+                  >
+                    + Add Layer
+                  </button>
+                </div>
 
                 {showAddLayerForm && (
                   <div className="mb-3 rounded-md border border-border/70 bg-muted/20 p-2.5 space-y-2">
@@ -364,7 +381,17 @@ const TopologyManagementContent: React.FC = () => {
                     />
                     <select
                       value={newLayerDraft.type}
-                      onChange={(e) => setNewLayerDraft((prev) => ({ ...prev, type: e.target.value as CustomLayerType }))}
+                      onChange={(e) => {
+                        const nextType = e.target.value as CustomLayerType;
+                        const suggestedSource =
+                          nextType === 'ran' ? 'ran' :
+                          nextType === 'transport' ? 'transport' :
+                          nextType === 'alarms' ? 'alarms' :
+                          nextType === 'region-boundary' ? 'region' :
+                          nextType === 'site-group' ? 'site' :
+                          'cluster';
+                        setNewLayerDraft((prev) => ({ ...prev, type: nextType, sourceType: suggestedSource }));
+                      }}
                       className="w-full h-8 rounded border border-border bg-background px-2 text-xs"
                     >
                       {BUILT_IN_LAYER_TYPES.map((option) => (
@@ -378,7 +405,7 @@ const TopologyManagementContent: React.FC = () => {
                         type="text"
                         value={newLayerDraft.sourceType}
                         onChange={(e) => setNewLayerDraft((prev) => ({ ...prev, sourceType: e.target.value }))}
-                        placeholder="Data source"
+                        placeholder="Source type (cluster/site/region/ran/transport)"
                         className="w-full h-8 rounded border border-border bg-background px-2 text-xs"
                       />
                       <input
@@ -486,7 +513,9 @@ const TopologyManagementContent: React.FC = () => {
                           <span className="text-[10px] text-muted-foreground capitalize">{layer.type.replace('-', ' ')}</span>
                         </button>
                         <div className="mt-2 flex items-center justify-between">
-                          <span className="text-[10px] text-muted-foreground truncate">Source: {layer.sourceType || 'manual'}</span>
+                          <span className="text-[10px] text-muted-foreground truncate">
+                            {layer.objectCount} map objects • source: {layer.sourceType || 'cluster'}
+                          </span>
                           <button
                             onClick={() => setCustomLayers((prev) => prev.filter((existing) => existing.id !== layer.id))}
                             className="text-[10px] text-destructive hover:underline"

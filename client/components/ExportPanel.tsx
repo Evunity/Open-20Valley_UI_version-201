@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Download, FileJson, Image, Copy, Check } from 'lucide-react';
+import { Download, FileJson, Image, Copy, Check, Globe } from 'lucide-react';
 import { TopologyObject } from '../utils/topologyData';
 
-type ExportFormat = 'png' | 'json';
+type ExportFormat = 'png' | 'json' | 'kmz';
 type ExportType = 'map' | 'dependency' | 'impact' | 'rack' | 'path';
 
 interface ExportConfig {
@@ -44,7 +44,8 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
 
   const FORMATS: { id: ExportFormat; label: string; icon: React.ReactNode; color: string }[] = [
     { id: 'png', label: 'PNG Image', icon: <Image className="w-4 h-4" />, color: 'surface-info border' },
-    { id: 'json', label: 'JSON Data', icon: <FileJson className="w-4 h-4" />, color: 'surface-success border' }
+    { id: 'json', label: 'JSON Data', icon: <FileJson className="w-4 h-4" />, color: 'surface-success border' },
+    { id: 'kmz', label: 'KMZ (GIS)', icon: <Globe className="w-4 h-4" />, color: 'surface-warning border' }
   ];
 
   const generateMetadata = () => {
@@ -76,6 +77,32 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
       }))
     };
     return JSON.stringify(data, null, 2);
+  };
+
+  const generateKMLContent = () => {
+    const placemarks = topology
+      .filter((obj) => obj.geoCoordinates)
+      .map((obj) => {
+        const lon = obj.geoCoordinates?.longitude ?? 0;
+        const lat = obj.geoCoordinates?.latitude ?? 0;
+        const alarmCount = obj.alarmSummary.critical + obj.alarmSummary.major;
+        return `
+          <Placemark>
+            <name>${obj.name}</name>
+            <description>Type: ${obj.type}, Vendor: ${obj.vendor || 'Unknown'}, Health: ${obj.healthState}, Alarms: ${alarmCount}</description>
+            <Point><coordinates>${lon},${lat},0</coordinates></Point>
+          </Placemark>
+        `;
+      })
+      .join('\n');
+
+    return `<?xml version="1.0" encoding="UTF-8"?>
+      <kml xmlns="http://www.opengis.net/kml/2.2">
+        <Document>
+          <name>Topology ${selectedType} Export</name>
+          ${placemarks}
+        </Document>
+      </kml>`;
   };
 
   const handleExport = async () => {
@@ -114,6 +141,10 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
           downloadFile(blob, `topology-${selectedType}-${Date.now()}.png`);
         }
       });
+    } else if (selectedFormat === 'kmz') {
+      const kmlData = generateKMLContent();
+      const blob = new Blob([kmlData], { type: 'application/vnd.google-earth.kmz' });
+      downloadFile(blob, `topology-${selectedType}-${Date.now()}.kmz`);
     }
 
     onExport?.(config);
@@ -169,7 +200,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
       {/* Format Selection */}
       <div className="flex flex-col gap-2">
         <p className="text-sm font-semibold text-muted-foreground">Format</p>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           {FORMATS.map(format => (
             <button
               key={format.id}

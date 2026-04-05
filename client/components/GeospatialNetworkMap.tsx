@@ -22,6 +22,10 @@ export interface CustomLayerMarker {
   latitude: number;
   longitude: number;
   label: string;
+  sourceType: string;
+  healthState: TopologyObject['healthState'];
+  vendor?: TopologyObject['vendor'];
+  alarmCount: number;
 }
 
 export interface CustomMapLayer {
@@ -31,6 +35,7 @@ export interface CustomMapLayer {
   sourceType?: string;
   visible: boolean;
   color: string;
+  objectCount: number;
   markers: CustomLayerMarker[];
 }
 
@@ -277,17 +282,20 @@ export const GeospatialNetworkMap: React.FC<GeospatialNetworkMapProps> = ({
               );
             })}
 
-          {/* User-created map layers */}
+          {/* User-created map layers (map-visible object sets) */}
           {customLayers
             .filter(layer => layer.visible)
             .flatMap(layer =>
               layer.markers.map(marker => {
                 const customIcon = L.divIcon({
                   className: 'custom-user-layer-marker',
-                  html: `<div style="width:14px;height:14px;border-radius:9999px;background:${layer.color};border:2px solid white;box-shadow:0 1px 6px rgba(0,0,0,0.35);"></div>`,
-                  iconSize: [14, 14],
-                  iconAnchor: [7, 7],
-                  popupAnchor: [0, -8]
+                  html: `<div style="position:relative;width:24px;height:24px;display:flex;align-items:center;justify-content:center;">
+                          <span style="position:absolute;width:22px;height:22px;border-radius:9999px;background:${layer.color};opacity:0.25;border:2px solid ${layer.color};"></span>
+                          <span style="position:relative;width:12px;height:12px;border-radius:9999px;background:${layer.color};border:2px solid white;"></span>
+                        </div>`,
+                  iconSize: [24, 24],
+                  iconAnchor: [12, 12],
+                  popupAnchor: [0, -10]
                 });
                 return (
                   <Marker
@@ -299,7 +307,12 @@ export const GeospatialNetworkMap: React.FC<GeospatialNetworkMapProps> = ({
                       <div className="text-xs min-w-[190px]">
                         <p className="font-semibold text-foreground">{layer.name}</p>
                         <p className="text-muted-foreground">Type: {layer.type}</p>
-                        <p className="text-muted-foreground">Marker: {marker.label}</p>
+                        <p className="text-muted-foreground">Source: {marker.sourceType}</p>
+                        <p className="text-muted-foreground">Object: {marker.label}</p>
+                        <p className="text-muted-foreground">Health: {marker.healthState}</p>
+                        {marker.alarmCount > 0 && (
+                          <p className="text-muted-foreground">Alarms: {marker.alarmCount}</p>
+                        )}
                       </div>
                     </Popup>
                   </Marker>
