@@ -145,7 +145,7 @@ const TopologyManagementContent: React.FC = () => {
 
 
   const renderMapView = () => (
-    <div className="w-full h-full flex flex-col bg-background dark:bg-background overflow-y-auto">
+    <div className="w-full h-full flex flex-col bg-background dark:bg-background overflow-hidden">
       {/* Filter Status Indicators with Controls */}
       {(selectedCountry || selectedHierarchyLevel !== 'all' || layers.ranOnly || layers.transportOnly || layers.alarms || filteredNodes.length < visibleNodes.length || activeView === 'map') && (
         <div className="flex gap-2 px-4 py-2 flex-wrap items-center justify-between">
@@ -229,9 +229,9 @@ const TopologyManagementContent: React.FC = () => {
       )}
 
       {/* Main content grid - Map fills width with responsive sidebar */}
-      <div className="flex flex-1 gap-3 p-3">
+      <div className="flex flex-1 gap-3 p-3 min-h-0">
         {/* Main map area - Takes available space */}
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 min-h-0">
           <GeospatialNetworkMap
             topology={filteredNodes}
             layers={layers}
@@ -242,92 +242,100 @@ const TopologyManagementContent: React.FC = () => {
         </div>
 
         {/* Right sidebar - Layers & Multi-Tenant Controls - Flexible width */}
-        <div className="flex-shrink-0 w-64 space-y-3 overflow-y-auto max-h-[calc(100vh-250px)]">
-          {/* Layers Control Panel - Inline */}
-          <div className="flex flex-col bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-3">
-            <h3 className="font-semibold text-sm text-gray-900 dark:text-gray-100 mb-3">Layers</h3>
+        <div className="flex-shrink-0 w-72 min-h-0">
+          <div className="h-full rounded-lg border border-border bg-card flex flex-col overflow-hidden shadow-sm">
+            <div className="px-3 py-2 border-b border-border/60 bg-muted/30">
+              <h3 className="font-semibold text-sm text-foreground">Geospatial Controls</h3>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Layers, tenant awareness, and export actions</p>
+            </div>
+            <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-3">
+              {/* Layers Control Panel - Inline */}
+              <div className="flex flex-col rounded-lg border border-border/70 bg-background p-3">
+                <h4 className="font-semibold text-sm text-foreground mb-3">Layers</h4>
 
-            {/* Filter Layers */}
-            <div className="space-y-2">
-              <button
-                onClick={() => setLayers({ ...layers, ranOnly: !layers.ranOnly, transportOnly: false })}
-                className="w-full text-left flex items-center gap-3 p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition group"
-              >
-                {layers.ranOnly ? (
-                  <Eye className="w-4 h-4 text-blue-600" />
-                ) : (
-                  <EyeOff className="w-4 h-4 text-gray-400" />
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">RAN Only</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">RAN equipment</p>
-                </div>
-                <div className={`w-5 h-5 rounded border-2 transition flex-shrink-0 ${
-                  layers.ranOnly
-                    ? 'bg-blue-600 border-blue-600'
-                    : 'border-gray-300 dark:border-gray-600'
-                }`} />
-              </button>
+                {/* Filter Layers */}
+                <div className="space-y-2">
+                  <button
+                    onClick={() => setLayers({ ...layers, ranOnly: !layers.ranOnly, transportOnly: false })}
+                    className="w-full text-left flex items-center gap-3 p-2 rounded hover:bg-muted/60 transition group"
+                  >
+                    {layers.ranOnly ? (
+                      <Eye className="w-4 h-4 text-blue-600" />
+                    ) : (
+                      <EyeOff className="w-4 h-4 text-muted-foreground" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">RAN Only</p>
+                      <p className="text-xs text-muted-foreground truncate">RAN equipment</p>
+                    </div>
+                    <div className={`w-5 h-5 rounded border-2 transition flex-shrink-0 ${
+                      layers.ranOnly
+                        ? 'bg-blue-600 border-blue-600'
+                        : 'border-border'
+                    }`} />
+                  </button>
 
-              <button
-                onClick={() => setLayers({ ...layers, transportOnly: !layers.transportOnly, ranOnly: false })}
-                className="w-full text-left flex items-center gap-3 p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition group"
-              >
-                {layers.transportOnly ? (
-                  <Eye className="w-4 h-4 text-blue-600" />
-                ) : (
-                  <EyeOff className="w-4 h-4 text-gray-400" />
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">Transport Only</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">Transport layer</p>
-                </div>
-                <div className={`w-5 h-5 rounded border-2 transition flex-shrink-0 ${
-                  layers.transportOnly
-                    ? 'bg-blue-600 border-blue-600'
-                    : 'border-gray-300 dark:border-gray-600'
-                }`} />
-              </button>
+                  <button
+                    onClick={() => setLayers({ ...layers, transportOnly: !layers.transportOnly, ranOnly: false })}
+                    className="w-full text-left flex items-center gap-3 p-2 rounded hover:bg-muted/60 transition group"
+                  >
+                    {layers.transportOnly ? (
+                      <Eye className="w-4 h-4 text-blue-600" />
+                    ) : (
+                      <EyeOff className="w-4 h-4 text-muted-foreground" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">Transport Only</p>
+                      <p className="text-xs text-muted-foreground truncate">Transport layer</p>
+                    </div>
+                    <div className={`w-5 h-5 rounded border-2 transition flex-shrink-0 ${
+                      layers.transportOnly
+                        ? 'bg-blue-600 border-blue-600'
+                        : 'border-border'
+                    }`} />
+                  </button>
 
-              <button
-                onClick={() => setLayers({ ...layers, alarms: !layers.alarms })}
-                className="w-full text-left flex items-center gap-3 p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition group"
-              >
-                {layers.alarms ? (
-                  <Eye className="w-4 h-4 text-blue-600" />
-                ) : (
-                  <EyeOff className="w-4 h-4 text-gray-400" />
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">Alarms</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">Active alarms</p>
+                  <button
+                    onClick={() => setLayers({ ...layers, alarms: !layers.alarms })}
+                    className="w-full text-left flex items-center gap-3 p-2 rounded hover:bg-muted/60 transition group"
+                  >
+                    {layers.alarms ? (
+                      <Eye className="w-4 h-4 text-blue-600" />
+                    ) : (
+                      <EyeOff className="w-4 h-4 text-muted-foreground" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">Alarms</p>
+                      <p className="text-xs text-muted-foreground truncate">Active alarms</p>
+                    </div>
+                    <div className={`w-5 h-5 rounded border-2 transition flex-shrink-0 ${
+                      layers.alarms
+                        ? 'bg-blue-600 border-blue-600'
+                        : 'border-border'
+                    }`} />
+                  </button>
                 </div>
-                <div className={`w-5 h-5 rounded border-2 transition flex-shrink-0 ${
-                  layers.alarms
-                    ? 'bg-blue-600 border-blue-600'
-                    : 'border-gray-300 dark:border-gray-600'
-                }`} />
-              </button>
+              </div>
+
+              {/* Multi-Tenant Control Panel */}
+              <MultiTenantAwareness
+                topology={filteredNodes}
+                selectedCountry={selectedCountry}
+                selectedTenant={selectedTenant}
+                onCountryChange={setSelectedCountry}
+                onTenantChange={setSelectedTenant}
+              />
+
+              {/* Export Panel */}
+              {showExportPanel && (
+                <ExportPanel
+                  topology={filteredNodes}
+                  currentView="geospatial-map"
+                  filters={{ country: selectedCountry, tenant: selectedTenant }}
+                />
+              )}
             </div>
           </div>
-
-          {/* Multi-Tenant Control Panel */}
-          <MultiTenantAwareness
-            topology={filteredNodes}
-            selectedCountry={selectedCountry}
-            selectedTenant={selectedTenant}
-            onCountryChange={setSelectedCountry}
-            onTenantChange={setSelectedTenant}
-          />
-
-          {/* Export Panel */}
-          {showExportPanel && (
-            <ExportPanel
-              topology={filteredNodes}
-              currentView="geospatial-map"
-              filters={{ country: selectedCountry, tenant: selectedTenant }}
-            />
-          )}
         </div>
       </div>
 

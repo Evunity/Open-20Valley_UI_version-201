@@ -90,14 +90,19 @@ const getNodeHandles = (nodeType: WorkflowNode['type']): Handle[] => {
   return baseHandles;
 };
 
-export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; onCancel?: () => void }> = ({
+export const WorkflowBuilder: React.FC<{
+  onSave?: (workflow: Workflow) => void;
+  onCancel?: () => void;
+  initialWorkflow?: Workflow;
+}> = ({
   onSave,
-  onCancel
+  onCancel,
+  initialWorkflow
 }) => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const inputHandleRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const outputHandleRefs = useRef<Record<string, HTMLButtonElement | null>>({});
-  const [workflow, setWorkflow] = useState<Workflow>({
+  const [workflow, setWorkflow] = useState<Workflow>(() => initialWorkflow || ({
     id: `workflow_${Date.now()}`,
     name: 'New Workflow',
     description: '',
@@ -116,7 +121,7 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
     createdAt: new Date().toLocaleString(),
     updatedAt: new Date().toLocaleString(),
     active: false
-  });
+  }));
 
   const [selectedNodeId, setSelectedNodeId] = useState<string>('node_1');
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
@@ -127,6 +132,14 @@ export const WorkflowBuilder: React.FC<{ onSave?: (workflow: Workflow) => void; 
   const [showNodePalette, setShowNodePalette] = useState(true);
   const [showPreview, setShowPreview] = useState(false);
   const [edgeGeometry, setEdgeGeometry] = useState<Record<string, { x1: number; y1: number; x2: number; y2: number }>>({});
+
+  useEffect(() => {
+    if (initialWorkflow) {
+      setWorkflow(initialWorkflow);
+      setSelectedNodeId(initialWorkflow.nodes[0]?.id || '');
+      setSelectedEdgeId(null);
+    }
+  }, [initialWorkflow]);
 
   const selectedNode = workflow.nodes.find(n => n.id === selectedNodeId);
 

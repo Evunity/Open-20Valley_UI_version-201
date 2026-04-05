@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Save, Trash2, Download, Eye, EyeOff, ChevronDown, Search, X, RotateCcw, Calendar, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import * as XLSX from "xlsx";
@@ -71,6 +71,7 @@ export default function AnalyticsManagement() {
   const [generatedTime, setGeneratedTime] = useState<Date | null>(null);
   const [isGenerated, setIsGenerated] = useState(false);
   const [showKPIDropdown, setShowKPIDropdown] = useState(false);
+  const [kpiDisplayMode, setKpiDisplayMode] = useState<"combined" | "separate">("separate");
   const [regenerateVersion, setRegenerateVersion] = useState(0);
   const [appliedSelectedKPIs, setAppliedSelectedKPIs] = useState<KPI[]>([]);
   const [appliedScope, setAppliedScope] = useState<SavedView["scope"]>("Network");
@@ -87,6 +88,7 @@ export default function AnalyticsManagement() {
   const [selectedSite, setSelectedSite] = useState<string | null>(null);
   const [selectedCell, setSelectedCell] = useState<string | null>(null);
   const [openScopeDropdown, setOpenScopeDropdown] = useState<string | null>(null);
+  const kpiDropdownRef = useRef<HTMLDivElement>(null);
 
   // Available filter options
   const allTechnologies = ["2G", "3G", "4G", "5G", "O-RAN"];
@@ -245,6 +247,36 @@ export default function AnalyticsManagement() {
     selectedCell,
   ]);
 
+  useEffect(() => {
+    if (appliedSelectedKPIs.length <= 1 && kpiDisplayMode === "combined") {
+      setKpiDisplayMode("separate");
+    }
+  }, [appliedSelectedKPIs.length, kpiDisplayMode]);
+
+  useEffect(() => {
+    if (!showKPIDropdown) return;
+
+    const handlePointerDownOutside = (event: MouseEvent) => {
+      if (!kpiDropdownRef.current?.contains(event.target as Node)) {
+        setShowKPIDropdown(false);
+      }
+    };
+
+    const handleEscapeClose = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setShowKPIDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointerDownOutside);
+    document.addEventListener("keydown", handleEscapeClose);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDownOutside);
+      document.removeEventListener("keydown", handleEscapeClose);
+    };
+  }, [showKPIDropdown]);
+
   // Generate chart data for all selected KPIs
   const chartDataMap = useMemo(() => {
     if (!isGenerated || appliedSelectedKPIs.length === 0) return {};
@@ -279,6 +311,32 @@ export default function AnalyticsManagement() {
     selectedCell,
     regenerateVersion,
   ]);
+
+  const combinedSeriesMeta = useMemo(
+    () =>
+      appliedSelectedKPIs.map((kpi) => ({
+        id: kpi.id,
+        label: `${kpi.name} (${kpi.id})`,
+        data: chartDataMap[kpi.id] || [],
+      })),
+    [appliedSelectedKPIs, chartDataMap]
+  );
+
+  const combinedKPIData = useMemo(() => {
+    if (combinedSeriesMeta.length <= 1) return [];
+    const timeMap = new Map<string, Record<string, any>>();
+
+    combinedSeriesMeta.forEach((series) => {
+      series.data.forEach((point: any) => {
+        if (!timeMap.has(point.time)) {
+          timeMap.set(point.time, { time: point.time });
+        }
+        timeMap.get(point.time)![series.label] = point.value;
+      });
+    });
+
+    return Array.from(timeMap.values());
+  }, [combinedSeriesMeta]);
 
   const handleSaveView = () => {
     if (!saveViewName.trim()) return;
@@ -448,7 +506,7 @@ export default function AnalyticsManagement() {
       {/* Header - Search bar with Views and Save buttons on one row */}
       <div className="flex items-center gap-1.5 flex-wrap">
         {/* KPI Search Bar - Flex left */}
-        <div className="relative flex-1 min-w-[200px]">
+        <div ref={kpiDropdownRef} className="relative flex-1 min-w-[200px]">
           <div className={cn("bg-card border rounded p-1.5 flex items-center gap-1.5 transition-all shadow-sm", showKPIDropdown ? "border-primary ring-1 ring-primary/30 shadow-md" : "border-border hover:border-primary/30")}>
             <Search className="w-3.5 h-3.5 text-primary flex-shrink-0 stroke-2" />
             <input
@@ -1170,22 +1228,61 @@ export default function AnalyticsManagement() {
             </button>
           </div>
 
-          {appliedSelectedKPIs.map((kpi) => {
-            const selectedLabel = selectedNetwork || selectedRegion || selectedCluster || selectedSite || selectedCell || "All";
-            const kpiChartData = chartDataMap[kpi.id] || [];
+          {appliedSelectedKPIs.length > 1 && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-muted-foreground">Display mode:</span>
+              <button
+                onClick={() => setKpiDisplayMode("combined")}
+                className={cn(
+                  "px-2.5 py-1 rounded text-xs border transition-colors",
+                  kpiDisplayMode === "combined"
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-background text-foreground border-border hover:bg-muted"
+                )}
+              >
+                Combined
+              </button>
+              <button
+                onClick={() => setKpiDisplayMode("separate")}
+                className={cn(
+                  "px-2.5 py-1 rounded text-xs border transition-colors",
+                  kpiDisplayMode === "separate"
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-background text-foreground border-border hover:bg-muted"
+                )}
+              >
+                Separate
+              </button>
+            </div>
+          )}
 
-            return (
-              <TrendChartContainer
-                key={kpi.id}
-                title={`${kpi.name} (${selectedLabel})`}
-                data={kpiChartData}
-                dataKeys={["value"]}
-                exportable
-                zoomable
-                defaultChartType="line"
-              />
-            );
-          })}
+          {appliedSelectedKPIs.length > 1 && kpiDisplayMode === "combined" ? (
+            <TrendChartContainer
+              title={`Combined KPI View (${appliedSelectedKPIs.length} KPIs)`}
+              data={combinedKPIData}
+              dataKeys={combinedSeriesMeta.map((series) => series.label)}
+              exportable
+              zoomable
+              defaultChartType="line"
+            />
+          ) : (
+            appliedSelectedKPIs.map((kpi) => {
+              const selectedLabel = selectedNetwork || selectedRegion || selectedCluster || selectedSite || selectedCell || "All";
+              const kpiChartData = chartDataMap[kpi.id] || [];
+
+              return (
+                <TrendChartContainer
+                  key={kpi.id}
+                  title={`${kpi.name} (${selectedLabel})`}
+                  data={kpiChartData}
+                  dataKeys={["value"]}
+                  exportable
+                  zoomable
+                  defaultChartType="line"
+                />
+              );
+            })
+          )}
 
           {/* KPI Details Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">

@@ -44,6 +44,52 @@ export interface LiveAutonomyEvent {
   scope: string;
   status: 'success' | 'pending' | 'rollback';
   impact: string;
+  category: 'self_healing' | 'transport' | 'optimization' | 'configuration';
+  triggerTime: string;
+  startedAt: string;
+  endedAt?: string;
+  progress?: number;
+  location: {
+    region: string;
+    site: string;
+    cluster: string;
+    vendor: string;
+    technology: string;
+  };
+  impactDetails: {
+    subscribersAffected: number;
+    servicesAffected: string[];
+    severity: 'low' | 'medium' | 'high' | 'critical';
+  };
+  explanation: string;
+  triggerReason: string;
+  actionTaken: string;
+  decisionPath: string[];
+  outcome: string;
+  relatedEntities: {
+    alarmId: string;
+    kpi: string;
+    transportLink?: string;
+    cellId?: string;
+  };
+  rollback?: {
+    initiatedAt: string;
+    reason: string;
+    status: 'completed' | 'in_progress';
+  };
+  failureReason?: string;
+  audit: {
+    policyId: string;
+    modelVersion: string;
+    approvedBy: string;
+    runbookId: string;
+  };
+  timeline: Array<{
+    time: string;
+    label: string;
+    detail: string;
+    state: 'done' | 'running' | 'blocked';
+  }>;
 }
 
 export interface AutomationTemplate {
@@ -279,14 +325,104 @@ export function generateMockLiveEvents(count: number = 8): LiveAutonomyEvent[] {
     'System in steady state'
   ];
 
+  const serviceOptions = [
+    ['Voice', 'Data'],
+    ['VoLTE', 'Emergency'],
+    ['Data', 'Messaging'],
+    ['Transport Backhaul'],
+  ];
+
   for (let i = 0; i < count; i++) {
+    const status = ['success', 'success', 'success', 'pending', 'rollback'][Math.floor(Math.random() * 5)] as 'success' | 'pending' | 'rollback';
+    const baseTime = new Date(Date.now() - Math.random() * 600000);
+    const triggerTime = new Date(baseTime.getTime() - 90000);
+    const endTime = status === 'pending' ? undefined : new Date(baseTime.getTime() + Math.floor(Math.random() * 90000 + 30000));
+    const subscribersAffected = Math.floor(Math.random() * 30000 + 1000);
+
     events.push({
       id: `event_${i}`,
-      timestamp: new Date(Date.now() - Math.random() * 600000).toISOString(),
+      timestamp: baseTime.toISOString(),
       action: actions[i % actions.length],
       scope: ['Cluster East', 'Region North', 'Site Alexandria', 'Transport Backbone'][Math.floor(Math.random() * 4)],
-      status: ['success', 'success', 'success', 'pending', 'rollback'][Math.floor(Math.random() * 5)] as 'success' | 'pending' | 'rollback',
-      impact: `Impact: ${Math.floor(Math.random() * 30000 + 1000)} subscribers`
+      status,
+      impact: `Impact: ${subscribersAffected.toLocaleString()} subscribers`,
+      category: (['self_healing', 'transport', 'optimization', 'configuration'] as const)[Math.floor(Math.random() * 4)],
+      triggerTime: triggerTime.toISOString(),
+      startedAt: baseTime.toISOString(),
+      endedAt: endTime?.toISOString(),
+      progress: status === 'pending' ? Math.floor(Math.random() * 60 + 30) : undefined,
+      location: {
+        region: ['North', 'South', 'East', 'West'][Math.floor(Math.random() * 4)],
+        site: `Site-${String(Math.floor(Math.random() * 90 + 10)).padStart(2, '0')}`,
+        cluster: `Cluster-${['A', 'B', 'C', 'D'][Math.floor(Math.random() * 4)]}`,
+        vendor: ['Ericsson', 'Huawei', 'Nokia'][Math.floor(Math.random() * 3)],
+        technology: ['4G', '5G', 'O-RAN'][Math.floor(Math.random() * 3)],
+      },
+      impactDetails: {
+        subscribersAffected,
+        servicesAffected: serviceOptions[Math.floor(Math.random() * serviceOptions.length)],
+        severity: (['low', 'medium', 'high', 'critical'] as const)[Math.floor(Math.random() * 4)],
+      },
+      explanation: 'Autonomy engine detected a service-impacting condition and executed a closed-loop correction sequence to stabilize KPIs.',
+      triggerReason: 'KPI threshold breach + correlated alarm pattern exceeded policy confidence threshold (>= 0.86).',
+      actionTaken: 'Executed runbook RBK-142: isolate failing element, reroute traffic, restart affected DU, and validate counters.',
+      decisionPath: [
+        'Validated alarm correlation across RAN + transport layers',
+        'Scored blast radius and selected least-risk recovery strategy',
+        'Verified rollback readiness before execution',
+        'Applied staged remediation with guardrails',
+      ],
+      outcome: status === 'success'
+        ? 'Service stabilized and KPIs returned to baseline.'
+        : status === 'pending'
+          ? 'Recovery in progress; validation checkpoint awaiting completion.'
+          : 'Primary action regressed KPI trend; rollback engaged to restore previous baseline.',
+      relatedEntities: {
+        alarmId: `ALM-${Math.floor(Math.random() * 90000 + 10000)}`,
+        kpi: ['Call Setup Success Rate', 'Throughput', 'Packet Loss', 'Latency'][Math.floor(Math.random() * 4)],
+        transportLink: `TR-${Math.floor(Math.random() * 900 + 100)}`,
+        cellId: `CELL-${Math.floor(Math.random() * 9000 + 1000)}`,
+      },
+      rollback: status === 'rollback'
+        ? {
+            initiatedAt: new Date(baseTime.getTime() + 45000).toISOString(),
+            reason: 'Validation step detected rising packet loss after remediation.',
+            status: 'completed',
+          }
+        : undefined,
+      failureReason: status === 'rollback' ? 'Post-change KPI drift exceeded rollback threshold.' : undefined,
+      audit: {
+        policyId: 'POL-CLOSED-LOOP-07',
+        modelVersion: 'AIOps-v4.3.2',
+        approvedBy: 'Autonomy Engine (Policy Auto-Approve)',
+        runbookId: 'RBK-142',
+      },
+      timeline: [
+        {
+          time: triggerTime.toISOString(),
+          label: 'Trigger Captured',
+          detail: 'Alarm + KPI anomaly correlation reached escalation threshold.',
+          state: 'done',
+        },
+        {
+          time: baseTime.toISOString(),
+          label: 'Decision Engine',
+          detail: 'Policy and model selected remediation strategy.',
+          state: 'done',
+        },
+        {
+          time: new Date(baseTime.getTime() + 30000).toISOString(),
+          label: 'Execution',
+          detail: 'Runbook executed in staged mode with safety gates.',
+          state: status === 'pending' ? 'running' : 'done',
+        },
+        {
+          time: new Date(baseTime.getTime() + 70000).toISOString(),
+          label: 'Validation',
+          detail: status === 'pending' ? 'Awaiting final KPI stabilization check.' : 'Post-action KPI validation completed.',
+          state: status === 'pending' ? 'running' : status === 'rollback' ? 'blocked' : 'done',
+        },
+      ],
     });
   }
 
