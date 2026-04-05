@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Map, GitBranch, Network, Box, Layers, ZoomIn, Route, Clock, Eye, EyeOff, Edit2, Activity } from 'lucide-react';
+import { Map, GitBranch, Network, Box, Layers, ZoomIn, Route, Clock, Eye, EyeOff, Edit2, Activity, AlertTriangle, TrendingUp, Plus, X, Search } from 'lucide-react';
 import { RackView } from '../components/RackView';
 import { TransportPathView } from '../components/TransportPathView';
 import { ImpactAnalysisView } from '../components/ImpactAnalysisView';
 import { TimelineReplayView } from '../components/TimelineReplayView';
 import { LayerSettings } from '../components/LayerControlPanel';
-import { PredictiveRiskHighlight } from '../components/PredictiveRiskHighlight';
 import { ExportPanel } from '../components/ExportPanel';
 import { MultiTenantAwareness } from '../components/MultiTenantAwareness';
-import { GeospatialNetworkMap } from '../components/GeospatialNetworkMap';
+import { CustomLayerType, CustomMapLayer, GeospatialNetworkMap } from '../components/GeospatialNetworkMap';
 import { EditableTreeView } from '../components/EditableTreeView';
 import { DependencyGraph } from '../components/DependencyGraph';
 import { PortsMetricsView } from '../components/PortsMetricsView';
@@ -34,6 +33,16 @@ const VIEWS: TopologyViewConfig[] = [
   { id: 'ports-metrics', label: 'Ports & Metrics', icon: Activity, description: 'Port performance and bandwidth metrics' }
 ];
 
+const BUILT_IN_LAYER_TYPES: { label: string; value: CustomLayerType }[] = [
+  { label: 'Cluster marker group', value: 'site-group' },
+  { label: 'RAN equipment group', value: 'ran' },
+  { label: 'Transport group', value: 'transport' },
+  { label: 'Alarm hotspot group', value: 'alarms' },
+  { label: 'Region boundary group', value: 'region-boundary' },
+  { label: 'KPI/coverage group', value: 'kpi-coverage' },
+  { label: 'Custom marker group', value: 'custom-markers' }
+];
+
 /**
  * Internal component - uses topology context
  */
@@ -57,6 +66,9 @@ const TopologyManagementContent: React.FC = () => {
   const [showPredictiveRisks, setShowPredictiveRisks] = useState(true);
   const [showExportPanel, setShowExportPanel] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [isAddLayerModalOpen, setIsAddLayerModalOpen] = useState(false);
+  const [addLayerError, setAddLayerError] = useState<string | null>(null);
+  const [placeSearch, setPlaceSearch] = useState('');
   const [layers, setLayers] = useState<LayerSettings>({
     alarms: true,
     kpi: true,
@@ -66,6 +78,15 @@ const TopologyManagementContent: React.FC = () => {
     vendorOverlay: true,
     transportOnly: false,
     ranOnly: false
+  });
+  const [customLayers, setCustomLayers] = useState<CustomMapLayer[]>([]);
+  const [newLayerDraft, setNewLayerDraft] = useState({
+    name: '',
+    type: 'site-group' as CustomLayerType,
+    sourceType: 'site',
+    placeId: '',
+    visible: true,
+    color: '#0ea5e9'
   });
 
   const hierarchyLevels: Record<string, string[]> = {
@@ -142,6 +163,115 @@ const TopologyManagementContent: React.FC = () => {
 
     return filtered;
   }, [visibleNodes, selectedCountry, selectedHierarchyLevel, layers, getCountryAncestor, hierarchyLevels]);
+
+  const predictiveInsights = React.useMemo(() => {
+    return filteredNodes
+      .filter((node) => node.type === 'cluster' || node.type === 'site')
+      .map((node) => {
+        const alarmPressure = node.alarmSummary.critical * 20 + node.alarmSummary.major * 10;
+        const utilizationPressure = node.kpiSummary.utilization > 75 ? node.kpiSummary.utilization - 70 : 0;
+        const latencyPressure = node.kpiSummary.latency > 25 ? node.kpiSummary.latency - 20 : 0;
+        const riskScore = Math.min(99, Math.round(alarmPressure + utilizationPressure + latencyPressure));
+        const riskLevel = riskScore >= 75 ? 'High' : riskScore >= 45 ? 'Medium' : 'Low';
+        return {
+          id: node.id,
+          name: node.name,
+          type: node.type,
+          riskScore,
+          riskLevel,
+          utilization: node.kpiSummary.utilization,
+          latency: node.kpiSummary.latency,
+          timeframe: riskLevel === 'High' ? '15-30 min' : riskLevel === 'Medium' ? '30-60 min' : '1-2 hr',
+          recommendation:
+            riskLevel === 'High'
+              ? 'Run proactive load-shift and trigger anomaly diagnostics.'
+              : riskLevel === 'Medium'
+                ? 'Monitor counters and pre-stage mitigation workflow.'
+                : 'Keep under observation with baseline checks.',
+        };
+      })
+      .sort((a, b) => b.riskScore - a.riskScore)
+      .slice(0, 5);
+  }, [filteredNodes]);
+
+  const selectablePlaces = React.useMemo(() => {
+    const seen = new Set<string>();
+    return visibleNodes
+      .filter((node) => node.geoCoordinates && ['region', 'cluster', 'site', 'rack', 'cell'].includes(node.type))
+      .map((node) => ({
+        id: node.id,
+        name: node.name,
+        type: node.type,
+        latitude: node.geoCoordinates?.latitude || 0,
+        longitude: node.geoCoordinates?.longitude || 0,
+      }))
+      .filter((place) => {
+        const key = `${place.name}-${place.type}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [visibleNodes]);
+
+  const filteredPlaces = React.useMemo(() => {
+    if (!placeSearch.trim()) return selectablePlaces.slice(0, 40);
+    const search = placeSearch.toLowerCase();
+    return selectablePlaces
+      .filter((place) => place.name.toLowerCase().includes(search) || place.type.toLowerCase().includes(search))
+      .slice(0, 40);
+  }, [placeSearch, selectablePlaces]);
+
+  const handleCreateLayer = () => {
+    const trimmedName = newLayerDraft.name.trim();
+    if (!trimmedName) {
+      setAddLayerError('Layer name is required.');
+      return;
+    }
+    if (!newLayerDraft.placeId) {
+      setAddLayerError('Please select a location/place.');
+      return;
+    }
+
+    const selectedPlace = selectablePlaces.find((place) => place.id === newLayerDraft.placeId);
+    if (!selectedPlace) {
+      setAddLayerError('Selected place could not be resolved to coordinates.');
+      return;
+    }
+    setAddLayerError(null);
+
+    const layer: CustomMapLayer = {
+      id: `layer-${Date.now()}`,
+      name: trimmedName,
+      type: newLayerDraft.type,
+      sourceType: newLayerDraft.sourceType,
+      visible: newLayerDraft.visible,
+      color: newLayerDraft.color,
+      objectCount: 1,
+      markers: [{
+        id: `${newLayerDraft.placeId}-custom`,
+        latitude: selectedPlace.latitude,
+        longitude: selectedPlace.longitude,
+        label: selectedPlace.name,
+        sourceType: selectedPlace.type,
+        healthState: 'unknown',
+        vendor: 'Unknown',
+        alarmCount: 0
+      }]
+    };
+
+    setCustomLayers((prev) => [layer, ...prev]);
+    setNewLayerDraft({
+      name: '',
+      type: 'site-group',
+      sourceType: 'site',
+      placeId: '',
+      visible: true,
+      color: '#0ea5e9'
+    });
+    setPlaceSearch('');
+    setIsAddLayerModalOpen(false);
+  };
 
 
   const renderMapView = () => (
@@ -222,6 +352,17 @@ const TopologyManagementContent: React.FC = () => {
                   />
                   <span className="whitespace-nowrap">Predictive AI</span>
                 </label>
+                <button
+                  onClick={() => {
+                    setAddLayerError(null);
+                    setIsAddLayerModalOpen(true);
+                  }}
+                  className="h-9 px-3 rounded text-xs font-semibold border border-border bg-input text-foreground hover:border-primary/40 transition flex items-center gap-1.5"
+                  title="Create a location-based map layer item"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  Add Layer
+                </button>
               </>
             )}
           </div>
@@ -229,12 +370,13 @@ const TopologyManagementContent: React.FC = () => {
       )}
 
       {/* Main content grid - Map fills width with responsive sidebar */}
-      <div className="flex flex-1 gap-3 p-3">
+      <div className="grid flex-1 gap-3 p-3 min-h-0 grid-cols-1 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
         {/* Main map area - Takes available space */}
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 min-h-0">
           <GeospatialNetworkMap
             topology={filteredNodes}
             layers={layers}
+            customLayers={customLayers}
             selectedObject={selectedNode}
             onObjectSelect={(node) => selectNode(node.id)}
             showPredictiveRisks={showPredictiveRisks}
@@ -242,99 +384,329 @@ const TopologyManagementContent: React.FC = () => {
         </div>
 
         {/* Right sidebar - Layers & Multi-Tenant Controls - Flexible width */}
-        <div className="flex-shrink-0 w-64 space-y-3 overflow-y-auto max-h-[calc(100vh-250px)]">
-          {/* Layers Control Panel - Inline */}
-          <div className="flex flex-col bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-3">
-            <h3 className="font-semibold text-sm text-gray-900 dark:text-gray-100 mb-3">Layers</h3>
+        <div className="min-h-0 lg:self-start">
+          <div className="rounded-lg border border-border bg-card flex flex-col overflow-hidden shadow-sm">
+            <div className="px-3 py-2 border-b border-border/60 bg-muted/30">
+              <h3 className="font-semibold text-sm text-foreground">Geospatial Controls</h3>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Layers, tenant awareness, and export actions</p>
+            </div>
+            <div className="overflow-y-auto p-3 space-y-3 max-h-[calc(100vh-16rem)]">
+              {/* Layers Control Panel - Inline */}
+              <div className="flex flex-col rounded-lg border border-border/70 bg-background p-3">
+                <h4 className="font-semibold text-sm text-foreground mb-3">Layers</h4>
 
-            {/* Filter Layers */}
-            <div className="space-y-2">
-              <button
-                onClick={() => setLayers({ ...layers, ranOnly: !layers.ranOnly, transportOnly: false })}
-                className="w-full text-left flex items-center gap-3 p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition group"
-              >
-                {layers.ranOnly ? (
-                  <Eye className="w-4 h-4 text-blue-600" />
-                ) : (
-                  <EyeOff className="w-4 h-4 text-gray-400" />
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">RAN Only</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">RAN equipment</p>
-                </div>
-                <div className={`w-5 h-5 rounded border-2 transition flex-shrink-0 ${
-                  layers.ranOnly
-                    ? 'bg-blue-600 border-blue-600'
-                    : 'border-gray-300 dark:border-gray-600'
-                }`} />
-              </button>
+                {/* Filter Layers */}
+                <div className="space-y-2">
+                  <button
+                    onClick={() => setLayers({ ...layers, ranOnly: !layers.ranOnly, transportOnly: false })}
+                    className="w-full text-left flex items-center gap-3 p-2 rounded hover:bg-muted/60 transition group"
+                  >
+                    {layers.ranOnly ? (
+                      <Eye className="w-4 h-4 text-blue-600" />
+                    ) : (
+                      <EyeOff className="w-4 h-4 text-muted-foreground" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">RAN Only</p>
+                      <p className="text-xs text-muted-foreground truncate">RAN equipment</p>
+                    </div>
+                    <div className={`w-5 h-5 rounded border-2 transition flex-shrink-0 ${
+                      layers.ranOnly
+                        ? 'bg-blue-600 border-blue-600'
+                        : 'border-border'
+                    }`} />
+                  </button>
 
-              <button
-                onClick={() => setLayers({ ...layers, transportOnly: !layers.transportOnly, ranOnly: false })}
-                className="w-full text-left flex items-center gap-3 p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition group"
-              >
-                {layers.transportOnly ? (
-                  <Eye className="w-4 h-4 text-blue-600" />
-                ) : (
-                  <EyeOff className="w-4 h-4 text-gray-400" />
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">Transport Only</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">Transport layer</p>
-                </div>
-                <div className={`w-5 h-5 rounded border-2 transition flex-shrink-0 ${
-                  layers.transportOnly
-                    ? 'bg-blue-600 border-blue-600'
-                    : 'border-gray-300 dark:border-gray-600'
-                }`} />
-              </button>
+                  <button
+                    onClick={() => setLayers({ ...layers, transportOnly: !layers.transportOnly, ranOnly: false })}
+                    className="w-full text-left flex items-center gap-3 p-2 rounded hover:bg-muted/60 transition group"
+                  >
+                    {layers.transportOnly ? (
+                      <Eye className="w-4 h-4 text-blue-600" />
+                    ) : (
+                      <EyeOff className="w-4 h-4 text-muted-foreground" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">Transport Only</p>
+                      <p className="text-xs text-muted-foreground truncate">Transport layer</p>
+                    </div>
+                    <div className={`w-5 h-5 rounded border-2 transition flex-shrink-0 ${
+                      layers.transportOnly
+                        ? 'bg-blue-600 border-blue-600'
+                        : 'border-border'
+                    }`} />
+                  </button>
 
-              <button
-                onClick={() => setLayers({ ...layers, alarms: !layers.alarms })}
-                className="w-full text-left flex items-center gap-3 p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition group"
-              >
-                {layers.alarms ? (
-                  <Eye className="w-4 h-4 text-blue-600" />
-                ) : (
-                  <EyeOff className="w-4 h-4 text-gray-400" />
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">Alarms</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">Active alarms</p>
+                  <button
+                    onClick={() => setLayers({ ...layers, alarms: !layers.alarms })}
+                    className="w-full text-left flex items-center gap-3 p-2 rounded hover:bg-muted/60 transition group"
+                  >
+                    {layers.alarms ? (
+                      <Eye className="w-4 h-4 text-blue-600" />
+                    ) : (
+                      <EyeOff className="w-4 h-4 text-muted-foreground" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">Alarms</p>
+                      <p className="text-xs text-muted-foreground truncate">Active alarms</p>
+                    </div>
+                    <div className={`w-5 h-5 rounded border-2 transition flex-shrink-0 ${
+                      layers.alarms
+                        ? 'bg-blue-600 border-blue-600'
+                        : 'border-border'
+                    }`} />
+                  </button>
                 </div>
-                <div className={`w-5 h-5 rounded border-2 transition flex-shrink-0 ${
-                  layers.alarms
-                    ? 'bg-blue-600 border-blue-600'
-                    : 'border-gray-300 dark:border-gray-600'
-                }`} />
-              </button>
+
+                {customLayers.length > 0 && (
+                  <div className="mt-3 border-t border-border/60 pt-3 space-y-2">
+                    <p className="text-[11px] uppercase tracking-wide font-semibold text-muted-foreground">Custom Layers</p>
+                    {customLayers.map((layer) => (
+                      <div key={layer.id} className="rounded-md border border-border/60 bg-card p-2">
+                        <button
+                          onClick={() => setCustomLayers((prev) => prev.map((existing) => (
+                            existing.id === layer.id ? { ...existing, visible: !existing.visible } : existing
+                          )))}
+                          className="w-full flex items-center gap-2 text-left"
+                        >
+                          {layer.visible ? <Eye className="w-4 h-4 text-blue-600" /> : <EyeOff className="w-4 h-4 text-muted-foreground" />}
+                          <span className="text-xs font-medium text-foreground flex-1 truncate">{layer.name}</span>
+                          <span className="text-[10px] text-muted-foreground capitalize">{layer.type.replace('-', ' ')}</span>
+                        </button>
+                        <div className="mt-2 flex items-center justify-between">
+                          <span className="text-[10px] text-muted-foreground truncate">
+                            {layer.objectCount} map objects • source: {layer.sourceType || 'cluster'}
+                          </span>
+                          <button
+                            onClick={() => setCustomLayers((prev) => prev.filter((existing) => existing.id !== layer.id))}
+                            className="text-[10px] text-destructive hover:underline"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Multi-Tenant Control Panel */}
+              <div className="rounded-lg border border-border/70 bg-background p-3">
+                <h4 className="font-semibold text-sm text-foreground mb-3">Country & Tenant Scope</h4>
+                <MultiTenantAwareness
+                  topology={filteredNodes}
+                  selectedCountry={selectedCountry}
+                  selectedTenant={selectedTenant}
+                  onCountryChange={setSelectedCountry}
+                  onTenantChange={setSelectedTenant}
+                />
+              </div>
+
+              {/* Predictive Insights Panel */}
+              <div className="rounded-lg border border-border/70 bg-background p-3">
+                <h4 className="font-semibold text-sm text-foreground mb-3">Predictive Insights</h4>
+                {showPredictiveRisks ? (
+                  <div className="space-y-2.5">
+                    {predictiveInsights.length > 0 ? predictiveInsights.map((risk) => (
+                      <div
+                        key={risk.id}
+                        className="rounded-lg border border-border/70 bg-card p-3"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-foreground truncate">{risk.name}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5 capitalize">{risk.type} • ETA {risk.timeframe}</p>
+                          </div>
+                          <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${
+                            risk.riskLevel === 'High'
+                              ? 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300'
+                              : risk.riskLevel === 'Medium'
+                                ? 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300'
+                                : 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300'
+                          }`}>
+                            {risk.riskLevel}
+                          </span>
+                        </div>
+
+                        <div className="mt-2 grid grid-cols-2 gap-2 text-[11px] text-muted-foreground">
+                          <div className="rounded-md bg-muted/40 p-2">
+                            <p className="text-[10px] uppercase tracking-wide">Risk Score</p>
+                            <p className="text-sm font-bold text-foreground">{risk.riskScore}%</p>
+                          </div>
+                          <div className="rounded-md bg-muted/40 p-2">
+                            <p className="text-[10px] uppercase tracking-wide">Util/Latency</p>
+                            <p className="text-sm font-bold text-foreground">{risk.utilization.toFixed(0)}% / {risk.latency.toFixed(0)}ms</p>
+                          </div>
+                        </div>
+
+                        <div className="mt-2 flex items-start gap-1.5 text-xs text-muted-foreground">
+                          <TrendingUp className="w-3.5 h-3.5 mt-0.5 text-primary flex-shrink-0" />
+                          <p>{risk.recommendation}</p>
+                        </div>
+                      </div>
+                    )) : (
+                      <div className="rounded-lg border border-dashed border-border p-3 text-xs text-muted-foreground">
+                        No high-confidence predictive hotspots in the current filtered scope.
+                      </div>
+                    )}
+                    <div className="rounded-md bg-muted/40 px-2.5 py-2 text-[11px] text-muted-foreground flex items-center gap-1.5">
+                      <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
+                      Predictions refresh with current filters and active map scope.
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    Enable <span className="font-semibold text-foreground">Predictive AI</span> to view projected risks and hotspot insights.
+                  </p>
+                )}
+              </div>
+
+              {/* Export Panel */}
+              {showExportPanel && (
+                <div className="rounded-lg border border-border/70 bg-background p-3">
+                  <h4 className="font-semibold text-sm text-foreground mb-3">Export</h4>
+                  <ExportPanel
+                    topology={filteredNodes}
+                    currentView="geospatial-map"
+                    filters={{ country: selectedCountry, tenant: selectedTenant }}
+                  />
+                </div>
+              )}
+
             </div>
           </div>
-
-          {/* Multi-Tenant Control Panel */}
-          <MultiTenantAwareness
-            topology={filteredNodes}
-            selectedCountry={selectedCountry}
-            selectedTenant={selectedTenant}
-            onCountryChange={setSelectedCountry}
-            onTenantChange={setSelectedTenant}
-          />
-
-          {/* Export Panel */}
-          {showExportPanel && (
-            <ExportPanel
-              topology={filteredNodes}
-              currentView="geospatial-map"
-              filters={{ country: selectedCountry, tenant: selectedTenant }}
-            />
-          )}
         </div>
       </div>
 
-      {/* Predictive Risk Panel */}
-      {showPredictiveRisks && (
-        <div className="max-h-60 overflow-y-auto">
-          <PredictiveRiskHighlight topology={filteredNodes} isEnabled={showPredictiveRisks} />
+      {isAddLayerModalOpen && (
+        <div className="fixed inset-0 z-[1200] bg-black/50 flex items-center justify-center p-4">
+          <div className="w-full max-w-lg rounded-xl border border-border bg-card shadow-2xl">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+              <div>
+                <h4 className="text-sm font-semibold text-foreground">Add Map Layer Item</h4>
+                <p className="text-[11px] text-muted-foreground">Create a real geospatial item using a supported place.</p>
+              </div>
+              <button
+                onClick={() => {
+                  setIsAddLayerModalOpen(false);
+                  setAddLayerError(null);
+                }}
+                className="p-1.5 rounded hover:bg-muted transition"
+                aria-label="Close Add Layer modal"
+              >
+                <X className="w-4 h-4 text-muted-foreground" />
+              </button>
+            </div>
+
+            <div className="p-4 space-y-3">
+              <div>
+                <label className="text-xs font-semibold text-foreground">Layer Name</label>
+                <input
+                  type="text"
+                  value={newLayerDraft.name}
+                  onChange={(e) => setNewLayerDraft((prev) => ({ ...prev, name: e.target.value }))}
+                  placeholder="e.g. Cairo VIP Ops Layer"
+                  className="mt-1 w-full h-9 rounded border border-border bg-background px-2 text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-foreground">Layer Type</label>
+                <select
+                  value={newLayerDraft.type}
+                  onChange={(e) => {
+                    const nextType = e.target.value as CustomLayerType;
+                    const suggestedSource =
+                      nextType === 'ran' ? 'ran' :
+                      nextType === 'transport' ? 'transport' :
+                      nextType === 'alarms' ? 'alarms' :
+                      nextType === 'region-boundary' ? 'region' :
+                      nextType === 'site-group' ? 'site' :
+                      'cluster';
+                    setNewLayerDraft((prev) => ({ ...prev, type: nextType, sourceType: suggestedSource }));
+                  }}
+                  className="mt-1 w-full h-9 rounded border border-border bg-background px-2 text-sm"
+                >
+                  {BUILT_IN_LAYER_TYPES.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-foreground">Location / Place</label>
+                <div className="mt-1 relative">
+                  <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-2 top-2.5" />
+                  <input
+                    type="text"
+                    value={placeSearch}
+                    onChange={(e) => setPlaceSearch(e.target.value)}
+                    placeholder="Search place (e.g. Cairo, Dammam)"
+                    className="w-full h-9 rounded border border-border bg-background pl-7 pr-2 text-sm"
+                  />
+                </div>
+                <div className="mt-2 max-h-36 overflow-y-auto rounded border border-border bg-background">
+                  {filteredPlaces.map((place) => (
+                    <button
+                      key={place.id}
+                      onClick={() => setNewLayerDraft((prev) => ({ ...prev, placeId: place.id, sourceType: place.type }))}
+                      className={`w-full px-2 py-1.5 text-left text-xs border-b last:border-b-0 border-border/40 hover:bg-muted/50 ${
+                        newLayerDraft.placeId === place.id ? 'bg-blue-50 dark:bg-blue-950/30' : ''
+                      }`}
+                    >
+                      <span className="font-medium text-foreground">{place.name}</span>
+                      <span className="text-muted-foreground ml-1 capitalize">({place.type})</span>
+                    </button>
+                  ))}
+                  {filteredPlaces.length === 0 && (
+                    <p className="px-2 py-2 text-xs text-muted-foreground">No matching places found.</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs font-semibold text-foreground">Color (optional)</label>
+                  <input
+                    type="color"
+                    value={newLayerDraft.color}
+                    onChange={(e) => setNewLayerDraft((prev) => ({ ...prev, color: e.target.value }))}
+                    className="mt-1 w-full h-9 rounded border border-border bg-background px-1"
+                  />
+                </div>
+                <label className="flex items-center gap-2 text-xs text-muted-foreground mt-5">
+                  <input
+                    type="checkbox"
+                    checked={newLayerDraft.visible}
+                    onChange={(e) => setNewLayerDraft((prev) => ({ ...prev, visible: e.target.checked }))}
+                    className="w-3.5 h-3.5"
+                  />
+                  Visible by default
+                </label>
+              </div>
+
+              {addLayerError && (
+                <p className="text-xs text-destructive">{addLayerError}</p>
+              )}
+            </div>
+
+            <div className="px-4 py-3 border-t border-border flex items-center justify-end gap-2">
+              <button
+                onClick={() => setIsAddLayerModalOpen(false)}
+                className="h-9 px-3 rounded border border-border text-xs font-semibold hover:bg-muted/50 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreateLayer}
+                className="h-9 px-3 rounded bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 transition"
+              >
+                Create Layer Item
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

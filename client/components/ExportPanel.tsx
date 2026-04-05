@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Download, FileJson, Image, FileText, Copy, Check } from 'lucide-react';
+import { Download, FileJson, Image, Copy, Check, Globe } from 'lucide-react';
 import { TopologyObject } from '../utils/topologyData';
 
-type ExportFormat = 'png' | 'pdf' | 'json';
+type ExportFormat = 'png' | 'json' | 'kmz';
 type ExportType = 'map' | 'dependency' | 'impact' | 'rack' | 'path';
 
 interface ExportConfig {
@@ -10,7 +10,7 @@ interface ExportConfig {
   type: ExportType;
   includeMetadata: boolean;
   includeTimestamp: boolean;
-  includeFilters: boolean;
+  includeActiveFilters: boolean;
 }
 
 interface ExportPanelProps {
@@ -20,6 +20,31 @@ interface ExportPanelProps {
   onExport?: (config: ExportConfig) => void;
 }
 
+interface ExportOptionRowProps {
+  id: string;
+  checked: boolean;
+  label: string;
+  onChange: (checked: boolean) => void;
+}
+
+const ExportOptionRow: React.FC<ExportOptionRowProps> = ({ id, checked, label, onChange }) => (
+  <label
+    htmlFor={id}
+    className="flex min-h-9 items-start gap-2.5 rounded-md px-2 py-1.5 cursor-pointer hover:bg-muted/50 transition"
+  >
+    <span className="inline-flex w-4 h-4 min-w-4 min-h-4 items-center justify-center mt-0.5">
+      <input
+        id={id}
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="w-4 h-4 min-w-4 min-h-4 m-0 p-0 rounded border-border align-middle"
+      />
+    </span>
+    <span className="text-xs text-foreground leading-5 m-0 pt-0.5">{label}</span>
+  </label>
+);
+
 export const ExportPanel: React.FC<ExportPanelProps> = ({
   topology,
   currentView,
@@ -28,9 +53,11 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
 }) => {
   const [selectedFormat, setSelectedFormat] = useState<ExportFormat>('png');
   const [selectedType, setSelectedType] = useState<ExportType>('map');
-  const [includeMetadata, setIncludeMetadata] = useState(true);
-  const [includeTimestamp, setIncludeTimestamp] = useState(true);
-  const [includeFilters, setIncludeFilters] = useState(true);
+  const [exportOptions, setExportOptions] = useState({
+    includeMetadata: true,
+    includeTimestamp: true,
+    includeActiveFilters: true
+  });
   const [isExporting, setIsExporting] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -44,16 +71,16 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
 
   const FORMATS: { id: ExportFormat; label: string; icon: React.ReactNode; color: string }[] = [
     { id: 'png', label: 'PNG Image', icon: <Image className="w-4 h-4" />, color: 'surface-info border' },
-    { id: 'pdf', label: 'PDF Report', icon: <FileText className="w-4 h-4" />, color: 'surface-destructive border' },
-    { id: 'json', label: 'JSON Data', icon: <FileJson className="w-4 h-4" />, color: 'surface-success border' }
+    { id: 'json', label: 'JSON Data', icon: <FileJson className="w-4 h-4" />, color: 'surface-success border' },
+    { id: 'kmz', label: 'KMZ (GIS)', icon: <Globe className="w-4 h-4" />, color: 'surface-warning border' }
   ];
 
   const generateMetadata = () => {
     return {
-      timestamp: new Date().toISOString(),
+      timestamp: exportOptions.includeTimestamp ? new Date().toISOString() : undefined,
       view: currentView,
       objectCount: topology.length,
-      filters: includeFilters ? filters : undefined,
+      activeFilters: exportOptions.includeActiveFilters ? filters : undefined,
       user: 'operator@network.local',
       tenant: 'MENA Region',
       version: '1.0'
@@ -62,9 +89,10 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
 
   const generateJSONExport = () => {
     const data = {
-      metadata: includeMetadata ? generateMetadata() : undefined,
+      metadata: exportOptions.includeMetadata ? generateMetadata() : undefined,
+      activeFilters: exportOptions.includeActiveFilters ? filters : undefined,
       exportType: selectedType,
-      exportTime: includeTimestamp ? new Date().toISOString() : undefined,
+      exportTime: exportOptions.includeTimestamp ? new Date().toISOString() : undefined,
       data: topology.map(obj => ({
         id: obj.id,
         name: obj.name,
@@ -79,15 +107,42 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
     return JSON.stringify(data, null, 2);
   };
 
+  const generateKMLContent = () => {
+    const placemarks = topology
+      .filter((obj) => obj.geoCoordinates)
+      .map((obj) => {
+        const lon = obj.geoCoordinates?.longitude ?? 0;
+        const lat = obj.geoCoordinates?.latitude ?? 0;
+        const alarmCount = obj.alarmSummary.critical + obj.alarmSummary.major;
+        return `
+          <Placemark>
+            <name>${obj.name}</name>
+            <description>Type: ${obj.type}, Vendor: ${obj.vendor || 'Unknown'}, Health: ${obj.healthState}, Alarms: ${alarmCount}</description>
+            <Point><coordinates>${lon},${lat},0</coordinates></Point>
+          </Placemark>
+        `;
+      })
+      .join('\n');
+
+    return `<?xml version="1.0" encoding="UTF-8"?>
+      <kml xmlns="http://www.opengis.net/kml/2.2">
+        <Document>
+          <name>Topology ${selectedType} Export</name>
+          ${exportOptions.includeMetadata ? `<description>User: operator@network.local | Tenant: MENA Region</description>` : ''}
+          ${placemarks}
+        </Document>
+      </kml>`;
+  };
+
   const handleExport = async () => {
     setIsExporting(true);
 
     const config: ExportConfig = {
       format: selectedFormat,
       type: selectedType,
-      includeMetadata,
-      includeTimestamp,
-      includeFilters
+      includeMetadata: exportOptions.includeMetadata,
+      includeTimestamp: exportOptions.includeTimestamp,
+      includeActiveFilters: exportOptions.includeActiveFilters
     };
 
     // Simulate export generation
@@ -115,11 +170,10 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
           downloadFile(blob, `topology-${selectedType}-${Date.now()}.png`);
         }
       });
-    } else if (selectedFormat === 'pdf') {
-      // Simulate PDF export
-      const content = generatePDFContent();
-      const blob = new Blob([content], { type: 'application/pdf' });
-      downloadFile(blob, `topology-${selectedType}-${Date.now()}.pdf`);
+    } else if (selectedFormat === 'kmz') {
+      const kmlData = generateKMLContent();
+      const blob = new Blob([kmlData], { type: 'application/vnd.google-earth.kmz' });
+      downloadFile(blob, `topology-${selectedType}-${Date.now()}.kmz`);
     }
 
     onExport?.(config);
@@ -135,41 +189,6 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-  };
-
-  const generatePDFContent = () => {
-    const metadata = generateMetadata();
-    return `
-%PDF-1.4
-1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
-2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
-3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]/Contents 4 0 R>>endobj
-4 0 obj<</Length 200>>stream
-BT
-/F1 24 Tf 50 750 Td
-(Topology Export Report) Tj
-0 -40 Td
-/F1 12 Tf
-(Exported: ${metadata.timestamp}) Tj
-0 -20 Td
-(View: ${metadata.view}) Tj
-0 -20 Td
-(Objects: ${metadata.objectCount}) Tj
-ET
-endstream
-endobj
-xref
-0 5
-0000000000 65535 f
-0000000009 00000 n
-0000000058 00000 n
-0000000115 00000 n
-0000000194 00000 n
-trailer<</Size 5/Root 1 0 R>>
-startxref
-446
-%%EOF
-`;
   };
 
   const copyExportJSON = () => {
@@ -230,45 +249,37 @@ startxref
 
       {/* Options */}
       <div className="flex flex-col gap-2 p-3 bg-muted/45 rounded-lg border border-border/60">
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={includeMetadata}
-            onChange={(e) => setIncludeMetadata(e.target.checked)}
-            className="w-4 h-4 rounded"
-          />
-          <span className="text-sm text-foreground">Include metadata (user, tenant, version)</span>
-        </label>
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={includeTimestamp}
-            onChange={(e) => setIncludeTimestamp(e.target.checked)}
-            className="w-4 h-4 rounded"
-          />
-          <span className="text-sm text-foreground">Include timestamp</span>
-        </label>
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={includeFilters}
-            onChange={(e) => setIncludeFilters(e.target.checked)}
-            className="w-4 h-4 rounded"
-          />
-          <span className="text-sm text-foreground">Include active filters</span>
-        </label>
+        <ExportOptionRow
+          id="export-option-metadata"
+          checked={exportOptions.includeMetadata}
+          label="Include metadata (user, tenant, version)"
+          onChange={(checked) => setExportOptions((prev) => ({ ...prev, includeMetadata: checked }))}
+        />
+        <ExportOptionRow
+          id="export-option-timestamp"
+          checked={exportOptions.includeTimestamp}
+          label="Include timestamp"
+          onChange={(checked) => setExportOptions((prev) => ({ ...prev, includeTimestamp: checked }))}
+        />
+        <ExportOptionRow
+          id="export-option-filters"
+          checked={exportOptions.includeActiveFilters}
+          label="Include active filters"
+          onChange={(checked) => setExportOptions((prev) => ({ ...prev, includeActiveFilters: checked }))}
+        />
       </div>
 
       {/* Metadata Preview */}
-      {includeMetadata && (
+      {exportOptions.includeMetadata && (
         <div className="p-3 surface-info rounded-lg border">
           <p className="text-xs font-semibold text-current mb-2">Metadata Preview</p>
           <div className="space-y-1 text-xs text-current/90 font-mono">
-            <p>Time: {new Date().toISOString()}</p>
+            {exportOptions.includeTimestamp && <p>Time: {new Date().toISOString()}</p>}
             <p>View: {currentView}</p>
             <p>Objects: {topology.length}</p>
             <p>User: operator@network.local</p>
             <p>Tenant: MENA Region</p>
+            {exportOptions.includeActiveFilters && <p>Filters: {Object.keys(filters).length}</p>}
           </div>
         </div>
       )}
