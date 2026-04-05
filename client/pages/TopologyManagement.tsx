@@ -258,9 +258,9 @@ const TopologyManagementContent: React.FC = () => {
       )}
 
       {/* Main content grid - Map fills width with responsive sidebar */}
-      <div className="grid flex-1 gap-3 p-3 min-h-0 grid-cols-1 lg:grid-cols-[minmax(0,1fr)_22rem]">
+      <div className="grid flex-1 gap-3 p-3 min-h-0 grid-cols-1 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-stretch">
         {/* Main map area - Takes available space */}
-        <div className="flex-1 min-w-0 min-h-0">
+        <div className="flex-1 min-w-0 min-h-0 h-full">
           <GeospatialNetworkMap
             topology={filteredNodes}
             layers={layers}
@@ -271,8 +271,8 @@ const TopologyManagementContent: React.FC = () => {
         </div>
 
         {/* Right sidebar - Layers & Multi-Tenant Controls - Flexible width */}
-        <div className="min-h-0">
-          <div className="h-full rounded-lg border border-border bg-card flex flex-col overflow-hidden shadow-sm">
+        <div className="min-h-0 h-full">
+          <div className="h-full min-h-0 rounded-lg border border-border bg-card flex flex-col overflow-hidden shadow-sm">
             <div className="px-3 py-2 border-b border-border/60 bg-muted/30">
               <h3 className="font-semibold text-sm text-foreground">Geospatial Controls</h3>
               <p className="text-[11px] text-muted-foreground mt-0.5">Layers, tenant awareness, and export actions</p>
