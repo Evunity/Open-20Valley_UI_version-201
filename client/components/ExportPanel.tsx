@@ -20,6 +20,31 @@ interface ExportPanelProps {
   onExport?: (config: ExportConfig) => void;
 }
 
+interface ExportOptionRowProps {
+  id: string;
+  checked: boolean;
+  label: string;
+  onChange: (checked: boolean) => void;
+}
+
+const ExportOptionRow: React.FC<ExportOptionRowProps> = ({ id, checked, label, onChange }) => (
+  <label
+    htmlFor={id}
+    className="flex min-h-9 items-start gap-2.5 rounded-md px-2 py-1.5 cursor-pointer hover:bg-muted/50 transition"
+  >
+    <span className="inline-flex w-4 h-4 min-w-4 min-h-4 items-center justify-center mt-0.5">
+      <input
+        id={id}
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="w-4 h-4 min-w-4 min-h-4 m-0 p-0 rounded border-border align-middle"
+      />
+    </span>
+    <span className="text-xs text-foreground leading-5 m-0 pt-0.5">{label}</span>
+  </label>
+);
+
 export const ExportPanel: React.FC<ExportPanelProps> = ({
   topology,
   currentView,
@@ -224,33 +249,24 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
 
       {/* Options */}
       <div className="flex flex-col gap-2 p-3 bg-muted/45 rounded-lg border border-border/60">
-        <label className="flex items-center gap-2.5 rounded-md px-2 py-1.5 cursor-pointer hover:bg-muted/50 transition">
-          <input
-            type="checkbox"
-            checked={exportOptions.includeMetadata}
-            onChange={(e) => setExportOptions((prev) => ({ ...prev, includeMetadata: e.target.checked }))}
-            className="w-3.5 h-3.5 rounded border-border mt-0.5"
-          />
-          <span className="text-xs text-foreground leading-5">Include metadata (user, tenant, version)</span>
-        </label>
-        <label className="flex items-center gap-2.5 rounded-md px-2 py-1.5 cursor-pointer hover:bg-muted/50 transition">
-          <input
-            type="checkbox"
-            checked={exportOptions.includeTimestamp}
-            onChange={(e) => setExportOptions((prev) => ({ ...prev, includeTimestamp: e.target.checked }))}
-            className="w-3.5 h-3.5 rounded border-border mt-0.5"
-          />
-          <span className="text-xs text-foreground leading-5">Include timestamp</span>
-        </label>
-        <label className="flex items-center gap-2.5 rounded-md px-2 py-1.5 cursor-pointer hover:bg-muted/50 transition">
-          <input
-            type="checkbox"
-            checked={exportOptions.includeActiveFilters}
-            onChange={(e) => setExportOptions((prev) => ({ ...prev, includeActiveFilters: e.target.checked }))}
-            className="w-3.5 h-3.5 rounded border-border mt-0.5"
-          />
-          <span className="text-xs text-foreground leading-5">Include active filters</span>
-        </label>
+        <ExportOptionRow
+          id="export-option-metadata"
+          checked={exportOptions.includeMetadata}
+          label="Include metadata (user, tenant, version)"
+          onChange={(checked) => setExportOptions((prev) => ({ ...prev, includeMetadata: checked }))}
+        />
+        <ExportOptionRow
+          id="export-option-timestamp"
+          checked={exportOptions.includeTimestamp}
+          label="Include timestamp"
+          onChange={(checked) => setExportOptions((prev) => ({ ...prev, includeTimestamp: checked }))}
+        />
+        <ExportOptionRow
+          id="export-option-filters"
+          checked={exportOptions.includeActiveFilters}
+          label="Include active filters"
+          onChange={(checked) => setExportOptions((prev) => ({ ...prev, includeActiveFilters: checked }))}
+        />
       </div>
 
       {/* Metadata Preview */}
