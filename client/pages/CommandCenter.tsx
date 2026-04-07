@@ -4,12 +4,11 @@ import { CommandConsole } from '../components/CommandConsole';
 import { ParameterExplorer } from '../components/ParameterExplorer';
 import { BulkEditor } from '../components/BulkEditor';
 import { ScriptLibrary } from '../components/ScriptLibrary';
-import { ExecutionMonitor } from '../components/ExecutionMonitor';
 import { AuditRollbackCenter } from '../components/AuditRollbackCenter';
 import { RollbackVersionControl } from '../components/RollbackVersionControl';
 import { DiffView } from '../components/DiffView';
 
-type ModuleView = 'console' | 'parameters' | 'bulk' | 'scripts' | 'monitor' | 'audit' | 'rollback' | 'diff';
+type ModuleView = 'console' | 'parameters' | 'bulk' | 'scripts' | 'audit' | 'rollback' | 'diff';
 
 interface ModuleConfig {
   id: ModuleView;
@@ -47,13 +46,6 @@ const MODULES: ModuleConfig[] = [
     icon: FileText,
     description: 'Create, store, and execute reusable scripts',
     riskLevel: 'dangerous'
-  },
-  {
-    id: 'monitor',
-    label: 'Execution Monitor',
-    icon: Zap,
-    description: 'Real-time monitoring with pause/resume/retry controls',
-    riskLevel: 'read-only'
   },
   {
     id: 'diff',
@@ -102,8 +94,6 @@ export const CommandCenter: React.FC = () => {
         return <BulkEditor {...props} />;
       case 'scripts':
         return <ScriptLibrary {...props} />;
-      case 'monitor':
-        return <ExecutionMonitor {...props} />;
       case 'diff':
         return <DiffView {...props} />;
       case 'rollback':

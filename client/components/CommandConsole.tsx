@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Copy, Check, ChevronDown, Lightbulb, X } from 'lucide-react';
+import { Send, Copy, Check, ChevronDown, Lightbulb, X, Zap, CheckCircle, AlertCircle, Clock, Pause, Play, RotateCcw } from 'lucide-react';
 import SearchableDropdown from './SearchableDropdown';
 
 interface ConsoleProps {
@@ -724,28 +724,69 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
         )}
       </div>
 
-      {/* Console Display */}
-      <div className="flex-1 bg-gray-900 border border-gray-800 rounded-lg overflow-y-auto font-mono text-xs p-4">
-        <div className="text-green-400">
-          <p>$ OpenValley Command Console - {selectedVendor}</p>
-          <p>$ Type commands below. Press Enter to execute.</p>
-          <p>$ All commands are audited and logged.</p>
-          <p></p>
+      {/* Console Display with Execution Monitoring */}
+      <div className="flex-1 flex flex-col gap-2 overflow-hidden">
+        {/* Terminal Output */}
+        <div className="flex-1 bg-gray-900 border border-gray-800 rounded-lg overflow-y-auto font-mono text-xs p-4">
+          <div className="text-green-400">
+            <p>$ OpenValley Command Console - {selectedVendor}</p>
+            <p>$ Type commands below. Press Enter to execute.</p>
+            <p>$ All commands are audited and logged.</p>
+            <p></p>
 
-          {history.map((entry) => (
-            <div key={entry.id} className="mb-3">
-              <p className="text-blue-400">{entry.timestamp} $ {entry.command}</p>
-              <pre className={`text-xs whitespace-pre-wrap ${
-                entry.status === 'success' ? 'text-green-300' :
-                entry.status === 'error' ? 'text-red-300' :
-                'text-yellow-300'
-              }`}>
-                {entry.output}
-              </pre>
-            </div>
-          ))}
+            {history.map((entry) => (
+              <div key={entry.id} className="mb-3">
+                <p className="text-blue-400">{entry.timestamp} $ {entry.command}</p>
+                <pre className={`text-xs whitespace-pre-wrap ${
+                  entry.status === 'success' ? 'text-green-300' :
+                  entry.status === 'error' ? 'text-red-300' :
+                  'text-yellow-300'
+                }`}>
+                  {entry.output}
+                </pre>
+              </div>
+            ))}
+          </div>
+          <div ref={consoleEndRef} />
         </div>
-        <div ref={consoleEndRef} />
+
+        {/* Execution Monitor Summary */}
+        {history.length > 0 && (
+          <div className="bg-card border border-border rounded-lg p-3">
+            <div className="grid grid-cols-5 gap-2 text-xs">
+              <div className="bg-muted/40 p-2 rounded">
+                <p className="text-muted-foreground text-[11px]">Total Executions</p>
+                <p className="text-lg font-bold text-foreground">{history.length}</p>
+              </div>
+              <div className="bg-green-50 dark:bg-green-950/30 p-2 rounded">
+                <p className="text-green-700 dark:text-green-300 text-[11px] font-semibold">Success Rate</p>
+                <p className="text-lg font-bold text-green-600 dark:text-green-400">
+                  {history.length > 0
+                    ? ((history.filter(e => e.status === 'success').length / history.length) * 100).toFixed(0)
+                    : 0}%
+                </p>
+              </div>
+              <div className="bg-yellow-50 dark:bg-yellow-950/30 p-2 rounded">
+                <p className="text-yellow-700 dark:text-yellow-300 text-[11px] font-semibold">Successful</p>
+                <p className="text-lg font-bold text-yellow-600 dark:text-yellow-400">
+                  {history.filter(e => e.status === 'success').length}
+                </p>
+              </div>
+              <div className="bg-red-50 dark:bg-red-950/30 p-2 rounded">
+                <p className="text-red-700 dark:text-red-300 text-[11px] font-semibold">Failed</p>
+                <p className="text-lg font-bold text-red-600 dark:text-red-400">
+                  {history.filter(e => e.status === 'error').length}
+                </p>
+              </div>
+              <div className="bg-blue-50 dark:bg-blue-950/30 p-2 rounded">
+                <p className="text-blue-700 dark:text-blue-300 text-[11px] font-semibold">Pending</p>
+                <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                  {history.filter(e => e.status === 'pending').length}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Recent Commands */}
