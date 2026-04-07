@@ -339,6 +339,37 @@ export const DiffView: React.FC<DiffViewProps> = () => {
             >
               Clear All
             </button>
+
+            {/* Export Dropdown */}
+            <div ref={exportMenuRef} className="relative">
+              <button
+                onClick={() => setShowExportMenu(!showExportMenu)}
+                disabled={filteredDiffs.length === 0}
+                className="text-xs px-3 py-1.5 bg-green-600/10 hover:bg-green-600/20 border border-green-600/30 rounded-lg text-green-700 dark:text-green-400 font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+              >
+                <Download className="w-3.5 h-3.5" />
+                Export
+                <ChevronDown className={cn("w-3 h-3 transition-transform", showExportMenu && "rotate-180")} />
+              </button>
+
+              {/* Export Menu Dropdown */}
+              {showExportMenu && (
+                <div className="absolute top-full right-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-50 overflow-hidden min-w-[140px]">
+                  <button
+                    onClick={exportToCSV}
+                    className="w-full px-3 py-2 text-left text-xs font-medium text-foreground hover:bg-muted transition-colors border-b border-border/50"
+                  >
+                    Export CSV
+                  </button>
+                  <button
+                    onClick={exportToExcel}
+                    className="w-full px-3 py-2 text-left text-xs font-medium text-foreground hover:bg-muted transition-colors"
+                  >
+                    Export Excel
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -478,36 +509,6 @@ export const DiffView: React.FC<DiffViewProps> = () => {
         )}
       </div>
 
-      {/* Export */}
-      <div ref={exportMenuRef} className="relative">
-        <button
-          onClick={() => setShowExportMenu(!showExportMenu)}
-          disabled={filteredDiffs.length === 0}
-          className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 font-semibold flex items-center justify-center gap-2 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <Download className="w-4 h-4" />
-          Export Diff Report
-          <ChevronDown className={cn("w-4 h-4 transition-transform", showExportMenu && "rotate-180")} />
-        </button>
-
-        {/* Export Menu Dropdown */}
-        {showExportMenu && (
-          <div className="absolute bottom-full left-0 right-0 mb-2 bg-card border border-border rounded-lg shadow-lg z-50 overflow-hidden">
-            <button
-              onClick={exportToCSV}
-              className="w-full px-4 py-2 text-left text-sm font-medium text-foreground hover:bg-muted transition-colors border-b border-border/50"
-            >
-              Export as CSV
-            </button>
-            <button
-              onClick={exportToExcel}
-              className="w-full px-4 py-2 text-left text-sm font-medium text-foreground hover:bg-muted transition-colors"
-            >
-              Export as Excel
-            </button>
-          </div>
-        )}
-      </div>
     </div>
   );
 };
