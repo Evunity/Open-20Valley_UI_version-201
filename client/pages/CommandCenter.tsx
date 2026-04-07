@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
-import { Terminal, Code, Zap, FileText, Eye, RotateCcw, AlertTriangle, GitCompare, Clock } from 'lucide-react';
+import { Terminal, Code, Zap, FileText, Eye, RotateCcw, GitCompare, Clock } from 'lucide-react';
 import { CommandConsole } from '../components/CommandConsole';
 import { ParameterExplorer } from '../components/ParameterExplorer';
 import { BulkEditor } from '../components/BulkEditor';
 import { ScriptLibrary } from '../components/ScriptLibrary';
-import { ExecutionMonitor } from '../components/ExecutionMonitor';
-import { AuditRollbackCenter } from '../components/AuditRollbackCenter';
-import { RollbackVersionControl } from '../components/RollbackVersionControl';
+import { RollbackAuditCombined } from '../components/RollbackAuditCombined';
 import { DiffView } from '../components/DiffView';
 
-type ModuleView = 'console' | 'parameters' | 'bulk' | 'scripts' | 'monitor' | 'audit' | 'rollback' | 'diff';
+type ModuleView = 'console' | 'parameters' | 'bulk' | 'scripts' | 'rollback' | 'diff';
 
 interface ModuleConfig {
   id: ModuleView;
@@ -49,13 +47,6 @@ const MODULES: ModuleConfig[] = [
     riskLevel: 'dangerous'
   },
   {
-    id: 'monitor',
-    label: 'Execution Monitor',
-    icon: Zap,
-    description: 'Real-time monitoring with pause/resume/retry controls',
-    riskLevel: 'read-only'
-  },
-  {
     id: 'diff',
     label: 'Diff View',
     icon: GitCompare,
@@ -64,17 +55,10 @@ const MODULES: ModuleConfig[] = [
   },
   {
     id: 'rollback',
-    label: 'Rollback',
+    label: 'Rollback & Audit',
     icon: RotateCcw,
-    description: 'Version control and rollback with full/partial/selective modes',
+    description: 'Version control, rollback, and complete audit trail',
     riskLevel: 'dangerous'
-  },
-  {
-    id: 'audit',
-    label: 'Audit',
-    icon: AlertTriangle,
-    description: 'Complete audit trail with exportable logs',
-    riskLevel: 'read-only'
   }
 ];
 
@@ -102,14 +86,10 @@ export const CommandCenter: React.FC = () => {
         return <BulkEditor {...props} />;
       case 'scripts':
         return <ScriptLibrary {...props} />;
-      case 'monitor':
-        return <ExecutionMonitor {...props} />;
       case 'diff':
         return <DiffView {...props} />;
       case 'rollback':
-        return <RollbackVersionControl {...props} />;
-      case 'audit':
-        return <AuditRollbackCenter {...props} />;
+        return <RollbackAuditCombined {...props} />;
       default:
         return null;
     }
@@ -134,7 +114,7 @@ export const CommandCenter: React.FC = () => {
 
       {/* Module Selector */}
       <div className="bg-card border-b border-border rounded-lg p-4">
-        <div className="grid grid-cols-8 gap-2 auto-rows-max">
+        <div className="grid grid-cols-6 gap-2 auto-rows-max">
           {MODULES.map(module => {
             const Icon = module.icon;
             return (

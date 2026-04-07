@@ -17,6 +17,16 @@ interface RackCard {
   connections?: string[];
 }
 
+interface RackConnection {
+  id: string;
+  fromRackId: string;
+  fromU: number;
+  toRackId: string;
+  toU: number;
+  type: 'power' | 'data' | 'fiber' | 'signal';
+  status: 'active' | 'inactive' | 'warning';
+}
+
 interface Rack {
   id: string;
   name: string;
@@ -30,6 +40,7 @@ interface Site {
   country: string;
   vendor: string;
   racks: Rack[];
+  connections?: RackConnection[];
 }
 
 interface RackViewProps {
@@ -98,6 +109,44 @@ export const RackView: React.FC<RackViewProps> = ({ topology, onDeviceSelect }) 
               connections: []
             }))
           ]
+        }
+      ],
+      connections: [
+        {
+          id: 'conn_1',
+          fromRackId: 'rack_1',
+          fromU: 42,
+          toRackId: 'rack_2',
+          toU: 42,
+          type: 'power',
+          status: 'active'
+        },
+        {
+          id: 'conn_2',
+          fromRackId: 'rack_1',
+          fromU: 39,
+          toRackId: 'rack_2',
+          toU: 42,
+          type: 'fiber',
+          status: 'active'
+        },
+        {
+          id: 'conn_3',
+          fromRackId: 'rack_1',
+          fromU: 38,
+          toRackId: 'rack_2',
+          toU: 42,
+          type: 'fiber',
+          status: 'warning'
+        },
+        {
+          id: 'conn_4',
+          fromRackId: 'rack_1',
+          fromU: 34,
+          toRackId: 'rack_2',
+          toU: 40,
+          type: 'data',
+          status: 'active'
         }
       ]
     },
@@ -190,6 +239,39 @@ export const RackView: React.FC<RackViewProps> = ({ topology, onDeviceSelect }) 
       'empty': '□'
     };
     return icons[type as keyof typeof icons] || '?';
+  };
+
+  const getConnectionIcon = (type: string) => {
+    const icons = {
+      'power': '⚡',
+      'data': '📊',
+      'fiber': '🔗',
+      'signal': '📡'
+    };
+    return icons[type as keyof typeof icons] || '🔌';
+  };
+
+  const getConnectionColor = (status: string) => {
+    switch (status) {
+      case 'active': return 'bg-green-50 dark:bg-green-950/30 border-l-4 border-l-green-600';
+      case 'warning': return 'bg-yellow-50 dark:bg-yellow-950/30 border-l-4 border-l-yellow-600';
+      case 'inactive': return 'bg-gray-50 dark:bg-gray-900/30 border-l-4 border-l-gray-400';
+      default: return 'bg-blue-50 dark:bg-blue-950/30 border-l-4 border-l-blue-600';
+    }
+  };
+
+  const getSiteConnections = (siteId: string | null) => {
+    if (!siteId) return [];
+    const site = sites.find(s => s.id === siteId);
+    return site?.connections || [];
+  };
+
+  const getDeviceByRackAndU = (rackId: string, u: number) => {
+    const site = selectedSite ? sites.find(s => s.id === selectedSite) : null;
+    if (!site) return null;
+    const rack = site.racks.find(r => r.id === rackId);
+    if (!rack) return null;
+    return rack.cards.find(c => c.u === u);
   };
 
   const toggleRackExpanded = (rackId: string) => {
@@ -376,6 +458,35 @@ export const RackView: React.FC<RackViewProps> = ({ topology, onDeviceSelect }) 
                               🔗 {card.connections.join(', ')}
                             </p>
                           )}
+                          {/* Rack-to-Rack Connections */}
+                          {getSiteConnections(selectedSite).filter(
+                            conn => (conn.fromRackId === currentRack.id && conn.fromU === card.u) ||
+                                     (conn.toRackId === currentRack.id && conn.toU === card.u)
+                          ).length > 0 && (
+                            <div className="text-xs mt-1 space-y-0.5">
+                              {getSiteConnections(selectedSite).filter(
+                                conn => (conn.fromRackId === currentRack.id && conn.fromU === card.u) ||
+                                         (conn.toRackId === currentRack.id && conn.toU === card.u)
+                              ).map((conn) => {
+                                const isSource = conn.fromRackId === currentRack.id && conn.fromU === card.u;
+                                const otherRack = currentSite?.racks.find(r => r.id === (isSource ? conn.toRackId : conn.fromRackId));
+                                const otherU = isSource ? conn.toU : conn.fromU;
+                                const otherDevice = getDeviceByRackAndU(otherRack?.id || '', otherU);
+                                const statusIcon = conn.status === 'active' ? '✓' : conn.status === 'warning' ? '⚠' : '✗';
+                                const typeLabel = conn.type === 'power' ? '⚡' : conn.type === 'fiber' ? '🔗' : conn.type === 'data' ? '📊' : '📡';
+
+                                return (
+                                  <p key={conn.id} className={`text-xs truncate ${
+                                    conn.status === 'active' ? 'text-green-700 dark:text-green-400' :
+                                    conn.status === 'warning' ? 'text-yellow-700 dark:text-yellow-400' :
+                                    'text-gray-500'
+                                  }`}>
+                                    {typeLabel} {isSource ? '→' : '←'} {otherRack?.name.split(' (')[0]} U{otherU} {statusIcon}
+                                  </p>
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
 
                         {/* Metrics */}
@@ -419,6 +530,48 @@ export const RackView: React.FC<RackViewProps> = ({ topology, onDeviceSelect }) 
                   ))}
               </div>
             </div>
+
+            {/* Connections Section */}
+            {getSiteConnections(selectedSite).length > 0 && (
+              <div className="bg-card rounded-lg border border-border p-4 max-h-64 overflow-y-auto">
+                <h4 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
+                  <Link2 className="w-4 h-4" />
+                  Rack Connections ({getSiteConnections(selectedSite).length})
+                </h4>
+                <div className="space-y-2">
+                  {getSiteConnections(selectedSite).map((conn) => {
+                    const fromDevice = getDeviceByRackAndU(conn.fromRackId, conn.fromU);
+                    const toDevice = getDeviceByRackAndU(conn.toRackId, conn.toU);
+                    const fromRack = currentSite?.racks.find(r => r.id === conn.fromRackId);
+                    const toRack = currentSite?.racks.find(r => r.id === conn.toRackId);
+
+                    return (
+                      <div
+                        key={conn.id}
+                        className={`p-3 rounded-lg text-xs ${getConnectionColor(conn.status)}`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-base">{getConnectionIcon(conn.type)}</span>
+                          <div className="flex-1">
+                            <p className="font-semibold text-foreground mb-1">
+                              {conn.type.toUpperCase()} - {conn.status.toUpperCase()}
+                            </p>
+                            <div className="space-y-0.5 text-muted-foreground">
+                              <p>
+                                From: <span className="font-mono text-foreground">U{conn.fromU}</span> {fromDevice?.device || 'Unknown'} ({fromRack?.name})
+                              </p>
+                              <p>
+                                To: <span className="font-mono text-foreground">U{conn.toU}</span> {toDevice?.device || 'Unknown'} ({toRack?.name})
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Legend */}
             <div className="bg-card rounded-lg border border-border p-3">

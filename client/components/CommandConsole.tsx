@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Copy, Check, ChevronDown, Lightbulb, X } from 'lucide-react';
+import { Send, Copy, Check, ChevronDown, Lightbulb, X, Zap, CheckCircle, AlertCircle, Clock, Pause, Play, RotateCcw } from 'lucide-react';
 import SearchableDropdown from './SearchableDropdown';
 
 interface ConsoleProps {
@@ -75,7 +75,10 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
   const [guidedCommand, setGuidedCommand] = useState<{ keyword: string; params: string }>({ keyword: '', params: '' });
   const [quickCommandView, setQuickCommandView] = useState<'all' | 'saved'>('all');
   const [savedCommands, setSavedCommands] = useState<string[]>([]);
+  const [inlineSuggestion, setInlineSuggestion] = useState<string>('');
+  const [showInlineSuggestion, setShowInlineSuggestion] = useState(false);
   const consoleEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Options for selectors
   const SITE_OPTIONS = ['Site-A', 'Site-B', 'Site-C', 'Site-D'];
@@ -149,13 +152,41 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
 
     const allCommands = [
       ...getQuickCommands(),
-      ...(VENDOR_COMMANDS[selectedVendor as keyof typeof VENDOR_COMMANDS] || [])
+      ...(VENDOR_COMMANDS[selectedVendor as keyof typeof VENDOR_COMMANDS] || []),
+      ...Object.keys(COMMAND_HINTS)
     ];
 
     const uniqueCommands = Array.from(new Set(allCommands));
-    return uniqueCommands
-      .filter(cmd => cmd.toUpperCase().includes(upperInput))
-      .slice(0, 5);
+
+    // First, try exact prefix matches (highest priority)
+    const prefixMatches = uniqueCommands.filter(cmd => cmd.toUpperCase().startsWith(upperInput));
+
+    // Then, try includes matches for better autocomplete
+    const includesMatches = uniqueCommands.filter(cmd =>
+      cmd.toUpperCase().includes(upperInput) && !prefixMatches.includes(cmd)
+    );
+
+    return [...prefixMatches, ...includesMatches].slice(0, 8);
+  };
+
+  const getInlineSuggestion = (input: string): string => {
+    const upperInput = input.trim().toUpperCase();
+    if (!upperInput) return '';
+
+    const suggestions = getAutocompleteSuggestions(input);
+    if (suggestions.length > 0) {
+      // Return the first suggestion as inline completion
+      return suggestions[0];
+    }
+    return '';
+  };
+
+  const acceptInlineSuggestion = () => {
+    if (inlineSuggestion) {
+      setCommand(inlineSuggestion);
+      setInlineSuggestion('');
+      setShowInlineSuggestion(false);
+    }
   };
 
   const executeCommand = () => {
@@ -457,40 +488,103 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
           <div className="flex gap-2 items-stretch">
             <div className="flex-1">
               <div className="relative flex-1 flex flex-col">
-                <textarea
-                  value={command}
-                  onChange={(e) => {
-                    const upperValue = e.target.value.toUpperCase();
-                    setCommand(upperValue);
-                    setShowSuggestions(upperValue.trim().length > 0);
-                  }}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      executeCommand();
-                    }
-                  }}
-                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                  onFocus={() => command.trim().length > 0 && setShowSuggestions(true)}
-                  disabled={selectedSite.length === 0 || selectedTechnology.length === 0 || !selectedVendor}
-                  placeholder={selectedSite.length === 0 || selectedTechnology.length === 0 || !selectedVendor
-                    ? 'Please select Site, Technology & Vendor first'
-                    : `Enter ${selectedVendor} command in UPPERCASE (e.g., LST CELL;)`}
-                  className={`w-full px-3 py-2 border rounded-lg font-mono text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition uppercase tracking-wide disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-muted/20 resize-none ${
-                    selectedSite.length === 0 || selectedTechnology.length === 0 || !selectedVendor
-                      ? 'border-amber-300/60 dark:border-amber-700/60 text-muted-foreground bg-amber-50/30 dark:bg-amber-950/10'
-                      : command.trim() && isValid
-                      ? 'border-green-500/70 bg-green-50/40 dark:bg-green-950/20 text-foreground'
-                      : command.trim()
-                      ? 'border-red-500/70 bg-red-50/40 dark:bg-red-950/20 text-foreground'
-                      : 'border-border bg-input text-foreground'
-                  }`}
-                  rows={2}
-                />
+                <div className="relative">
+                  <textarea
+                    ref={textareaRef}
+                    value={command}
+                    onChange={(e) => {
+                      const upperValue = e.target.value.toUpperCase();
+                      setCommand(upperValue);
+
+                      // Get inline suggestion
+                      const suggestion = getInlineSuggestion(upperValue);
+                      setInlineSuggestion(suggestion);
+                      setShowInlineSuggestion(suggestion.length > 0);
+
+                      // Show dropdown suggestions
+                      setShowSuggestions(upperValue.trim().length > 0);
+                    }}
+                    onKeyDown={(e) => {
+                      // Tab: Accept inline suggestion or autocomplete
+                      if (e.key === 'Tab') {
+                        e.preventDefault();
+                        if (inlineSuggestion) {
+                          acceptInlineSuggestion();
+                        } else {
+                          const suggestions = getAutocompleteSuggestions(command);
+                          if (suggestions.length > 0) {
+                            setCommand(suggestions[0]);
+                            setShowSuggestions(false);
+                          }
+                        }
+                      }
+                      // Escape: Dismiss suggestions
+                      if (e.key === 'Escape') {
+                        setShowInlineSuggestion(false);
+                        setShowSuggestions(false);
+                        setInlineSuggestion('');
+                      }
+                      // Ctrl+Space or Cmd+Space: Show dropdown suggestions
+                      if ((e.ctrlKey || e.metaKey) && e.code === 'Space') {
+                        e.preventDefault();
+                        setShowSuggestions(true);
+                      }
+                    }}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        executeCommand();
+                      }
+                    }}
+                    onBlur={() => {
+                      setTimeout(() => setShowSuggestions(false), 200);
+                      setShowInlineSuggestion(false);
+                    }}
+                    onFocus={() => {
+                      if (command.trim().length > 0) {
+                        setShowSuggestions(true);
+                        const suggestion = getInlineSuggestion(command);
+                        if (suggestion) {
+                          setInlineSuggestion(suggestion);
+                          setShowInlineSuggestion(true);
+                        }
+                      }
+                    }}
+                    disabled={selectedSite.length === 0 || selectedTechnology.length === 0 || !selectedVendor}
+                    placeholder={selectedSite.length === 0 || selectedTechnology.length === 0 || !selectedVendor
+                      ? 'Please select Site, Technology & Vendor first'
+                      : `Enter ${selectedVendor} command (e.g., GET...) - Press Tab for autocomplete`}
+                    className={`w-full px-3 py-2 border rounded-lg font-mono text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition uppercase tracking-wide disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-muted/20 resize-none ${
+                      selectedSite.length === 0 || selectedTechnology.length === 0 || !selectedVendor
+                        ? 'border-amber-300/60 dark:border-amber-700/60 text-muted-foreground bg-amber-50/30 dark:bg-amber-950/10'
+                        : command.trim() && isValid
+                        ? 'border-green-500/70 bg-green-50/40 dark:bg-green-950/20 text-foreground'
+                        : command.trim()
+                        ? 'border-red-500/70 bg-red-50/40 dark:bg-red-950/20 text-foreground'
+                        : 'border-border bg-input text-foreground'
+                    }`}
+                    rows={2}
+                  />
+
+                  {/* Inline Suggestion Overlay */}
+                  {showInlineSuggestion && inlineSuggestion && (
+                    <div className="absolute top-0 left-0 px-3 py-2 font-mono text-sm uppercase tracking-wide pointer-events-none h-full flex items-start pt-2">
+                      <span className="text-transparent">{command}</span>
+                      <span className="text-gray-500 dark:text-gray-600 opacity-60 font-mono text-sm">
+                        {inlineSuggestion.substring(command.length)}
+                      </span>
+                    </div>
+                  )}
+                </div>
 
                 {/* Autocomplete Suggestions */}
                 {showSuggestions && getAutocompleteSuggestions(command).length > 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-lg shadow-lg z-10 max-h-40 overflow-y-auto">
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-blue-500/50 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+                    <div className="px-3 py-1.5 bg-blue-50 dark:bg-blue-950/30 border-b border-blue-200 dark:border-blue-800">
+                      <p className="text-xs font-semibold text-blue-700 dark:text-blue-400">
+                        💡 Autocomplete Suggestions (Press Tab to select, Click to insert)
+                      </p>
+                    </div>
                     {getAutocompleteSuggestions(command).map((suggestion, index) => (
                       <button
                         key={index}
@@ -498,9 +592,19 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
                           setCommand(suggestion);
                           setShowSuggestions(false);
                         }}
-                        className="w-full text-left px-4 py-2 text-sm font-mono hover:bg-muted/70 border-b border-border last:border-b-0 text-foreground transition"
+                        className={`w-full text-left px-4 py-2 text-sm font-mono border-b border-border last:border-b-0 text-foreground transition ${
+                          index === 0
+                            ? 'bg-blue-100 dark:bg-blue-950/50 hover:bg-blue-200 dark:hover:bg-blue-900/50'
+                            : 'hover:bg-muted/70'
+                        }`}
+                        title={`${index === 0 ? 'Press Tab or click' : 'Click'} to insert: ${suggestion}`}
                       >
-                        {suggestion}
+                        <div className="flex items-center justify-between">
+                          <span>{suggestion}</span>
+                          {index === 0 && (
+                            <span className="text-xs text-blue-600 dark:text-blue-400 font-bold ml-2">⇥ TAB</span>
+                          )}
+                        </div>
                       </button>
                     ))}
                   </div>
@@ -620,28 +724,69 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
         )}
       </div>
 
-      {/* Console Display */}
-      <div className="flex-1 bg-gray-900 border border-gray-800 rounded-lg overflow-y-auto font-mono text-xs p-4">
-        <div className="text-green-400">
-          <p>$ OpenValley Command Console - {selectedVendor}</p>
-          <p>$ Type commands below. Press Enter to execute.</p>
-          <p>$ All commands are audited and logged.</p>
-          <p></p>
+      {/* Console Display with Execution Monitoring */}
+      <div className="flex-1 flex flex-col gap-2 overflow-hidden">
+        {/* Terminal Output */}
+        <div className="flex-1 bg-gray-900 border border-gray-800 rounded-lg overflow-y-auto font-mono text-xs p-4">
+          <div className="text-green-400">
+            <p>$ OpenValley Command Console - {selectedVendor}</p>
+            <p>$ Type commands below. Press Enter to execute.</p>
+            <p>$ All commands are audited and logged.</p>
+            <p></p>
 
-          {history.map((entry) => (
-            <div key={entry.id} className="mb-3">
-              <p className="text-blue-400">{entry.timestamp} $ {entry.command}</p>
-              <pre className={`text-xs whitespace-pre-wrap ${
-                entry.status === 'success' ? 'text-green-300' :
-                entry.status === 'error' ? 'text-red-300' :
-                'text-yellow-300'
-              }`}>
-                {entry.output}
-              </pre>
-            </div>
-          ))}
+            {history.map((entry) => (
+              <div key={entry.id} className="mb-3">
+                <p className="text-blue-400">{entry.timestamp} $ {entry.command}</p>
+                <pre className={`text-xs whitespace-pre-wrap ${
+                  entry.status === 'success' ? 'text-green-300' :
+                  entry.status === 'error' ? 'text-red-300' :
+                  'text-yellow-300'
+                }`}>
+                  {entry.output}
+                </pre>
+              </div>
+            ))}
+          </div>
+          <div ref={consoleEndRef} />
         </div>
-        <div ref={consoleEndRef} />
+
+        {/* Execution Monitor Summary */}
+        {history.length > 0 && (
+          <div className="bg-card border border-border rounded-lg p-3">
+            <div className="grid grid-cols-5 gap-2 text-xs">
+              <div className="bg-muted/40 p-2 rounded">
+                <p className="text-muted-foreground text-[11px]">Total Executions</p>
+                <p className="text-lg font-bold text-foreground">{history.length}</p>
+              </div>
+              <div className="bg-green-50 dark:bg-green-950/30 p-2 rounded">
+                <p className="text-green-700 dark:text-green-300 text-[11px] font-semibold">Success Rate</p>
+                <p className="text-lg font-bold text-green-600 dark:text-green-400">
+                  {history.length > 0
+                    ? ((history.filter(e => e.status === 'success').length / history.length) * 100).toFixed(0)
+                    : 0}%
+                </p>
+              </div>
+              <div className="bg-yellow-50 dark:bg-yellow-950/30 p-2 rounded">
+                <p className="text-yellow-700 dark:text-yellow-300 text-[11px] font-semibold">Successful</p>
+                <p className="text-lg font-bold text-yellow-600 dark:text-yellow-400">
+                  {history.filter(e => e.status === 'success').length}
+                </p>
+              </div>
+              <div className="bg-red-50 dark:bg-red-950/30 p-2 rounded">
+                <p className="text-red-700 dark:text-red-300 text-[11px] font-semibold">Failed</p>
+                <p className="text-lg font-bold text-red-600 dark:text-red-400">
+                  {history.filter(e => e.status === 'error').length}
+                </p>
+              </div>
+              <div className="bg-blue-50 dark:bg-blue-950/30 p-2 rounded">
+                <p className="text-blue-700 dark:text-blue-300 text-[11px] font-semibold">Pending</p>
+                <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                  {history.filter(e => e.status === 'pending').length}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Recent Commands */}

@@ -204,19 +204,36 @@ export const BulkEditor: React.FC<BulkEditorProps> = () => {
         </div>
       </div>
 
-      {/* Summary */}
-      <div className="grid grid-cols-3 gap-3 p-3 bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-lg">
-        <div>
-          <p className="text-xs text-primary/70">Total Changes</p>
-          <p className="text-2xl font-bold text-primary">{filteredChanges.length}</p>
-        </div>
-        <div>
-          <p className="text-xs text-green-600 dark:text-green-400">Ready to Execute</p>
-          <p className="text-2xl font-bold text-green-700 dark:text-green-400">{validatedCount}</p>
-        </div>
-        <div>
-          <p className="text-xs text-red-600 dark:text-red-400">With Errors</p>
-          <p className="text-2xl font-bold text-red-700 dark:text-red-400">{failedCount}</p>
+      {/* Execution Monitor Summary */}
+      <div className="space-y-2">
+        <h3 className="text-sm font-bold text-foreground">Execution Monitor</h3>
+        <div className="grid grid-cols-5 gap-2 p-3 bg-muted/30 border border-border rounded-lg">
+          <div className="bg-card border border-border p-2 rounded">
+            <p className="text-xs text-muted-foreground font-semibold">Total Changes</p>
+            <p className="text-lg font-bold text-foreground">{filteredChanges.length}</p>
+          </div>
+          <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 p-2 rounded">
+            <p className="text-xs text-blue-700 dark:text-blue-300 font-semibold">Validated</p>
+            <p className="text-lg font-bold text-blue-600 dark:text-blue-400">{validatedCount}</p>
+          </div>
+          <div className="bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 p-2 rounded">
+            <p className="text-xs text-yellow-700 dark:text-yellow-300 font-semibold">Pending</p>
+            <p className="text-lg font-bold text-yellow-600 dark:text-yellow-400">
+              {filteredChanges.filter(c => c.status === 'pending').length}
+            </p>
+          </div>
+          <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 p-2 rounded">
+            <p className="text-xs text-green-700 dark:text-green-300 font-semibold">Success Rate</p>
+            <p className="text-lg font-bold text-green-600 dark:text-green-400">
+              {filteredChanges.length > 0
+                ? ((successCount / filteredChanges.length) * 100).toFixed(0)
+                : 0}%
+            </p>
+          </div>
+          <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 p-2 rounded">
+            <p className="text-xs text-red-700 dark:text-red-300 font-semibold">Failed</p>
+            <p className="text-lg font-bold text-red-600 dark:text-red-400">{failedCount}</p>
+          </div>
         </div>
       </div>
     </div>

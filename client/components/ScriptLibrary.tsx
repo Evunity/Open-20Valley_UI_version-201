@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Copy, Trash2, Play, Tag, AlertTriangle, Zap, Clock } from 'lucide-react';
+import { Plus, Copy, Trash2, Play, Tag, AlertTriangle, Zap, Clock, Search, Download, Calendar } from 'lucide-react';
 import SearchableDropdown from './SearchableDropdown';
 import { IconButton } from '@/components/ui/icon-button';
 
@@ -97,7 +97,11 @@ const MOCK_SCRIPTS: Script[] = [
 export const ScriptLibrary: React.FC<ScriptLibraryProps> = () => {
   const [scripts, setScripts] = useState<Script[]>(MOCK_SCRIPTS);
   const [selectedScript, setSelectedScript] = useState<string | null>(null);
+  const [selectedScripts, setSelectedScripts] = useState<Set<string>>(new Set());
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [timeFilter, setTimeFilter] = useState<'all' | 'today' | 'week' | 'month'>('all');
+  const [clockFilter, setClockFilter] = useState<'all' | 'morning' | 'afternoon' | 'evening' | 'night'>('all');
   const [showForm, setShowForm] = useState(false);
   const [showExecution, setShowExecution] = useState<string | null>(null);
   const [parameters, setParameters] = useState<Record<string, string>>({});
@@ -112,9 +116,72 @@ export const ScriptLibrary: React.FC<ScriptLibraryProps> = () => {
     riskLevel: 'low' as 'low' | 'medium' | 'high'
   });
 
-  const filteredScripts = selectedCategory
-    ? scripts.filter(s => s.category === selectedCategory)
-    : scripts;
+  // Filter scripts based on search, category, and time
+  const getFilteredScripts = () => {
+    let filtered = scripts;
+
+    // Category filter
+    if (selectedCategory) {
+      filtered = filtered.filter(s => s.category === selectedCategory);
+    }
+
+    // Search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(s =>
+        s.name.toLowerCase().includes(query) ||
+        s.description.toLowerCase().includes(query) ||
+        s.vendor.toLowerCase().includes(query) ||
+        s.category.toLowerCase().includes(query)
+      );
+    }
+
+    // Time range filter
+    if (timeFilter !== 'all') {
+      const now = new Date();
+      filtered = filtered.filter(s => {
+        const modDate = new Date(s.lastModified);
+        const diffTime = now.getTime() - modDate.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        switch (timeFilter) {
+          case 'today':
+            return diffDays === 0;
+          case 'week':
+            return diffDays <= 7;
+          case 'month':
+            return diffDays <= 30;
+          default:
+            return true;
+        }
+      });
+    }
+
+    // Clock-based time filter (time of day)
+    if (clockFilter !== 'all') {
+      filtered = filtered.filter(s => {
+        const modDate = new Date(s.lastModified);
+        const hour = modDate.getHours();
+
+        switch (clockFilter) {
+          case 'morning':
+            return hour >= 6 && hour < 12; // 6 AM - 12 PM
+          case 'afternoon':
+            return hour >= 12 && hour < 18; // 12 PM - 6 PM
+          case 'evening':
+            return hour >= 18 && hour < 22; // 6 PM - 10 PM
+          case 'night':
+            return hour >= 22 || hour < 6; // 10 PM - 6 AM
+          default:
+            return true;
+        }
+      });
+    }
+
+    return filtered;
+  };
+
+  const filteredScripts = getFilteredScripts();
 
   const getRiskColor = (level: string) => {
     const colors = {
@@ -241,21 +308,106 @@ export const ScriptLibrary: React.FC<ScriptLibraryProps> = () => {
     }
   };
 
+  const exportToExcel = () => {
+    // Only export selected scripts
+    if (selectedScripts.size === 0) {
+      alert('Please select at least one script to export');
+      return;
+    }
+
+    const selectedScriptsData = filteredScripts.filter(s => selectedScripts.has(s.id));
+
+    // Prepare data for Excel
+    const excelData = selectedScriptsData.map(script => ({
+      'Script Name': script.name,
+      'Description': script.description,
+      'Category': script.category,
+      'Vendor': script.vendor,
+      'Risk Level': script.riskLevel,
+      'Created': script.created,
+      'Last Modified': script.lastModified,
+      'Executions': script.executionCount,
+      'Success Rate (%)': script.successRate.toFixed(1),
+      'Commands': script.commands.join('; '),
+      'Parameters': script.parameters.map(p => `${p.name} (${p.type})`).join('; ') || 'None',
+      'Permissions': script.requiredPermissions.join('; ') || 'None',
+      'Rollback Instructions': script.rollbackInstructions
+    }));
+
+    // Create CSV content
+    if (excelData.length === 0) {
+      alert('No scripts to export');
+      return;
+    }
+
+    // Get headers
+    const headers = Object.keys(excelData[0]);
+    const rows = excelData.map(obj => headers.map(header => {
+      const value = obj[header as keyof typeof obj];
+      // Escape quotes and wrap in quotes if contains comma
+      const stringValue = String(value);
+      return stringValue.includes(',') ? `"${stringValue.replace(/"/g, '""')}"` : stringValue;
+    }));
+
+    // Create CSV string
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.join(','))
+    ].join('\n');
+
+    // Download file
+    const link = document.createElement('a');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `scripts_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="flex flex-col h-full gap-4 p-4">
-      {/* Header */}
-      <div className="flex gap-4 items-end">
+      {/* Header - Top Controls */}
+      <div className="flex gap-2 items-center justify-between">
         <button
           onClick={() => setShowForm(!showForm)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold flex items-center gap-2"
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold flex items-center gap-2 whitespace-nowrap"
         >
           <Plus className="w-4 h-4" />
-          Create New Script
+          Create Script
         </button>
 
-        <div className="w-64">
+        <button
+          onClick={exportToExcel}
+          disabled={selectedScripts.size === 0}
+          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+          title={selectedScripts.size === 0 ? "Select scripts to export" : `Export ${selectedScripts.size} selected script(s)`}
+        >
+          <Download className="w-4 h-4" />
+          Export ({selectedScripts.size})
+        </button>
+      </div>
+
+      {/* Search Bar */}
+      <div className="relative">
+        <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" />
+        <input
+          type="text"
+          placeholder="Search scripts by name, description, vendor..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full pl-9 pr-3 py-2 border border-border rounded-lg bg-input text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-blue-500 outline-none transition"
+        />
+      </div>
+
+      {/* Filters Row */}
+      <div className="flex gap-3 items-end flex-wrap">
+        <div className="flex-1 min-w-[200px]">
+          <label className="block text-xs font-semibold text-muted-foreground mb-1">Category</label>
           <SearchableDropdown
-            label="Category"
+            label=""
             options={['All Categories', ...SCRIPT_CATEGORIES]}
             selected={selectedCategory === '' ? ['All Categories'] : [selectedCategory]}
             onChange={(selected) => {
@@ -265,7 +417,84 @@ export const ScriptLibrary: React.FC<ScriptLibraryProps> = () => {
             multiSelect={false}
             searchable={true}
             compact={true}
+            dropdownId="script-category-filter"
           />
+        </div>
+
+        <div className="flex-1 min-w-[200px]">
+          <div className="flex items-center gap-1 text-xs font-semibold text-muted-foreground mb-1">
+            <Clock className="w-3.5 h-3.5" />
+            <span>Date Range</span>
+          </div>
+          <SearchableDropdown
+            label=""
+            options={['All Time', 'Today', 'This Week', 'This Month']}
+            selected={
+              timeFilter === 'today' ? ['Today'] :
+              timeFilter === 'week' ? ['This Week'] :
+              timeFilter === 'month' ? ['This Month'] :
+              ['All Time']
+            }
+            onChange={(selected) => {
+              const timeMap: Record<string, 'all' | 'today' | 'week' | 'month'> = {
+                'All Time': 'all',
+                'Today': 'today',
+                'This Week': 'week',
+                'This Month': 'month'
+              };
+              setTimeFilter(timeMap[selected[0]] || 'all');
+            }}
+            placeholder="Select date range..."
+            multiSelect={false}
+            searchable={true}
+            compact={true}
+            dropdownId="script-time-filter"
+          />
+        </div>
+
+        <div className="flex-1 min-w-[200px]">
+          <div className="flex items-center gap-1 text-xs font-semibold text-muted-foreground mb-1">
+            <Clock className="w-3.5 h-3.5" />
+            <span>Time of Day</span>
+          </div>
+          <SearchableDropdown
+            label=""
+            options={['All Day', 'Morning (6-12)', 'Afternoon (12-18)', 'Evening (18-22)', 'Night (22-6)']}
+            selected={
+              clockFilter === 'morning' ? ['Morning (6-12)'] :
+              clockFilter === 'afternoon' ? ['Afternoon (12-18)'] :
+              clockFilter === 'evening' ? ['Evening (18-22)'] :
+              clockFilter === 'night' ? ['Night (22-6)'] :
+              ['All Day']
+            }
+            onChange={(selected) => {
+              const clockMap: Record<string, 'all' | 'morning' | 'afternoon' | 'evening' | 'night'> = {
+                'All Day': 'all',
+                'Morning (6-12)': 'morning',
+                'Afternoon (12-18)': 'afternoon',
+                'Evening (18-22)': 'evening',
+                'Night (22-6)': 'night'
+              };
+              setClockFilter(clockMap[selected[0]] || 'all');
+            }}
+            placeholder="Select time of day..."
+            multiSelect={false}
+            searchable={true}
+            compact={true}
+            dropdownId="script-clock-filter"
+          />
+        </div>
+
+        {/* Results count and Selection info */}
+        <div className="flex gap-2 items-center">
+          <div className="px-3 py-2 bg-muted/40 rounded-lg text-xs font-semibold text-muted-foreground">
+            {filteredScripts.length} script{filteredScripts.length !== 1 ? 's' : ''} found
+          </div>
+          {selectedScripts.size > 0 && (
+            <div className="px-3 py-2 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg text-xs font-semibold text-blue-700 dark:text-blue-300">
+              {selectedScripts.size} selected
+            </div>
+          )}
         </div>
       </div>
 
@@ -395,61 +624,81 @@ export const ScriptLibrary: React.FC<ScriptLibraryProps> = () => {
       <div className="space-y-2 flex-1 overflow-y-auto">
         {filteredScripts.map((script) => (
           <div key={script.id}>
-            <div className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition">
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <p className="font-semibold text-gray-900">{script.name}</p>
-                    <span className={`text-xs px-2 py-0.5 rounded border font-semibold ${getRiskColor(script.riskLevel)}`}>
-                      {script.riskLevel}
-                    </span>
+            <div className={`border rounded-lg p-4 transition ${
+              selectedScripts.has(script.id)
+                ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30'
+                : 'border-gray-200 hover:bg-gray-50'
+            }`}>
+              <div className="flex items-start gap-3 mb-3">
+                <input
+                  type="checkbox"
+                  checked={selectedScripts.has(script.id)}
+                  onChange={(e) => {
+                    const newSelected = new Set(selectedScripts);
+                    if (e.target.checked) {
+                      newSelected.add(script.id);
+                    } else {
+                      newSelected.delete(script.id);
+                    }
+                    setSelectedScripts(newSelected);
+                  }}
+                  className="mt-1 w-4 h-4 rounded border-gray-300 cursor-pointer flex-shrink-0"
+                />
+                <div className="flex items-start justify-between flex-1 gap-3">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="font-semibold text-gray-900">{script.name}</p>
+                      <span className={`text-xs px-2 py-0.5 rounded border font-semibold ${getRiskColor(script.riskLevel)}`}>
+                        {script.riskLevel}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-1 whitespace-pre-wrap break-words">{script.description}</p>
+
+                    <div className="flex items-center gap-3 text-xs text-gray-500 flex-wrap mt-2">
+                      <div className="flex items-center gap-1">
+                        <Tag className="w-3 h-3" />
+                        {script.category}
+                      </div>
+                      <div>• {script.vendor}</div>
+                      <div className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        Modified {script.lastModified}
+                      </div>
+                      <div>• {script.executionCount} executions</div>
+                      <div className="text-green-600 font-semibold">{script.successRate}% success</div>
+                    </div>
+
+                    {script.parameters.length > 0 && (
+                      <div className="mt-2 flex items-center gap-1 text-xs text-blue-600">
+                        <Zap className="w-3 h-3" />
+                        {script.parameters.length} parameterized variable{script.parameters.length > 1 ? 's' : ''}
+                      </div>
+                    )}
                   </div>
-                  <p className="text-sm text-gray-600 mb-1 whitespace-pre-wrap break-words">{script.description}</p>
 
-                  <div className="flex items-center gap-3 text-xs text-gray-500 flex-wrap mt-2">
-                    <div className="flex items-center gap-1">
-                      <Tag className="w-3 h-3" />
-                      {script.category}
-                    </div>
-                    <div>• {script.vendor}</div>
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      Modified {script.lastModified}
-                    </div>
-                    <div>• {script.executionCount} executions</div>
-                    <div className="text-green-600 font-semibold">{script.successRate}% success</div>
+                  <div className="flex gap-2">
+                    <IconButton
+                      onClick={() => executeScript(script.id)}
+                      variant="active"
+                      title="Run script"
+                    >
+                      <Play />
+                    </IconButton>
+                    <IconButton
+                      onClick={() => copyScript(script)}
+                      variant={copiedId === script.id ? 'success' : 'default'}
+                      title={copiedId === script.id ? 'Copied!' : 'Copy script'}
+                    >
+                      <Copy />
+                    </IconButton>
+                    <IconButton
+                      onClick={() => deleteScript(script.id)}
+                      variant="destructive"
+                      title="Delete script"
+                    >
+                      <Trash2 />
+                    </IconButton>
                   </div>
-
-                  {script.parameters.length > 0 && (
-                    <div className="mt-2 flex items-center gap-1 text-xs text-blue-600">
-                      <Zap className="w-3 h-3" />
-                      {script.parameters.length} parameterized variable{script.parameters.length > 1 ? 's' : ''}
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex gap-2 ml-4">
-                  <IconButton
-                    onClick={() => executeScript(script.id)}
-                    variant="active"
-                    title="Run script"
-                  >
-                    <Play />
-                  </IconButton>
-                  <IconButton
-                    onClick={() => copyScript(script)}
-                    variant={copiedId === script.id ? 'success' : 'default'}
-                    title={copiedId === script.id ? 'Copied!' : 'Copy script'}
-                  >
-                    <Copy />
-                  </IconButton>
-                  <IconButton
-                    onClick={() => deleteScript(script.id)}
-                    variant="destructive"
-                    title="Delete script"
-                  >
-                    <Trash2 />
-                  </IconButton>
                 </div>
               </div>
 
