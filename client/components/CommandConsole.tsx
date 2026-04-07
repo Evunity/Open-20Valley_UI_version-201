@@ -149,13 +149,21 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
 
     const allCommands = [
       ...getQuickCommands(),
-      ...(VENDOR_COMMANDS[selectedVendor as keyof typeof VENDOR_COMMANDS] || [])
+      ...(VENDOR_COMMANDS[selectedVendor as keyof typeof VENDOR_COMMANDS] || []),
+      ...Object.keys(COMMAND_HINTS)
     ];
 
     const uniqueCommands = Array.from(new Set(allCommands));
-    return uniqueCommands
-      .filter(cmd => cmd.toUpperCase().includes(upperInput))
-      .slice(0, 5);
+
+    // First, try exact prefix matches (highest priority)
+    const prefixMatches = uniqueCommands.filter(cmd => cmd.toUpperCase().startsWith(upperInput));
+
+    // Then, try includes matches for better autocomplete
+    const includesMatches = uniqueCommands.filter(cmd =>
+      cmd.toUpperCase().includes(upperInput) && !prefixMatches.includes(cmd)
+    );
+
+    return [...prefixMatches, ...includesMatches].slice(0, 8);
   };
 
   const executeCommand = () => {
@@ -464,6 +472,27 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
                     setCommand(upperValue);
                     setShowSuggestions(upperValue.trim().length > 0);
                   }}
+                  onKeyDown={(e) => {
+                    // Tab: Autocomplete with first suggestion
+                    if (e.key === 'Tab') {
+                      e.preventDefault();
+                      const suggestions = getAutocompleteSuggestions(command);
+                      if (suggestions.length > 0) {
+                        setCommand(suggestions[0]);
+                        setShowSuggestions(false);
+                      }
+                    }
+                    // Ctrl+Space or Cmd+Space: Show suggestions
+                    if ((e.ctrlKey || e.metaKey) && e.code === 'Space') {
+                      e.preventDefault();
+                      setShowSuggestions(true);
+                    }
+                    // Arrow Down: Navigate suggestions
+                    if (e.key === 'ArrowDown' && showSuggestions) {
+                      e.preventDefault();
+                      // Could implement suggestion navigation here
+                    }
+                  }}
                   onKeyPress={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault();
@@ -475,7 +504,7 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
                   disabled={selectedSite.length === 0 || selectedTechnology.length === 0 || !selectedVendor}
                   placeholder={selectedSite.length === 0 || selectedTechnology.length === 0 || !selectedVendor
                     ? 'Please select Site, Technology & Vendor first'
-                    : `Enter ${selectedVendor} command in UPPERCASE (e.g., LST CELL;)`}
+                    : `Enter ${selectedVendor} command (e.g., GET...) - Press Tab for autocomplete, Ctrl+Space for suggestions`}
                   className={`w-full px-3 py-2 border rounded-lg font-mono text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition uppercase tracking-wide disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-muted/20 resize-none ${
                     selectedSite.length === 0 || selectedTechnology.length === 0 || !selectedVendor
                       ? 'border-amber-300/60 dark:border-amber-700/60 text-muted-foreground bg-amber-50/30 dark:bg-amber-950/10'
@@ -490,7 +519,12 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
 
                 {/* Autocomplete Suggestions */}
                 {showSuggestions && getAutocompleteSuggestions(command).length > 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-lg shadow-lg z-10 max-h-40 overflow-y-auto">
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-blue-500/50 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+                    <div className="px-3 py-1.5 bg-blue-50 dark:bg-blue-950/30 border-b border-blue-200 dark:border-blue-800">
+                      <p className="text-xs font-semibold text-blue-700 dark:text-blue-400">
+                        💡 Autocomplete Suggestions (Press Tab to select, Click to insert)
+                      </p>
+                    </div>
                     {getAutocompleteSuggestions(command).map((suggestion, index) => (
                       <button
                         key={index}
@@ -498,9 +532,19 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
                           setCommand(suggestion);
                           setShowSuggestions(false);
                         }}
-                        className="w-full text-left px-4 py-2 text-sm font-mono hover:bg-muted/70 border-b border-border last:border-b-0 text-foreground transition"
+                        className={`w-full text-left px-4 py-2 text-sm font-mono border-b border-border last:border-b-0 text-foreground transition ${
+                          index === 0
+                            ? 'bg-blue-100 dark:bg-blue-950/50 hover:bg-blue-200 dark:hover:bg-blue-900/50'
+                            : 'hover:bg-muted/70'
+                        }`}
+                        title={`${index === 0 ? 'Press Tab or click' : 'Click'} to insert: ${suggestion}`}
                       >
-                        {suggestion}
+                        <div className="flex items-center justify-between">
+                          <span>{suggestion}</span>
+                          {index === 0 && (
+                            <span className="text-xs text-blue-600 dark:text-blue-400 font-bold ml-2">⇥ TAB</span>
+                          )}
+                        </div>
                       </button>
                     ))}
                   </div>
