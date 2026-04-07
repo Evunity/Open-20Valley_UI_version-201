@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Copy, Trash2, Play, Tag, AlertTriangle, Zap, Clock } from 'lucide-react';
+import { Plus, Copy, Trash2, Play, Tag, AlertTriangle, Zap, Clock, Search, Download, Calendar } from 'lucide-react';
 import SearchableDropdown from './SearchableDropdown';
 import { IconButton } from '@/components/ui/icon-button';
 
@@ -98,6 +98,8 @@ export const ScriptLibrary: React.FC<ScriptLibraryProps> = () => {
   const [scripts, setScripts] = useState<Script[]>(MOCK_SCRIPTS);
   const [selectedScript, setSelectedScript] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [timeFilter, setTimeFilter] = useState<'all' | 'today' | 'week' | 'month'>('all');
   const [showForm, setShowForm] = useState(false);
   const [showExecution, setShowExecution] = useState<string | null>(null);
   const [parameters, setParameters] = useState<Record<string, string>>({});
@@ -112,9 +114,51 @@ export const ScriptLibrary: React.FC<ScriptLibraryProps> = () => {
     riskLevel: 'low' as 'low' | 'medium' | 'high'
   });
 
-  const filteredScripts = selectedCategory
-    ? scripts.filter(s => s.category === selectedCategory)
-    : scripts;
+  // Filter scripts based on search, category, and time
+  const getFilteredScripts = () => {
+    let filtered = scripts;
+
+    // Category filter
+    if (selectedCategory) {
+      filtered = filtered.filter(s => s.category === selectedCategory);
+    }
+
+    // Search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(s =>
+        s.name.toLowerCase().includes(query) ||
+        s.description.toLowerCase().includes(query) ||
+        s.vendor.toLowerCase().includes(query) ||
+        s.category.toLowerCase().includes(query)
+      );
+    }
+
+    // Time filter
+    if (timeFilter !== 'all') {
+      const now = new Date();
+      filtered = filtered.filter(s => {
+        const modDate = new Date(s.lastModified);
+        const diffTime = now.getTime() - modDate.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        switch (timeFilter) {
+          case 'today':
+            return diffDays === 0;
+          case 'week':
+            return diffDays <= 7;
+          case 'month':
+            return diffDays <= 30;
+          default:
+            return true;
+        }
+      });
+    }
+
+    return filtered;
+  };
+
+  const filteredScripts = getFilteredScripts();
 
   const getRiskColor = (level: string) => {
     const colors = {
@@ -241,21 +285,98 @@ export const ScriptLibrary: React.FC<ScriptLibraryProps> = () => {
     }
   };
 
+  const exportToExcel = () => {
+    // Prepare data for Excel
+    const excelData = filteredScripts.map(script => ({
+      'Script Name': script.name,
+      'Description': script.description,
+      'Category': script.category,
+      'Vendor': script.vendor,
+      'Risk Level': script.riskLevel,
+      'Created': script.created,
+      'Last Modified': script.lastModified,
+      'Executions': script.executionCount,
+      'Success Rate (%)': script.successRate.toFixed(1),
+      'Commands': script.commands.join('; '),
+      'Parameters': script.parameters.map(p => `${p.name} (${p.type})`).join('; ') || 'None',
+      'Permissions': script.requiredPermissions.join('; ') || 'None',
+      'Rollback Instructions': script.rollbackInstructions
+    }));
+
+    // Create CSV content
+    if (excelData.length === 0) {
+      alert('No scripts to export');
+      return;
+    }
+
+    // Get headers
+    const headers = Object.keys(excelData[0]);
+    const rows = excelData.map(obj => headers.map(header => {
+      const value = obj[header as keyof typeof obj];
+      // Escape quotes and wrap in quotes if contains comma
+      const stringValue = String(value);
+      return stringValue.includes(',') ? `"${stringValue.replace(/"/g, '""')}"` : stringValue;
+    }));
+
+    // Create CSV string
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.join(','))
+    ].join('\n');
+
+    // Download file
+    const link = document.createElement('a');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `scripts_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="flex flex-col h-full gap-4 p-4">
-      {/* Header */}
-      <div className="flex gap-4 items-end">
+      {/* Header - Top Controls */}
+      <div className="flex gap-2 items-center justify-between">
         <button
           onClick={() => setShowForm(!showForm)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold flex items-center gap-2"
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold flex items-center gap-2 whitespace-nowrap"
         >
           <Plus className="w-4 h-4" />
-          Create New Script
+          Create Script
         </button>
 
-        <div className="w-64">
+        <button
+          onClick={exportToExcel}
+          disabled={filteredScripts.length === 0}
+          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+          title="Export filtered scripts to CSV"
+        >
+          <Download className="w-4 h-4" />
+          Export to Excel
+        </button>
+      </div>
+
+      {/* Search Bar */}
+      <div className="relative">
+        <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" />
+        <input
+          type="text"
+          placeholder="Search scripts by name, description, vendor..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full pl-9 pr-3 py-2 border border-border rounded-lg bg-input text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-blue-500 outline-none transition"
+        />
+      </div>
+
+      {/* Filters Row */}
+      <div className="flex gap-3 items-end flex-wrap">
+        <div className="flex-1 min-w-[200px]">
+          <label className="block text-xs font-semibold text-muted-foreground mb-1">Category</label>
           <SearchableDropdown
-            label="Category"
+            label=""
             options={['All Categories', ...SCRIPT_CATEGORIES]}
             selected={selectedCategory === '' ? ['All Categories'] : [selectedCategory]}
             onChange={(selected) => {
@@ -266,6 +387,41 @@ export const ScriptLibrary: React.FC<ScriptLibraryProps> = () => {
             searchable={true}
             compact={true}
           />
+        </div>
+
+        <div className="flex-1 min-w-[200px]">
+          <label className="block text-xs font-semibold text-muted-foreground mb-1 flex items-center gap-1">
+            <Calendar className="w-3 h-3" />
+            Time Filter
+          </label>
+          <SearchableDropdown
+            label=""
+            options={['All Time', 'Today', 'This Week', 'This Month']}
+            selected={
+              timeFilter === 'today' ? ['Today'] :
+              timeFilter === 'week' ? ['This Week'] :
+              timeFilter === 'month' ? ['This Month'] :
+              ['All Time']
+            }
+            onChange={(selected) => {
+              const timeMap: Record<string, 'all' | 'today' | 'week' | 'month'> = {
+                'All Time': 'all',
+                'Today': 'today',
+                'This Week': 'week',
+                'This Month': 'month'
+              };
+              setTimeFilter(timeMap[selected[0]] || 'all');
+            }}
+            placeholder="Select time range..."
+            multiSelect={false}
+            searchable={true}
+            compact={true}
+          />
+        </div>
+
+        {/* Results count */}
+        <div className="px-3 py-2 bg-muted/40 rounded-lg text-xs font-semibold text-muted-foreground">
+          {filteredScripts.length} script{filteredScripts.length !== 1 ? 's' : ''} found
         </div>
       </div>
 
