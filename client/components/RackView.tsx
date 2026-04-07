@@ -443,14 +443,8 @@ export const RackView: React.FC<RackViewProps> = ({ topology, onDeviceSelect }) 
                     >
                       <div className="flex items-center gap-3">
                         {/* U Number - Fixed Width */}
-                        <div className="w-10 flex-shrink-0 relative">
+                        <div className="w-10 flex-shrink-0">
                           <span className="font-bold text-foreground text-sm">U{card.u}</span>
-                          {getSiteConnections(selectedSite).some(
-                            conn => (conn.fromRackId === currentRack.id && conn.fromU === card.u) ||
-                                     (conn.toRackId === currentRack.id && conn.toU === card.u)
-                          ) && (
-                            <span className="absolute -top-1 -right-1 w-3 h-3 bg-blue-600 rounded-full animate-pulse"></span>
-                          )}
                         </div>
 
                         {/* Device Icon */}
@@ -463,6 +457,35 @@ export const RackView: React.FC<RackViewProps> = ({ topology, onDeviceSelect }) 
                             <p className="text-xs text-muted-foreground truncate">
                               🔗 {card.connections.join(', ')}
                             </p>
+                          )}
+                          {/* Rack-to-Rack Connections */}
+                          {getSiteConnections(selectedSite).filter(
+                            conn => (conn.fromRackId === currentRack.id && conn.fromU === card.u) ||
+                                     (conn.toRackId === currentRack.id && conn.toU === card.u)
+                          ).length > 0 && (
+                            <div className="text-xs mt-1 space-y-0.5">
+                              {getSiteConnections(selectedSite).filter(
+                                conn => (conn.fromRackId === currentRack.id && conn.fromU === card.u) ||
+                                         (conn.toRackId === currentRack.id && conn.toU === card.u)
+                              ).map((conn) => {
+                                const isSource = conn.fromRackId === currentRack.id && conn.fromU === card.u;
+                                const otherRack = currentSite?.racks.find(r => r.id === (isSource ? conn.toRackId : conn.fromRackId));
+                                const otherU = isSource ? conn.toU : conn.fromU;
+                                const otherDevice = getDeviceByRackAndU(otherRack?.id || '', otherU);
+                                const statusIcon = conn.status === 'active' ? '✓' : conn.status === 'warning' ? '⚠' : '✗';
+                                const typeLabel = conn.type === 'power' ? '⚡' : conn.type === 'fiber' ? '🔗' : conn.type === 'data' ? '📊' : '📡';
+
+                                return (
+                                  <p key={conn.id} className={`text-xs truncate ${
+                                    conn.status === 'active' ? 'text-green-700 dark:text-green-400' :
+                                    conn.status === 'warning' ? 'text-yellow-700 dark:text-yellow-400' :
+                                    'text-gray-500'
+                                  }`}>
+                                    {typeLabel} {isSource ? '→' : '←'} {otherRack?.name.split(' (')[0]} U{otherU} {statusIcon}
+                                  </p>
+                                );
+                              })}
+                            </div>
                           )}
                         </div>
 
