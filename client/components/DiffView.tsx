@@ -1,7 +1,8 @@
 import React, { useState, useRef } from 'react';
-import { ArrowRight, Download, Check, Search, X } from 'lucide-react';
+import { ArrowRight, Download, Check, Search, X, ChevronDown } from 'lucide-react';
 import SearchableDropdown from './SearchableDropdown';
 import { cn } from '@/lib/utils';
+import * as XLSX from 'xlsx';
 
 interface DiffViewProps {
   selectedTarget: any;
@@ -85,7 +86,9 @@ export const DiffView: React.FC<DiffViewProps> = () => {
   const [selectedParameters, setSelectedParameters] = useState<Set<string>>(new Set(PARAMETER_OPTIONS));
   const [parameterSearch, setParameterSearch] = useState('');
   const [showParameterDropdown, setShowParameterDropdown] = useState(false);
+  const [showExportMenu, setShowExportMenu] = useState(false);
   const parameterDropdownRef = useRef<HTMLDivElement>(null);
+  const exportMenuRef = useRef<HTMLDivElement>(null);
 
   const filteredDiffs = diffs.filter(d => selectedParameters.has(d.parameter));
   const differentCount = filteredDiffs.filter(d => d.status === 'different').length;
@@ -133,6 +136,16 @@ export const DiffView: React.FC<DiffViewProps> = () => {
     };
   }, [showParameterDropdown]);
 
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'identical': return 'Identical';
+      case 'different': return 'Different';
+      case 'missing_left': return 'Missing in Left';
+      case 'missing_right': return 'Missing in Right';
+      default: return status;
+    }
+  };
+
   const getStatusColor = (status: string) => {
     const colors = {
       'identical': 'surface-success border',
@@ -142,6 +155,103 @@ export const DiffView: React.FC<DiffViewProps> = () => {
     };
     return colors[status as keyof typeof colors] || colors.identical;
   };
+
+  const exportToCSV = () => {
+    if (filteredDiffs.length === 0) {
+      alert('No data to export. Please select at least one parameter.');
+      return;
+    }
+
+    const csvData = filteredDiffs.map(diff => ({
+      'Parameter': diff.parameter,
+      'Left Site/Time': diff.left.label,
+      'Left Value': diff.left.value,
+      'Right Site/Time': diff.right.label,
+      'Right Value': diff.right.value,
+      'Status': getStatusLabel(diff.status)
+    }));
+
+    const headers = Object.keys(csvData[0]);
+    const rows = csvData.map(obj => headers.map(header => {
+      const value = obj[header as keyof typeof obj];
+      const stringValue = String(value);
+      return stringValue.includes(',') ? `"${stringValue.replace(/"/g, '""')}"` : stringValue;
+    }));
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.join(','))
+    ].join('\n');
+
+    const link = document.createElement('a');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `diff_report_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setShowExportMenu(false);
+  };
+
+  const exportToExcel = () => {
+    if (filteredDiffs.length === 0) {
+      alert('No data to export. Please select at least one parameter.');
+      return;
+    }
+
+    const excelData = filteredDiffs.map(diff => ({
+      'Parameter': diff.parameter,
+      'Left Site/Time': diff.left.label,
+      'Left Value': diff.left.value,
+      'Right Site/Time': diff.right.label,
+      'Right Value': diff.right.value,
+      'Status': getStatusLabel(diff.status)
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Diff Report');
+
+    // Style header row
+    const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
+    for (let C = range.s.c; C <= range.e.c; ++C) {
+      const address = XLSX.utils.encode_col(C) + '1';
+      if (!worksheet[address]) continue;
+      worksheet[address].s = {
+        font: { bold: true, color: { rgb: 'FFFFFF' } },
+        fill: { fgColor: { rgb: '4F46E5' } },
+        alignment: { horizontal: 'center' }
+      };
+    }
+
+    // Set column widths
+    worksheet['!cols'] = [
+      { wch: 20 },
+      { wch: 20 },
+      { wch: 20 },
+      { wch: 20 },
+      { wch: 20 },
+      { wch: 15 }
+    ];
+
+    XLSX.writeFile(workbook, `diff_report_${new Date().toISOString().split('T')[0]}.xlsx`);
+    setShowExportMenu(false);
+  };
+
+  React.useEffect(() => {
+    if (!showExportMenu) return;
+
+    const handlePointerDownOutside = (event: MouseEvent) => {
+      if (!exportMenuRef.current?.contains(event.target as Node)) {
+        setShowExportMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handlePointerDownOutside);
+    return () => document.removeEventListener('mousedown', handlePointerDownOutside);
+  }, [showExportMenu]);
 
   return (
     <div className="flex flex-col h-full gap-4 p-4">
@@ -369,10 +479,35 @@ export const DiffView: React.FC<DiffViewProps> = () => {
       </div>
 
       {/* Export */}
-      <button className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 font-semibold flex items-center justify-center gap-2 transition shadow-sm">
-        <Download className="w-4 h-4" />
-        Export Diff Report
-      </button>
+      <div ref={exportMenuRef} className="relative">
+        <button
+          onClick={() => setShowExportMenu(!showExportMenu)}
+          disabled={filteredDiffs.length === 0}
+          className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 font-semibold flex items-center justify-center gap-2 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <Download className="w-4 h-4" />
+          Export Diff Report
+          <ChevronDown className={cn("w-4 h-4 transition-transform", showExportMenu && "rotate-180")} />
+        </button>
+
+        {/* Export Menu Dropdown */}
+        {showExportMenu && (
+          <div className="absolute bottom-full left-0 right-0 mb-2 bg-card border border-border rounded-lg shadow-lg z-50 overflow-hidden">
+            <button
+              onClick={exportToCSV}
+              className="w-full px-4 py-2 text-left text-sm font-medium text-foreground hover:bg-muted transition-colors border-b border-border/50"
+            >
+              Export as CSV
+            </button>
+            <button
+              onClick={exportToExcel}
+              className="w-full px-4 py-2 text-left text-sm font-medium text-foreground hover:bg-muted transition-colors"
+            >
+              Export as Excel
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
