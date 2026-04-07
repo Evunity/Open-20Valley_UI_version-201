@@ -126,6 +126,22 @@ export const EditableTreeView: React.FC<EditableTreeViewProps> = ({
     setExpandedNodes(newExpanded);
   };
 
+  // Define getValidChildTypes before it's used in handleAddNode
+  const getValidChildTypes = useCallback((nodeType: string | null): string[] => {
+    // If no parent type specified (creating root node), only allow global or country
+    if (!nodeType) {
+      return ['global', 'country'];
+    }
+
+    const validTypes = VALID_CHILDREN[nodeType as any];
+    if (validTypes && validTypes.length > 0) {
+      return validTypes;
+    }
+
+    // No valid children for this node type
+    return [];
+  }, []);
+
   const handleAddNode = useCallback(() => {
     if (!newNodeForm.name.trim()) {
       setError('Node name cannot be empty');
@@ -254,21 +270,6 @@ export const EditableTreeView: React.FC<EditableTreeViewProps> = ({
     setDraggedNode(null);
     setDragOverNode(null);
   };
-
-  const getValidChildTypes = useCallback((nodeType: string | null): string[] => {
-    // If no parent type specified (creating root node), only allow global or country
-    if (!nodeType) {
-      return ['global', 'country'];
-    }
-
-    const validTypes = VALID_CHILDREN[nodeType as any];
-    if (validTypes && validTypes.length > 0) {
-      return validTypes;
-    }
-
-    // No valid children for this node type
-    return [];
-  }, []);
 
   const renderNode = (nodeId: string, level: number): React.ReactNode => {
     const node = hierarchyManager.findById(nodeId);
