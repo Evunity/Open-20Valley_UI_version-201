@@ -308,21 +308,24 @@ export const DiffView: React.FC<DiffViewProps> = () => {
         </button>
       </div>
 
-      {/* Site Selection */}
+      {/* Site Selection - Improved UI/UX */}
       {compareType === 'different-sites' && (
-        <div className="space-y-3">
+        <div className="bg-card border border-border rounded-lg p-4 space-y-4">
           {/* Site Count Selector */}
-          <div className="flex items-center gap-2">
-            <label className="text-xs font-semibold text-muted-foreground">Compare:</label>
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-bold text-foreground">Comparison Mode</h3>
+              <p className="text-xs text-muted-foreground mt-1">Select how many sites to compare</p>
+            </div>
             <div className="flex gap-2">
               {([2, 3, 4] as const).map(count => (
                 <button
                   key={count}
                   onClick={() => handleSiteCountChange(count)}
-                  className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition ${
+                  className={`px-4 py-2 text-sm font-bold rounded-lg border-2 transition ${
                     siteCount === count
-                      ? 'bg-primary text-primary-foreground border-primary'
-                      : 'bg-card border-border hover:border-primary/40 text-muted-foreground'
+                      ? 'bg-primary text-primary-foreground border-primary shadow-lg'
+                      : 'bg-background border-border hover:border-primary/40 text-foreground hover:bg-muted'
                   }`}
                 >
                   {count} Sites
@@ -331,58 +334,98 @@ export const DiffView: React.FC<DiffViewProps> = () => {
             </div>
           </div>
 
-          {/* Sites Selection Grid */}
-          <div className={`grid gap-3 items-end ${siteCount === 2 ? 'grid-cols-3' : siteCount === 3 ? 'grid-cols-5' : 'grid-cols-7'}`}>
-            {selectedSites.map((site, index) => (
-              <React.Fragment key={index}>
-                <SearchableDropdown
-                  label={`Site ${index + 1}`}
-                  options={SITE_OPTIONS}
-                  selected={[site]}
-                  onChange={(selected) => handleSiteChange(index, selected[0])}
-                  placeholder="Select site..."
-                  multiSelect={false}
-                  searchable={true}
-                  compact={true}
-                />
-                {index < selectedSites.length - 1 && (
-                  <div className="flex justify-center">
-                    <ArrowRight className="w-5 h-5 text-muted-foreground" />
+          {/* Sites Comparison Cards */}
+          <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${siteCount}, 1fr)` }}>
+            {selectedSites.map((site, index) => {
+              const siteColors = [
+                'border-l-4 border-l-blue-500 bg-blue-50/30 dark:bg-blue-950/20',
+                'border-l-4 border-l-green-500 bg-green-50/30 dark:bg-green-950/20',
+                'border-l-4 border-l-orange-500 bg-orange-50/30 dark:bg-orange-950/20',
+                'border-l-4 border-l-purple-500 bg-purple-50/30 dark:bg-purple-950/20'
+              ];
+
+              const siteColorLabel = [
+                'text-blue-700 dark:text-blue-300',
+                'text-green-700 dark:text-green-300',
+                'text-orange-700 dark:text-orange-300',
+                'text-purple-700 dark:text-purple-300'
+              ];
+
+              return (
+                <div key={index} className={`rounded-lg border border-border p-3 space-y-2 ${siteColors[index]}`}>
+                  <div>
+                    <label className={`block text-xs font-bold ${siteColorLabel[index]} mb-2`}>
+                      SITE {index + 1}
+                    </label>
+                    <SearchableDropdown
+                      label=""
+                      options={SITE_OPTIONS}
+                      selected={[site]}
+                      onChange={(selected) => handleSiteChange(index, selected[0])}
+                      placeholder="Select site..."
+                      multiSelect={false}
+                      searchable={true}
+                      compact={true}
+                    />
                   </div>
-                )}
-              </React.Fragment>
-            ))}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Comparison Info */}
+          <div className="pt-2 border-t border-border/50 flex items-center gap-2 text-xs text-muted-foreground">
+            <span className="font-semibold">Comparing:</span>
+            <span className="font-mono bg-muted px-2 py-1 rounded">
+              {selectedSites.join(' vs ')}
+            </span>
           </div>
         </div>
       )}
 
       {compareType === 'same-site' && (
-        <div className="grid grid-cols-3 gap-3 items-end">
-          <SearchableDropdown
-            label="Site"
-            options={SITE_OPTIONS}
-            selected={selectedSites.slice(0, 1)}
-            onChange={(selected) => handleSiteChange(0, selected[0])}
-            placeholder="Select site..."
-            multiSelect={false}
-            searchable={true}
-            compact={true}
-          />
+        <div className="bg-card border border-border rounded-lg p-4 space-y-4">
+          <h3 className="text-sm font-bold text-foreground">Time-Based Comparison</h3>
 
-          <div className="flex justify-center">
-            <ArrowRight className="w-5 h-5 text-muted-foreground" />
+          <div className="grid grid-cols-2 gap-4 items-end">
+            {/* Site Selection */}
+            <div className="rounded-lg border border-l-4 border-l-blue-500 bg-blue-50/30 dark:bg-blue-950/20 p-3 space-y-2">
+              <label className="block text-xs font-bold text-blue-700 dark:text-blue-300 mb-2">SITE</label>
+              <SearchableDropdown
+                label=""
+                options={SITE_OPTIONS}
+                selected={selectedSites.slice(0, 1)}
+                onChange={(selected) => handleSiteChange(0, selected[0])}
+                placeholder="Select site..."
+                multiSelect={false}
+                searchable={true}
+                compact={true}
+              />
+            </div>
+
+            {/* Time Period Selection */}
+            <div className="rounded-lg border border-l-4 border-l-green-500 bg-green-50/30 dark:bg-green-950/20 p-3 space-y-2">
+              <label className="block text-xs font-bold text-green-700 dark:text-green-300 mb-2">TIME PERIOD</label>
+              <SearchableDropdown
+                label=""
+                options={['Current vs Previous Hour', 'Current vs Today', 'Today vs Yesterday', 'This Week vs Last Week']}
+                selected={timePeriod}
+                onChange={setTimePeriod}
+                placeholder="Select time period..."
+                multiSelect={false}
+                searchable={true}
+                compact={true}
+              />
+            </div>
           </div>
 
-          <SearchableDropdown
-            label="Time Period"
-            options={['Current vs Previous Hour', 'Current vs Today', 'Today vs Yesterday', 'This Week vs Last Week']}
-            selected={timePeriod}
-            onChange={setTimePeriod}
-            placeholder="Select time period..."
-            multiSelect={false}
-            searchable={true}
-            compact={true}
-          />
+          {/* Comparison Info */}
+          <div className="pt-2 border-t border-border/50 flex items-center gap-2 text-xs text-muted-foreground">
+            <span className="font-semibold">Comparing:</span>
+            <span className="font-mono bg-muted px-2 py-1 rounded">
+              {selectedSites[0]} across {timePeriod[0]}
+            </span>
+          </div>
         </div>
       )}
 
@@ -550,21 +593,38 @@ export const DiffView: React.FC<DiffViewProps> = () => {
             </div>
 
             <div className={`grid gap-3 ${siteCount === 2 ? 'grid-cols-3' : siteCount === 3 ? 'grid-cols-5' : 'grid-cols-7'}`}>
-              {[diff.left, diff.middle1, diff.middle2, diff.right].filter(Boolean).map((site, index) => (
-                <React.Fragment key={index}>
-                  <div>
-                    <p className="text-xs font-semibold text-muted-foreground mb-1">{site!.label}</p>
-                    <p className="text-sm font-mono bg-card p-2 rounded border border-border text-foreground">
-                      {site!.value}
-                    </p>
-                  </div>
-                  {index < [diff.left, diff.middle1, diff.middle2, diff.right].filter(Boolean).length - 1 && (
-                    <div className="flex items-center justify-center">
-                      <ArrowRight className="w-4 h-4 text-muted-foreground" />
+              {[diff.left, diff.middle1, diff.middle2, diff.right].filter(Boolean).map((site, index) => {
+                const siteColors = [
+                  'border-l-4 border-l-blue-500 bg-blue-50/50 dark:bg-blue-950/30',
+                  'border-l-4 border-l-green-500 bg-green-50/50 dark:bg-green-950/30',
+                  'border-l-4 border-l-orange-500 bg-orange-50/50 dark:bg-orange-950/30',
+                  'border-l-4 border-l-purple-500 bg-purple-50/50 dark:bg-purple-950/30'
+                ];
+
+                const siteColorLabel = [
+                  'text-blue-700 dark:text-blue-300',
+                  'text-green-700 dark:text-green-300',
+                  'text-orange-700 dark:text-orange-300',
+                  'text-purple-700 dark:text-purple-300'
+                ];
+
+                return (
+                  <React.Fragment key={index}>
+                    <div className={`rounded-lg border border-border p-3 ${siteColors[index]}`}>
+                      <p className={`text-xs font-bold ${siteColorLabel[index]} mb-2 uppercase`}>Site {index + 1}</p>
+                      <p className="text-xs font-semibold text-muted-foreground mb-2">{site!.label}</p>
+                      <p className="text-sm font-mono bg-card p-2 rounded border border-border text-foreground">
+                        {site!.value}
+                      </p>
                     </div>
-                  )}
-                </React.Fragment>
-              ))}
+                    {index < [diff.left, diff.middle1, diff.middle2, diff.right].filter(Boolean).length - 1 && (
+                      <div className="flex items-center justify-center">
+                        <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                      </div>
+                    )}
+                  </React.Fragment>
+                );
+              })}
             </div>
           </div>
         ))
