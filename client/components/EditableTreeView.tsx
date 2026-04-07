@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import { Plus, Trash2, Edit2, Eye, EyeOff, Copy, AlertCircle, Check, X } from 'lucide-react';
+import React, { useState, useCallback, useMemo } from 'react';
+import { Plus, Trash2, Edit2, Eye, EyeOff, Copy, AlertCircle, Check, X, Search } from 'lucide-react';
 import { TopologyObject } from '../utils/topologyData';
 import { HierarchyManager, HierarchyValidator, VALID_CHILDREN } from '../utils/hierarchyManager';
 
@@ -23,6 +23,11 @@ interface RenameModalState {
   newName: string;
 }
 
+const AVAILABLE_NODE_TYPES = [
+  'global', 'country', 'region', 'cluster', 'site', 'node',
+  'cell', 'sector', 'transport', 'rack', 'rru', 'bbu'
+];
+
 export const EditableTreeView: React.FC<EditableTreeViewProps> = ({
   topology,
   editMode: parentEditMode = false,
@@ -39,6 +44,7 @@ export const EditableTreeView: React.FC<EditableTreeViewProps> = ({
   const [dragOverNode, setDragOverNode] = useState<string | null>(null);
   const [localTopology, setLocalTopology] = useState<TopologyObject[]>(topology);
   const [hierarchyManager, setHierarchyManager] = useState(() => new HierarchyManager(topology));
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [addNodeModal, setAddNodeModal] = useState<AddNodeModalState>({
     isOpen: false,
     parentId: null,
@@ -64,6 +70,52 @@ export const EditableTreeView: React.FC<EditableTreeViewProps> = ({
     setHierarchyManager(new HierarchyManager(topology));
   }, [topology]);
 
+  // Filter topology based on search query
+  const filteredTopology = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return localTopology;
+    }
+
+    const query = searchQuery.toLowerCase();
+    const matchingNodeIds = new Set<string>();
+    const includeNodeIds = new Set<string>();
+
+    // Find all nodes that match the search
+    localTopology.forEach(node => {
+      if (node.name.toLowerCase().includes(query) || node.type.toLowerCase().includes(query)) {
+        matchingNodeIds.add(node.id);
+      }
+    });
+
+    // For each matching node, include all ancestors and descendants
+    matchingNodeIds.forEach(nodeId => {
+      // Add the node itself
+      includeNodeIds.add(nodeId);
+
+      // Add all ancestors (parents up to root)
+      let currentId: string | undefined = nodeId;
+      while (currentId) {
+        const node = localTopology.find(n => n.id === currentId);
+        if (!node) break;
+        includeNodeIds.add(node.id);
+        currentId = node.parentId;
+      }
+
+      // Add all descendants (children recursively)
+      const addDescendants = (id: string) => {
+        const node = localTopology.find(n => n.id === id);
+        if (!node) return;
+        node.childrenIds.forEach(childId => {
+          includeNodeIds.add(childId);
+          addDescendants(childId);
+        });
+      };
+      addDescendants(nodeId);
+    });
+
+    return localTopology.filter(node => includeNodeIds.has(node.id));
+  }, [localTopology, searchQuery]);
+
   const toggleExpanded = (id: string) => {
     const newExpanded = new Set(expandedNodes);
     if (newExpanded.has(id)) {
@@ -80,6 +132,11 @@ export const EditableTreeView: React.FC<EditableTreeViewProps> = ({
       return;
     }
 
+    if (!newNodeForm.type) {
+      setError('Please select a node type');
+      return;
+    }
+
     const result = hierarchyManager.addNode(
       newNodeForm.name,
       newNodeForm.type,
@@ -90,6 +147,10 @@ export const EditableTreeView: React.FC<EditableTreeViewProps> = ({
     if (result.success) {
       const updatedTopology = hierarchyManager.export();
       setLocalTopology(updatedTopology);
+      // Auto-expand the parent node to show the new child
+      if (addNodeModal.parentId) {
+        setExpandedNodes(prev => new Set(prev).add(addNodeModal.parentId));
+      }
       onTopologyChange?.(updatedTopology);
       setError(null);
       setNewNodeForm({ name: '', type: 'region', vendor: 'Nokia' });
@@ -187,16 +248,37 @@ export const EditableTreeView: React.FC<EditableTreeViewProps> = ({
     setDragOverNode(null);
   };
 
-  const getValidChildTypes = (nodeType: string): string[] => {
+  const getValidChildTypes = (nodeType: string | null): string[] => {
+    // If no parent type specified (creating root node), allow root-level types
+    if (!nodeType) {
+      return ['global', 'country', 'region', 'cluster'];
+    }
+
     const validTypes = VALID_CHILDREN[nodeType as any];
-    return validTypes || [];
+    if (validTypes && validTypes.length > 0) {
+      return validTypes;
+    }
+
+    // Fallback: allow common child types for flexibility
+    const fallbackChildren: Record<string, string[]> = {
+      'site': ['node', 'cell', 'sector', 'rack', 'rru', 'bbu', 'transport'],
+      'node': ['rack', 'rru', 'bbu', 'cell'],
+      'region': ['cluster', 'site'],
+      'country': ['region', 'cluster'],
+      'global': ['country', 'region']
+    };
+
+    return fallbackChildren[nodeType] || AVAILABLE_NODE_TYPES.filter(t => t !== 'global');
   };
 
   const renderNode = (nodeId: string, level: number): React.ReactNode => {
     const node = hierarchyManager.findById(nodeId);
     if (!node) return null;
 
-    const children = hierarchyManager.getChildren(nodeId);
+    // Get all children, then filter to only those in the filtered topology
+    const allChildren = hierarchyManager.getChildren(nodeId);
+    const children = allChildren.filter(child => filteredTopology.some(n => n.id === child.id));
+
     const isExpanded = expandedNodes.has(nodeId);
     const isDragging = draggedNode === nodeId;
     const isDragOver = dragOverNode === nodeId;
@@ -305,10 +387,38 @@ export const EditableTreeView: React.FC<EditableTreeViewProps> = ({
     );
   };
 
-  const rootNodes = localTopology.filter(n => !n.parentId);
+  const rootNodes = filteredTopology.filter(n => !n.parentId || !filteredTopology.find(fn => fn.id === n.parentId));
 
   return (
     <div className="w-full flex flex-col h-full gap-4 p-4 bg-background dark:bg-background overflow-y-auto">
+
+      {/* Search Bar */}
+      <div className="relative">
+        <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" />
+        <input
+          type="text"
+          placeholder="Search by name or type (e.g., Egypt, Dammam, region)..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full pl-9 pr-3 py-2 border border-border rounded-lg bg-input text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-blue-500 outline-none"
+        />
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery('')}
+            className="absolute right-2 top-2.5 p-0.5 hover:bg-muted rounded"
+            title="Clear search"
+          >
+            <X className="w-4 h-4 text-muted-foreground" />
+          </button>
+        )}
+      </div>
+
+      {/* Search Results Info */}
+      {searchQuery && (
+        <div className="px-3 py-2 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg text-xs text-blue-700 dark:text-blue-300">
+          Found <strong>{filteredTopology.length}</strong> nodes matching "<strong>{searchQuery}</strong>"
+        </div>
+      )}
 
       {/* Error Message */}
       {error && (
@@ -331,14 +441,32 @@ export const EditableTreeView: React.FC<EditableTreeViewProps> = ({
             {rootNodes.map(root => renderNode(root.id, 0))}
           </div>
         ) : (
-          <p className="text-sm text-gray-600">No nodes in hierarchy</p>
+          <p className="text-sm text-gray-600">
+            {searchQuery ? `No nodes match your search for "${searchQuery}"` : 'No nodes in hierarchy'}
+          </p>
         )}
       </div>
 
-      {/* Edit Mode Info */}
+      {/* Edit Mode Controls */}
       {editMode && (
-        <div className="px-3 py-2 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg text-xs text-blue-700 dark:text-blue-300">
-          <strong>Edit Mode:</strong> Drag to move, hover for add/rename/remove. Changes are applied immediately.
+        <div className="space-y-2">
+          <div className="px-3 py-2 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg text-xs text-blue-700 dark:text-blue-300">
+            <strong>Edit Mode:</strong> Drag to move, hover for add/rename/remove. Changes are applied immediately.
+          </div>
+          <button
+            onClick={() => {
+              setAddNodeModal({
+                isOpen: true,
+                parentId: null,
+                parentType: null
+              });
+            }}
+            className="w-full px-3 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition flex items-center justify-center gap-2"
+            title="Create a root level node (e.g., global, country)"
+          >
+            <Plus className="w-4 h-4" />
+            Create Root Node
+          </button>
         </div>
       )}
 
@@ -346,21 +474,26 @@ export const EditableTreeView: React.FC<EditableTreeViewProps> = ({
       {addNodeModal.isOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-md w-full p-6">
-            <h3 className="text-lg font-bold text-foreground mb-4">
-              Add {addNodeModal.parentType} Child
+            <h3 className="text-lg font-bold text-foreground mb-2">
+              Create New Node
             </h3>
+            {addNodeModal.parentType && (
+              <p className="text-sm text-muted-foreground mb-4">
+                Parent: <span className="font-semibold">{addNodeModal.parentType}</span>
+              </p>
+            )}
 
             <div className="space-y-4 mb-6">
               {/* Node Name */}
               <div>
                 <label className="block text-sm font-semibold text-foreground mb-1">
-                  Node Name
+                  Node Name <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={newNodeForm.name}
                   onChange={(e) => setNewNodeForm({ ...newNodeForm, name: e.target.value })}
-                  placeholder="Enter node name"
+                  placeholder="e.g., Egypt, Cairo, Dammam, etc."
                   className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground focus:ring-2 focus:ring-blue-500 outline-none"
                   autoFocus
                 />
@@ -369,25 +502,29 @@ export const EditableTreeView: React.FC<EditableTreeViewProps> = ({
               {/* Node Type */}
               <div>
                 <label className="block text-sm font-semibold text-foreground mb-1">
-                  Type
+                  Node Type <span className="text-red-500">*</span>
                 </label>
                 <select
                   value={newNodeForm.type}
                   onChange={(e) => setNewNodeForm({ ...newNodeForm, type: e.target.value as any })}
                   className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground focus:ring-2 focus:ring-blue-500 outline-none"
                 >
+                  <option value="">-- Select Node Type --</option>
                   {getValidChildTypes(addNodeModal.parentType || '').map((type) => (
                     <option key={type} value={type}>
-                      {type}
+                      {type.charAt(0).toUpperCase() + type.slice(1)}
                     </option>
                   ))}
                 </select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Choose the type that defines this node's hierarchical level
+                </p>
               </div>
 
               {/* Vendor */}
               <div>
                 <label className="block text-sm font-semibold text-foreground mb-1">
-                  Vendor
+                  Vendor (Optional)
                 </label>
                 <select
                   value={newNodeForm.vendor}
@@ -400,15 +537,23 @@ export const EditableTreeView: React.FC<EditableTreeViewProps> = ({
                   <option value="ZTE">ZTE</option>
                 </select>
               </div>
+
+              {/* Info Message */}
+              <div className="rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 p-3">
+                <p className="text-xs text-blue-700 dark:text-blue-300">
+                  <strong>Tip:</strong> The node type determines where this node can be placed in the hierarchy. For example, create a "country" to go under "global", or "region" to go under a "country".
+                </p>
+              </div>
             </div>
 
             {/* Action Buttons */}
             <div className="flex gap-3">
               <button
                 onClick={handleAddNode}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={!newNodeForm.name.trim() || !newNodeForm.type}
               >
-                Add Node
+                Create Node
               </button>
               <button
                 onClick={() => {
