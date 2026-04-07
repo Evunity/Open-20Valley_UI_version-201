@@ -75,7 +75,10 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
   const [guidedCommand, setGuidedCommand] = useState<{ keyword: string; params: string }>({ keyword: '', params: '' });
   const [quickCommandView, setQuickCommandView] = useState<'all' | 'saved'>('all');
   const [savedCommands, setSavedCommands] = useState<string[]>([]);
+  const [inlineSuggestion, setInlineSuggestion] = useState<string>('');
+  const [showInlineSuggestion, setShowInlineSuggestion] = useState(false);
   const consoleEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Options for selectors
   const SITE_OPTIONS = ['Site-A', 'Site-B', 'Site-C', 'Site-D'];
@@ -164,6 +167,26 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
     );
 
     return [...prefixMatches, ...includesMatches].slice(0, 8);
+  };
+
+  const getInlineSuggestion = (input: string): string => {
+    const upperInput = input.trim().toUpperCase();
+    if (!upperInput) return '';
+
+    const suggestions = getAutocompleteSuggestions(input);
+    if (suggestions.length > 0) {
+      // Return the first suggestion as inline completion
+      return suggestions[0];
+    }
+    return '';
+  };
+
+  const acceptInlineSuggestion = () => {
+    if (inlineSuggestion) {
+      setCommand(inlineSuggestion);
+      setInlineSuggestion('');
+      setShowInlineSuggestion(false);
+    }
   };
 
   const executeCommand = () => {
@@ -465,57 +488,94 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
           <div className="flex gap-2 items-stretch">
             <div className="flex-1">
               <div className="relative flex-1 flex flex-col">
-                <textarea
-                  value={command}
-                  onChange={(e) => {
-                    const upperValue = e.target.value.toUpperCase();
-                    setCommand(upperValue);
-                    setShowSuggestions(upperValue.trim().length > 0);
-                  }}
-                  onKeyDown={(e) => {
-                    // Tab: Autocomplete with first suggestion
-                    if (e.key === 'Tab') {
-                      e.preventDefault();
-                      const suggestions = getAutocompleteSuggestions(command);
-                      if (suggestions.length > 0) {
-                        setCommand(suggestions[0]);
-                        setShowSuggestions(false);
+                <div className="relative">
+                  <textarea
+                    ref={textareaRef}
+                    value={command}
+                    onChange={(e) => {
+                      const upperValue = e.target.value.toUpperCase();
+                      setCommand(upperValue);
+
+                      // Get inline suggestion
+                      const suggestion = getInlineSuggestion(upperValue);
+                      setInlineSuggestion(suggestion);
+                      setShowInlineSuggestion(suggestion.length > 0);
+
+                      // Show dropdown suggestions
+                      setShowSuggestions(upperValue.trim().length > 0);
+                    }}
+                    onKeyDown={(e) => {
+                      // Tab: Accept inline suggestion or autocomplete
+                      if (e.key === 'Tab') {
+                        e.preventDefault();
+                        if (inlineSuggestion) {
+                          acceptInlineSuggestion();
+                        } else {
+                          const suggestions = getAutocompleteSuggestions(command);
+                          if (suggestions.length > 0) {
+                            setCommand(suggestions[0]);
+                            setShowSuggestions(false);
+                          }
+                        }
                       }
-                    }
-                    // Ctrl+Space or Cmd+Space: Show suggestions
-                    if ((e.ctrlKey || e.metaKey) && e.code === 'Space') {
-                      e.preventDefault();
-                      setShowSuggestions(true);
-                    }
-                    // Arrow Down: Navigate suggestions
-                    if (e.key === 'ArrowDown' && showSuggestions) {
-                      e.preventDefault();
-                      // Could implement suggestion navigation here
-                    }
-                  }}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      executeCommand();
-                    }
-                  }}
-                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                  onFocus={() => command.trim().length > 0 && setShowSuggestions(true)}
-                  disabled={selectedSite.length === 0 || selectedTechnology.length === 0 || !selectedVendor}
-                  placeholder={selectedSite.length === 0 || selectedTechnology.length === 0 || !selectedVendor
-                    ? 'Please select Site, Technology & Vendor first'
-                    : `Enter ${selectedVendor} command (e.g., GET...) - Press Tab for autocomplete, Ctrl+Space for suggestions`}
-                  className={`w-full px-3 py-2 border rounded-lg font-mono text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition uppercase tracking-wide disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-muted/20 resize-none ${
-                    selectedSite.length === 0 || selectedTechnology.length === 0 || !selectedVendor
-                      ? 'border-amber-300/60 dark:border-amber-700/60 text-muted-foreground bg-amber-50/30 dark:bg-amber-950/10'
-                      : command.trim() && isValid
-                      ? 'border-green-500/70 bg-green-50/40 dark:bg-green-950/20 text-foreground'
-                      : command.trim()
-                      ? 'border-red-500/70 bg-red-50/40 dark:bg-red-950/20 text-foreground'
-                      : 'border-border bg-input text-foreground'
-                  }`}
-                  rows={2}
-                />
+                      // Escape: Dismiss suggestions
+                      if (e.key === 'Escape') {
+                        setShowInlineSuggestion(false);
+                        setShowSuggestions(false);
+                        setInlineSuggestion('');
+                      }
+                      // Ctrl+Space or Cmd+Space: Show dropdown suggestions
+                      if ((e.ctrlKey || e.metaKey) && e.code === 'Space') {
+                        e.preventDefault();
+                        setShowSuggestions(true);
+                      }
+                    }}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        executeCommand();
+                      }
+                    }}
+                    onBlur={() => {
+                      setTimeout(() => setShowSuggestions(false), 200);
+                      setShowInlineSuggestion(false);
+                    }}
+                    onFocus={() => {
+                      if (command.trim().length > 0) {
+                        setShowSuggestions(true);
+                        const suggestion = getInlineSuggestion(command);
+                        if (suggestion) {
+                          setInlineSuggestion(suggestion);
+                          setShowInlineSuggestion(true);
+                        }
+                      }
+                    }}
+                    disabled={selectedSite.length === 0 || selectedTechnology.length === 0 || !selectedVendor}
+                    placeholder={selectedSite.length === 0 || selectedTechnology.length === 0 || !selectedVendor
+                      ? 'Please select Site, Technology & Vendor first'
+                      : `Enter ${selectedVendor} command (e.g., GET...) - Press Tab for autocomplete`}
+                    className={`w-full px-3 py-2 border rounded-lg font-mono text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition uppercase tracking-wide disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-muted/20 resize-none ${
+                      selectedSite.length === 0 || selectedTechnology.length === 0 || !selectedVendor
+                        ? 'border-amber-300/60 dark:border-amber-700/60 text-muted-foreground bg-amber-50/30 dark:bg-amber-950/10'
+                        : command.trim() && isValid
+                        ? 'border-green-500/70 bg-green-50/40 dark:bg-green-950/20 text-foreground'
+                        : command.trim()
+                        ? 'border-red-500/70 bg-red-50/40 dark:bg-red-950/20 text-foreground'
+                        : 'border-border bg-input text-foreground'
+                    }`}
+                    rows={2}
+                  />
+
+                  {/* Inline Suggestion Overlay */}
+                  {showInlineSuggestion && inlineSuggestion && (
+                    <div className="absolute top-0 left-0 px-3 py-2 font-mono text-sm uppercase tracking-wide pointer-events-none h-full flex items-start pt-2">
+                      <span className="text-transparent">{command}</span>
+                      <span className="text-gray-500 dark:text-gray-600 opacity-60 font-mono text-sm">
+                        {inlineSuggestion.substring(command.length)}
+                      </span>
+                    </div>
+                  )}
+                </div>
 
                 {/* Autocomplete Suggestions */}
                 {showSuggestions && getAutocompleteSuggestions(command).length > 0 && (
