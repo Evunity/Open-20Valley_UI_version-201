@@ -182,9 +182,10 @@ export const RollbackVersionControl: React.FC<RollbackVersionControlProps> = () 
       </div>
 
       {/* Change Snapshots */}
-      <div className="flex-1 overflow-y-auto space-y-2">
-        <h3 className="font-semibold text-foreground text-sm">Available Snapshots ({snapshots.length})</h3>
-        {snapshots.map((snapshot) => (
+      <div className="flex-1 overflow-y-auto">
+        <h3 className="font-semibold text-foreground text-sm mb-3">Available Snapshots ({snapshots.length})</h3>
+        <div className="grid grid-cols-2 gap-3 auto-rows-max">
+          {snapshots.map((snapshot) => (
           <div
             key={snapshot.id}
             className="border border-border rounded-lg overflow-hidden bg-card hover:border-border/80 transition"
@@ -347,6 +348,7 @@ export const RollbackVersionControl: React.FC<RollbackVersionControlProps> = () 
             )}
           </div>
         ))}
+        </div>
       </div>
 
       {/* Audit Notice */}
