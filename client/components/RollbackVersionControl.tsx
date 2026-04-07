@@ -110,6 +110,13 @@ export const RollbackVersionControl: React.FC<RollbackVersionControlProps> = () 
 
   const PARAMETER_OPTIONS = ['TX Power', 'DL Bandwidth', 'Cell Barring', 'IP Address', 'VLAN ID'];
 
+  const handleModeChange = (mode: 'full' | 'partial' | 'selective') => {
+    setSelectedMode(mode);
+    // Clear selections when switching modes to ensure only one mode is active
+    setSelectedObjects(new Set());
+    setSelectedParameters(new Set());
+  };
+
   const toggleObject = (objectId: string) => {
     const newSelected = new Set(selectedObjects);
     if (newSelected.has(objectId)) {
@@ -163,7 +170,7 @@ export const RollbackVersionControl: React.FC<RollbackVersionControlProps> = () 
           {['full', 'partial', 'selective'].map(mode => (
             <button
               key={mode}
-              onClick={() => setSelectedMode(mode as any)}
+              onClick={() => handleModeChange(mode as any)}
               className={`p-4 rounded-lg border-2 transition ${
                 selectedMode === mode
                   ? 'border-primary bg-primary/10 text-foreground'

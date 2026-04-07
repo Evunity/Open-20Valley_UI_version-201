@@ -31,49 +31,65 @@ const MOCK_DIFFS: ConfigDiff[] = [
   {
     parameter: 'TX Power',
     left: { label: 'Cairo-Site-1', value: '43 dBm' },
-    right: { label: 'Cairo-Site-2', value: '40 dBm' },
+    middle1: { label: 'Cairo-Site-2', value: '40 dBm' },
+    middle2: { label: 'Cairo-Site-3', value: '42 dBm' },
+    right: { label: 'Giza-Site-1', value: '43 dBm' },
     status: 'different'
   },
   {
     parameter: 'DL Bandwidth',
     left: { label: 'Cairo-Site-1', value: '20 MHz' },
-    right: { label: 'Cairo-Site-2', value: '20 MHz' },
-    status: 'identical'
+    middle1: { label: 'Cairo-Site-2', value: '20 MHz' },
+    middle2: { label: 'Cairo-Site-3', value: '15 MHz' },
+    right: { label: 'Giza-Site-1', value: '20 MHz' },
+    status: 'different'
   },
   {
     parameter: 'Cell Barring',
     left: { label: 'Cairo-Site-1', value: 'False' },
-    right: { label: 'Cairo-Site-2', value: 'False' },
-    status: 'identical'
+    middle1: { label: 'Cairo-Site-2', value: 'False' },
+    middle2: { label: 'Cairo-Site-3', value: 'False' },
+    right: { label: 'Giza-Site-1', value: 'True' },
+    status: 'different'
   },
   {
     parameter: 'IP Address',
     left: { label: 'Cairo-Site-1', value: '192.168.1.100' },
-    right: { label: 'Cairo-Site-2', value: '192.168.1.101' },
+    middle1: { label: 'Cairo-Site-2', value: '192.168.1.101' },
+    middle2: { label: 'Cairo-Site-3', value: '192.168.1.102' },
+    right: { label: 'Giza-Site-1', value: '192.168.1.103' },
     status: 'different'
   },
   {
     parameter: 'VLAN ID',
     left: { label: 'Cairo-Site-1', value: '100' },
-    right: { label: 'Cairo-Site-2', value: 'Not configured' },
-    status: 'missing_right'
+    middle1: { label: 'Cairo-Site-2', value: '101' },
+    middle2: { label: 'Cairo-Site-3', value: '102' },
+    right: { label: 'Giza-Site-1', value: '103' },
+    status: 'different'
   },
   {
     parameter: 'RRC Idle Count',
     left: { label: 'Cairo-Site-1', value: '1250' },
-    right: { label: 'Cairo-Site-1 (Time-2)', value: '1260' },
+    middle1: { label: 'Cairo-Site-2', value: '1240' },
+    middle2: { label: 'Cairo-Site-3', value: '1260' },
+    right: { label: 'Giza-Site-1', value: '1255' },
     status: 'different'
   },
   {
     parameter: 'PDCP Count',
     left: { label: 'Cairo-Site-1', value: '5600' },
-    right: { label: 'Cairo-Site-1 (Time-2)', value: '5600' },
-    status: 'identical'
+    middle1: { label: 'Cairo-Site-2', value: '5600' },
+    middle2: { label: 'Cairo-Site-3', value: '5620' },
+    right: { label: 'Giza-Site-1', value: '5600' },
+    status: 'different'
   },
   {
     parameter: 'Handover Rate',
     left: { label: 'Cairo-Site-1', value: '2.5%' },
-    right: { label: 'Cairo-Site-1 (Time-2)', value: '2.8%' },
+    middle1: { label: 'Cairo-Site-2', value: '2.3%' },
+    middle2: { label: 'Cairo-Site-3', value: '2.8%' },
+    right: { label: 'Giza-Site-1', value: '2.6%' },
     status: 'different'
   }
 ];
@@ -116,6 +132,18 @@ export const DiffView: React.FC<DiffViewProps> = () => {
   const filteredDiffs = diffs.filter(d => selectedParameters.has(d.parameter));
   const differentCount = filteredDiffs.filter(d => d.status === 'different').length;
   const identicalCount = filteredDiffs.filter(d => d.status === 'identical').length;
+
+  // Helper function to get site values in order of selectedSites
+  const getSiteValuesForDiff = (diff: ConfigDiff): (SiteValue | undefined)[] => {
+    if (compareType === 'same-site') {
+      return [diff.left, diff.right];
+    }
+
+    const allSites = [diff.left, diff.middle1, diff.middle2, diff.right];
+    return selectedSites.map(siteName => {
+      return allSites.find(site => site?.label === siteName);
+    });
+  };
 
   const toggleParameter = (param: string) => {
     const newSelected = new Set(selectedParameters);
@@ -593,7 +621,7 @@ export const DiffView: React.FC<DiffViewProps> = () => {
             </div>
 
             <div className={`grid gap-3 ${siteCount === 2 ? 'grid-cols-3' : siteCount === 3 ? 'grid-cols-5' : 'grid-cols-7'}`}>
-              {[diff.left, diff.middle1, diff.middle2, diff.right].filter(Boolean).map((site, index) => {
+              {getSiteValuesForDiff(diff).filter(Boolean).map((site, index) => {
                 const siteColors = [
                   'border-l-4 border-l-blue-500 bg-blue-50/50 dark:bg-blue-950/30',
                   'border-l-4 border-l-green-500 bg-green-50/50 dark:bg-green-950/30',
@@ -617,7 +645,7 @@ export const DiffView: React.FC<DiffViewProps> = () => {
                         {site!.value}
                       </p>
                     </div>
-                    {index < [diff.left, diff.middle1, diff.middle2, diff.right].filter(Boolean).length - 1 && (
+                    {index < getSiteValuesForDiff(diff).filter(Boolean).length - 1 && (
                       <div className="flex items-center justify-center">
                         <ArrowRight className="w-4 h-4 text-muted-foreground" />
                       </div>
