@@ -9,16 +9,17 @@ interface DiffViewProps {
   onTargetChange: (target: any) => void;
 }
 
+interface SiteValue {
+  label: string;
+  value: string;
+}
+
 interface ConfigDiff {
   parameter: string;
-  left: {
-    label: string;
-    value: string;
-  };
-  right: {
-    label: string;
-    value: string;
-  };
+  left: SiteValue;
+  right: SiteValue;
+  middle1?: SiteValue;
+  middle2?: SiteValue;
   status: 'identical' | 'different' | 'missing_left' | 'missing_right';
 }
 
@@ -80,8 +81,8 @@ const MOCK_DIFFS: ConfigDiff[] = [
 export const DiffView: React.FC<DiffViewProps> = () => {
   const [diffs] = useState<ConfigDiff[]>(MOCK_DIFFS);
   const [compareType, setCompareType] = useState<'different-sites' | 'same-site'>('different-sites');
-  const [leftSite, setLeftSite] = useState<string[]>(['Cairo-Site-1']);
-  const [rightSite, setRightSite] = useState<string[]>(['Cairo-Site-2']);
+  const [siteCount, setSiteCount] = useState<2 | 3 | 4>(2);
+  const [selectedSites, setSelectedSites] = useState<string[]>(['Cairo-Site-1', 'Cairo-Site-2']);
   const [timePeriod, setTimePeriod] = useState<string[]>(['Current vs Previous Hour']);
   const [selectedParameters, setSelectedParameters] = useState<Set<string>>(new Set(PARAMETER_OPTIONS));
   const [parameterSearch, setParameterSearch] = useState('');
@@ -89,6 +90,28 @@ export const DiffView: React.FC<DiffViewProps> = () => {
   const [showExportMenu, setShowExportMenu] = useState(false);
   const parameterDropdownRef = useRef<HTMLDivElement>(null);
   const exportMenuRef = useRef<HTMLDivElement>(null);
+
+  const handleSiteCountChange = (count: 2 | 3 | 4) => {
+    setSiteCount(count);
+    if (selectedSites.length > count) {
+      setSelectedSites(selectedSites.slice(0, count));
+    } else if (selectedSites.length < count) {
+      // Add new sites if needed
+      const newSites = [...selectedSites];
+      while (newSites.length < count) {
+        const availableSite = SITE_OPTIONS.find(s => !newSites.includes(s));
+        if (availableSite) newSites.push(availableSite);
+        else break;
+      }
+      setSelectedSites(newSites);
+    }
+  };
+
+  const handleSiteChange = (index: number, site: string) => {
+    const newSites = [...selectedSites];
+    newSites[index] = site;
+    setSelectedSites(newSites);
+  };
 
   const filteredDiffs = diffs.filter(d => selectedParameters.has(d.parameter));
   const differentCount = filteredDiffs.filter(d => d.status === 'different').length;
@@ -162,18 +185,24 @@ export const DiffView: React.FC<DiffViewProps> = () => {
       return;
     }
 
-    const csvData = filteredDiffs.map(diff => ({
-      'Parameter': diff.parameter,
-      'Left Site/Time': diff.left.label,
-      'Left Value': diff.left.value,
-      'Right Site/Time': diff.right.label,
-      'Right Value': diff.right.value,
-      'Status': getStatusLabel(diff.status)
-    }));
+    const csvData = filteredDiffs.map(diff => {
+      const row: any = {
+        'Parameter': diff.parameter,
+        'Status': getStatusLabel(diff.status)
+      };
+
+      // Add site values dynamically based on siteCount
+      row[`${diff.left.label}`] = diff.left.value;
+      if (diff.middle1) row[`${diff.middle1.label}`] = diff.middle1.value;
+      if (diff.middle2) row[`${diff.middle2.label}`] = diff.middle2.value;
+      row[`${diff.right.label}`] = diff.right.value;
+
+      return row;
+    });
 
     const headers = Object.keys(csvData[0]);
     const rows = csvData.map(obj => headers.map(header => {
-      const value = obj[header as keyof typeof obj];
+      const value = obj[header];
       const stringValue = String(value);
       return stringValue.includes(',') ? `"${stringValue.replace(/"/g, '""')}"` : stringValue;
     }));
@@ -201,14 +230,20 @@ export const DiffView: React.FC<DiffViewProps> = () => {
       return;
     }
 
-    const excelData = filteredDiffs.map(diff => ({
-      'Parameter': diff.parameter,
-      'Left Site/Time': diff.left.label,
-      'Left Value': diff.left.value,
-      'Right Site/Time': diff.right.label,
-      'Right Value': diff.right.value,
-      'Status': getStatusLabel(diff.status)
-    }));
+    const excelData = filteredDiffs.map(diff => {
+      const row: any = {
+        'Parameter': diff.parameter,
+        'Status': getStatusLabel(diff.status)
+      };
+
+      // Add site values dynamically based on siteCount
+      row[`${diff.left.label}`] = diff.left.value;
+      if (diff.middle1) row[`${diff.middle1.label}`] = diff.middle1.value;
+      if (diff.middle2) row[`${diff.middle2.label}`] = diff.middle2.value;
+      row[`${diff.right.label}`] = diff.right.value;
+
+      return row;
+    });
 
     const worksheet = XLSX.utils.json_to_sheet(excelData);
     const workbook = XLSX.utils.book_new();
@@ -226,15 +261,9 @@ export const DiffView: React.FC<DiffViewProps> = () => {
       };
     }
 
-    // Set column widths
-    worksheet['!cols'] = [
-      { wch: 20 },
-      { wch: 20 },
-      { wch: 20 },
-      { wch: 20 },
-      { wch: 20 },
-      { wch: 15 }
-    ];
+    // Set column widths - dynamic based on site count
+    const colWidths = Array(siteCount + 2).fill({ wch: 18 });
+    worksheet['!cols'] = colWidths;
 
     XLSX.writeFile(workbook, `diff_report_${new Date().toISOString().split('T')[0]}.xlsx`);
     setShowExportMenu(false);
@@ -280,35 +309,70 @@ export const DiffView: React.FC<DiffViewProps> = () => {
       </div>
 
       {/* Site Selection */}
-      <div className="grid grid-cols-3 gap-3 items-end">
-        <SearchableDropdown
-          label={compareType === 'same-site' ? 'Site' : 'Left Site'}
-          options={SITE_OPTIONS}
-          selected={leftSite}
-          onChange={setLeftSite}
-          placeholder={compareType === 'same-site' ? 'Select site...' : 'Select left site...'}
-          multiSelect={false}
-          searchable={true}
-          compact={true}
-        />
+      {compareType === 'different-sites' && (
+        <div className="space-y-3">
+          {/* Site Count Selector */}
+          <div className="flex items-center gap-2">
+            <label className="text-xs font-semibold text-muted-foreground">Compare:</label>
+            <div className="flex gap-2">
+              {([2, 3, 4] as const).map(count => (
+                <button
+                  key={count}
+                  onClick={() => handleSiteCountChange(count)}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition ${
+                    siteCount === count
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-card border-border hover:border-primary/40 text-muted-foreground'
+                  }`}
+                >
+                  {count} Sites
+                </button>
+              ))}
+            </div>
+          </div>
 
-        <div className="flex justify-center">
-          <ArrowRight className="w-5 h-5 text-muted-foreground" />
+          {/* Sites Selection Grid */}
+          <div className={`grid gap-3 items-end ${siteCount === 2 ? 'grid-cols-3' : siteCount === 3 ? 'grid-cols-5' : 'grid-cols-7'}`}>
+            {selectedSites.map((site, index) => (
+              <React.Fragment key={index}>
+                <SearchableDropdown
+                  label={`Site ${index + 1}`}
+                  options={SITE_OPTIONS}
+                  selected={[site]}
+                  onChange={(selected) => handleSiteChange(index, selected[0])}
+                  placeholder="Select site..."
+                  multiSelect={false}
+                  searchable={true}
+                  compact={true}
+                />
+                {index < selectedSites.length - 1 && (
+                  <div className="flex justify-center">
+                    <ArrowRight className="w-5 h-5 text-muted-foreground" />
+                  </div>
+                )}
+              </React.Fragment>
+            ))}
+          </div>
         </div>
+      )}
 
-        {compareType === 'different-sites' && (
+      {compareType === 'same-site' && (
+        <div className="grid grid-cols-3 gap-3 items-end">
           <SearchableDropdown
-            label="Right Site"
+            label="Site"
             options={SITE_OPTIONS}
-            selected={rightSite}
-            onChange={setRightSite}
-            placeholder="Select right site..."
+            selected={selectedSites.slice(0, 1)}
+            onChange={(selected) => handleSiteChange(0, selected[0])}
+            placeholder="Select site..."
             multiSelect={false}
             searchable={true}
             compact={true}
           />
-        )}
-        {compareType === 'same-site' && (
+
+          <div className="flex justify-center">
+            <ArrowRight className="w-5 h-5 text-muted-foreground" />
+          </div>
+
           <SearchableDropdown
             label="Time Period"
             options={['Current vs Previous Hour', 'Current vs Today', 'Today vs Yesterday', 'This Week vs Last Week']}
@@ -319,8 +383,8 @@ export const DiffView: React.FC<DiffViewProps> = () => {
             searchable={true}
             compact={true}
           />
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Parameter Selection - KPI Selector Style */}
       <div className="bg-card rounded-lg p-4 border border-border space-y-3">
@@ -485,24 +549,22 @@ export const DiffView: React.FC<DiffViewProps> = () => {
               </span>
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <p className="text-xs font-semibold text-muted-foreground mb-1">{diff.left.label}</p>
-                <p className="text-sm font-mono bg-card p-2 rounded border border-border text-foreground">
-                  {diff.left.value}
-                </p>
-              </div>
-
-              <div className="flex items-center justify-center">
-                <ArrowRight className="w-4 h-4 text-muted-foreground" />
-              </div>
-
-              <div>
-                <p className="text-xs font-semibold text-muted-foreground mb-1">{diff.right.label}</p>
-                <p className="text-sm font-mono bg-card p-2 rounded border border-border text-foreground">
-                  {diff.right.value}
-                </p>
-              </div>
+            <div className={`grid gap-3 ${siteCount === 2 ? 'grid-cols-3' : siteCount === 3 ? 'grid-cols-5' : 'grid-cols-7'}`}>
+              {[diff.left, diff.middle1, diff.middle2, diff.right].filter(Boolean).map((site, index) => (
+                <React.Fragment key={index}>
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground mb-1">{site!.label}</p>
+                    <p className="text-sm font-mono bg-card p-2 rounded border border-border text-foreground">
+                      {site!.value}
+                    </p>
+                  </div>
+                  {index < [diff.left, diff.middle1, diff.middle2, diff.right].filter(Boolean).length - 1 && (
+                    <div className="flex items-center justify-center">
+                      <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                    </div>
+                  )}
+                </React.Fragment>
+              ))}
             </div>
           </div>
         ))
