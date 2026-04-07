@@ -386,14 +386,15 @@ export const ScriptLibrary: React.FC<ScriptLibraryProps> = () => {
             multiSelect={false}
             searchable={true}
             compact={true}
+            dropdownId="script-category-filter"
           />
         </div>
 
         <div className="flex-1 min-w-[200px]">
-          <label className="block text-xs font-semibold text-muted-foreground mb-1 flex items-center gap-1">
-            <Calendar className="w-3 h-3" />
-            Time Filter
-          </label>
+          <div className="flex items-center gap-1 text-xs font-semibold text-muted-foreground mb-1">
+            <Clock className="w-3.5 h-3.5" />
+            <span>Time Filter</span>
+          </div>
           <SearchableDropdown
             label=""
             options={['All Time', 'Today', 'This Week', 'This Month']}
@@ -416,6 +417,7 @@ export const ScriptLibrary: React.FC<ScriptLibraryProps> = () => {
             multiSelect={false}
             searchable={true}
             compact={true}
+            dropdownId="script-time-filter"
           />
         </div>
 
