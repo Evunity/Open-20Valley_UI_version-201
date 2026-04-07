@@ -137,6 +137,13 @@ export const EditableTreeView: React.FC<EditableTreeViewProps> = ({
       return;
     }
 
+    // Validate if selected type is valid for this parent
+    const validTypes = getValidChildTypes(addNodeModal.parentType);
+    if (validTypes.length > 0 && !validTypes.includes(newNodeForm.type)) {
+      setError(`"${newNodeForm.type}" cannot be created under "${addNodeModal.parentType}". Valid types are: ${validTypes.join(', ')}`);
+      return;
+    }
+
     const result = hierarchyManager.addNode(
       newNodeForm.name,
       newNodeForm.type,
@@ -158,7 +165,7 @@ export const EditableTreeView: React.FC<EditableTreeViewProps> = ({
     } else {
       setError(result.error || 'Failed to add node');
     }
-  }, [newNodeForm, addNodeModal.parentId, hierarchyManager, onTopologyChange]);
+  }, [newNodeForm, addNodeModal.parentId, addNodeModal.parentType, hierarchyManager, onTopologyChange, getValidChildTypes]);
 
   const handleRemoveNode = useCallback((nodeId: string) => {
     if (!window.confirm('Are you sure you want to remove this node and all its children?')) {
@@ -248,10 +255,10 @@ export const EditableTreeView: React.FC<EditableTreeViewProps> = ({
     setDragOverNode(null);
   };
 
-  const getValidChildTypes = (nodeType: string | null): string[] => {
-    // If no parent type specified (creating root node), allow root-level types
+  const getValidChildTypes = useCallback((nodeType: string | null): string[] => {
+    // If no parent type specified (creating root node), only allow global or country
     if (!nodeType) {
-      return ['global', 'country', 'region', 'cluster'];
+      return ['global', 'country'];
     }
 
     const validTypes = VALID_CHILDREN[nodeType as any];
@@ -259,17 +266,9 @@ export const EditableTreeView: React.FC<EditableTreeViewProps> = ({
       return validTypes;
     }
 
-    // Fallback: allow common child types for flexibility
-    const fallbackChildren: Record<string, string[]> = {
-      'site': ['node', 'cell', 'sector', 'rack', 'rru', 'bbu', 'transport'],
-      'node': ['rack', 'rru', 'bbu', 'cell'],
-      'region': ['cluster', 'site'],
-      'country': ['region', 'cluster'],
-      'global': ['country', 'region']
-    };
-
-    return fallbackChildren[nodeType] || AVAILABLE_NODE_TYPES.filter(t => t !== 'global');
-  };
+    // No valid children for this node type
+    return [];
+  }, []);
 
   const renderNode = (nodeId: string, level: number): React.ReactNode => {
     const node = hierarchyManager.findById(nodeId);
@@ -504,21 +503,34 @@ export const EditableTreeView: React.FC<EditableTreeViewProps> = ({
                 <label className="block text-sm font-semibold text-foreground mb-1">
                   Node Type <span className="text-red-500">*</span>
                 </label>
-                <select
-                  value={newNodeForm.type}
-                  onChange={(e) => setNewNodeForm({ ...newNodeForm, type: e.target.value as any })}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground focus:ring-2 focus:ring-blue-500 outline-none"
-                >
-                  <option value="">-- Select Node Type --</option>
-                  {getValidChildTypes(addNodeModal.parentType || '').map((type) => (
-                    <option key={type} value={type}>
-                      {type.charAt(0).toUpperCase() + type.slice(1)}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Choose the type that defines this node's hierarchical level
-                </p>
+                {getValidChildTypes(addNodeModal.parentType || '').length === 0 ? (
+                  <div className="rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 p-3">
+                    <p className="text-sm text-red-700 dark:text-red-300 font-semibold">
+                      ❌ Cannot add children to "{addNodeModal.parentType}"
+                    </p>
+                    <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                      This node type doesn't support child nodes. You've reached the end of the hierarchy.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <select
+                      value={newNodeForm.type}
+                      onChange={(e) => setNewNodeForm({ ...newNodeForm, type: e.target.value as any })}
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground focus:ring-2 focus:ring-blue-500 outline-none"
+                    >
+                      <option value="">-- Select Node Type --</option>
+                      {getValidChildTypes(addNodeModal.parentType || '').map((type) => (
+                        <option key={type} value={type}>
+                          {type.charAt(0).toUpperCase() + type.slice(1)}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Choose the type that defines this node's hierarchical level
+                    </p>
+                  </>
+                )}
               </div>
 
               {/* Vendor */}
@@ -551,7 +563,7 @@ export const EditableTreeView: React.FC<EditableTreeViewProps> = ({
               <button
                 onClick={handleAddNode}
                 className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={!newNodeForm.name.trim() || !newNodeForm.type}
+                disabled={!newNodeForm.name.trim() || !newNodeForm.type || getValidChildTypes(addNodeModal.parentType || '').length === 0}
               >
                 Create Node
               </button>
