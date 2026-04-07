@@ -104,6 +104,7 @@ export const DiffView: React.FC<DiffViewProps> = () => {
   const [parameterSearch, setParameterSearch] = useState('');
   const [showParameterDropdown, setShowParameterDropdown] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [openSiteDropdown, setOpenSiteDropdown] = useState<number | null>(null);
   const parameterDropdownRef = useRef<HTMLDivElement>(null);
   const exportMenuRef = useRef<HTMLDivElement>(null);
 
@@ -394,6 +395,7 @@ export const DiffView: React.FC<DiffViewProps> = () => {
                       multiSelect={false}
                       searchable={true}
                       compact={true}
+                      dropdownId={`site-selector-${index}`}
                     />
                   </div>
                 </div>
@@ -428,6 +430,7 @@ export const DiffView: React.FC<DiffViewProps> = () => {
                 multiSelect={false}
                 searchable={true}
                 compact={true}
+                dropdownId="time-based-site-selector"
               />
             </div>
 
@@ -443,6 +446,7 @@ export const DiffView: React.FC<DiffViewProps> = () => {
                 multiSelect={false}
                 searchable={true}
                 compact={true}
+                dropdownId="time-period-selector"
               />
             </div>
           </div>

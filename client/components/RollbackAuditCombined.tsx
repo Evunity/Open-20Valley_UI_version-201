@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
-import { RotateCcw, Save, CheckCircle, AlertCircle, Clock, User, Eye, Download, X } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { RotateCcw, Save, CheckCircle, AlertCircle, Clock, User, Eye, Download, X, ChevronDown } from 'lucide-react';
 import SearchableDropdown from './SearchableDropdown';
+import { cn } from '@/lib/utils';
+import * as XLSX from 'xlsx';
 
 interface RollbackAuditCombinedProps {
   selectedTarget: any;
@@ -194,6 +196,8 @@ export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () =>
   const [selectedSite, setSelectedSite] = useState<string[]>([]);
   const [selectedTechnology, setSelectedTechnology] = useState<string[]>([]);
   const [selectedVendor, setSelectedVendor] = useState<string[]>([]);
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const exportMenuRef = useRef<HTMLDivElement>(null);
 
   const handleModeChange = (mode: 'full' | 'partial' | 'selective') => {
     setSelectedMode(mode);
@@ -261,6 +265,105 @@ export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () =>
       alert(`Rollback completed successfully for "${entry.action}"`);
     }
   };
+
+  const exportToCSV = () => {
+    if (filteredEntries.length === 0) {
+      alert('No audit entries to export');
+      return;
+    }
+
+    const csvData = filteredEntries.map(entry => ({
+      'Timestamp': entry.timestamp,
+      'User': entry.user,
+      'Action': entry.action,
+      'Object': entry.object,
+      'Site': entry.site,
+      'Technology': entry.technology,
+      'Vendor': entry.vendor,
+      'Status': entry.status,
+      'Change Details': entry.changeDetails,
+      'Reversible': entry.reversible ? 'Yes' : 'No'
+    }));
+
+    const headers = Object.keys(csvData[0]);
+    const rows = csvData.map(obj => headers.map(header => {
+      const value = obj[header as keyof typeof obj];
+      const stringValue = String(value);
+      return stringValue.includes(',') ? `"${stringValue.replace(/"/g, '""')}"` : stringValue;
+    }));
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.join(','))
+    ].join('\n');
+
+    const link = document.createElement('a');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `audit_log_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setShowExportMenu(false);
+  };
+
+  const exportToExcel = () => {
+    if (filteredEntries.length === 0) {
+      alert('No audit entries to export');
+      return;
+    }
+
+    const excelData = filteredEntries.map(entry => ({
+      'Timestamp': entry.timestamp,
+      'User': entry.user,
+      'Action': entry.action,
+      'Object': entry.object,
+      'Site': entry.site,
+      'Technology': entry.technology,
+      'Vendor': entry.vendor,
+      'Status': entry.status,
+      'Change Details': entry.changeDetails,
+      'Reversible': entry.reversible ? 'Yes' : 'No'
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Audit Log');
+
+    // Style header row
+    const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
+    for (let C = range.s.c; C <= range.e.c; ++C) {
+      const address = XLSX.utils.encode_col(C) + '1';
+      if (!worksheet[address]) continue;
+      worksheet[address].s = {
+        font: { bold: true, color: { rgb: 'FFFFFF' } },
+        fill: { fgColor: { rgb: '4F46E5' } },
+        alignment: { horizontal: 'center' }
+      };
+    }
+
+    // Set column widths
+    const colWidths = Array(10).fill({ wch: 18 });
+    worksheet['!cols'] = colWidths;
+
+    XLSX.writeFile(workbook, `audit_log_${new Date().toISOString().split('T')[0]}.xlsx`);
+    setShowExportMenu(false);
+  };
+
+  React.useEffect(() => {
+    if (!showExportMenu) return;
+
+    const handlePointerDownOutside = (event: MouseEvent) => {
+      if (!exportMenuRef.current?.contains(event.target as Node)) {
+        setShowExportMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handlePointerDownOutside);
+    return () => document.removeEventListener('mousedown', handlePointerDownOutside);
+  }, [showExportMenu]);
 
   return (
     <div className="flex flex-col h-full gap-6 p-6">
@@ -470,9 +573,40 @@ export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () =>
       {/* AUDIT SECTION */}
       <div className="border-t border-border pt-6">
         <div className="flex flex-col gap-4">
-          <div>
-            <h2 className="text-2xl font-bold text-foreground">Audit Log</h2>
-            <p className="text-sm text-muted-foreground mt-2">Complete audit trail of all changes with filtering and rollback capabilities</p>
+          <div className="flex items-start justify-between">
+            <div>
+              <h2 className="text-2xl font-bold text-foreground">Audit Log</h2>
+              <p className="text-sm text-muted-foreground mt-2">Complete audit trail of all changes with filtering and rollback capabilities</p>
+            </div>
+            {/* Export Menu */}
+            <div ref={exportMenuRef} className="relative">
+              <button
+                onClick={() => setShowExportMenu(!showExportMenu)}
+                className="px-3 py-1.5 bg-green-600/10 hover:bg-green-600/20 border border-green-600/30 rounded-lg text-green-700 dark:text-green-400 font-semibold text-xs transition flex items-center gap-1 whitespace-nowrap"
+              >
+                <Download className="w-3.5 h-3.5" />
+                Export
+                <ChevronDown className={cn("w-3 h-3 transition-transform", showExportMenu && "rotate-180")} />
+              </button>
+
+              {/* Export Menu Dropdown */}
+              {showExportMenu && (
+                <div className="absolute top-full right-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-50 overflow-hidden min-w-[140px]">
+                  <button
+                    onClick={exportToCSV}
+                    className="w-full px-3 py-2 text-left text-xs font-medium text-foreground hover:bg-muted transition-colors border-b border-border/50"
+                  >
+                    Export CSV
+                  </button>
+                  <button
+                    onClick={exportToExcel}
+                    className="w-full px-3 py-2 text-left text-xs font-medium text-foreground hover:bg-muted transition-colors"
+                  >
+                    Export Excel
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Audit Filters */}
@@ -671,12 +805,6 @@ export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () =>
             ))
             )}
           </div>
-
-          {/* Export */}
-          <button className="w-full px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 font-semibold flex items-center justify-center gap-2 transition">
-            <Download className="w-4 h-4" />
-            Export Audit Log
-          </button>
         </div>
       </div>
     </div>
