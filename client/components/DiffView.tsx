@@ -213,7 +213,7 @@ export const DiffView: React.FC<DiffViewProps> = () => {
       </div>
 
       {/* Parameter Selection - KPI Selector Style */}
-      <div ref={parameterDropdownRef} className="bg-card rounded-lg p-4 border border-border space-y-3">
+      <div className="bg-card rounded-lg p-4 border border-border space-y-3">
         <div className="flex items-center justify-between mb-3">
           <label className="block text-sm font-semibold text-foreground">Select Parameters</label>
           <div className="flex gap-2">
@@ -233,7 +233,7 @@ export const DiffView: React.FC<DiffViewProps> = () => {
         </div>
 
         {/* Parameter Search Bar */}
-        <div className="relative">
+        <div ref={parameterDropdownRef} className="relative">
           <div className={cn("bg-card border rounded p-1.5 flex items-center gap-1.5 transition-all shadow-sm", showParameterDropdown ? "border-primary ring-1 ring-primary/30 shadow-md" : "border-border hover:border-primary/30")}>
             <Search className="w-3.5 h-3.5 text-primary flex-shrink-0 stroke-2" />
             <input
