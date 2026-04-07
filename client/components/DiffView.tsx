@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { ArrowRight, Download, Check } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { ArrowRight, Download, Check, Search, X } from 'lucide-react';
 import SearchableDropdown from './SearchableDropdown';
+import { cn } from '@/lib/utils';
 
 interface DiffViewProps {
   selectedTarget: any;
@@ -82,6 +83,9 @@ export const DiffView: React.FC<DiffViewProps> = () => {
   const [rightSite, setRightSite] = useState<string[]>(['Cairo-Site-2']);
   const [timePeriod, setTimePeriod] = useState<string[]>(['Current vs Previous Hour']);
   const [selectedParameters, setSelectedParameters] = useState<Set<string>>(new Set(PARAMETER_OPTIONS));
+  const [parameterSearch, setParameterSearch] = useState('');
+  const [showParameterDropdown, setShowParameterDropdown] = useState(false);
+  const parameterDropdownRef = useRef<HTMLDivElement>(null);
 
   const filteredDiffs = diffs.filter(d => selectedParameters.has(d.parameter));
   const differentCount = filteredDiffs.filter(d => d.status === 'different').length;
@@ -104,6 +108,30 @@ export const DiffView: React.FC<DiffViewProps> = () => {
   const clearAllParameters = () => {
     setSelectedParameters(new Set());
   };
+
+  React.useEffect(() => {
+    if (!showParameterDropdown) return;
+
+    const handlePointerDownOutside = (event: MouseEvent) => {
+      if (!parameterDropdownRef.current?.contains(event.target as Node)) {
+        setShowParameterDropdown(false);
+      }
+    };
+
+    const handleEscapeClose = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setShowParameterDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handlePointerDownOutside);
+    document.addEventListener('keydown', handleEscapeClose);
+
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDownOutside);
+      document.removeEventListener('keydown', handleEscapeClose);
+    };
+  }, [showParameterDropdown]);
 
   const getStatusColor = (status: string) => {
     const colors = {
@@ -184,9 +212,9 @@ export const DiffView: React.FC<DiffViewProps> = () => {
         )}
       </div>
 
-      {/* Parameter Selection */}
-      <div className="bg-card rounded-lg p-4 border border-border space-y-3">
-        <div className="flex items-center justify-between">
+      {/* Parameter Selection - KPI Selector Style */}
+      <div ref={parameterDropdownRef} className="bg-card rounded-lg p-4 border border-border space-y-3">
+        <div className="flex items-center justify-between mb-3">
           <label className="block text-sm font-semibold text-foreground">Select Parameters</label>
           <div className="flex gap-2">
             <button
@@ -203,21 +231,75 @@ export const DiffView: React.FC<DiffViewProps> = () => {
             </button>
           </div>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {PARAMETER_OPTIONS.map(param => (
-            <button
-              key={param}
-              onClick={() => toggleParameter(param)}
-              className={`px-3 py-2 rounded-lg border-2 font-semibold text-sm transition ${
-                selectedParameters.has(param)
-                  ? 'border-primary bg-primary/10 text-primary'
-                  : 'border-border bg-card text-muted-foreground hover:border-primary/50 hover:bg-muted'
-              }`}
-            >
-              {param}
-            </button>
-          ))}
+
+        {/* Parameter Search Bar */}
+        <div className="relative">
+          <div className={cn("bg-card border rounded p-1.5 flex items-center gap-1.5 transition-all shadow-sm", showParameterDropdown ? "border-primary ring-1 ring-primary/30 shadow-md" : "border-border hover:border-primary/30")}>
+            <Search className="w-3.5 h-3.5 text-primary flex-shrink-0 stroke-2" />
+            <input
+              type="text"
+              placeholder="Search parameters..."
+              value={parameterSearch}
+              onChange={(e) => {
+                setParameterSearch(e.target.value);
+                setShowParameterDropdown(true);
+              }}
+              onFocus={() => setShowParameterDropdown(true)}
+              className="flex-1 bg-transparent border-0 text-xs text-foreground placeholder-muted-foreground/70 focus:outline-none font-medium"
+            />
+            {parameterSearch && (
+              <button
+                onClick={() => setParameterSearch('')}
+                className="p-0.5 text-muted-foreground hover:text-foreground transition-colors flex-shrink-0 hover:bg-muted/50 rounded"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            )}
+          </div>
+
+          {/* Parameter Dropdown */}
+          {showParameterDropdown && (
+            <>
+              <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-primary/40 rounded-lg shadow-xl z-50 max-h-72 overflow-y-auto">
+                {PARAMETER_OPTIONS.filter(p => p.toLowerCase().includes(parameterSearch.toLowerCase())).length > 0 ? (
+                  <div className="divide-y divide-border/30">
+                    {PARAMETER_OPTIONS.filter(p => p.toLowerCase().includes(parameterSearch.toLowerCase())).map((param) => {
+                      const isSelected = selectedParameters.has(param);
+                      return (
+                        <button
+                          key={param}
+                          onClick={() => toggleParameter(param)}
+                          className={cn(
+                            "w-full text-left px-2 py-1.5 text-xs transition-all flex items-start gap-2 hover:bg-muted/40",
+                            isSelected ? "bg-primary/10 border-l-2 border-l-primary" : ""
+                          )}
+                        >
+                          <div className={cn("w-4 h-4 rounded border-2 flex-shrink-0 mt-0.5 flex items-center justify-center", isSelected ? "bg-primary border-primary" : "border-border")}>
+                            {isSelected && <Check className="w-2.5 h-2.5 text-primary-foreground" />}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-semibold text-xs text-foreground">{param}</div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="px-3 py-3 text-xs text-muted-foreground">
+                    No parameters match your search
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </div>
+
+        {/* Selected Parameters Count */}
+        {selectedParameters.size > 0 && (
+          <div className="text-xs text-muted-foreground font-medium">
+            {selectedParameters.size} of {PARAMETER_OPTIONS.length} selected
+          </div>
+        )}
       </div>
 
       {/* Diff Summary */}
