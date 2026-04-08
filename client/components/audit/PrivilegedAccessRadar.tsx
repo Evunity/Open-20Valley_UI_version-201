@@ -208,6 +208,19 @@ const actionClass: Record<PrivilegedActionType, string> = {
   Rollback: 'bg-violet-500/15 text-violet-700 dark:text-violet-300',
   Acknowledged: 'bg-rose-500/15 text-rose-700 dark:text-rose-300'
 };
+const actionTypeShortLabel: Record<PrivilegedActionType, string> = {
+  Opened: 'OPEN',
+  Created: 'CREATE',
+  Edited: 'EDIT',
+  Updated: 'UPDATE',
+  Deleted: 'DELETE',
+  Exported: 'EXPORT',
+  'Logged In': 'LOGIN',
+  'Logged Out': 'LOGOUT',
+  'Changed Permissions': 'PERMISSION',
+  Rollback: 'ROLLBACK',
+  Acknowledged: 'ACK'
+};
 
 export default function PrivilegedAccessRadar() {
   const [search, setSearch] = useState('');
@@ -248,24 +261,10 @@ export default function PrivilegedAccessRadar() {
   return (
     <div className="space-y-4">
       <div className="rounded-xl border border-border bg-card p-4 space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h3 className="font-bold text-foreground">Privileged Access Radar</h3>
-          <button
-            onClick={() => {
-              setSearch('');
-              setSelectedActions([]);
-              setTimePreset('24h');
-              setCustomFrom('');
-              setCustomTo('');
-            }}
-            className="h-9 px-3 rounded-lg border border-border text-sm hover:bg-muted"
-          >
-            Clear Filters
-          </button>
-        </div>
+        <h3 className="font-bold text-foreground">Privileged Access Radar</h3>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-2 items-end">
-          <div className="relative">
+        <div className="flex flex-wrap lg:flex-nowrap gap-2 items-end">
+          <div className="relative flex-1 min-w-[300px]">
             <Search className="absolute left-3 top-3.5 w-4 h-4 text-muted-foreground pointer-events-none" />
             <Input
               value={search}
@@ -275,35 +274,51 @@ export default function PrivilegedAccessRadar() {
             />
           </div>
 
-          <SearchableDropdown
-            label="Time Range"
-            options={timePresetOptions}
-            selected={[timePresetOptions[timePreset === '1h' ? 0 : timePreset === '24h' ? 1 : timePreset === '7d' ? 2 : timePreset === '30d' ? 3 : 4]]}
-            onChange={(selected) => {
-              const selectedValue = selected[0] || 'Last 24 hours';
-              const mapped =
-                selectedValue === 'Last 1 hour' ? '1h' :
-                selectedValue === 'Last 24 hours' ? '24h' :
-                selectedValue === 'Last 7 days' ? '7d' :
-                selectedValue === 'Last 30 days' ? '30d' : 'custom';
-              setTimePreset(mapped);
-            }}
-            multiSelect={false}
-            searchable={false}
-            compact={true}
-          />
+          <div className="w-full sm:w-[240px]">
+            <SearchableDropdown
+              label="Time Range"
+              options={timePresetOptions}
+              selected={[timePresetOptions[timePreset === '1h' ? 0 : timePreset === '24h' ? 1 : timePreset === '7d' ? 2 : timePreset === '30d' ? 3 : 4]]}
+              onChange={(selected) => {
+                const selectedValue = selected[0] || 'Last 24 hours';
+                const mapped =
+                  selectedValue === 'Last 1 hour' ? '1h' :
+                  selectedValue === 'Last 24 hours' ? '24h' :
+                  selectedValue === 'Last 7 days' ? '7d' :
+                  selectedValue === 'Last 30 days' ? '30d' : 'custom';
+                setTimePreset(mapped);
+              }}
+              multiSelect={false}
+              searchable={false}
+              compact={true}
+            />
+          </div>
 
-          <SearchableDropdown
-            label="Action Type"
-            options={ACTION_TYPES}
-            selected={selectedActions}
-            onChange={setSelectedActions}
-            multiSelect={true}
-            searchable={true}
-            compact={true}
-            placeholder="Search action..."
-          />
-          <div />
+          <div className="w-full sm:w-[260px]">
+            <SearchableDropdown
+              label="Action Type"
+              options={ACTION_TYPES}
+              selected={selectedActions}
+              onChange={setSelectedActions}
+              multiSelect={true}
+              searchable={true}
+              compact={true}
+              placeholder="Search action..."
+            />
+          </div>
+
+          <button
+            onClick={() => {
+              setSearch('');
+              setSelectedActions([]);
+              setTimePreset('24h');
+              setCustomFrom('');
+              setCustomTo('');
+            }}
+            className="h-9 px-3 rounded-lg border border-border text-sm hover:bg-muted w-full sm:w-auto sm:min-w-[120px]"
+          >
+            Clear Filters
+          </button>
         </div>
 
         {timePreset === 'custom' && (
@@ -334,7 +349,7 @@ export default function PrivilegedAccessRadar() {
                   <th className="text-left px-3 py-2.5">Timestamp</th>
                   <th className="text-left px-3 py-2.5">User</th>
                   <th className="text-left px-3 py-2.5">Privileged Account</th>
-                  <th className="text-left px-3 py-2.5">Action</th>
+                  <th className="text-left px-3 py-2.5 w-[320px]">Action</th>
                   <th className="text-left px-3 py-2.5">Module</th>
                   <th className="text-left px-3 py-2.5">Target</th>
                   <th className="text-left px-3 py-2.5">Status</th>
@@ -349,9 +364,15 @@ export default function PrivilegedAccessRadar() {
                       <p className="text-xs text-muted-foreground">{event.email}</p>
                     </td>
                     <td className="px-3 py-2.5 font-mono text-xs">{event.privilegedAccount}</td>
-                    <td className="px-3 py-2.5">
-                      <span className={cn('px-2 py-1 rounded-md text-xs font-semibold', actionClass[event.actionType])}>{event.actionType}</span>
-                      <p className="text-xs text-muted-foreground mt-1">{event.actionLabel}</p>
+                    <td className="px-3 py-2.5 max-w-[320px]">
+                      <div className="inline-flex w-full items-center gap-2">
+                        <span className={cn('inline-flex min-h-6 shrink-0 items-center justify-center whitespace-nowrap rounded-md px-2 py-1 text-[10px] font-bold tracking-wide', actionClass[event.actionType])}>
+                          {actionTypeShortLabel[event.actionType]}
+                        </span>
+                        <span className="min-w-0 truncate text-sm text-foreground" title={event.actionLabel}>
+                          {event.actionLabel}
+                        </span>
+                      </div>
                     </td>
                     <td className="px-3 py-2.5">{event.module}</td>
                     <td className="px-3 py-2.5">{event.target}</td>
