@@ -319,6 +319,11 @@ export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () =>
     )
   );
 
+  const isTargetedSelectionValid =
+    selectedSnapshots.size > 0 && selectedObjects.size > 0 && selectedParameters.size > 0;
+  const isFullSelectionValid = selectedSnapshots.size > 0;
+  const canExecuteRollback = selectedMode === 'full' ? isFullSelectionValid : isTargetedSelectionValid;
+
   const executeRollback = () => {
     if (selectedSnapshots.size === 0) {
       alert('Please select at least one snapshot');
@@ -332,16 +337,15 @@ export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () =>
       alert('Please select at least one parameter to rollback');
       return;
     }
-    if (comparisonRows.length === 0) {
-      alert('No matching configuration changes found for the selected scope');
-      return;
-    }
-
     setSnapshots(snapshots.map((snapshot) => (selectedSnapshots.has(snapshot.id) ? { ...snapshot, status: 'rolled_back' } : snapshot)));
     setSelectedObjects(new Set());
     setSelectedParameters(new Set());
     setSelectedSnapshots(new Set());
-    alert(`Rollback executed successfully for ${comparisonRows.length} targeted parameter changes`);
+    if (selectedMode === 'targeted') {
+      alert(`Targeted rollback executed for ${selectedObjects.size} object(s) and ${selectedParameters.size} parameter(s).`);
+      return;
+    }
+    alert('Full rollback executed for selected snapshot(s).');
   };
 
   const filteredEntries = entries.filter(entry => {
@@ -687,11 +691,7 @@ export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () =>
             </p>
             <button
               onClick={executeRollback}
-              disabled={
-                comparisonRows.length === 0 ||
-                selectedSnapshots.size === 0 ||
-                (selectedMode === 'targeted' && (selectedObjects.size === 0 || selectedParameters.size === 0))
-              }
+              disabled={!canExecuteRollback}
               className="px-4 py-2.5 bg-orange-600 dark:bg-orange-700 text-white rounded-lg hover:bg-orange-700 dark:hover:bg-orange-600 font-semibold flex items-center justify-center gap-2 transition disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed"
             >
               <RotateCcw className="w-4 h-4" />
