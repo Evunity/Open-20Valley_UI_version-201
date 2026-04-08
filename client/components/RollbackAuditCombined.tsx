@@ -491,12 +491,23 @@ export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () =>
                   key={option.mode}
                   onClick={() => handleModeChange(option.mode)}
                   className={cn(
-                    'w-full text-left p-3 rounded-lg border transition',
-                    selectedMode === option.mode ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/40'
+                    'w-full text-left p-4 rounded-xl border transition-all duration-200',
+                    selectedMode === option.mode
+                      ? 'border-primary/90 bg-primary/15 shadow-[0_0_0_1px_hsl(var(--primary)/0.35)]'
+                      : 'border-border bg-card hover:border-primary/40 hover:bg-muted/20'
                   )}
                 >
-                  <p className="font-semibold text-sm text-foreground">{option.label}</p>
-                  <p className="text-xs text-muted-foreground mt-1">{option.description}</p>
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-semibold text-sm text-foreground">{option.label}</p>
+                      <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{option.description}</p>
+                    </div>
+                    {selectedMode === option.mode && (
+                      <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-full bg-primary text-primary-foreground">
+                        Active
+                      </span>
+                    )}
+                  </div>
                 </button>
               ))}
             </div>
@@ -509,23 +520,32 @@ export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () =>
                 <label
                   key={snapshot.id}
                   className={cn(
-                    'block border rounded-lg p-3 cursor-pointer transition',
-                    selectedSnapshots.has(snapshot.id) ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/40',
+                    'block border rounded-xl p-4 cursor-pointer transition-all duration-200',
+                    selectedSnapshots.has(snapshot.id)
+                      ? 'border-primary/90 bg-primary/15 shadow-[0_0_0_1px_hsl(var(--primary)/0.35)]'
+                      : 'border-border bg-card hover:border-primary/40 hover:bg-muted/20',
                     snapshot.status === 'rolled_back' && 'opacity-60'
                   )}
                 >
-                  <div className="flex items-start gap-2">
+                  <div className="flex items-start gap-3">
                     <input
                       type="checkbox"
                       checked={selectedSnapshots.has(snapshot.id)}
                       disabled={snapshot.status !== 'active'}
                       onChange={() => toggleSnapshot(snapshot.id)}
-                      className="mt-1"
+                      className="mt-1 h-4 w-4"
                     />
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-foreground truncate">{snapshot.scriptUsed}</p>
-                      <p className="text-xs text-muted-foreground">{snapshot.id} • {snapshot.timestamp}</p>
-                      <p className="text-xs text-muted-foreground mt-1">{snapshot.rollbackableItems} rollbackable objects</p>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-sm font-semibold text-foreground truncate">{snapshot.scriptUsed}</p>
+                        {selectedSnapshots.has(snapshot.id) && (
+                          <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-full bg-primary text-primary-foreground">
+                            Selected
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">{snapshot.id} • {snapshot.timestamp}</p>
+                      <p className="text-xs text-muted-foreground mt-2">{snapshot.rollbackableItems} rollbackable objects</p>
                     </div>
                   </div>
                 </label>
@@ -533,29 +553,92 @@ export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () =>
             </div>
           </div>
 
-          <div className="bg-card border border-border rounded-xl p-4 space-y-3">
+          <div className="bg-card border border-border rounded-xl p-4 space-y-4">
             <h3 className="font-semibold text-foreground">3) Scope Selection</h3>
-            <p className="text-xs text-muted-foreground">Choose multiple objects and parameters. Example: rollback VLAN ID only for Cairo-Site-2.</p>
-            <div>
-              <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">Objects ({selectedObjects.size})</p>
-              <div className="max-h-24 overflow-y-auto space-y-1">
-                {availableObjects.map((obj) => (
-                  <label key={obj} className="flex items-center gap-2 text-sm text-foreground">
-                    <input type="checkbox" checked={selectedObjects.has(obj)} onChange={() => toggleObject(obj)} disabled={selectedMode === 'full'} />
-                    {obj}
-                  </label>
-                ))}
+            <div className="rounded-lg border border-border/70 bg-muted/20 p-3">
+              <p className="text-xs font-semibold text-foreground">Guidance</p>
+              <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                Choose one or more objects and one or more parameters. Example: rollback <span className="font-medium text-foreground">VLAN ID</span> only for <span className="font-medium text-foreground">Cairo-Site-2</span>.
+              </p>
+            </div>
+
+            <div className="rounded-lg border border-border p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Objects</p>
+                <span className="text-xs font-semibold text-foreground">{selectedObjects.size} selected</span>
+              </div>
+              <div className="max-h-28 overflow-y-auto space-y-2 pr-1">
+                {availableObjects.map((obj) => {
+                  const checked = selectedObjects.has(obj);
+                  return (
+                    <label
+                      key={obj}
+                      className={cn(
+                        'flex items-center gap-3 rounded-lg border px-3 py-2.5 text-sm cursor-pointer transition',
+                        checked ? 'border-primary/70 bg-primary/10 text-foreground' : 'border-border/70 hover:border-primary/40 hover:bg-muted/40',
+                        selectedMode === 'full' && 'opacity-60 cursor-not-allowed'
+                      )}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleObject(obj)}
+                        disabled={selectedMode === 'full'}
+                        className="h-4 w-4"
+                      />
+                      <span className="font-medium">{obj}</span>
+                    </label>
+                  );
+                })}
               </div>
             </div>
-            <div>
-              <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">Parameters ({selectedParameters.size})</p>
-              <div className="grid grid-cols-2 gap-1">
-                {(availableParameters.length ? availableParameters : PARAMETER_OPTIONS).map((param) => (
-                  <label key={param} className="flex items-center gap-2 text-xs text-foreground">
-                    <input type="checkbox" checked={selectedParameters.has(param)} onChange={() => toggleParameter(param)} disabled={selectedMode === 'full'} />
-                    {param}
-                  </label>
-                ))}
+
+            <div className="rounded-lg border border-border p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Parameters</p>
+                <span className="text-xs font-semibold text-foreground">{selectedParameters.size} selected</span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {(availableParameters.length ? availableParameters : PARAMETER_OPTIONS).map((param) => {
+                  const checked = selectedParameters.has(param);
+                  return (
+                    <label
+                      key={param}
+                      className={cn(
+                        'flex items-center gap-3 rounded-lg border px-3 py-2.5 text-xs cursor-pointer transition',
+                        checked ? 'border-primary/70 bg-primary/10 text-foreground' : 'border-border/70 hover:border-primary/40 hover:bg-muted/40',
+                        selectedMode === 'full' && 'opacity-60 cursor-not-allowed'
+                      )}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleParameter(param)}
+                        disabled={selectedMode === 'full'}
+                        className="h-4 w-4"
+                      />
+                      <span className="font-medium">{param}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 space-y-2">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Current Selection Summary</p>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="rounded-md border border-border/80 bg-card px-2.5 py-2">
+                  <p className="text-muted-foreground">Objects</p>
+                  <p className="font-semibold text-foreground mt-0.5">{selectedObjects.size}</p>
+                </div>
+                <div className="rounded-md border border-border/80 bg-card px-2.5 py-2">
+                  <p className="text-muted-foreground">Parameters</p>
+                  <p className="font-semibold text-foreground mt-0.5">{selectedParameters.size}</p>
+                </div>
+                <div className="rounded-md border border-border/80 bg-card px-2.5 py-2 col-span-2">
+                  <p className="text-muted-foreground">Rollback scope count</p>
+                  <p className="font-semibold text-foreground mt-0.5">{comparisonRows.length} parameter changes in preview</p>
+                </div>
               </div>
             </div>
           </div>
