@@ -334,6 +334,7 @@ export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () =>
     // Hard reset stale workspace state before loading next preview
     previewRequestIdRef.current += 1;
     const requestId = previewRequestIdRef.current;
+    setSelectedMode('targeted');
     setExecutionComplete(false);
     setExpandedId(null);
     setSelectedSnapshotId(snapshot.id);
@@ -583,7 +584,7 @@ export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () =>
         </div>
 
         {/* Change Snapshots */}
-        <div className="flex-1">
+        <div>
           <h3 className="font-semibold text-foreground text-sm mb-3">Available Snapshots ({snapshots.length})</h3>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 auto-rows-max max-h-[34rem] overflow-y-auto pr-1">
             {snapshots.map((snapshot) => (
