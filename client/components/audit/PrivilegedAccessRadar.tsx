@@ -265,7 +265,7 @@ export default function PrivilegedAccessRadar() {
         <h3 className="font-bold text-foreground">Privileged Access Radar</h3>
         <AuditFilterToolbar
           className="border-0 bg-transparent p-0 shadow-none"
-          row1ClassName="lg:grid-cols-[minmax(320px,2fr)_minmax(210px,1fr)_minmax(260px,1fr)_auto]"
+          row1ClassName="lg:grid-cols-2 xl:grid-cols-[minmax(280px,2fr)_minmax(210px,1fr)_minmax(240px,1fr)_auto]"
           row1={[
             <div className="relative">
               <Search className="absolute left-3 top-3.5 w-4 h-4 text-muted-foreground pointer-events-none" />
