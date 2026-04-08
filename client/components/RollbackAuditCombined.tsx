@@ -35,20 +35,6 @@ interface AuditEntry {
   reversible: boolean;
 }
 
-interface RollbackPreviewRow {
-  objectId: string;
-  parameter: string;
-  currentValue: string;
-  previousValue: string;
-}
-
-interface RollbackPreviewModel {
-  snapshotId: string | null;
-  objectIds: string[];
-  parameters: string[];
-  rows: RollbackPreviewRow[];
-}
-
 const MOCK_SNAPSHOTS: ChangeSnapshot[] = [
   {
     id: 'snap_001',
@@ -231,13 +217,6 @@ export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () =>
   const [selectedSnapshotId, setSelectedSnapshotId] = useState<string | null>(null);
   const [selectedObjects, setSelectedObjects] = useState<Set<string>>(new Set());
   const [selectedParameters, setSelectedParameters] = useState<Set<string>>(new Set());
-  const [previewModel, setPreviewModel] = useState<RollbackPreviewModel>({
-    snapshotId: null,
-    objectIds: [],
-    parameters: [],
-    rows: []
-  });
-  const [executionComplete, setExecutionComplete] = useState(false);
   const previewRequestIdRef = useRef(0);
 
   // Audit state
@@ -318,14 +297,7 @@ export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () =>
     setSelectedSnapshotId(null);
     setSelectedObjects(new Set());
     setSelectedParameters(new Set());
-    setPreviewModel({
-      snapshotId: null,
-      objectIds: [],
-      parameters: [],
-      rows: []
-    });
     setExpandedId(null);
-    setExecutionComplete(false);
   };
 
   const handleSnapshotSelect = (snapshot: ChangeSnapshot) => {
@@ -335,17 +307,10 @@ export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () =>
     previewRequestIdRef.current += 1;
     const requestId = previewRequestIdRef.current;
     setSelectedMode('targeted');
-    setExecutionComplete(false);
     setExpandedId(null);
     setSelectedSnapshotId(snapshot.id);
     setSelectedObjects(new Set());
     setSelectedParameters(new Set());
-    setPreviewModel({
-      snapshotId: snapshot.id,
-      objectIds: [],
-      parameters: [],
-      rows: []
-    });
 
     Promise.resolve().then(() => {
       if (requestId !== previewRequestIdRef.current) return;
@@ -366,12 +331,6 @@ export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () =>
 
       setSelectedObjects(nextObjects);
       setSelectedParameters(nextParameters);
-      setPreviewModel({
-        snapshotId: snapshot.id,
-        objectIds: [...nextObjects],
-        parameters: [...nextParameters],
-        rows: diffRows
-      });
     });
   };
 
@@ -392,7 +351,6 @@ export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () =>
     setSnapshots(snapshots.map(s =>
       s.id === selectedSnapshotId ? { ...s, status: 'rolled_back' } : s
     ));
-    setExecutionComplete(true);
     alert(
       selectedMode === 'full'
         ? `Full rollback executed for snapshot ${selectedSnapshotId}`
@@ -528,26 +486,6 @@ export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () =>
     document.addEventListener('mousedown', handlePointerDownOutside);
     return () => document.removeEventListener('mousedown', handlePointerDownOutside);
   }, [showExportMenu]);
-
-  React.useEffect(() => {
-    if (!selectedSnapshotId || selectedMode !== 'targeted') return;
-    console.log('[Rollback] Preview rows recalculated:', {
-      snapshotId: selectedSnapshotId,
-      rows: comparisonRows.length,
-      selectedObjects: selectedObjectList.length,
-      selectedParameters: selectedParameterList.length
-    });
-    setPreviewModel((prev) =>
-      prev.snapshotId !== selectedSnapshotId
-        ? prev
-        : {
-            ...prev,
-            objectIds: selectedObjectList,
-            parameters: selectedParameterList,
-            rows: comparisonRows
-          }
-    );
-  }, [selectedSnapshotId, selectedMode, comparisonRows, selectedObjectList, selectedParameterList]);
 
   return (
     <div className="flex flex-col h-full gap-6 p-6">
@@ -699,7 +637,7 @@ export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () =>
           </div>
         </div>
 
-        {selectedMode === 'targeted' && selectedSnapshot && previewModel.snapshotId === selectedSnapshot.id && (
+        {selectedMode === 'targeted' && selectedSnapshot && (
           <div className="bg-card border border-border rounded-lg p-4 space-y-4">
             <h3 className="font-semibold text-foreground">Targeted Rollback Selection</h3>
             <div>
@@ -743,7 +681,7 @@ export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () =>
           </div>
         )}
 
-        {selectedSnapshot && selectedMode === 'targeted' && previewModel.snapshotId === selectedSnapshot.id && previewModel.rows.length > 0 && (
+        {selectedSnapshot && selectedMode === 'targeted' && comparisonRows.length > 0 && (
           <div className="bg-card border border-border rounded-lg p-4 space-y-3">
             <h3 className="font-semibold text-foreground">Configuration Comparison (Current vs Previous)</h3>
             <div className="overflow-x-auto">
@@ -757,7 +695,7 @@ export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () =>
                   </tr>
                 </thead>
                 <tbody>
-                  {previewModel.rows.map((row) => (
+                  {comparisonRows.map((row) => (
                     <tr key={`${row.objectId}-${row.parameter}`} className="border-b border-border/50">
                       <td className="p-2">{row.objectId}</td>
                       <td className="p-2">{row.parameter}</td>
@@ -771,7 +709,7 @@ export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () =>
           </div>
         )}
 
-        {selectedSnapshot && selectedMode === 'targeted' && previewModel.snapshotId === selectedSnapshot.id && previewModel.rows.length === 0 && (
+        {selectedSnapshot && selectedMode === 'targeted' && comparisonRows.length === 0 && (
           <div className="bg-card border border-border rounded-lg p-4">
             <h3 className="font-semibold text-foreground">Rollback Preview</h3>
             <p className="text-sm text-muted-foreground mt-2">
@@ -788,18 +726,18 @@ export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () =>
             </p>
             {selectedMode === 'targeted' && (
               <p className="text-sm text-muted-foreground">
-                Selected Objects: <span className="font-semibold text-foreground">{previewModel.objectIds.length}</span> • Selected Parameters: <span className="font-semibold text-foreground">{previewModel.parameters.length}</span> • Preview Rows: <span className="font-semibold text-foreground">{previewModel.rows.length}</span>
+                Selected Objects: <span className="font-semibold text-foreground">{selectedObjects.size}</span> • Selected Parameters: <span className="font-semibold text-foreground">{selectedParameters.size}</span> • Preview Rows: <span className="font-semibold text-foreground">{comparisonRows.length}</span>
               </p>
             )}
             <button
               onClick={executeRollback}
-              disabled={selectedMode === 'targeted' && (previewModel.objectIds.length === 0 || previewModel.parameters.length === 0 || previewModel.rows.length === 0 || executionComplete)}
+              disabled={selectedMode === 'targeted' && (selectedObjects.size === 0 || selectedParameters.size === 0 || comparisonRows.length === 0)}
               className="w-full px-4 py-2.5 bg-orange-600 dark:bg-orange-700 text-white rounded-lg hover:bg-orange-700 dark:hover:bg-orange-600 font-semibold flex items-center justify-center gap-2 transition disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed"
             >
               <RotateCcw className="w-4 h-4" />
               {selectedMode === 'full'
                 ? 'Execute Full Rollback'
-                : `Execute Targeted Rollback (${previewModel.objectIds.length} object(s), ${previewModel.parameters.length} parameter(s))`}
+                : `Execute Targeted Rollback (${selectedObjects.size} object(s), ${selectedParameters.size} parameter(s))`}
             </button>
           </div>
         )}
