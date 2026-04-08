@@ -8,28 +8,36 @@ interface LayoutProps {
 }
 
 export default function Layout({ children }: LayoutProps) {
+  const getResponsiveSidebarWidth = (viewportWidth: number) => (viewportWidth >= 1536 ? 320 : 280);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [sidebarWidth, setSidebarWidth] = useState(256); // 64 * 4 = 256px (w-64)
+  const [sidebarWidth, setSidebarWidth] = useState(() =>
+    typeof window !== "undefined" ? getResponsiveSidebarWidth(window.innerWidth) : 280
+  );
   const [isDragging, setIsDragging] = useState(false);
   const location = useLocation();
   const analyticsNormalDensityRoutes = new Set(["/analytics-management", "/analytics-home"]);
   const isCompactDensity = !analyticsNormalDensityRoutes.has(location.pathname);
 
   const COLLAPSED_WIDTH = 76; // Width when collapsed
-  const MIN_WIDTH = 150; // Minimum width before collapse when dragging
-  const MAX_WIDTH = 400; // Maximum width
-  const COLLAPSE_SNAP_THRESHOLD = 132;
+  const MIN_WIDTH = 220; // Minimum width before collapse when dragging
+  const MAX_WIDTH = 420; // Maximum width
+  const COLLAPSE_SNAP_THRESHOLD = 180;
 
   // Handle responsive behavior
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth < 768) {
+      const viewportWidth = window.innerWidth;
+      setIsMobile(viewportWidth < 768);
+
+      if (viewportWidth < 768) {
         setSidebarOpen(false);
+        return;
       }
+
+      setSidebarWidth(getResponsiveSidebarWidth(viewportWidth));
     };
 
     handleResize();
@@ -377,7 +385,7 @@ export default function Layout({ children }: LayoutProps) {
       )}
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col overflow-hidden">
+      <main className="flex-1 min-w-0 flex flex-col overflow-hidden">
         {isMobile && (
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -392,11 +400,11 @@ export default function Layout({ children }: LayoutProps) {
         <div
           ref={contentScrollRef}
           className={cn(
-            "app-content-theme flex-1 overflow-auto",
+            "app-content-theme flex-1 overflow-auto w-full max-w-none",
             isCompactDensity && "density-compact-scope"
           )}
         >
-          <div className="p-1.5 md:p-2">{children}</div>
+          <div className="w-full max-w-none p-1.5 md:p-2">{children}</div>
         </div>
       </main>
     </div>

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, type CSSProperties } from "react";
 import {
   Shield, Activity, Users, GitBranch, Lock, TrendingUp,
   Download, Settings, Plus, Eye, Trash2
@@ -97,6 +97,7 @@ const WORKSPACES: WorkspaceConfig[] = [
 ];
 
 export default function ActivityAudit() {
+  const WORKSPACE_RAIL_WIDTH = "272px";
   const [activeWorkspace, setActiveWorkspace] = useState<AuditWorkspace>('executive-risk');
   const [timeMode, setTimeMode] = useState<'live' | 'investigative' | 'historical'>('live');
   const [savedViews, setSavedViews] = useState<Record<string, any>>({});
@@ -147,7 +148,7 @@ export default function ActivityAudit() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="h-full min-h-0 w-full min-w-0 bg-background flex flex-col overflow-hidden">
       {/* Header */}
       <div className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-40">
         <div className="px-8 py-3">
@@ -176,9 +177,12 @@ export default function ActivityAudit() {
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row h-[calc(100vh-100px)]">
+      <div
+        className="grid flex-1 min-h-0 w-full min-w-0 grid-cols-1 lg:grid-cols-[var(--workspace-rail-width)_minmax(0,1fr)] bg-background"
+        style={{ "--workspace-rail-width": WORKSPACE_RAIL_WIDTH } as CSSProperties}
+      >
         {/* Workspace Navigator Sidebar */}
-        <div className="w-full lg:w-56 border-b lg:border-b-0 lg:border-r border-border bg-card/50">
+        <aside className="border-b lg:border-b-0 lg:border-r border-border bg-card/60 min-h-0 min-w-0">
           <div className="p-4 space-y-2 h-full overflow-y-auto">
             <div className="mb-4">
               <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
@@ -259,17 +263,17 @@ export default function ActivityAudit() {
             </div>
 
           </div>
-        </div>
+        </aside>
 
         {/* Main Content Area */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <section className="min-w-0 min-h-0 w-full flex flex-col bg-background overflow-hidden">
           {/* Workspace Content */}
-          <div className="flex-1 overflow-y-auto">
-            <div className="p-2">
+          <div className="flex-1 min-h-0 overflow-auto bg-background">
+            <div className="p-2 w-full min-w-0 max-w-none">
               {renderWorkspace()}
             </div>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   );
