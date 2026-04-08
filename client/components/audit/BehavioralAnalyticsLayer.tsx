@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
 import { Search, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import AuditFilterToolbar from '@/components/audit/AuditFilterToolbar';
+import { Input } from '@/components/ui/input';
 
 type LogStatus = 'success' | 'failed' | 'warning';
 type ActionType =
@@ -343,31 +345,28 @@ export default function BehavioralAnalyticsLayer() {
         ))}
       </div>
 
-      <div className="rounded-xl border border-border bg-card p-4 space-y-3">
-        <div className="grid grid-cols-1 lg:grid-cols-6 gap-2">
-          <div className="relative lg:col-span-2">
-            <Search className="absolute left-3 top-3.5 w-4 h-4 text-muted-foreground" />
-            <input
+      <AuditFilterToolbar
+        row1={[
+          <div className="relative">
+            <Search className="absolute left-3 top-3.5 w-4 h-4 text-muted-foreground pointer-events-none" />
+            <Input
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search user, action, target, route, tenant..."
-              className="w-full h-11 pl-10 pr-3 rounded-lg border border-border bg-background text-sm"
+              className="pl-10"
             />
-          </div>
-
-          <select value={userFilter} onChange={(e) => setUserFilter(e.target.value)} className="h-11 rounded-lg border border-border bg-background px-3 text-sm">
+          </div>,
+          <select value={userFilter} onChange={(e) => setUserFilter(e.target.value)} className="h-10 w-full rounded-md border border-input bg-input px-3 text-sm">
             {users.map((user) => (
               <option key={user} value={user}>{user === 'all' ? 'All Users' : user}</option>
             ))}
-          </select>
-
-          <select value={moduleFilter} onChange={(e) => setModuleFilter(e.target.value)} className="h-11 rounded-lg border border-border bg-background px-3 text-sm">
+          </select>,
+          <select value={moduleFilter} onChange={(e) => setModuleFilter(e.target.value)} className="h-10 w-full rounded-md border border-input bg-input px-3 text-sm">
             {modules.map((module) => (
               <option key={module} value={module}>{module === 'all' ? 'All Modules' : module}</option>
             ))}
-          </select>
-
-          <select value={actionTypeFilter} onChange={(e) => setActionTypeFilter(e.target.value as 'all' | ActionType)} className="h-11 rounded-lg border border-border bg-background px-3 text-sm">
+          </select>,
+          <select value={actionTypeFilter} onChange={(e) => setActionTypeFilter(e.target.value as 'all' | ActionType)} className="h-10 w-full rounded-md border border-input bg-input px-3 text-sm">
             <option value="all">All Action Types</option>
             <option value="View">View</option>
             <option value="Update">Update</option>
@@ -376,25 +375,23 @@ export default function BehavioralAnalyticsLayer() {
             <option value="Alarm">Alarm</option>
             <option value="Auth">Auth</option>
             <option value="Filter">Filter</option>
-          </select>
-
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as 'all' | LogStatus)} className="h-11 rounded-lg border border-border bg-background px-3 text-sm">
+          </select>,
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as 'all' | LogStatus)} className="h-10 w-full rounded-md border border-input bg-input px-3 text-sm">
             <option value="all">All Status</option>
             <option value="success">Success</option>
             <option value="warning">Warning</option>
             <option value="failed">Failed</option>
           </select>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+        ]}
+        row2={[
           <div>
             <label className="text-xs text-muted-foreground">Date from</label>
-            <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-full h-10 rounded-lg border border-border bg-background px-3 text-sm mt-1" />
-          </div>
+            <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="mt-1" />
+          </div>,
           <div>
             <label className="text-xs text-muted-foreground">Date to</label>
-            <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-full h-10 rounded-lg border border-border bg-background px-3 text-sm mt-1" />
-          </div>
+            <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="mt-1" />
+          </div>,
           <div className="flex items-end">
             <button
               onClick={() => {
@@ -406,13 +403,13 @@ export default function BehavioralAnalyticsLayer() {
                 setDateFrom('');
                 setDateTo('');
               }}
-              className="h-10 w-full rounded-lg border border-border text-sm hover:bg-muted"
+              className="h-10 w-full rounded-md border border-input bg-input px-3 text-sm hover:bg-muted md:min-w-[140px]"
             >
               Reset Filters
             </button>
           </div>
-        </div>
-      </div>
+        ]}
+      />
 
       <div className="rounded-xl border border-border bg-card overflow-hidden">
         <div className="px-4 py-3 border-b border-border">

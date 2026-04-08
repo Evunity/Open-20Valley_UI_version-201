@@ -3,6 +3,7 @@ import { Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import SearchableDropdown from '@/components/SearchableDropdown';
 import { Input } from '@/components/ui/input';
+import AuditFilterToolbar from '@/components/audit/AuditFilterToolbar';
 
 type PrivilegedActionType =
   | 'Opened'
@@ -262,19 +263,19 @@ export default function PrivilegedAccessRadar() {
     <div className="space-y-4">
       <div className="rounded-xl border border-border bg-card p-4 space-y-3">
         <h3 className="font-bold text-foreground">Privileged Access Radar</h3>
-
-        <div className="flex flex-wrap lg:flex-nowrap gap-2 items-end">
-          <div className="relative flex-1 min-w-[300px]">
-            <Search className="absolute left-3 top-3.5 w-4 h-4 text-muted-foreground pointer-events-none" />
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search user, email, privileged account..."
-              className="pl-9"
-            />
-          </div>
-
-          <div className="w-full sm:w-[240px]">
+        <AuditFilterToolbar
+          className="border-0 bg-transparent p-0 shadow-none"
+          row1ClassName="lg:grid-cols-[minmax(320px,2fr)_minmax(210px,1fr)_minmax(260px,1fr)_auto]"
+          row1={[
+            <div className="relative">
+              <Search className="absolute left-3 top-3.5 w-4 h-4 text-muted-foreground pointer-events-none" />
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search user, email, privileged account..."
+                className="pl-9"
+              />
+            </div>,
             <SearchableDropdown
               label="Time Range"
               options={timePresetOptions}
@@ -291,10 +292,7 @@ export default function PrivilegedAccessRadar() {
               multiSelect={false}
               searchable={false}
               compact={true}
-            />
-          </div>
-
-          <div className="w-full sm:w-[260px]">
+            />,
             <SearchableDropdown
               label="Action Type"
               options={ACTION_TYPES}
@@ -304,35 +302,36 @@ export default function PrivilegedAccessRadar() {
               searchable={true}
               compact={true}
               placeholder="Search action..."
-            />
-          </div>
-
-          <button
-            onClick={() => {
-              setSearch('');
-              setSelectedActions([]);
-              setTimePreset('24h');
-              setCustomFrom('');
-              setCustomTo('');
-            }}
-            className="h-9 px-3 rounded-lg border border-border text-sm hover:bg-muted w-full sm:w-auto sm:min-w-[120px]"
-          >
-            Clear Filters
-          </button>
-        </div>
-
-        {timePreset === 'custom' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            <div>
-              <label className="text-xs text-muted-foreground">From</label>
-              <Input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} className="mt-1" />
-            </div>
-            <div>
-              <label className="text-xs text-muted-foreground">To</label>
-              <Input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)} className="mt-1" />
-            </div>
-          </div>
-        )}
+            />,
+            <button
+              onClick={() => {
+                setSearch('');
+                setSelectedActions([]);
+                setTimePreset('24h');
+                setCustomFrom('');
+                setCustomTo('');
+              }}
+              className="h-9 px-3 rounded-md border border-input bg-input text-sm hover:bg-muted w-full sm:w-auto sm:min-w-[120px]"
+            >
+              Clear Filters
+            </button>
+          ]}
+          row2={
+            timePreset === 'custom'
+              ? [
+                  <div>
+                    <label className="text-xs text-muted-foreground">From</label>
+                    <Input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} className="mt-1" />
+                  </div>,
+                  <div>
+                    <label className="text-xs text-muted-foreground">To</label>
+                    <Input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)} className="mt-1" />
+                  </div>,
+                  <div />
+                ]
+              : []
+          }
+        />
       </div>
 
       <div className="rounded-xl border border-border bg-card overflow-hidden">
