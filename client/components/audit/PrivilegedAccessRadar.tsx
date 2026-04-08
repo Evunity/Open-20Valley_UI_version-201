@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import SearchableDropdown from '@/components/SearchableDropdown';
+import { Input } from '@/components/ui/input';
 
 type PrivilegedActionType =
   | 'Opened'
@@ -209,10 +211,11 @@ const actionClass: Record<PrivilegedActionType, string> = {
 
 export default function PrivilegedAccessRadar() {
   const [search, setSearch] = useState('');
-  const [selectedActions, setSelectedActions] = useState<Set<PrivilegedActionType>>(new Set());
+  const [selectedActions, setSelectedActions] = useState<string[]>([]);
   const [timePreset, setTimePreset] = useState<'1h' | '24h' | '7d' | '30d' | 'custom'>('24h');
   const [customFrom, setCustomFrom] = useState('');
   const [customTo, setCustomTo] = useState('');
+  const timePresetOptions = ['Last 1 hour', 'Last 24 hours', 'Last 7 days', 'Last 30 days', 'Custom range'];
 
   const filteredEvents = useMemo(() => {
     const now = Date.now();
@@ -224,7 +227,7 @@ export default function PrivilegedAccessRadar() {
         !search.trim() ||
         [event.userName, event.email, event.privilegedAccount].join(' ').toLowerCase().includes(search.trim().toLowerCase());
 
-      const matchesAction = selectedActions.size === 0 || selectedActions.has(event.actionType);
+      const matchesAction = selectedActions.length === 0 || selectedActions.includes(event.actionType);
 
       let matchesTime = true;
       if (timePreset === '1h') matchesTime = eventTime >= now - 60 * 60 * 1000;
@@ -242,13 +245,6 @@ export default function PrivilegedAccessRadar() {
     });
   }, [customFrom, customTo, search, selectedActions, timePreset]);
 
-  const toggleActionType = (actionType: PrivilegedActionType) => {
-    const next = new Set(selectedActions);
-    if (next.has(actionType)) next.delete(actionType);
-    else next.add(actionType);
-    setSelectedActions(next);
-  };
-
   return (
     <div className="space-y-4">
       <div className="rounded-xl border border-border bg-card p-4 space-y-3">
@@ -257,7 +253,7 @@ export default function PrivilegedAccessRadar() {
           <button
             onClick={() => {
               setSearch('');
-              setSelectedActions(new Set());
+              setSelectedActions([]);
               setTimePreset('24h');
               setCustomFrom('');
               setCustomTo('');
@@ -268,62 +264,57 @@ export default function PrivilegedAccessRadar() {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-2 items-end">
           <div className="relative">
-            <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-            <input
+            <Search className="absolute left-3 top-3.5 w-4 h-4 text-muted-foreground pointer-events-none" />
+            <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search user, email, privileged account..."
-              className="h-10 w-full rounded-lg border border-border bg-background pl-9 pr-3 text-sm"
+              className="pl-9"
             />
           </div>
 
-          <select
-            value={timePreset}
-            onChange={(e) => setTimePreset(e.target.value as '1h' | '24h' | '7d' | '30d' | 'custom')}
-            className="h-10 rounded-lg border border-border bg-background px-3 text-sm"
-          >
-            <option value="1h">Last 1 hour</option>
-            <option value="24h">Last 24 hours</option>
-            <option value="7d">Last 7 days</option>
-            <option value="30d">Last 30 days</option>
-            <option value="custom">Custom range</option>
-          </select>
+          <SearchableDropdown
+            label="Time Range"
+            options={timePresetOptions}
+            selected={[timePresetOptions[timePreset === '1h' ? 0 : timePreset === '24h' ? 1 : timePreset === '7d' ? 2 : timePreset === '30d' ? 3 : 4]]}
+            onChange={(selected) => {
+              const selectedValue = selected[0] || 'Last 24 hours';
+              const mapped =
+                selectedValue === 'Last 1 hour' ? '1h' :
+                selectedValue === 'Last 24 hours' ? '24h' :
+                selectedValue === 'Last 7 days' ? '7d' :
+                selectedValue === 'Last 30 days' ? '30d' : 'custom';
+              setTimePreset(mapped);
+            }}
+            multiSelect={false}
+            searchable={false}
+            compact={true}
+          />
 
-          <div className="rounded-lg border border-border bg-background p-2">
-            <p className="text-xs text-muted-foreground mb-2">Action type filter (multi-select)</p>
-            <div className="flex flex-wrap gap-1.5">
-              {ACTION_TYPES.map((actionType) => {
-                const selected = selectedActions.has(actionType);
-                return (
-                  <button
-                    key={actionType}
-                    onClick={() => toggleActionType(actionType)}
-                    className={cn(
-                      'px-2.5 py-1 rounded-md text-xs font-medium border transition',
-                      selected
-                        ? 'bg-primary/15 text-primary border-primary/40'
-                        : 'bg-muted/40 text-muted-foreground border-border hover:border-primary/30'
-                    )}
-                  >
-                    {actionType}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          <SearchableDropdown
+            label="Action Type"
+            options={ACTION_TYPES}
+            selected={selectedActions}
+            onChange={setSelectedActions}
+            multiSelect={true}
+            searchable={true}
+            compact={true}
+            placeholder="Search action..."
+          />
+          <div />
         </div>
 
         {timePreset === 'custom' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             <div>
               <label className="text-xs text-muted-foreground">From</label>
-              <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} className="mt-1 h-10 w-full rounded-lg border border-border bg-background px-3 text-sm" />
+              <Input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} className="mt-1" />
             </div>
             <div>
               <label className="text-xs text-muted-foreground">To</label>
-              <input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)} className="mt-1 h-10 w-full rounded-lg border border-border bg-background px-3 text-sm" />
+              <Input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)} className="mt-1" />
             </div>
           </div>
         )}
