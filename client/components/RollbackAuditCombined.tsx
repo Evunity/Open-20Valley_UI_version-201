@@ -217,6 +217,7 @@ export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () =>
   const [selectedSnapshotId, setSelectedSnapshotId] = useState<string | null>(null);
   const [selectedObjects, setSelectedObjects] = useState<Set<string>>(new Set());
   const [selectedParameters, setSelectedParameters] = useState<Set<string>>(new Set());
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
   const previewRequestIdRef = useRef(0);
 
   // Audit state
@@ -298,6 +299,7 @@ export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () =>
     setSelectedObjects(new Set());
     setSelectedParameters(new Set());
     setExpandedId(null);
+    setIsPreviewLoading(false);
   };
 
   const handleSnapshotSelect = (snapshot: ChangeSnapshot) => {
@@ -308,6 +310,7 @@ export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () =>
     const requestId = previewRequestIdRef.current;
     setSelectedMode('targeted');
     setExpandedId(null);
+    setIsPreviewLoading(true);
     setSelectedSnapshotId(snapshot.id);
     setSelectedObjects(new Set());
     setSelectedParameters(new Set());
@@ -331,6 +334,7 @@ export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () =>
 
       setSelectedObjects(nextObjects);
       setSelectedParameters(nextParameters);
+      setIsPreviewLoading(false);
     });
   };
 
@@ -637,9 +641,23 @@ export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () =>
           </div>
         </div>
 
+        {selectedMode === 'targeted' && !selectedSnapshot && (
+          <div className="bg-card border border-border rounded-lg p-4">
+            <h3 className="font-semibold text-foreground">Targeted Rollback Selection</h3>
+            <p className="text-sm text-muted-foreground mt-2">
+              Select an active snapshot to load rollback objects, parameters, and preview data.
+            </p>
+          </div>
+        )}
+
         {selectedMode === 'targeted' && selectedSnapshot && (
           <div className="bg-card border border-border rounded-lg p-4 space-y-4">
             <h3 className="font-semibold text-foreground">Targeted Rollback Selection</h3>
+            {isPreviewLoading && (
+              <div className="rounded border border-border bg-muted/30 p-3 text-sm text-muted-foreground">
+                Loading rollback preview data...
+              </div>
+            )}
             <div>
               <p className="font-semibold text-foreground text-sm mb-3">Select Objects to Rollback</p>
               <div className="grid grid-cols-2 gap-2 bg-muted/30 p-3 rounded border border-border">
@@ -681,7 +699,7 @@ export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () =>
           </div>
         )}
 
-        {selectedSnapshot && selectedMode === 'targeted' && comparisonRows.length > 0 && (
+        {selectedSnapshot && selectedMode === 'targeted' && !isPreviewLoading && comparisonRows.length > 0 && (
           <div className="bg-card border border-border rounded-lg p-4 space-y-3">
             <h3 className="font-semibold text-foreground">Configuration Comparison (Current vs Previous)</h3>
             <div className="overflow-x-auto">
@@ -709,7 +727,7 @@ export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () =>
           </div>
         )}
 
-        {selectedSnapshot && selectedMode === 'targeted' && comparisonRows.length === 0 && (
+        {selectedSnapshot && selectedMode === 'targeted' && !isPreviewLoading && comparisonRows.length === 0 && (
           <div className="bg-card border border-border rounded-lg p-4">
             <h3 className="font-semibold text-foreground">Rollback Preview</h3>
             <p className="text-sm text-muted-foreground mt-2">
@@ -731,7 +749,7 @@ export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () =>
             )}
             <button
               onClick={executeRollback}
-              disabled={selectedMode === 'targeted' && (selectedObjects.size === 0 || selectedParameters.size === 0 || comparisonRows.length === 0)}
+              disabled={selectedMode === 'targeted' && (isPreviewLoading || selectedObjects.size === 0 || selectedParameters.size === 0 || comparisonRows.length === 0)}
               className="w-full px-4 py-2.5 bg-orange-600 dark:bg-orange-700 text-white rounded-lg hover:bg-orange-700 dark:hover:bg-orange-600 font-semibold flex items-center justify-center gap-2 transition disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed"
             >
               <RotateCcw className="w-4 h-4" />
