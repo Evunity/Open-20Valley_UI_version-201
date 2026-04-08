@@ -213,12 +213,11 @@ const PARAMETER_OPTIONS = ['TX Power', 'DL Bandwidth', 'Cell Barring', 'IP Addre
 export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () => {
   const [snapshots, setSnapshots] = useState<ChangeSnapshot[]>(MOCK_SNAPSHOTS);
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [selectedMode, setSelectedMode] = useState<'full' | 'targeted'>('full');
+  const [selectedMode, setSelectedMode] = useState<'full' | 'targeted'>('targeted');
   const [selectedSnapshotId, setSelectedSnapshotId] = useState<string | null>(null);
   const [selectedObjects, setSelectedObjects] = useState<Set<string>>(new Set());
   const [selectedParameters, setSelectedParameters] = useState<Set<string>>(new Set());
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
-  const previewRequestIdRef = useRef(0);
 
   // Audit state
   const [entries, setEntries] = useState<AuditEntry[]>(MOCK_AUDIT);
@@ -294,7 +293,6 @@ export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () =>
     : [];
 
   const resetTargetedWorkspace = () => {
-    previewRequestIdRef.current += 1;
     setSelectedSnapshotId(null);
     setSelectedObjects(new Set());
     setSelectedParameters(new Set());
@@ -306,8 +304,6 @@ export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () =>
     console.log('[Rollback] Snapshot selected:', snapshot.id, snapshot);
 
     // Hard reset stale workspace state before loading next preview
-    previewRequestIdRef.current += 1;
-    const requestId = previewRequestIdRef.current;
     setSelectedMode('targeted');
     setExpandedId(null);
     setIsPreviewLoading(true);
@@ -315,27 +311,23 @@ export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () =>
     setSelectedObjects(new Set());
     setSelectedParameters(new Set());
 
-    Promise.resolve().then(() => {
-      if (requestId !== previewRequestIdRef.current) return;
-      const diffRows = buildDiffRows(snapshot);
-      const derivedObjects = new Set(diffRows.map((row) => row.objectId));
-      const derivedParameters = new Set(diffRows.map((row) => row.parameter));
-      const fallbackObjects = getSafeObjectIds(snapshot);
+    const diffRows = buildDiffRows(snapshot);
+    const derivedObjects = new Set(diffRows.map((row) => row.objectId));
+    const derivedParameters = new Set(diffRows.map((row) => row.parameter));
+    const fallbackObjects = getSafeObjectIds(snapshot);
 
-      const nextObjects = derivedObjects.size ? derivedObjects : new Set(fallbackObjects);
-      const nextParameters = derivedParameters.size ? derivedParameters : new Set(PARAMETER_OPTIONS);
+    const nextObjects = derivedObjects.size ? derivedObjects : new Set(fallbackObjects);
+    const nextParameters = derivedParameters.size ? derivedParameters : new Set(PARAMETER_OPTIONS);
 
-      console.log('[Rollback] Preview derived:', {
-        requestId,
-        diffRows: diffRows.length,
-        objects: [...nextObjects],
-        parameters: [...nextParameters]
-      });
-
-      setSelectedObjects(nextObjects);
-      setSelectedParameters(nextParameters);
-      setIsPreviewLoading(false);
+    console.log('[Rollback] Preview derived:', {
+      diffRows: diffRows.length,
+      objects: [...nextObjects],
+      parameters: [...nextParameters]
     });
+
+    setSelectedObjects(nextObjects);
+    setSelectedParameters(nextParameters);
+    setIsPreviewLoading(false);
   };
 
   const executeRollback = () => {
