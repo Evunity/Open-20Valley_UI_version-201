@@ -236,16 +236,25 @@ const statusBadgeClass: Record<LogStatus, string> = {
 };
 
 const actionBadgeClass: Record<ActionType, string> = {
-  View: 'bg-blue-500/15 text-blue-700 dark:text-blue-300',
-  Update: 'bg-purple-500/15 text-purple-700 dark:text-purple-300',
-  Create: 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-300',
-  Export: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
-  Alarm: 'bg-rose-500/15 text-rose-700 dark:text-rose-300',
-  Auth: 'bg-slate-500/15 text-slate-700 dark:text-slate-300',
-  Filter: 'bg-orange-500/15 text-orange-700 dark:text-orange-300'
+  View: 'bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30',
+  Update: 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30',
+  Create: 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30',
+  Export: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30',
+  Alarm: 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30',
+  Auth: 'bg-slate-500/15 text-slate-700 dark:text-slate-300 border border-slate-500/30',
+  Filter: 'bg-orange-500/15 text-orange-700 dark:text-orange-300 border border-orange-500/30'
 };
 
 const toInputDate = (iso: string) => iso.slice(0, 10);
+const actionTypeBadgeLabel: Record<ActionType, string> = {
+  View: 'VIEW',
+  Update: 'EDIT',
+  Create: 'CREATE',
+  Export: 'EXPORT',
+  Alarm: 'ACK',
+  Auth: 'AUTH',
+  Filter: 'FILTER'
+};
 
 export default function BehavioralAnalyticsLayer() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -442,9 +451,19 @@ export default function BehavioralAnalyticsLayer() {
                       <p className="text-xs text-muted-foreground">{log.email}</p>
                     </td>
                     <td className="px-3 py-2.5">{log.role}</td>
-                    <td className="px-3 py-2.5">
-                      <span className={cn('px-2 py-1 rounded-md text-xs font-semibold', actionBadgeClass[log.actionType])}>
-                        {log.actionLabel}
+                    <td className="px-3 py-2.5 max-w-[260px]">
+                      <span className="inline-flex w-full items-center gap-2">
+                        <span
+                          className={cn(
+                            'inline-flex min-h-6 shrink-0 items-center justify-center whitespace-nowrap rounded-md px-2 py-1 text-[10px] font-bold tracking-wide',
+                            actionBadgeClass[log.actionType]
+                          )}
+                        >
+                          {actionTypeBadgeLabel[log.actionType]}
+                        </span>
+                        <span className="min-w-0 truncate text-sm text-foreground" title={log.actionLabel}>
+                          {log.actionLabel}
+                        </span>
                       </span>
                     </td>
                     <td className="px-3 py-2.5">{log.module}</td>
