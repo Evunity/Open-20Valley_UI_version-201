@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { RotateCcw, Save, CheckCircle, AlertCircle, Clock, User, Eye, Download, X, ChevronDown } from 'lucide-react';
+import { RotateCcw, Eye, Download, X, ChevronDown } from 'lucide-react';
 import SearchableDropdown from './SearchableDropdown';
 import { cn } from '@/lib/utils';
 import * as XLSX from 'xlsx';
@@ -14,8 +14,14 @@ interface ChangeSnapshot {
   timestamp: string;
   user: string;
   scriptUsed: string;
-  objectIds: string[];
-  previousValues: Record<string, string>;
+  objectConfigs: Array<{
+    objectId: string;
+    parameters: Array<{
+      parameter: string;
+      currentValue: string;
+      previousValue: string;
+    }>;
+  }>;
   status: 'active' | 'rolled_back';
   rollbackableItems: number;
 }
@@ -40,27 +46,62 @@ const MOCK_SNAPSHOTS: ChangeSnapshot[] = [
     timestamp: '2024-12-02 14:32:15',
     user: 'Engineer.A',
     scriptUsed: 'Network Configuration Reset',
-    objectIds: ['Cairo-Site-1', 'Cairo-Site-2', 'Cairo-Site-3', 'Giza-Site-1'],
-    previousValues: {
-      'Cairo-Site-1': 'TX Power: 43 dBm, DL Bandwidth: 20 MHz, Cell Barring: False, IP Address: 192.168.1.100, VLAN ID: 100',
-      'Cairo-Site-2': 'TX Power: 40 dBm, DL Bandwidth: 20 MHz, Cell Barring: False, IP Address: 192.168.1.101, VLAN ID: 101',
-      'Cairo-Site-3': 'TX Power: 43 dBm, DL Bandwidth: 15 MHz, Cell Barring: False, IP Address: 192.168.1.102, VLAN ID: 102',
-      'Giza-Site-1': 'TX Power: 43 dBm, DL Bandwidth: 20 MHz, Cell Barring: True, IP Address: 192.168.1.103, VLAN ID: 103'
-    },
+    objectConfigs: [
+      {
+        objectId: 'Cairo-Site-1',
+        parameters: [
+          { parameter: 'TX Power', currentValue: '40 dBm', previousValue: '43 dBm' },
+          { parameter: 'DL Bandwidth', currentValue: '25 MHz', previousValue: '20 MHz' },
+          { parameter: 'VLAN ID', currentValue: '110', previousValue: '100' }
+        ]
+      },
+      {
+        objectId: 'Cairo-Site-2',
+        parameters: [
+          { parameter: 'IP Address', currentValue: '192.168.1.210', previousValue: '192.168.1.101' },
+          { parameter: 'VLAN ID', currentValue: '111', previousValue: '101' },
+          { parameter: 'DL Bandwidth', currentValue: '25 MHz', previousValue: '20 MHz' }
+        ]
+      },
+      {
+        objectId: 'Cairo-Site-3',
+        parameters: [
+          { parameter: 'Cell Barring', currentValue: 'True', previousValue: 'False' },
+          { parameter: 'VLAN ID', currentValue: '112', previousValue: '102' }
+        ]
+      }
+    ],
     status: 'active',
-    rollbackableItems: 4
+    rollbackableItems: 3
   },
   {
     id: 'snap_002',
     timestamp: '2024-12-02 13:45:22',
     user: 'Engineer.B',
     scriptUsed: 'DL Bandwidth Optimization',
-    objectIds: ['Alexandria-Site-1', 'Alexandria-Site-2', 'Suez-Site-1'],
-    previousValues: {
-      'Alexandria-Site-1': 'TX Power: 40 dBm, DL Bandwidth: 20 MHz, Cell Barring: False, IP Address: 192.168.2.100, VLAN ID: 200',
-      'Alexandria-Site-2': 'TX Power: 40 dBm, DL Bandwidth: 20 MHz, Cell Barring: False, IP Address: 192.168.2.101, VLAN ID: 201',
-      'Suez-Site-1': 'TX Power: 43 dBm, DL Bandwidth: 20 MHz, Cell Barring: False, IP Address: 192.168.2.102, VLAN ID: 202'
-    },
+    objectConfigs: [
+      {
+        objectId: 'Alexandria-Site-1',
+        parameters: [
+          { parameter: 'DL Bandwidth', currentValue: '25 MHz', previousValue: '20 MHz' },
+          { parameter: 'TX Power', currentValue: '38 dBm', previousValue: '40 dBm' }
+        ]
+      },
+      {
+        objectId: 'Alexandria-Site-2',
+        parameters: [
+          { parameter: 'DL Bandwidth', currentValue: '25 MHz', previousValue: '20 MHz' },
+          { parameter: 'IP Address', currentValue: '192.168.2.151', previousValue: '192.168.2.101' }
+        ]
+      },
+      {
+        objectId: 'Suez-Site-1',
+        parameters: [
+          { parameter: 'VLAN ID', currentValue: '208', previousValue: '202' },
+          { parameter: 'Cell Barring', currentValue: 'True', previousValue: 'False' }
+        ]
+      }
+    ],
     status: 'active',
     rollbackableItems: 3
   },
@@ -69,28 +110,31 @@ const MOCK_SNAPSHOTS: ChangeSnapshot[] = [
     timestamp: '2024-12-02 12:10:45',
     user: 'Engineer.C',
     scriptUsed: 'TX Power Adjustment for Peak Hours',
-    objectIds: ['Dubai-Site-1', 'Dubai-Site-2', 'Abu-Dhabi-Site-1', 'Sharjah-Site-1', 'Ajman-Site-1'],
-    previousValues: {
-      'Dubai-Site-1': 'TX Power: 43 dBm → 40 dBm, DL Bandwidth: 20 MHz, Cell Barring: False, IP Address: 192.168.3.100, VLAN ID: 300',
-      'Dubai-Site-2': 'TX Power: 43 dBm → 40 dBm, DL Bandwidth: 20 MHz, Cell Barring: False, IP Address: 192.168.3.101, VLAN ID: 301',
-      'Abu-Dhabi-Site-1': 'TX Power: 43 dBm → 38 dBm, DL Bandwidth: 20 MHz, Cell Barring: False, IP Address: 192.168.3.102, VLAN ID: 302',
-      'Sharjah-Site-1': 'TX Power: 40 dBm → 38 dBm, DL Bandwidth: 15 MHz, Cell Barring: True, IP Address: 192.168.3.103, VLAN ID: 303',
-      'Ajman-Site-1': 'TX Power: 43 dBm → 40 dBm, DL Bandwidth: 20 MHz, Cell Barring: False, IP Address: 192.168.3.104, VLAN ID: 304'
-    },
+    objectConfigs: [
+      {
+        objectId: 'Dubai-Site-1',
+        parameters: [
+          { parameter: 'TX Power', currentValue: '40 dBm', previousValue: '43 dBm' },
+          { parameter: 'VLAN ID', currentValue: '309', previousValue: '300' }
+        ]
+      },
+      {
+        objectId: 'Dubai-Site-2',
+        parameters: [
+          { parameter: 'TX Power', currentValue: '40 dBm', previousValue: '43 dBm' },
+          { parameter: 'IP Address', currentValue: '192.168.3.199', previousValue: '192.168.3.101' }
+        ]
+      }
+    ],
     status: 'active',
-    rollbackableItems: 5
+    rollbackableItems: 2
   },
   {
     id: 'snap_004',
     timestamp: '2024-12-02 11:20:30',
     user: 'System',
     scriptUsed: 'Auto Emergency Recovery',
-    objectIds: ['Riyadh-Site-1', 'Riyadh-Site-2', 'Jeddah-Site-1'],
-    previousValues: {
-      'Riyadh-Site-1': 'TX Power: 43 dBm, DL Bandwidth: 20 MHz, Cell Barring: False, IP Address: 192.168.4.100, VLAN ID: 400',
-      'Riyadh-Site-2': 'TX Power: 43 dBm, DL Bandwidth: 20 MHz, Cell Barring: False, IP Address: 192.168.4.101, VLAN ID: 401',
-      'Jeddah-Site-1': 'TX Power: 40 dBm, DL Bandwidth: 20 MHz, Cell Barring: False, IP Address: 192.168.4.102, VLAN ID: 402'
-    },
+    objectConfigs: [],
     status: 'rolled_back',
     rollbackableItems: 0
   },
@@ -99,11 +143,22 @@ const MOCK_SNAPSHOTS: ChangeSnapshot[] = [
     timestamp: '2024-12-02 10:15:45',
     user: 'Engineer.D',
     scriptUsed: 'Multi-Parameter Cell Configuration',
-    objectIds: ['Dammam-Site-1', 'Khobar-Site-1'],
-    previousValues: {
-      'Dammam-Site-1': 'TX Power: 43 dBm, DL Bandwidth: 20 MHz, Cell Barring: False, IP Address: 192.168.5.100, VLAN ID: 500',
-      'Khobar-Site-1': 'TX Power: 40 dBm, DL Bandwidth: 15 MHz, Cell Barring: True, IP Address: 192.168.5.101, VLAN ID: 501'
-    },
+    objectConfigs: [
+      {
+        objectId: 'Dammam-Site-1',
+        parameters: [
+          { parameter: 'VLAN ID', currentValue: '550', previousValue: '500' },
+          { parameter: 'IP Address', currentValue: '192.168.5.150', previousValue: '192.168.5.100' }
+        ]
+      },
+      {
+        objectId: 'Khobar-Site-1',
+        parameters: [
+          { parameter: 'DL Bandwidth', currentValue: '20 MHz', previousValue: '15 MHz' },
+          { parameter: 'Cell Barring', currentValue: 'False', previousValue: 'True' }
+        ]
+      }
+    ],
     status: 'active',
     rollbackableItems: 2
   }
@@ -184,8 +239,8 @@ const PARAMETER_OPTIONS = ['TX Power', 'DL Bandwidth', 'Cell Barring', 'IP Addre
 
 export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () => {
   const [snapshots, setSnapshots] = useState<ChangeSnapshot[]>(MOCK_SNAPSHOTS);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [selectedMode, setSelectedMode] = useState<'full' | 'partial' | 'selective'>('full');
+  const [selectedMode, setSelectedMode] = useState<'full' | 'targeted'>('targeted');
+  const [selectedSnapshots, setSelectedSnapshots] = useState<Set<string>>(new Set());
   const [selectedObjects, setSelectedObjects] = useState<Set<string>>(new Set());
   const [selectedParameters, setSelectedParameters] = useState<Set<string>>(new Set());
 
@@ -199,10 +254,20 @@ export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () =>
   const [showExportMenu, setShowExportMenu] = useState(false);
   const exportMenuRef = useRef<HTMLDivElement>(null);
 
-  const handleModeChange = (mode: 'full' | 'partial' | 'selective') => {
+  const handleModeChange = (mode: 'full' | 'targeted') => {
     setSelectedMode(mode);
     setSelectedObjects(new Set());
     setSelectedParameters(new Set());
+  };
+
+  const toggleSnapshot = (snapshotId: string) => {
+    const updated = new Set(selectedSnapshots);
+    if (updated.has(snapshotId)) {
+      updated.delete(snapshotId);
+    } else {
+      updated.add(snapshotId);
+    }
+    setSelectedSnapshots(updated);
   };
 
   const toggleObject = (objectId: string) => {
@@ -225,21 +290,58 @@ export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () =>
     setSelectedParameters(newSelected);
   };
 
-  const executeRollback = (snapshotId: string, mode: string) => {
-    if (mode === 'Partial' && selectedObjects.size === 0) {
+  const activeSelectedSnapshots = snapshots.filter(
+    (snapshot) => selectedSnapshots.has(snapshot.id) && snapshot.status === 'active'
+  );
+  const availableObjects = Array.from(
+    new Set(activeSelectedSnapshots.flatMap((snapshot) => snapshot.objectConfigs.map((objectConfig) => objectConfig.objectId)))
+  );
+  const availableParameters = Array.from(
+    new Set(
+      activeSelectedSnapshots.flatMap((snapshot) =>
+        snapshot.objectConfigs.flatMap((objectConfig) => objectConfig.parameters.map((parameter) => parameter.parameter))
+      )
+    )
+  );
+
+  const comparisonRows = activeSelectedSnapshots.flatMap((snapshot) =>
+    snapshot.objectConfigs.flatMap((objectConfig) =>
+      objectConfig.parameters
+        .filter((parameter) => selectedMode === 'full' || selectedParameters.has(parameter.parameter))
+        .filter(() => selectedMode === 'full' || selectedObjects.has(objectConfig.objectId))
+        .map((parameter) => ({
+          snapshotId: snapshot.id,
+          object: objectConfig.objectId,
+          parameter: parameter.parameter,
+          currentValue: parameter.currentValue,
+          previousValue: parameter.previousValue
+        }))
+    )
+  );
+
+  const executeRollback = () => {
+    if (selectedSnapshots.size === 0) {
+      alert('Please select at least one snapshot');
+      return;
+    }
+    if (selectedMode === 'targeted' && selectedObjects.size === 0) {
       alert('Please select at least one object to rollback');
       return;
     }
-    if (mode === 'Selective' && selectedParameters.size === 0) {
+    if (selectedMode === 'targeted' && selectedParameters.size === 0) {
       alert('Please select at least one parameter to rollback');
       return;
     }
-    setSnapshots(snapshots.map(s =>
-      s.id === snapshotId ? { ...s, status: 'rolled_back' } : s
-    ));
+    if (comparisonRows.length === 0) {
+      alert('No matching configuration changes found for the selected scope');
+      return;
+    }
+
+    setSnapshots(snapshots.map((snapshot) => (selectedSnapshots.has(snapshot.id) ? { ...snapshot, status: 'rolled_back' } : snapshot)));
     setSelectedObjects(new Set());
     setSelectedParameters(new Set());
-    alert(`Rollback executed for snapshot ${snapshotId} in ${mode} mode`);
+    setSelectedSnapshots(new Set());
+    alert(`Rollback executed successfully for ${comparisonRows.length} targeted parameter changes`);
   };
 
   const filteredEntries = entries.filter(entry => {
@@ -372,200 +474,146 @@ export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () =>
         {/* Header */}
         <div className="mb-2">
           <h2 className="text-2xl font-bold text-foreground">Rollback Management</h2>
-          <p className="text-sm text-muted-foreground mt-2">Restore configurations using Full, Partial, or Selective rollback strategies</p>
+          <p className="text-sm text-muted-foreground mt-2">
+            Execute safe production rollback with full or targeted scope and explicit Current vs Previous parameter comparison.
+          </p>
         </div>
 
-        {/* Rollback Strategy Selection */}
-        <div className="bg-card border border-border rounded-lg p-4 mb-2">
-          <h3 className="font-semibold text-foreground mb-4">Select Rollback Strategy</h3>
-          <div className="grid grid-cols-3 gap-3">
-            {['full', 'partial', 'selective'].map(mode => (
-              <button
-                key={mode}
-                onClick={() => handleModeChange(mode as any)}
-                className={`p-4 rounded-lg border-2 transition ${
-                  selectedMode === mode
-                    ? 'border-primary bg-primary/10 text-foreground'
-                    : 'border-border bg-card text-muted-foreground hover:border-primary/40'
-                }`}
-              >
-                <p className="font-semibold text-sm capitalize">{mode} Rollback</p>
-                <p className="text-xs text-muted-foreground mt-2">
-                  {mode === 'full' && 'Restore all objects to previous state'}
-                  {mode === 'partial' && 'Rollback specific objects'}
-                  {mode === 'selective' && 'Choose individual parameters'}
-                </p>
-              </button>
-            ))}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+          <div className="bg-card border border-border rounded-xl p-4 space-y-3">
+            <h3 className="font-semibold text-foreground">1) Rollback Mode</h3>
+            <div className="space-y-2">
+              {[
+                { mode: 'targeted' as const, label: 'Targeted Rollback', description: 'Rollback selected objects and selected parameters only.' },
+                { mode: 'full' as const, label: 'Full Rollback', description: 'Rollback every changed object and parameter in selected snapshot(s).' }
+              ].map((option) => (
+                <button
+                  key={option.mode}
+                  onClick={() => handleModeChange(option.mode)}
+                  className={cn(
+                    'w-full text-left p-3 rounded-lg border transition',
+                    selectedMode === option.mode ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/40'
+                  )}
+                >
+                  <p className="font-semibold text-sm text-foreground">{option.label}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{option.description}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-card border border-border rounded-xl p-4 space-y-3">
+            <h3 className="font-semibold text-foreground">2) Select Snapshot(s)</h3>
+            <div className="max-h-56 overflow-y-auto space-y-2 pr-1">
+              {snapshots.map((snapshot) => (
+                <label
+                  key={snapshot.id}
+                  className={cn(
+                    'block border rounded-lg p-3 cursor-pointer transition',
+                    selectedSnapshots.has(snapshot.id) ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/40',
+                    snapshot.status === 'rolled_back' && 'opacity-60'
+                  )}
+                >
+                  <div className="flex items-start gap-2">
+                    <input
+                      type="checkbox"
+                      checked={selectedSnapshots.has(snapshot.id)}
+                      disabled={snapshot.status !== 'active'}
+                      onChange={() => toggleSnapshot(snapshot.id)}
+                      className="mt-1"
+                    />
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-foreground truncate">{snapshot.scriptUsed}</p>
+                      <p className="text-xs text-muted-foreground">{snapshot.id} • {snapshot.timestamp}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{snapshot.rollbackableItems} rollbackable objects</p>
+                    </div>
+                  </div>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-card border border-border rounded-xl p-4 space-y-3">
+            <h3 className="font-semibold text-foreground">3) Scope Selection</h3>
+            <p className="text-xs text-muted-foreground">Choose multiple objects and parameters. Example: rollback VLAN ID only for Cairo-Site-2.</p>
+            <div>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">Objects ({selectedObjects.size})</p>
+              <div className="max-h-24 overflow-y-auto space-y-1">
+                {availableObjects.map((obj) => (
+                  <label key={obj} className="flex items-center gap-2 text-sm text-foreground">
+                    <input type="checkbox" checked={selectedObjects.has(obj)} onChange={() => toggleObject(obj)} disabled={selectedMode === 'full'} />
+                    {obj}
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">Parameters ({selectedParameters.size})</p>
+              <div className="grid grid-cols-2 gap-1">
+                {(availableParameters.length ? availableParameters : PARAMETER_OPTIONS).map((param) => (
+                  <label key={param} className="flex items-center gap-2 text-xs text-foreground">
+                    <input type="checkbox" checked={selectedParameters.has(param)} onChange={() => toggleParameter(param)} disabled={selectedMode === 'full'} />
+                    {param}
+                  </label>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Change Snapshots */}
-        <div className="flex-1">
-          <h3 className="font-semibold text-foreground text-sm mb-3">Available Snapshots ({snapshots.length})</h3>
-          <div className="grid grid-cols-2 gap-3 auto-rows-max max-h-96 overflow-y-auto">
-            {snapshots.map((snapshot) => (
-            <div
-              key={snapshot.id}
-              className="border border-border rounded-lg overflow-hidden bg-card hover:border-border/80 transition"
-            >
-              <button
-                onClick={() => setExpandedId(expandedId === snapshot.id ? null : snapshot.id)}
-                className="w-full p-4 hover:bg-muted/30 transition flex items-start gap-3 text-left"
-              >
-                {snapshot.status === 'active' ? (
-                  <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                ) : (
-                  <RotateCcw className="w-5 h-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+        <div className="bg-card border border-border rounded-xl p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-foreground">4) Configuration Comparison & Rollback Preview</h3>
+            <span className="text-xs font-semibold text-muted-foreground">
+              Previewing {comparisonRows.length} parameter change{comparisonRows.length !== 1 ? 's' : ''}
+            </span>
+          </div>
+          <div className="overflow-auto border border-border rounded-lg">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/40">
+                <tr>
+                  <th className="text-left px-3 py-2">Snapshot</th>
+                  <th className="text-left px-3 py-2">Object</th>
+                  <th className="text-left px-3 py-2">Parameter</th>
+                  <th className="text-left px-3 py-2">Current value</th>
+                  <th className="text-left px-3 py-2">Previous value</th>
+                </tr>
+              </thead>
+              <tbody>
+                {comparisonRows.length > 0 ? comparisonRows.map((row, index) => (
+                  <tr key={`${row.snapshotId}-${row.object}-${row.parameter}-${index}`} className="border-t border-border">
+                    <td className="px-3 py-2 font-mono text-xs">{row.snapshotId}</td>
+                    <td className="px-3 py-2">{row.object}</td>
+                    <td className="px-3 py-2">{row.parameter}</td>
+                    <td className="px-3 py-2 text-red-600 dark:text-red-400">{row.currentValue}</td>
+                    <td className="px-3 py-2 text-green-700 dark:text-green-400">{row.previousValue}</td>
+                  </tr>
+                )) : (
+                  <tr>
+                    <td className="px-3 py-6 text-center text-muted-foreground" colSpan={5}>
+                      Select snapshot(s) and scope to preview rollback changes.
+                    </td>
+                  </tr>
                 )}
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <p className="font-semibold text-foreground truncate">{snapshot.scriptUsed}</p>
-                    <span className={`text-xs px-2 py-0.5 rounded font-semibold whitespace-nowrap ${
-                      snapshot.status === 'active'
-                        ? 'bg-green-100 dark:bg-green-950/30 text-green-800 dark:text-green-300'
-                        : 'bg-muted text-muted-foreground'
-                    }`}>
-                      {snapshot.status === 'active' ? '● Active' : '○ Rolled back'}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      {snapshot.timestamp}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <User className="w-3 h-3" />
-                      {snapshot.user}
-                    </div>
-                    <div className="text-foreground font-medium">{snapshot.objectIds.length} objects</div>
-                  </div>
-                </div>
-              </button>
-
-              {/* Expanded Details */}
-              {expandedId === snapshot.id && (
-                <div className="p-4 bg-muted/30 border-t border-border space-y-4">
-                  {/* Previous Values */}
-                  <div>
-                    <p className="font-semibold text-foreground text-sm mb-3">Previous Configuration</p>
-                    <div className="space-y-2">
-                      {Object.entries(snapshot.previousValues).map(([obj, val]) => (
-                        <div key={obj} className="p-3 bg-card rounded border border-border text-sm">
-                          <p className="font-semibold text-foreground">{obj}</p>
-                          <p className="text-xs text-muted-foreground mt-1 font-mono">{val}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Partial Rollback - Object Selection */}
-                  {selectedMode === 'partial' && (
-                    <div>
-                      <p className="font-semibold text-foreground text-sm mb-3">Select Objects to Rollback</p>
-                      <div className="space-y-2 bg-card p-3 rounded border border-border">
-                        {snapshot.objectIds.map(obj => (
-                          <label key={obj} className="flex items-center gap-2 cursor-pointer hover:bg-muted/30 p-2 rounded transition">
-                            <input
-                              type="checkbox"
-                              checked={selectedObjects.has(obj)}
-                              onChange={() => toggleObject(obj)}
-                              className="w-4 h-4 rounded border-border"
-                            />
-                            <span className="text-sm text-foreground">{obj}</span>
-                          </label>
-                        ))}
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-2 font-semibold">{selectedObjects.size} of {snapshot.objectIds.length} selected</p>
-                    </div>
-                  )}
-
-                  {/* Selective Rollback - Parameter Selection */}
-                  {selectedMode === 'selective' && (
-                    <div>
-                      <p className="font-semibold text-foreground text-sm mb-3">Select Parameters to Rollback</p>
-                      <div className="grid grid-cols-2 gap-2 bg-card p-3 rounded border border-border">
-                        {PARAMETER_OPTIONS.map(param => (
-                          <label key={param} className="flex items-center gap-2 cursor-pointer hover:bg-muted/30 p-2 rounded transition">
-                            <input
-                              type="checkbox"
-                              checked={selectedParameters.has(param)}
-                              onChange={() => toggleParameter(param)}
-                              className="w-4 h-4 rounded border-border"
-                            />
-                            <span className="text-sm text-foreground">{param}</span>
-                          </label>
-                        ))}
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-2 font-semibold">{selectedParameters.size} of {PARAMETER_OPTIONS.length} selected</p>
-                    </div>
-                  )}
-
-                  {/* Rollback Actions */}
-                  {snapshot.status === 'active' && (
-                    <div className="flex gap-2 pt-2">
-                      {selectedMode === 'full' && (
-                        <button
-                          onClick={() => executeRollback(snapshot.id, 'Full')}
-                          className="flex-1 px-4 py-2.5 bg-orange-600 dark:bg-orange-700 text-white rounded-lg hover:bg-orange-700 dark:hover:bg-orange-600 font-semibold flex items-center justify-center gap-2 transition"
-                        >
-                          <RotateCcw className="w-4 h-4" />
-                          Full Rollback
-                        </button>
-                      )}
-
-                      {selectedMode === 'partial' && (
-                        <button
-                          onClick={() => executeRollback(snapshot.id, 'Partial')}
-                          disabled={selectedObjects.size === 0}
-                          className="flex-1 px-4 py-2.5 bg-orange-600 dark:bg-orange-700 text-white rounded-lg hover:bg-orange-700 dark:hover:bg-orange-600 font-semibold text-sm transition disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed"
-                        >
-                          Rollback {selectedObjects.size} Object{selectedObjects.size !== 1 ? 's' : ''}
-                        </button>
-                      )}
-
-                      {selectedMode === 'selective' && (
-                        <button
-                          onClick={() => executeRollback(snapshot.id, 'Selective')}
-                          disabled={selectedParameters.size === 0}
-                          className="flex-1 px-4 py-2.5 bg-orange-600 dark:bg-orange-700 text-white rounded-lg hover:bg-orange-700 dark:hover:bg-orange-600 font-semibold text-sm transition disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed"
-                        >
-                          Rollback {selectedParameters.size} Parameter{selectedParameters.size !== 1 ? 's' : ''}
-                        </button>
-                      )}
-                    </div>
-                  )}
-
-                  {snapshot.status === 'rolled_back' && (
-                    <div className="space-y-3">
-                      <div className="p-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg flex items-start gap-2">
-                        <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                        <div className="text-sm text-green-800 dark:text-green-300">
-                          <p className="font-semibold">Rollback Completed</p>
-                          <p className="text-xs mt-0.5">All changes have been reverted. See audit log for details.</p>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => {
-                          setSnapshots(snapshots.map(s =>
-                            s.id === snapshot.id ? { ...s, status: 'active' } : s
-                          ));
-                          setSelectedObjects(new Set());
-                          setSelectedParameters(new Set());
-                        }}
-                        className="w-full px-4 py-2.5 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 font-semibold flex items-center justify-center gap-2 transition"
-                      >
-                        <RotateCcw className="w-4 h-4" />
-                        Perform Another Rollback
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-xs text-muted-foreground">
+              Execution applies only to the selected snapshot(s), selected objects, and selected parameters.
+            </p>
+            <button
+              onClick={executeRollback}
+              disabled={
+                comparisonRows.length === 0 ||
+                selectedSnapshots.size === 0 ||
+                (selectedMode === 'targeted' && (selectedObjects.size === 0 || selectedParameters.size === 0))
+              }
+              className="px-4 py-2.5 bg-orange-600 dark:bg-orange-700 text-white rounded-lg hover:bg-orange-700 dark:hover:bg-orange-600 font-semibold flex items-center justify-center gap-2 transition disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Execute {selectedMode === 'full' ? 'Full' : 'Targeted'} Rollback
+            </button>
           </div>
         </div>
       </div>
