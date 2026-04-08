@@ -20,7 +20,7 @@ export default function AuditFilterToolbar({
     <div className={cn("rounded-xl border border-border bg-card p-4 space-y-3 w-full max-w-none", className)}>
       <div
         className={cn(
-          "grid grid-cols-1 gap-2 w-full md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-[minmax(280px,2fr)_repeat(4,minmax(150px,1fr))]",
+          "grid grid-cols-1 gap-2 w-full md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-[1.4fr_0.8fr_0.8fr_0.8fr_0.8fr]",
           row1ClassName
         )}
       >

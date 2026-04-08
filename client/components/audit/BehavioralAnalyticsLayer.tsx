@@ -348,14 +348,17 @@ export default function BehavioralAnalyticsLayer() {
 
       <AuditFilterToolbar
         row1={[
-          <div className="relative">
-            <Search className="absolute left-3 top-3.5 w-4 h-4 text-muted-foreground pointer-events-none" />
-            <Input
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search user, action, target, route, tenant..."
-              className="pl-10"
-            />
+          <div>
+            <label className="block text-[11px] mb-1.5 typo-label">Search</label>
+            <div className="relative">
+              <Search className="absolute left-3 top-3.5 w-4 h-4 text-muted-foreground pointer-events-none" />
+              <Input
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search user, action, target, route, tenant..."
+                className="pl-10"
+              />
+            </div>
           </div>,
           <SearchableDropdown
             label="User"
