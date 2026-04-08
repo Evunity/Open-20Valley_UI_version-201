@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { RotateCcw, Save, CheckCircle, AlertCircle, Clock, User, Eye, Download, X, ChevronDown } from 'lucide-react';
+import { RotateCcw, Save, CheckCircle, AlertCircle, Eye, Download, X, ChevronDown } from 'lucide-react';
 import SearchableDropdown from './SearchableDropdown';
 import { cn } from '@/lib/utils';
 import * as XLSX from 'xlsx';
@@ -257,6 +257,17 @@ export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () =>
   const selectedSnapshot = snapshots.find((snapshot) => snapshot.id === selectedSnapshotId) ?? null;
   const selectedObjectList = [...selectedObjects];
   const selectedParameterList = [...selectedParameters];
+  const buildDiffRows = (snapshot: ChangeSnapshot) =>
+    snapshot.objectIds.flatMap((objectId) =>
+      PARAMETER_OPTIONS
+        .filter((parameter) => snapshot.currentConfig[objectId]?.[parameter] !== snapshot.previousConfig[objectId]?.[parameter])
+        .map((parameter) => ({
+          objectId,
+          parameter,
+          currentValue: snapshot.currentConfig[objectId]?.[parameter] ?? '-',
+          previousValue: snapshot.previousConfig[objectId]?.[parameter] ?? '-'
+        }))
+    );
 
   const comparisonRows = selectedSnapshot
     ? selectedObjectList.flatMap((objectId) =>
@@ -455,26 +466,50 @@ export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () =>
         {/* Change Snapshots */}
         <div className="flex-1">
           <h3 className="font-semibold text-foreground text-sm mb-3">Available Snapshots ({snapshots.length})</h3>
-          <div className="grid grid-cols-2 gap-3 auto-rows-max max-h-96 overflow-y-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 auto-rows-max max-h-[34rem] overflow-y-auto pr-1">
             {snapshots.map((snapshot) => (
-            <div
-              key={snapshot.id}
-              className="border border-border rounded-lg overflow-hidden bg-card hover:border-border/80 transition"
-            >
-              <button
-                onClick={() => setExpandedId(expandedId === snapshot.id ? null : snapshot.id)}
-                className="w-full p-4 hover:bg-muted/30 transition flex items-start gap-3 text-left"
-              >
-                {snapshot.status === 'active' ? (
-                  <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                ) : (
-                  <RotateCcw className="w-5 h-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+              <div
+                key={snapshot.id}
+                className={cn(
+                  "border rounded-xl overflow-hidden bg-card transition",
+                  selectedSnapshotId === snapshot.id
+                    ? "border-primary ring-2 ring-primary/20 shadow-sm"
+                    : "border-border hover:border-primary/40"
                 )}
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <p className="font-semibold text-foreground truncate">{snapshot.scriptUsed}</p>
-                    <span className={`text-xs px-2 py-0.5 rounded font-semibold whitespace-nowrap ${
+              >
+                <div className="p-5 space-y-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <label
+                      className={cn(
+                        "inline-flex items-center gap-3 rounded-lg px-3 py-2 border text-sm font-semibold min-h-11 cursor-pointer",
+                        snapshot.status === 'active'
+                          ? "border-border hover:border-primary/50"
+                          : "border-border/60 opacity-70 cursor-not-allowed"
+                      )}
+                    >
+                      <input
+                        type="radio"
+                        name="selected-snapshot"
+                        className="sr-only"
+                        checked={selectedSnapshotId === snapshot.id}
+                        onChange={() => {
+                          setSelectedSnapshotId(snapshot.id);
+                          setSelectedObjects(new Set());
+                          setSelectedParameters(new Set());
+                        }}
+                        disabled={snapshot.status !== 'active'}
+                      />
+                      <span
+                        className={cn(
+                          "w-5 h-5 rounded-full border-2 flex items-center justify-center",
+                          selectedSnapshotId === snapshot.id ? "border-primary" : "border-muted-foreground"
+                        )}
+                      >
+                        {selectedSnapshotId === snapshot.id && <span className="w-2.5 h-2.5 rounded-full bg-primary" />}
+                      </span>
+                      Select
+                    </label>
+                    <span className={`text-xs px-2.5 py-1 rounded font-semibold whitespace-nowrap ${
                       snapshot.status === 'active'
                         ? 'bg-green-100 dark:bg-green-950/30 text-green-800 dark:text-green-300'
                         : 'bg-muted text-muted-foreground'
@@ -483,54 +518,65 @@ export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () =>
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      {snapshot.timestamp}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <User className="w-3 h-3" />
-                      {snapshot.user}
-                    </div>
-                    <div className="text-foreground font-medium">{snapshot.objectIds.length} objects</div>
-                  </div>
-                  <label className="flex items-center gap-2 mt-2 text-xs text-foreground font-medium">
-                    <input
-                      type="radio"
-                      name="selected-snapshot"
-                      checked={selectedSnapshotId === snapshot.id}
-                      onChange={() => {
-                        setSelectedSnapshotId(snapshot.id);
-                        setSelectedObjects(new Set());
-                        setSelectedParameters(new Set());
-                      }}
-                      disabled={snapshot.status !== 'active'}
-                    />
-                    Select snapshot for rollback
-                  </label>
-                </div>
-              </button>
-
-              {/* Expanded Details */}
-              {expandedId === snapshot.id && (
-                <div className="p-4 bg-muted/30 border-t border-border space-y-4">
-                  {/* Previous Values */}
                   <div>
-                    <p className="font-semibold text-foreground text-sm mb-3">Configuration Baseline</p>
-                    <div className="space-y-2">
-                      {snapshot.objectIds.map((obj) => (
-                        <div key={obj} className="p-3 bg-card rounded border border-border text-sm">
-                          <p className="font-semibold text-foreground">{obj}</p>
-                          <p className="text-xs text-muted-foreground mt-1 font-mono">
-                            {PARAMETER_OPTIONS.map((param) => `${param}: ${snapshot.previousConfig[obj]?.[param] ?? '-'}`).join(', ')}
-                          </p>
-                        </div>
-                      ))}
+                    <p className="text-base font-semibold text-foreground">{snapshot.scriptUsed}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{snapshot.id}</p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-muted-foreground">Created</p>
+                      <p className="font-medium text-foreground mt-0.5">{snapshot.timestamp}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-muted-foreground">Engineer</p>
+                      <p className="font-medium text-foreground mt-0.5">{snapshot.user}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-muted-foreground">Object Count</p>
+                      <p className="font-medium text-foreground mt-0.5">{snapshot.objectIds.length}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-muted-foreground">Parameter Change Count</p>
+                      <p className="font-medium text-foreground mt-0.5">{buildDiffRows(snapshot).length}</p>
                     </div>
                   </div>
+
+                  <button
+                    onClick={() => setExpandedId(expandedId === snapshot.id ? null : snapshot.id)}
+                    className="w-full text-left text-sm font-semibold text-primary hover:text-primary/80 border border-border rounded-lg px-3 py-2"
+                  >
+                    {expandedId === snapshot.id ? 'Hide Changes' : 'View Changes'}
+                  </button>
                 </div>
-              )}
-            </div>
+
+                {expandedId === snapshot.id && (
+                  <div className="px-5 pb-5">
+                    <div className="border border-border rounded-lg overflow-hidden">
+                      <table className="w-full text-sm">
+                        <thead className="bg-muted/40">
+                          <tr className="text-left border-b border-border">
+                            <th className="p-2.5">Object</th>
+                            <th className="p-2.5">Parameter</th>
+                            <th className="p-2.5">Current value</th>
+                            <th className="p-2.5">Previous value</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {buildDiffRows(snapshot).map((row) => (
+                            <tr key={`${snapshot.id}-${row.objectId}-${row.parameter}`} className="border-b border-border/40 last:border-0">
+                              <td className="p-2.5">{row.objectId}</td>
+                              <td className="p-2.5">{row.parameter}</td>
+                              <td className="p-2.5 font-mono">{row.currentValue}</td>
+                              <td className="p-2.5 font-mono">{row.previousValue}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </div>
           ))}
           </div>
         </div>
