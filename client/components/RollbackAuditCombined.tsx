@@ -238,6 +238,9 @@ const VENDOR_OPTIONS = ['Huawei', 'Ericsson', 'Nokia', 'ZTE'];
 const PARAMETER_OPTIONS = ['TX Power', 'DL Bandwidth', 'Cell Barring', 'IP Address', 'VLAN ID'];
 
 export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () => {
+  const selectionBadgeClassName =
+    'inline-flex min-h-6 items-center justify-center whitespace-nowrap rounded-full bg-primary px-2.5 py-1 text-xs font-semibold text-primary-foreground';
+
   const [snapshots, setSnapshots] = useState<ChangeSnapshot[]>(MOCK_SNAPSHOTS);
   const [selectedMode, setSelectedMode] = useState<'full' | 'targeted'>('targeted');
   const [selectedSnapshots, setSelectedSnapshots] = useState<Set<string>>(new Set());
@@ -507,8 +510,8 @@ export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () =>
                       <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{option.description}</p>
                     </div>
                     {selectedMode === option.mode && (
-                      <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-full bg-primary text-primary-foreground">
-                        Active
+                      <span className={selectionBadgeClassName}>
+                        SELECTED
                       </span>
                     )}
                   </div>
@@ -543,8 +546,8 @@ export const RollbackAuditCombined: React.FC<RollbackAuditCombinedProps> = () =>
                       <div className="flex items-center justify-between gap-2">
                         <p className="text-sm font-semibold text-foreground truncate">{snapshot.scriptUsed}</p>
                         {selectedSnapshots.has(snapshot.id) && (
-                          <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-full bg-primary text-primary-foreground">
-                            Selected
+                          <span className={selectionBadgeClassName}>
+                            SELECTED
                           </span>
                         )}
                       </div>
