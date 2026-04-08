@@ -147,7 +147,7 @@ export default function ActivityAudit() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="h-full min-h-0 bg-background flex flex-col">
       {/* Header */}
       <div className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-40">
         <div className="px-8 py-3">
@@ -176,9 +176,9 @@ export default function ActivityAudit() {
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row h-[calc(100vh-100px)]">
+      <div className="grid flex-1 min-h-0 grid-cols-1 lg:grid-cols-[320px_minmax(0,1fr)] bg-background">
         {/* Workspace Navigator Sidebar */}
-        <div className="w-full lg:w-56 border-b lg:border-b-0 lg:border-r border-border bg-card/50">
+        <aside className="border-b lg:border-b-0 lg:border-r border-border bg-card/60 min-h-0">
           <div className="p-4 space-y-2 h-full overflow-y-auto">
             <div className="mb-4">
               <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
@@ -259,17 +259,17 @@ export default function ActivityAudit() {
             </div>
 
           </div>
-        </div>
+        </aside>
 
         {/* Main Content Area */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <section className="min-w-0 min-h-0 flex flex-col bg-background overflow-hidden">
           {/* Workspace Content */}
-          <div className="flex-1 overflow-y-auto">
-            <div className="p-2">
+          <div className="flex-1 min-h-0 overflow-auto bg-background">
+            <div className="p-2 w-full max-w-none">
               {renderWorkspace()}
             </div>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   );

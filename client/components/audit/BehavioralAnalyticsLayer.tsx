@@ -3,6 +3,7 @@ import { Search, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import AuditFilterToolbar from '@/components/audit/AuditFilterToolbar';
 import { Input } from '@/components/ui/input';
+import SearchableDropdown from '@/components/SearchableDropdown';
 
 type LogStatus = 'success' | 'failed' | 'warning';
 type ActionType =
@@ -356,32 +357,42 @@ export default function BehavioralAnalyticsLayer() {
               className="pl-10"
             />
           </div>,
-          <select value={userFilter} onChange={(e) => setUserFilter(e.target.value)} className="h-10 w-full rounded-md border border-input bg-input px-3 text-sm">
-            {users.map((user) => (
-              <option key={user} value={user}>{user === 'all' ? 'All Users' : user}</option>
-            ))}
-          </select>,
-          <select value={moduleFilter} onChange={(e) => setModuleFilter(e.target.value)} className="h-10 w-full rounded-md border border-input bg-input px-3 text-sm">
-            {modules.map((module) => (
-              <option key={module} value={module}>{module === 'all' ? 'All Modules' : module}</option>
-            ))}
-          </select>,
-          <select value={actionTypeFilter} onChange={(e) => setActionTypeFilter(e.target.value as 'all' | ActionType)} className="h-10 w-full rounded-md border border-input bg-input px-3 text-sm">
-            <option value="all">All Action Types</option>
-            <option value="View">View</option>
-            <option value="Update">Update</option>
-            <option value="Create">Create</option>
-            <option value="Export">Export</option>
-            <option value="Alarm">Alarm</option>
-            <option value="Auth">Auth</option>
-            <option value="Filter">Filter</option>
-          </select>,
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as 'all' | LogStatus)} className="h-10 w-full rounded-md border border-input bg-input px-3 text-sm">
-            <option value="all">All Status</option>
-            <option value="success">Success</option>
-            <option value="warning">Warning</option>
-            <option value="failed">Failed</option>
-          </select>
+          <SearchableDropdown
+            label="User"
+            options={users}
+            selected={[userFilter]}
+            onChange={(selected) => setUserFilter(selected[0] || 'all')}
+            multiSelect={false}
+            searchable={true}
+            compact={true}
+          />,
+          <SearchableDropdown
+            label="Module"
+            options={modules}
+            selected={[moduleFilter]}
+            onChange={(selected) => setModuleFilter(selected[0] || 'all')}
+            multiSelect={false}
+            searchable={true}
+            compact={true}
+          />,
+          <SearchableDropdown
+            label="Action Type"
+            options={['all', 'View', 'Update', 'Create', 'Export', 'Alarm', 'Auth', 'Filter']}
+            selected={[actionTypeFilter]}
+            onChange={(selected) => setActionTypeFilter((selected[0] as 'all' | ActionType) || 'all')}
+            multiSelect={false}
+            searchable={false}
+            compact={true}
+          />,
+          <SearchableDropdown
+            label="Status"
+            options={['all', 'success', 'warning', 'failed']}
+            selected={[statusFilter]}
+            onChange={(selected) => setStatusFilter((selected[0] as 'all' | LogStatus) || 'all')}
+            multiSelect={false}
+            searchable={false}
+            compact={true}
+          />
         ]}
         row2={[
           <div>
