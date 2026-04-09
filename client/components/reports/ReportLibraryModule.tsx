@@ -1,242 +1,206 @@
-import { Library, GitBranch, Eye, Download, Share2, Trash2 } from 'lucide-react';
+import {
+  Archive,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  Eye,
+  FileClock,
+  Filter,
+  Heart,
+  MoreHorizontal,
+  Plus,
+  Search,
+  Tag,
+} from "lucide-react";
 
-interface Report {
+interface ReportLibraryItem {
   id: string;
-  title: string;
-  category: string;
+  reportName: string;
+  dataset: string;
   owner: string;
-  created: string;
-  versions: number;
-  downloads: number;
-  status: 'published' | 'draft' | 'archived';
+  schedule: string;
+  status: "Active" | "Draft" | "Legal Hold";
+  usage: string;
 }
 
+const REPORT_LIBRARY_ROWS: ReportLibraryItem[] = [
+  {
+    id: "rpt-101",
+    reportName: "Daily NOC Summary",
+    dataset: "NOC Unified Events",
+    owner: "NOC Ops",
+    schedule: "Daily · 06:00",
+    status: "Active",
+    usage: "18.4K",
+  },
+  {
+    id: "rpt-102",
+    reportName: "Weekly SLA Compliance",
+    dataset: "Service Assurance Ledger",
+    owner: "SLA Office",
+    schedule: "Weekly · Mon 08:30",
+    status: "Active",
+    usage: "9.1K",
+  },
+  {
+    id: "rpt-103",
+    reportName: "Vendor Scorecard Q1",
+    dataset: "Vendor Performance Mart",
+    owner: "Procurement BI",
+    schedule: "Manual Refresh",
+    status: "Draft",
+    usage: "1.7K",
+  },
+  {
+    id: "rpt-104",
+    reportName: "Regulatory Pack",
+    dataset: "Regulatory Evidence Vault",
+    owner: "Compliance Team",
+    schedule: "Monthly · Day 1",
+    status: "Legal Hold",
+    usage: "4.3K",
+  },
+  {
+    id: "rpt-105",
+    reportName: "Automation ROI Analysis",
+    dataset: "Automation Outcome Cube",
+    owner: "Automation CoE",
+    schedule: "Monthly · Day 5",
+    status: "Active",
+    usage: "6.8K",
+  },
+];
+
+const TOOLBAR_ACTIONS = [
+  { label: "Filters", icon: Filter },
+  { label: "Tags", icon: Tag },
+  { label: "Favorites", icon: Heart },
+  { label: "Export", icon: Download },
+  { label: "Version History", icon: FileClock },
+  { label: "Archive", icon: Archive },
+];
+
+const getStatusClassName = (status: ReportLibraryItem["status"]) => {
+  switch (status) {
+    case "Active":
+      return "border-emerald-600/25 bg-emerald-500/10 text-emerald-700";
+    case "Draft":
+      return "border-amber-600/25 bg-amber-500/10 text-amber-700";
+    case "Legal Hold":
+      return "border-rose-600/25 bg-rose-500/10 text-rose-700";
+    default:
+      return "border-border bg-muted text-foreground";
+  }
+};
+
 export default function ReportLibraryModule() {
-  const reports: Report[] = [
-    {
-      id: '1',
-      title: 'Transport Network KPI Summary',
-      category: 'Network Operations',
-      owner: 'Transport Team',
-      created: '2024-01-15',
-      versions: 8,
-      downloads: 124,
-      status: 'published'
-    },
-    {
-      id: '2',
-      title: 'RF Performance Analysis',
-      category: 'Engineering',
-      owner: 'RF Team',
-      created: '2024-02-10',
-      versions: 5,
-      downloads: 89,
-      status: 'published'
-    },
-    {
-      id: '3',
-      title: 'Executive Dashboard - Monthly',
-      category: 'Executive',
-      owner: 'BI Team',
-      created: '2024-03-01',
-      versions: 3,
-      downloads: 45,
-      status: 'published'
-    },
-    {
-      id: '4',
-      title: 'Revenue Growth Forecast',
-      category: 'Finance',
-      owner: 'Finance',
-      created: '2024-03-10',
-      versions: 2,
-      downloads: 12,
-      status: 'draft'
-    }
-  ];
-
-  const getStatusColor = (status: Report['status']) => {
-    switch (status) {
-      case 'published': return 'bg-green-500/10 text-green-700';
-      case 'draft': return 'bg-blue-500/10 text-blue-700';
-      case 'archived': return 'bg-gray-500/10 text-gray-700';
-    }
-  };
-
   return (
-    <div className="space-y-8">
-      {/* Library Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="rounded-xl border border-border/50 p-4 bg-card/50">
-          <p className="text-sm text-muted-foreground mb-1">Total Reports</p>
-          <p className="text-3xl font-bold text-foreground">128</p>
-          <p className="text-xs text-muted-foreground mt-2">Published & Active</p>
-        </div>
-        <div className="rounded-xl border border-border/50 p-4 bg-card/50">
-          <p className="text-sm text-muted-foreground mb-1">Total Downloads</p>
-          <p className="text-3xl font-bold text-foreground">2.4K</p>
-          <p className="text-xs text-muted-foreground mt-2">Last 30 days</p>
-        </div>
-        <div className="rounded-xl border border-border/50 p-4 bg-card/50">
-          <p className="text-sm text-muted-foreground mb-1">Version Control</p>
-          <p className="text-3xl font-bold text-foreground">436</p>
-          <p className="text-xs text-muted-foreground mt-2">Total versions tracked</p>
-        </div>
-        <div className="rounded-xl border border-border/50 p-4 bg-card/50">
-          <p className="text-sm text-muted-foreground mb-1">Draft Reports</p>
-          <p className="text-3xl font-bold text-foreground">12</p>
-          <p className="text-xs text-muted-foreground mt-2">Waiting for approval</p>
-        </div>
+    <section className="space-y-3">
+      <div className="flex items-center justify-end">
+        <button className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-[11px] font-semibold text-primary-foreground hover:bg-primary/90">
+          <Plus className="h-3.5 w-3.5" />
+          Create Report
+        </button>
       </div>
 
-      {/* Report Catalog */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold text-foreground flex items-center gap-2">
-            <Library className="w-5 h-5 text-blue-600" />
-            Report Catalog
-          </h3>
-          <button className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium">
-            + New Report
-          </button>
+      <div className="overflow-hidden rounded-md border border-border bg-card">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-3.5 py-2.5">
+          <label className="relative w-full min-w-[240px] max-w-[360px]">
+            <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search reports"
+              className="h-8 w-full rounded-md border border-border bg-background pl-7 pr-2 text-[12px] outline-none placeholder:text-muted-foreground focus:border-primary/40"
+            />
+          </label>
+
+          <div className="flex flex-wrap items-center gap-1.5">
+            {TOOLBAR_ACTIONS.map(({ label, icon: Icon }) => (
+              <button
+                key={label}
+                className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2.5 py-1.5 text-[11px] font-medium text-foreground hover:bg-muted/40"
+              >
+                <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className="space-y-3">
-          {reports.map(report => (
-            <div
-              key={report.id}
-              className="rounded-xl border border-border/50 p-4 bg-card/50 hover:border-primary/30 transition-all group"
-            >
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-bold text-foreground">{report.title}</h4>
-                    <span className={`inline-block px-2 py-1 rounded text-xs font-semibold ${getStatusColor(report.status)}`}>
-                      {report.status}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="border-b border-border bg-muted/20">
+                {["Report Name", "Dataset", "Owner", "Schedule", "Status", "Usage", "Actions"].map((column) => (
+                  <th
+                    key={column}
+                    className="px-3.5 py-2 text-[10px] font-semibold uppercase tracking-[0.06em] text-muted-foreground"
+                  >
+                    {column}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {REPORT_LIBRARY_ROWS.map((row) => (
+                <tr key={row.id} className="border-b border-border/70 last:border-b-0">
+                  <td className="px-3.5 py-2.5 text-[12px] font-medium text-foreground">{row.reportName}</td>
+                  <td className="px-3.5 py-2.5 text-[12px] text-muted-foreground">{row.dataset}</td>
+                  <td className="px-3.5 py-2.5 text-[12px] text-muted-foreground">{row.owner}</td>
+                  <td className="px-3.5 py-2.5 text-[12px] text-muted-foreground">{row.schedule}</td>
+                  <td className="px-3.5 py-2.5 text-[12px]">
+                    <span
+                      className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold ${getStatusClassName(row.status)}`}
+                    >
+                      {row.status}
                     </span>
-                  </div>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                    <span>{report.category}</span>
-                    <span>•</span>
-                    <span>Owner: {report.owner}</span>
-                    <span>•</span>
-                    <span>Created: {report.created}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between pt-3 border-t border-border/50">
-                <div className="flex items-center gap-6 text-sm">
-                  <div className="flex items-center gap-1 text-muted-foreground">
-                    <GitBranch className="w-3 h-3" />
-                    <span>{report.versions} versions</span>
-                  </div>
-                  <div className="flex items-center gap-1 text-muted-foreground">
-                    <Download className="w-3 h-3" />
-                    <span>{report.downloads} downloads</span>
-                  </div>
-                </div>
-
-                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button className="p-2 rounded-lg hover:bg-muted transition-colors" title="Preview">
-                    <Eye className="w-4 h-4" />
-                  </button>
-                  <button className="p-2 rounded-lg hover:bg-muted transition-colors" title="Download">
-                    <Download className="w-4 h-4" />
-                  </button>
-                  <button className="p-2 rounded-lg hover:bg-muted transition-colors" title="Share">
-                    <Share2 className="w-4 h-4" />
-                  </button>
-                  <button className="p-2 rounded-lg hover:bg-red-500/10 text-red-600 transition-colors" title="Delete">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
+                  </td>
+                  <td className="px-3.5 py-2.5 text-[12px] font-semibold text-foreground">{row.usage}</td>
+                  <td className="px-3.5 py-2.5">
+                    <div className="flex items-center gap-1">
+                      <button className="rounded p-1 text-muted-foreground hover:bg-muted/40 hover:text-foreground" title="View report">
+                        <Eye className="h-3.5 w-3.5" />
+                      </button>
+                      <button className="rounded p-1 text-muted-foreground hover:bg-muted/40 hover:text-foreground" title="Download report">
+                        <Download className="h-3.5 w-3.5" />
+                      </button>
+                      <button className="rounded p-1 text-muted-foreground hover:bg-muted/40 hover:text-foreground" title="More actions">
+                        <MoreHorizontal className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-      </div>
 
-      {/* Version Control */}
-      <div className="rounded-xl border border-border/50 p-6 bg-card/50">
-        <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
-          <GitBranch className="w-5 h-5 text-purple-600" />
-          Version Control & Lineage
-        </h3>
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-3.5 py-2.5">
+          <p className="text-[11px] text-muted-foreground">Showing 1-5 of 342 reports</p>
 
-        <div className="space-y-4">
-          <div className="bg-muted/30 p-4 rounded-lg border border-border/30">
-            <h4 className="text-sm font-semibold text-foreground mb-3">Transport Network KPI Summary - Version History</h4>
-            <div className="space-y-2 font-mono text-xs text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <span className="text-green-600">✓</span>
-                <span>v8 (Current)</span>
-                <span className="ml-auto">2024-03-10 - Add RF metrics and SLA tracking</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span>•</span>
-                <span>v7</span>
-                <span className="ml-auto">2024-03-01 - Refactor transport aggregation logic</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span>•</span>
-                <span>v6</span>
-                <span className="ml-auto">2024-02-20 - Update data source to new Analytics module</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span>•</span>
-                <span>v5</span>
-                <span className="ml-auto">2024-02-10 - Add temporal alignment for hourly buckets</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-muted/30 p-4 rounded-lg border border-border/30">
-            <p className="text-sm font-semibold text-foreground mb-2">Lineage Dependencies</p>
-            <code className="block text-xs text-muted-foreground whitespace-pre-wrap font-mono">
-{`Transport Network KPI Summary (v8)
-├── Data Sources:
-│   ├── Transport KPI Dataset (certified)
-│   ├── Topology Module (network cells)
-│   └── Alarms Module (incident count)
-├── Transformations:
-│   ├── Hourly aggregation
-│   ├── Multi-region rollup
-│   └── SLA compliance calculation
-└── Downstream Consumers:
-    ├── Executive Dashboard
-    └── Transport Capacity Planning`}
-            </code>
+          <div className="flex items-center gap-1">
+            <button className="inline-flex h-7 w-7 items-center justify-center rounded border border-border bg-background text-muted-foreground hover:bg-muted/40">
+              <ChevronLeft className="h-3.5 w-3.5" />
+            </button>
+            <button className="inline-flex h-7 min-w-7 items-center justify-center rounded border border-primary/40 bg-primary/10 px-2 text-[11px] font-semibold text-primary">
+              1
+            </button>
+            <button className="inline-flex h-7 min-w-7 items-center justify-center rounded border border-border bg-background px-2 text-[11px] font-medium text-foreground hover:bg-muted/40">
+              2
+            </button>
+            <button className="inline-flex h-7 min-w-7 items-center justify-center rounded border border-border bg-background px-2 text-[11px] font-medium text-foreground hover:bg-muted/40">
+              3
+            </button>
+            <span className="px-1 text-[11px] text-muted-foreground">…</span>
+            <button className="inline-flex h-7 min-w-7 items-center justify-center rounded border border-border bg-background px-2 text-[11px] font-medium text-foreground hover:bg-muted/40">
+              69
+            </button>
+            <button className="inline-flex h-7 w-7 items-center justify-center rounded border border-border bg-background text-muted-foreground hover:bg-muted/40">
+              <ChevronRight className="h-3.5 w-3.5" />
+            </button>
           </div>
         </div>
       </div>
-
-      {/* Sharing & Permissions */}
-      <div className="rounded-xl border border-border/50 p-6 bg-card/50">
-        <h3 className="font-bold text-foreground mb-4">Sharing & Access Control</h3>
-        <p className="text-sm text-muted-foreground mb-4">
-          Control who can view, edit, and distribute each report:
-        </p>
-        <div className="space-y-3">
-          <div className="p-4 bg-muted/30 rounded-lg border border-border/30">
-            <p className="text-sm font-semibold text-foreground mb-2">Executive Dashboard</p>
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center justify-between">
-                <span>View: Finance Team (5 users)</span>
-                <span className="text-xs bg-green-500/10 text-green-700 px-2 py-1 rounded">Can Download</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Edit: BI Team (2 users)</span>
-                <span className="text-xs bg-blue-500/10 text-blue-700 px-2 py-1 rounded">Can Modify</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Distribute: Marketing (automatic)</span>
-                <span className="text-xs bg-purple-500/10 text-purple-700 px-2 py-1 rounded">Can Share</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    </section>
   );
 }
