@@ -1,247 +1,225 @@
-import { Database, Shield, Clock, Users, CheckCircle, AlertCircle } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { CheckCircle2, ChevronLeft, ChevronRight, Download, FileCode2, Filter, GitBranch, Plus, Search, ShieldCheck, X } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
-interface Dataset {
+interface DatasetRow {
   id: string;
   name: string;
-  sourceModules: string[];
-  aggregationLogic: string;
-  timeAlignment: string;
-  tenantScope: string;
+  source: string;
   owner: string;
-  certificationStatus: 'certified' | 'pending' | 'expired';
-  refreshSLA: string;
-  lastRefresh: string;
-  recordCount: number;
+  freshness: string;
+  sla: string;
+  certification: boolean;
+  schemaVersion: string;
+  lineageSummary: string;
+  validationHistory: string[];
+}
+
+const INITIAL_DATASETS: DatasetRow[] = Array.from({ length: 14 }).map((_, idx) => ({
+  id: `ds-${idx + 1}`,
+  name: ["Alarm KPI Dataset", "Transport KPI Dataset", "Revenue Correlation", "Regulatory SLA Snapshot", "QoS Degradation Signals"][idx % 5] + (idx > 4 ? ` ${Math.ceil((idx + 1) / 5)}` : ""),
+  source: ["Alarm Module", "Network PM", "Finance BI", "Compliance Engine", "RAN Analytics"][idx % 5],
+  owner: ["NOC Ops", "Transport Team", "Finance BI", "Compliance Office", "RAN Engineering"][idx % 5],
+  freshness: ["2 min ago", "47 min ago", "5 min ago", "9 min ago", "14 min ago"][idx % 5],
+  sla: ["15 min", "30 min", "60 min", "30 min", "20 min"][idx % 5],
+  certification: idx % 3 !== 0,
+  schemaVersion: `v${3 + (idx % 4)}.0`,
+  lineageSummary: "Source ingest → normalization → KPI aggregation → report mart",
+  validationHistory: ["Null check pass", "Schema drift pass", "SLA pass"],
+}));
+
+function Modal({ title, children, onClose }: { title: string; children: React.ReactNode; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+      <div className="w-full max-w-3xl rounded-md border border-border bg-card">
+        <div className="flex items-center justify-between border-b border-border px-4 py-3">
+          <h3 className="text-sm font-semibold">{title}</h3>
+          <button onClick={onClose} className="rounded p-1 hover:bg-muted"><X className="h-4 w-4" /></button>
+        </div>
+        <div className="max-h-[70vh] overflow-auto p-4">{children}</div>
+      </div>
+    </div>
+  );
 }
 
 export default function DatasetManager() {
-  const datasets: Dataset[] = [
-    {
-      id: '1',
-      name: 'Transport KPI Dataset',
-      sourceModules: ['Topology', 'Alarms', 'Analytics'],
-      aggregationLogic: 'SUM(throughput) by hour',
-      timeAlignment: 'Hourly buckets',
-      tenantScope: 'All regions',
-      owner: 'Transport Team',
-      certificationStatus: 'certified',
-      refreshSLA: '15 minutes',
-      lastRefresh: '2 min ago',
-      recordCount: 145230
-    },
-    {
-      id: '2',
-      name: 'RF Parameters Snapshot',
-      sourceModules: ['Command Center', 'Analytics'],
-      aggregationLogic: 'LAST_VALUE(parameter) by cell_id',
-      timeAlignment: 'Real-time',
-      tenantScope: 'Region: Cairo, Alexandria',
-      owner: 'RF Engineering',
-      certificationStatus: 'certified',
-      refreshSLA: '5 minutes',
-      lastRefresh: '1 min ago',
-      recordCount: 892456
-    },
-    {
-      id: '3',
-      name: 'Revenue Report Dataset',
-      sourceModules: ['Billing', 'Analytics'],
-      aggregationLogic: 'SUM(revenue) by product_line, month',
-      timeAlignment: 'Monthly',
-      tenantScope: 'Enterprise-wide',
-      owner: 'Finance',
-      certificationStatus: 'pending',
-      refreshSLA: '1 hour',
-      lastRefresh: '45 min ago',
-      recordCount: 23451
-    },
-    {
-      id: '4',
-      name: 'Compliance Events Log',
-      sourceModules: ['Audit', 'Command Center', 'Automation'],
-      aggregationLogic: 'APPEND_ONLY (immutable)',
-      timeAlignment: 'Real-time events',
-      tenantScope: 'All tenants',
-      owner: 'Compliance Officer',
-      certificationStatus: 'certified',
-      refreshSLA: 'Streaming',
-      lastRefresh: 'Streaming',
-      recordCount: 1245829
-    }
-  ];
+  const { toast } = useToast();
+  const [searchParams] = useSearchParams();
+  const [rows, setRows] = useState(INITIAL_DATASETS);
+  const [search, setSearch] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [certifiedOnly, setCertifiedOnly] = useState(false);
+  const [ownerFilter, setOwnerFilter] = useState("all");
+  const [sourceFilter, setSourceFilter] = useState("all");
+  const [selected, setSelected] = useState<DatasetRow | null>(null);
+  const [schemaModal, setSchemaModal] = useState<DatasetRow | null>(null);
+  const [lineageModal, setLineageModal] = useState<DatasetRow | null>(null);
+  const [validationModal, setValidationModal] = useState<DatasetRow | null>(null);
+  const [registerOpen, setRegisterOpen] = useState(false);
+  const [page, setPage] = useState(1);
 
-  const getCertificationBadge = (status: Dataset['certificationStatus']) => {
-    switch (status) {
-      case 'certified':
-        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-500/10 text-green-700">
-          <CheckCircle className="w-3 h-3" /> Certified
-        </span>;
-      case 'pending':
-        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-yellow-500/10 text-yellow-700">
-          <AlertCircle className="w-3 h-3" /> Pending
-        </span>;
-      case 'expired':
-        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-500/10 text-red-700">
-          <AlertCircle className="w-3 h-3" /> Expired
-        </span>;
+  const [newDataset, setNewDataset] = useState({ name: "", source: "Alarm Module", owner: "NOC Ops", sla: "30 min" });
+
+  useEffect(() => {
+    const datasetFromQuery = searchParams.get("dataset");
+    if (!datasetFromQuery) return;
+    const found = rows.find((row) => row.name.toLowerCase().includes(datasetFromQuery.toLowerCase()));
+    if (found) {
+      setSelected(found);
     }
+  }, [searchParams, rows]);
+
+  const filtered = useMemo(() => {
+    return rows.filter((row) => {
+      const q = search.toLowerCase();
+      const searchOk = row.name.toLowerCase().includes(q) || row.source.toLowerCase().includes(q) || row.owner.toLowerCase().includes(q);
+      const certOk = !certifiedOnly || row.certification;
+      const ownerOk = ownerFilter === "all" || row.owner === ownerFilter;
+      const sourceOk = sourceFilter === "all" || row.source === sourceFilter;
+      return searchOk && certOk && ownerOk && sourceOk;
+    });
+  }, [rows, search, certifiedOnly, ownerFilter, sourceFilter]);
+
+  const owners = Array.from(new Set(rows.map((r) => r.owner)));
+  const sources = Array.from(new Set(rows.map((r) => r.source)));
+
+  const PAGE_SIZE = 5;
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, pageCount);
+  const visible = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+  const exportVisible = () => {
+    const csv = ["name,source,owner,freshness,sla,certified", ...visible.map((d) => `${d.name},${d.source},${d.owner},${d.freshness},${d.sla},${d.certification}`)].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `datasets-page-${currentPage}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast({ title: "Datasets exported", description: `${visible.length} rows exported.` });
   };
 
   return (
-    <div className="space-y-8">
-      {/* Architectural Principle */}
-      <div className="bg-red-500/5 border border-red-500/20 rounded-xl p-6">
-        <h3 className="font-bold text-foreground mb-2 flex items-center gap-2">
-          <Shield className="w-5 h-5 text-red-600" />
-          Prevent Schema Chaos at All Costs
-        </h3>
-        <p className="text-sm text-muted-foreground">
-          Conflicting numbers destroy executive trust faster than outages. All reports must be built on governed datasets—never raw tables.
-        </p>
+    <section className="space-y-3">
+      <div className="flex items-center justify-end">
+        <button onClick={() => setRegisterOpen(true)} className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-[11px] font-semibold text-primary-foreground"><Plus className="h-3.5 w-3.5" />Register Dataset</button>
       </div>
 
-      {/* Dataset Inventory */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold text-foreground">Dataset Inventory</h3>
-          <button className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium">
-            + Create Dataset
-          </button>
-        </div>
+      <div className="overflow-hidden rounded-md border border-border bg-card">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-3.5 py-2.5">
+          <label className="relative w-full min-w-[240px] max-w-[360px]">
+            <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <input value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} placeholder="Search datasets" className="h-8 w-full rounded-md border border-border bg-background pl-7 pr-2 text-[12px]" />
+          </label>
 
-        <div className="space-y-4">
-          {datasets.map(dataset => (
-            <div
-              key={dataset.id}
-              className="rounded-xl border border-border/50 p-6 bg-card/50 hover:border-primary/30 transition-all cursor-pointer group"
-            >
-              {/* Header */}
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <div className="flex items-center gap-3 mb-1">
-                    <Database className="w-5 h-5 text-blue-600" />
-                    <h4 className="font-bold text-foreground">{dataset.name}</h4>
-                  </div>
-                  <p className="text-xs text-muted-foreground">ID: {dataset.id}</p>
-                </div>
-                {getCertificationBadge(dataset.certificationStatus)}
-              </div>
-
-              {/* Details Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                {/* Source Modules */}
-                <div>
-                  <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Source Modules</p>
-                  <div className="flex flex-wrap gap-1">
-                    {dataset.sourceModules.map((module, idx) => (
-                      <span key={idx} className="inline-block px-2 py-1 bg-muted rounded text-xs text-foreground">
-                        {module}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Aggregation Logic */}
-                <div>
-                  <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Aggregation Logic</p>
-                  <p className="text-sm text-foreground font-mono bg-muted/50 px-2 py-1 rounded">
-                    {dataset.aggregationLogic}
-                  </p>
-                </div>
-
-                {/* Time Alignment */}
-                <div>
-                  <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Time Alignment</p>
-                  <p className="text-sm text-foreground">{dataset.timeAlignment}</p>
-                </div>
-
-                {/* Tenant Scope */}
-                <div>
-                  <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Tenant Scope</p>
-                  <p className="text-sm text-foreground">{dataset.tenantScope}</p>
-                </div>
-
-                {/* Owner */}
-                <div>
-                  <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Owner</p>
-                  <div className="flex items-center gap-2">
-                    <Users className="w-3 h-3 text-muted-foreground" />
-                    <p className="text-sm text-foreground">{dataset.owner}</p>
-                  </div>
-                </div>
-
-                {/* Refresh SLA */}
-                <div>
-                  <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Refresh SLA</p>
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-3 h-3 text-blue-600" />
-                    <p className="text-sm text-foreground">{dataset.refreshSLA}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Footer */}
-              <div className="flex items-center justify-between pt-4 border-t border-border/50">
-                <div className="text-xs text-muted-foreground">
-                  <span className="font-semibold text-foreground">{dataset.recordCount.toLocaleString()}</span> records
-                  <span className="mx-2">•</span>
-                  Last refresh: {dataset.lastRefresh}
-                </div>
-                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button className="px-3 py-1 rounded text-xs bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
-                    View Schema
-                  </button>
-                  <button className="px-3 py-1 rounded text-xs bg-muted hover:bg-muted/70 transition-colors">
-                    Lineage
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Data Lineage Section */}
-      <div className="rounded-xl border border-border/50 p-6 bg-card/50">
-        <h3 className="font-bold text-foreground mb-4">Dataset Lineage & Dependencies</h3>
-        <div className="bg-muted/30 p-4 rounded-lg border border-border/30 font-mono text-xs text-muted-foreground whitespace-pre-wrap">
-{`Transport KPI Dataset
-├── Source: Topology Module (cell definitions)
-├── Source: Alarms Module (alarm_count aggregation)
-├── Source: Analytics Module (computed metrics)
-└── Downstream: Transport Dashboard, SLA Reports
-
-RF Parameters Snapshot
-├── Source: Command Center (parameter values)
-├── Source: Analytics Module (validation rules)
-└── Downstream: RF Optimization Reports, Compliance Audits
-
-Revenue Report Dataset
-├── Source: Billing System
-├── Source: Product Master (external)
-└── Downstream: Executive Dashboard, Financial Statements`}
-        </div>
-      </div>
-
-      {/* Data Quality Rules */}
-      <div className="rounded-xl border border-border/50 p-6 bg-card/50">
-        <h3 className="font-bold text-foreground mb-4">Quality Assurance Rules</h3>
-        <div className="space-y-3">
-          <div className="p-4 bg-muted/30 rounded-lg border border-border/30">
-            <p className="text-sm font-semibold text-foreground mb-2">Completeness Check</p>
-            <p className="text-xs text-muted-foreground">All datasets must have &lt;1% null values in key columns</p>
+          <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+            <button onClick={() => setFiltersOpen((p) => !p)} className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2.5 py-1.5 hover:bg-muted/40"><Filter className="h-3.5 w-3.5" />Filters</button>
+            <button onClick={() => setCertifiedOnly((p) => !p)} className={`inline-flex items-center gap-1 rounded-md border px-2.5 py-1.5 ${certifiedOnly ? "border-primary/40 bg-primary/10 text-primary" : "border-border bg-background hover:bg-muted/40"}`}><ShieldCheck className="h-3.5 w-3.5" />Certified</button>
+            <button onClick={() => setSchemaModal(visible[0] ?? null)} className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2.5 py-1.5 hover:bg-muted/40"><FileCode2 className="h-3.5 w-3.5" />Schema</button>
+            <button onClick={exportVisible} className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2.5 py-1.5 hover:bg-muted/40"><Download className="h-3.5 w-3.5" />Export</button>
+            <button onClick={() => setLineageModal(visible[0] ?? null)} className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2.5 py-1.5 hover:bg-muted/40"><GitBranch className="h-3.5 w-3.5" />Lineage</button>
+            <button onClick={() => setValidationModal(visible[0] ?? null)} className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2.5 py-1.5 hover:bg-muted/40"><CheckCircle2 className="h-3.5 w-3.5" />Validation</button>
           </div>
-          <div className="p-4 bg-muted/30 rounded-lg border border-border/30">
-            <p className="text-sm font-semibold text-foreground mb-2">Freshness SLA Enforcement</p>
-            <p className="text-xs text-muted-foreground">Alert if any dataset exceeds its refresh SLA window</p>
+        </div>
+
+        {filtersOpen && (
+          <div className="grid grid-cols-2 gap-2 border-b border-border bg-muted/10 px-3.5 py-2.5">
+            <select value={ownerFilter} onChange={(e) => { setOwnerFilter(e.target.value); setPage(1); }} className="h-8 rounded-md border border-border bg-background px-2 text-xs"><option value="all">Owner: All</option>{owners.map((o) => <option key={o}>{o}</option>)}</select>
+            <select value={sourceFilter} onChange={(e) => { setSourceFilter(e.target.value); setPage(1); }} className="h-8 rounded-md border border-border bg-background px-2 text-xs"><option value="all">Source: All</option>{sources.map((s) => <option key={s}>{s}</option>)}</select>
           </div>
-          <div className="p-4 bg-muted/30 rounded-lg border border-border/30">
-            <p className="text-sm font-semibold text-foreground mb-2">Cardinality Drift Detection</p>
-            <p className="text-xs text-muted-foreground">Detect unexpected changes in unique value counts (+/- 10%)</p>
+        )}
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="border-b border-border bg-muted/20">
+                {["Dataset", "Source", "Owner", "Freshness", "SLA", "Certified", "Actions"].map((h) => <th key={h} className="px-3.5 py-2 text-[10px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">{h}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {visible.map((row) => (
+                <tr key={row.id} onClick={() => setSelected(row)} className="cursor-pointer border-b border-border/70 hover:bg-muted/20 last:border-b-0">
+                  <td className="px-3.5 py-2.5 text-[12px] font-medium">{row.name}</td>
+                  <td className="px-3.5 py-2.5 text-[12px] text-muted-foreground">{row.source}</td>
+                  <td className="px-3.5 py-2.5 text-[12px] text-muted-foreground">{row.owner}</td>
+                  <td className="px-3.5 py-2.5 text-[12px] text-muted-foreground">{row.freshness}</td>
+                  <td className="px-3.5 py-2.5 text-[12px] text-muted-foreground">{row.sla}</td>
+                  <td className="px-3.5 py-2.5 text-[12px]">{row.certification ? <span className="rounded-full border border-emerald-600/25 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">Certified</span> : <span className="rounded-full border border-amber-600/25 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-700">Pending</span>}</td>
+                  <td className="px-3.5 py-2.5" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex gap-1">
+                      <button onClick={() => setSelected(row)} className="rounded border border-border px-2 py-1 text-[10px]">Details</button>
+                      <button onClick={() => setLineageModal(row)} className="rounded border border-border px-2 py-1 text-[10px]">Lineage</button>
+                      <button onClick={() => setValidationModal(row)} className="rounded border border-border px-2 py-1 text-[10px]">Validation</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="flex items-center justify-between border-t border-border px-3.5 py-2.5">
+          <p className="text-[11px] text-muted-foreground">Showing {(currentPage - 1) * PAGE_SIZE + 1}-{(currentPage - 1) * PAGE_SIZE + visible.length} of {filtered.length} datasets</p>
+          <div className="flex items-center gap-1">
+            <button disabled={currentPage === 1} onClick={() => setPage((p) => Math.max(1, p - 1))} className="inline-flex h-7 w-7 items-center justify-center rounded border border-border disabled:opacity-40"><ChevronLeft className="h-3.5 w-3.5" /></button>
+            <span className="text-[11px]">{currentPage}/{pageCount}</span>
+            <button disabled={currentPage === pageCount} onClick={() => setPage((p) => Math.min(pageCount, p + 1))} className="inline-flex h-7 w-7 items-center justify-center rounded border border-border disabled:opacity-40"><ChevronRight className="h-3.5 w-3.5" /></button>
           </div>
         </div>
       </div>
-    </div>
+
+      {registerOpen && (
+        <Modal title="Register Dataset" onClose={() => setRegisterOpen(false)}>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <input value={newDataset.name} onChange={(e) => setNewDataset((p) => ({ ...p, name: e.target.value }))} placeholder="Dataset name" className="h-9 rounded-md border border-border px-2 text-sm" />
+            <input value={newDataset.sla} onChange={(e) => setNewDataset((p) => ({ ...p, sla: e.target.value }))} placeholder="SLA" className="h-9 rounded-md border border-border px-2 text-sm" />
+            <select value={newDataset.source} onChange={(e) => setNewDataset((p) => ({ ...p, source: e.target.value }))} className="h-9 rounded-md border border-border px-2 text-sm">{sources.map((s) => <option key={s}>{s}</option>)}</select>
+            <select value={newDataset.owner} onChange={(e) => setNewDataset((p) => ({ ...p, owner: e.target.value }))} className="h-9 rounded-md border border-border px-2 text-sm">{owners.map((o) => <option key={o}>{o}</option>)}</select>
+          </div>
+          <div className="mt-3 flex justify-end gap-2">
+            <button onClick={() => setRegisterOpen(false)} className="rounded-md border border-border px-3 py-1.5 text-xs">Cancel</button>
+            <button onClick={() => {
+              if (!newDataset.name.trim()) return;
+              const inserted: DatasetRow = {
+                id: `ds-${Date.now()}`,
+                name: newDataset.name,
+                source: newDataset.source,
+                owner: newDataset.owner,
+                freshness: "just now",
+                sla: newDataset.sla,
+                certification: false,
+                schemaVersion: "v1.0",
+                lineageSummary: "Registered dataset lineage pending setup",
+                validationHistory: ["Registration created"],
+              };
+              setRows((prev) => [inserted, ...prev]);
+              setRegisterOpen(false);
+              setPage(1);
+            }} className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground">Register</button>
+          </div>
+        </Modal>
+      )}
+
+      {selected && (
+        <Modal title={`Dataset Details · ${selected.name}`} onClose={() => setSelected(null)}>
+          <div className="space-y-2 text-sm">
+            <p><strong>Source:</strong> {selected.source}</p>
+            <p><strong>Owner:</strong> {selected.owner}</p>
+            <p><strong>Freshness:</strong> {selected.freshness}</p>
+            <p><strong>SLA:</strong> {selected.sla}</p>
+            <p><strong>Schema:</strong> {selected.schemaVersion}</p>
+            <p><strong>Certification:</strong> {selected.certification ? "Certified" : "Pending"}</p>
+            <p><strong>Lineage Summary:</strong> {selected.lineageSummary}</p>
+            <p><strong>Validation History:</strong> {selected.validationHistory.join(" · ")}</p>
+          </div>
+        </Modal>
+      )}
+
+      {schemaModal && <Modal title={`Schema · ${schemaModal.name}`} onClose={() => setSchemaModal(null)}><pre className="rounded bg-muted/20 p-3 text-xs">{`schemaVersion: ${schemaModal.schemaVersion}\nfields:\n- timestamp\n- region\n- kpi_value\n- status_flag`}</pre></Modal>}
+      {lineageModal && <Modal title={`Lineage · ${lineageModal.name}`} onClose={() => setLineageModal(null)}><p className="text-sm">{lineageModal.lineageSummary}</p></Modal>}
+      {validationModal && <Modal title={`Validation · ${validationModal.name}`} onClose={() => setValidationModal(null)}><ul className="list-disc space-y-1 pl-5 text-sm">{validationModal.validationHistory.map((h) => <li key={h}>{h}</li>)}</ul></Modal>}
+    </section>
   );
 }
