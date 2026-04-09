@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, LayoutDashboard, Settings, Moon, Sun, Gauge, Bell, Zap, Lock, Map, Terminal, BarChart3, Shield, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { Menu, X, LayoutDashboard, Settings, Moon, Sun, Gauge, Bell, Zap, Lock, Map, Terminal, BarChart3, Shield, ChevronDown, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { DEFAULT_REPORTS_SECTION, REPORTS_SECTIONS } from "@/constants/reportsSections";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -13,6 +14,7 @@ export default function Layout({ children }: LayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [reportsExpanded, setReportsExpanded] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(() =>
     typeof window !== "undefined" ? getResponsiveSidebarWidth(window.innerWidth) : 280
   );
@@ -136,6 +138,12 @@ export default function Layout({ children }: LayoutProps) {
     setDarkMode(!darkMode);
   };
 
+  useEffect(() => {
+    if (location.pathname.startsWith("/reports-module")) {
+      setReportsExpanded(true);
+    }
+  }, [location.pathname]);
+
   const mainNavItems = [
     {
       path: "/",
@@ -154,7 +162,7 @@ export default function Layout({ children }: LayoutProps) {
     { path: "/topology-management", label: "Topology & Network", icon: Map, matchPaths: ["/topology-management", "/network"] },
     { path: "/command-center", label: "Command Center", icon: Terminal, matchPaths: ["/command-center"] },
     { path: "/activity-audit", label: "Activity & Audit", icon: Shield, matchPaths: ["/activity-audit", "/activity-log"] },
-    { path: "/reports-module", label: "Reports", icon: BarChart3, matchPaths: ["/reports-module"] },
+    { path: DEFAULT_REPORTS_SECTION.path, label: "Reports", icon: BarChart3, matchPaths: ["/reports-module"] },
     { path: "/access-control", label: "Access Control", icon: Lock, matchPaths: ["/access-control"] },
     { path: "/settings-2", label: "Settings", icon: Settings, matchPaths: ["/settings-2", "/settings"] },
   ];
@@ -262,33 +270,82 @@ export default function Layout({ children }: LayoutProps) {
       {/* Main Navigation */}
       <nav className="flex-1 overflow-y-auto py-2 px-0">
         <div className={cn(sidebarOpen ? "space-y-1" : "space-y-0.5")}>
-          {mainNavItems.map(({ path, label, icon: Icon, matchPaths }) => (
-            <Link
-              key={path}
-              to={path}
-              onClick={() => {
-                if (isMobile) setMobileMenuOpen(false);
-              }}
-              className={cn(
-                "rounded-lg transition-all duration-200 whitespace-nowrap cursor-pointer text-xs",
-                sidebarOpen
-                  ? "mx-1 flex items-center gap-2 px-2 py-2"
-                  : "mx-2 flex h-9 items-center justify-center px-0",
-                isActive(matchPaths)
-                  ? cn(
-                      "text-primary font-medium",
-                      sidebarOpen ? "bg-primary/20 border-l-2 border-primary" : "bg-primary/15 ring-1 ring-primary/30"
-                    )
-                  : "text-sidebar-foreground hover:bg-sidebar-accent/50"
-              )}
-              title={!sidebarOpen ? label : undefined}
-            >
-              <div className={cn("flex items-center justify-center", sidebarOpen ? "w-4 h-4" : "w-[14px] h-[14px]")}>
-                <Icon className={cn("transition-all", sidebarOpen ? "w-4 h-4" : "w-[14px] h-[14px]")} />
+          {mainNavItems.map(({ path, label, icon: Icon, matchPaths }) => {
+            const moduleIsActive = isActive(matchPaths);
+            const isReportsModule = label === "Reports";
+
+            return (
+              <div key={path} className="space-y-0.5">
+                {isReportsModule && sidebarOpen ? (
+                  <button
+                    onClick={() => setReportsExpanded((prev) => !prev)}
+                    className={cn(
+                      "mx-1 flex w-[calc(100%-0.5rem)] items-center gap-2 rounded-lg px-2 py-2 text-xs transition-all duration-200",
+                      moduleIsActive
+                        ? "bg-primary/20 border-l-2 border-primary text-primary font-medium"
+                        : "text-sidebar-foreground hover:bg-sidebar-accent/50",
+                    )}
+                  >
+                    <div className="flex h-4 w-4 items-center justify-center">
+                      <Icon className="h-4 w-4" />
+                    </div>
+                    <span className="flex-1 truncate text-left">{label}</span>
+                    {reportsExpanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+                  </button>
+                ) : (
+                  <Link
+                    to={path}
+                    onClick={() => {
+                      if (isMobile) setMobileMenuOpen(false);
+                    }}
+                    className={cn(
+                      "rounded-lg transition-all duration-200 whitespace-nowrap cursor-pointer text-xs",
+                      sidebarOpen
+                        ? "mx-1 flex items-center gap-2 px-2 py-2"
+                        : "mx-2 flex h-9 items-center justify-center px-0",
+                      moduleIsActive
+                        ? cn(
+                            "text-primary font-medium",
+                            sidebarOpen ? "bg-primary/20 border-l-2 border-primary" : "bg-primary/15 ring-1 ring-primary/30",
+                          )
+                        : "text-sidebar-foreground hover:bg-sidebar-accent/50",
+                    )}
+                    title={!sidebarOpen ? label : undefined}
+                  >
+                    <div className={cn("flex items-center justify-center", sidebarOpen ? "w-4 h-4" : "w-[14px] h-[14px]")}>
+                      <Icon className={cn("transition-all", sidebarOpen ? "w-4 h-4" : "w-[14px] h-[14px]")} />
+                    </div>
+                    {sidebarOpen && <span className="text-xs truncate">{label}</span>}
+                  </Link>
+                )}
+
+                {isReportsModule && sidebarOpen && reportsExpanded && (
+                  <div className="ml-7 mr-2 space-y-0.5 border-l border-sidebar-border pl-2">
+                    {REPORTS_SECTIONS.map((section) => {
+                      const sectionActive = location.pathname === section.path;
+                      return (
+                        <Link
+                          key={section.id}
+                          to={section.path}
+                          onClick={() => {
+                            if (isMobile) setMobileMenuOpen(false);
+                          }}
+                          className={cn(
+                            "block rounded-md px-2 py-1.5 text-[11px] transition-colors",
+                            sectionActive
+                              ? "bg-primary/15 text-primary font-medium"
+                              : "text-sidebar-foreground hover:bg-sidebar-accent/50",
+                          )}
+                        >
+                          {section.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
-              {sidebarOpen && <span className="text-xs truncate">{label}</span>}
-            </Link>
-          ))}
+            );
+          })}
         </div>
       </nav>
 
