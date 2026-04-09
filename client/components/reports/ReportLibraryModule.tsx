@@ -1,242 +1,312 @@
-import { Library, GitBranch, Eye, Download, Share2, Trash2 } from 'lucide-react';
+import { useMemo, useState } from "react";
+import {
+  Archive,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  Eye,
+  FileClock,
+  Filter,
+  Heart,
+  MoreHorizontal,
+  Pencil,
+  Plus,
+  Search,
+  Tag,
+  X,
+} from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
-interface Report {
+interface ReportLibraryItem {
   id: string;
-  title: string;
-  category: string;
+  reportName: string;
+  dataset: string;
   owner: string;
-  created: string;
-  versions: number;
-  downloads: number;
-  status: 'published' | 'draft' | 'archived';
+  schedule: string;
+  status: "Active" | "Draft" | "Legal Hold";
+  usage: number;
+  tags: string[];
+  favorite: boolean;
+  archived?: boolean;
 }
 
-export default function ReportLibraryModule() {
-  const reports: Report[] = [
-    {
-      id: '1',
-      title: 'Transport Network KPI Summary',
-      category: 'Network Operations',
-      owner: 'Transport Team',
-      created: '2024-01-15',
-      versions: 8,
-      downloads: 124,
-      status: 'published'
-    },
-    {
-      id: '2',
-      title: 'RF Performance Analysis',
-      category: 'Engineering',
-      owner: 'RF Team',
-      created: '2024-02-10',
-      versions: 5,
-      downloads: 89,
-      status: 'published'
-    },
-    {
-      id: '3',
-      title: 'Executive Dashboard - Monthly',
-      category: 'Executive',
-      owner: 'BI Team',
-      created: '2024-03-01',
-      versions: 3,
-      downloads: 45,
-      status: 'published'
-    },
-    {
-      id: '4',
-      title: 'Revenue Growth Forecast',
-      category: 'Finance',
-      owner: 'Finance',
-      created: '2024-03-10',
-      versions: 2,
-      downloads: 12,
-      status: 'draft'
-    }
-  ];
+const OWNER_OPTIONS = ["NOC Ops", "SLA Office", "Procurement BI", "Compliance Team", "Automation CoE", "Finance BI"];
+const DATASET_OPTIONS = ["NOC Unified Events", "Service Assurance Ledger", "Vendor Performance Mart", "Regulatory Evidence Vault", "Automation Outcome Cube"];
+const TAG_OPTIONS = ["Executive", "Regulatory", "Operations", "Finance", "Automation", "Vendor"];
 
-  const getStatusColor = (status: Report['status']) => {
-    switch (status) {
-      case 'published': return 'bg-green-500/10 text-green-700';
-      case 'draft': return 'bg-blue-500/10 text-blue-700';
-      case 'archived': return 'bg-gray-500/10 text-gray-700';
-    }
+const INITIAL_ROWS: ReportLibraryItem[] = Array.from({ length: 18 }).map((_, idx) => {
+  const templates = [
+    { reportName: "Daily NOC Summary", dataset: "NOC Unified Events", owner: "NOC Ops", schedule: "Daily · 06:00", status: "Active" as const, tags: ["Operations", "Executive"] },
+    { reportName: "Weekly SLA Compliance", dataset: "Service Assurance Ledger", owner: "SLA Office", schedule: "Weekly · Mon 08:30", status: "Active" as const, tags: ["Regulatory", "Operations"] },
+    { reportName: "Vendor Scorecard Q1", dataset: "Vendor Performance Mart", owner: "Procurement BI", schedule: "Manual Refresh", status: "Draft" as const, tags: ["Vendor"] },
+    { reportName: "Regulatory Pack", dataset: "Regulatory Evidence Vault", owner: "Compliance Team", schedule: "Monthly · Day 1", status: "Legal Hold" as const, tags: ["Regulatory"] },
+    { reportName: "Automation ROI Analysis", dataset: "Automation Outcome Cube", owner: "Automation CoE", schedule: "Monthly · Day 5", status: "Active" as const, tags: ["Automation", "Finance"] },
+  ][idx % 5];
+
+  return {
+    id: `rpt-${idx + 101}`,
+    ...templates,
+    reportName: idx > 4 ? `${templates.reportName} ${Math.ceil((idx + 1) / 5)}` : templates.reportName,
+    usage: 1200 + idx * 317,
+    favorite: idx % 3 === 0,
   };
+});
 
+function Modal({ title, children, onClose }: { title: string; children: React.ReactNode; onClose: () => void }) {
   return (
-    <div className="space-y-8">
-      {/* Library Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="rounded-xl border border-border/50 p-4 bg-card/50">
-          <p className="text-sm text-muted-foreground mb-1">Total Reports</p>
-          <p className="text-3xl font-bold text-foreground">128</p>
-          <p className="text-xs text-muted-foreground mt-2">Published & Active</p>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+      <div className="w-full max-w-3xl rounded-md border border-border bg-card shadow-xl">
+        <div className="flex items-center justify-between border-b border-border px-4 py-3">
+          <h3 className="text-sm font-semibold">{title}</h3>
+          <button onClick={onClose} className="rounded p-1 hover:bg-muted"><X className="h-4 w-4" /></button>
         </div>
-        <div className="rounded-xl border border-border/50 p-4 bg-card/50">
-          <p className="text-sm text-muted-foreground mb-1">Total Downloads</p>
-          <p className="text-3xl font-bold text-foreground">2.4K</p>
-          <p className="text-xs text-muted-foreground mt-2">Last 30 days</p>
-        </div>
-        <div className="rounded-xl border border-border/50 p-4 bg-card/50">
-          <p className="text-sm text-muted-foreground mb-1">Version Control</p>
-          <p className="text-3xl font-bold text-foreground">436</p>
-          <p className="text-xs text-muted-foreground mt-2">Total versions tracked</p>
-        </div>
-        <div className="rounded-xl border border-border/50 p-4 bg-card/50">
-          <p className="text-sm text-muted-foreground mb-1">Draft Reports</p>
-          <p className="text-3xl font-bold text-foreground">12</p>
-          <p className="text-xs text-muted-foreground mt-2">Waiting for approval</p>
-        </div>
-      </div>
-
-      {/* Report Catalog */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold text-foreground flex items-center gap-2">
-            <Library className="w-5 h-5 text-blue-600" />
-            Report Catalog
-          </h3>
-          <button className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium">
-            + New Report
-          </button>
-        </div>
-
-        <div className="space-y-3">
-          {reports.map(report => (
-            <div
-              key={report.id}
-              className="rounded-xl border border-border/50 p-4 bg-card/50 hover:border-primary/30 transition-all group"
-            >
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-bold text-foreground">{report.title}</h4>
-                    <span className={`inline-block px-2 py-1 rounded text-xs font-semibold ${getStatusColor(report.status)}`}>
-                      {report.status}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                    <span>{report.category}</span>
-                    <span>•</span>
-                    <span>Owner: {report.owner}</span>
-                    <span>•</span>
-                    <span>Created: {report.created}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between pt-3 border-t border-border/50">
-                <div className="flex items-center gap-6 text-sm">
-                  <div className="flex items-center gap-1 text-muted-foreground">
-                    <GitBranch className="w-3 h-3" />
-                    <span>{report.versions} versions</span>
-                  </div>
-                  <div className="flex items-center gap-1 text-muted-foreground">
-                    <Download className="w-3 h-3" />
-                    <span>{report.downloads} downloads</span>
-                  </div>
-                </div>
-
-                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button className="p-2 rounded-lg hover:bg-muted transition-colors" title="Preview">
-                    <Eye className="w-4 h-4" />
-                  </button>
-                  <button className="p-2 rounded-lg hover:bg-muted transition-colors" title="Download">
-                    <Download className="w-4 h-4" />
-                  </button>
-                  <button className="p-2 rounded-lg hover:bg-muted transition-colors" title="Share">
-                    <Share2 className="w-4 h-4" />
-                  </button>
-                  <button className="p-2 rounded-lg hover:bg-red-500/10 text-red-600 transition-colors" title="Delete">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Version Control */}
-      <div className="rounded-xl border border-border/50 p-6 bg-card/50">
-        <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
-          <GitBranch className="w-5 h-5 text-purple-600" />
-          Version Control & Lineage
-        </h3>
-
-        <div className="space-y-4">
-          <div className="bg-muted/30 p-4 rounded-lg border border-border/30">
-            <h4 className="text-sm font-semibold text-foreground mb-3">Transport Network KPI Summary - Version History</h4>
-            <div className="space-y-2 font-mono text-xs text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <span className="text-green-600">✓</span>
-                <span>v8 (Current)</span>
-                <span className="ml-auto">2024-03-10 - Add RF metrics and SLA tracking</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span>•</span>
-                <span>v7</span>
-                <span className="ml-auto">2024-03-01 - Refactor transport aggregation logic</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span>•</span>
-                <span>v6</span>
-                <span className="ml-auto">2024-02-20 - Update data source to new Analytics module</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span>•</span>
-                <span>v5</span>
-                <span className="ml-auto">2024-02-10 - Add temporal alignment for hourly buckets</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-muted/30 p-4 rounded-lg border border-border/30">
-            <p className="text-sm font-semibold text-foreground mb-2">Lineage Dependencies</p>
-            <code className="block text-xs text-muted-foreground whitespace-pre-wrap font-mono">
-{`Transport Network KPI Summary (v8)
-├── Data Sources:
-│   ├── Transport KPI Dataset (certified)
-│   ├── Topology Module (network cells)
-│   └── Alarms Module (incident count)
-├── Transformations:
-│   ├── Hourly aggregation
-│   ├── Multi-region rollup
-│   └── SLA compliance calculation
-└── Downstream Consumers:
-    ├── Executive Dashboard
-    └── Transport Capacity Planning`}
-            </code>
-          </div>
-        </div>
-      </div>
-
-      {/* Sharing & Permissions */}
-      <div className="rounded-xl border border-border/50 p-6 bg-card/50">
-        <h3 className="font-bold text-foreground mb-4">Sharing & Access Control</h3>
-        <p className="text-sm text-muted-foreground mb-4">
-          Control who can view, edit, and distribute each report:
-        </p>
-        <div className="space-y-3">
-          <div className="p-4 bg-muted/30 rounded-lg border border-border/30">
-            <p className="text-sm font-semibold text-foreground mb-2">Executive Dashboard</p>
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center justify-between">
-                <span>View: Finance Team (5 users)</span>
-                <span className="text-xs bg-green-500/10 text-green-700 px-2 py-1 rounded">Can Download</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Edit: BI Team (2 users)</span>
-                <span className="text-xs bg-blue-500/10 text-blue-700 px-2 py-1 rounded">Can Modify</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Distribute: Marketing (automatic)</span>
-                <span className="text-xs bg-purple-500/10 text-purple-700 px-2 py-1 rounded">Can Share</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        <div className="max-h-[70vh] overflow-auto p-4">{children}</div>
       </div>
     </div>
+  );
+}
+
+const getStatusClassName = (status: ReportLibraryItem["status"]) => {
+  switch (status) {
+    case "Active":
+      return "border-emerald-600/25 bg-emerald-500/10 text-emerald-700";
+    case "Draft":
+      return "border-amber-600/25 bg-amber-500/10 text-amber-700";
+    case "Legal Hold":
+      return "border-rose-600/25 bg-rose-500/10 text-rose-700";
+  }
+};
+
+export default function ReportLibraryModule() {
+  const { toast } = useToast();
+  const [reports, setReports] = useState<ReportLibraryItem[]>(INITIAL_ROWS);
+  const [search, setSearch] = useState("");
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [statusFilter, setStatusFilter] = useState<"all" | ReportLibraryItem["status"]>("all");
+  const [ownerFilter, setOwnerFilter] = useState("all");
+  const [datasetFilter, setDatasetFilter] = useState("all");
+  const [scheduleFilter, setScheduleFilter] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
+  const [showTags, setShowTags] = useState(false);
+  const [showCreate, setShowCreate] = useState(false);
+  const [showVersion, setShowVersion] = useState(false);
+  const [activeReport, setActiveReport] = useState<ReportLibraryItem | null>(null);
+  const [menuReport, setMenuReport] = useState<ReportLibraryItem | null>(null);
+  const [page, setPage] = useState(1);
+
+  const [newReport, setNewReport] = useState({ reportName: "", dataset: DATASET_OPTIONS[0], owner: OWNER_OPTIONS[0], schedule: "Weekly · Fri 09:00", status: "Draft" as ReportLibraryItem["status"] });
+
+  const filteredReports = useMemo(() => {
+    return reports.filter((row) => {
+      if (row.archived) return false;
+      const q = search.toLowerCase();
+      const searchOk = row.reportName.toLowerCase().includes(q) || row.dataset.toLowerCase().includes(q) || row.owner.toLowerCase().includes(q);
+      const statusOk = statusFilter === "all" || row.status === statusFilter;
+      const ownerOk = ownerFilter === "all" || row.owner === ownerFilter;
+      const datasetOk = datasetFilter === "all" || row.dataset === datasetFilter;
+      const scheduleOk = scheduleFilter.trim() === "" || row.schedule.toLowerCase().includes(scheduleFilter.toLowerCase());
+      const tagsOk = selectedTags.length === 0 || selectedTags.every((t) => row.tags.includes(t));
+      const favoriteOk = !favoritesOnly || row.favorite;
+      return searchOk && statusOk && ownerOk && datasetOk && scheduleOk && tagsOk && favoriteOk;
+    });
+  }, [reports, search, statusFilter, ownerFilter, datasetFilter, scheduleFilter, selectedTags, favoritesOnly]);
+
+  const PAGE_SIZE = 5;
+  const pageCount = Math.max(1, Math.ceil(filteredReports.length / PAGE_SIZE));
+  const currentPage = Math.min(page, pageCount);
+  const pageRows = filteredReports.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+  const toggleTag = (tag: string) => {
+    setSelectedTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]));
+  };
+
+  const exportVisibleRows = (format: "csv" | "json") => {
+    if (pageRows.length === 0) {
+      toast({ title: "Nothing to export", description: "No visible rows on this page." });
+      return;
+    }
+
+    const content =
+      format === "json"
+        ? JSON.stringify(pageRows, null, 2)
+        : ["reportName,dataset,owner,schedule,status,usage", ...pageRows.map((r) => `${r.reportName},${r.dataset},${r.owner},${r.schedule},${r.status},${r.usage}`)].join("\n");
+
+    const blob = new Blob([content], { type: format === "json" ? "application/json" : "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `report-library-page-${currentPage}.${format}`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast({ title: "Export complete", description: `Exported ${pageRows.length} rows as ${format.toUpperCase()}.` });
+  };
+
+  const archiveTarget = activeReport ?? pageRows[0] ?? null;
+
+  return (
+    <section className="space-y-3">
+      <div className="flex items-center justify-end">
+        <button onClick={() => setShowCreate(true)} className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-[11px] font-semibold text-primary-foreground hover:bg-primary/90">
+          <Plus className="h-3.5 w-3.5" />Create Report
+        </button>
+      </div>
+
+      <div className="overflow-hidden rounded-md border border-border bg-card">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-3.5 py-2.5">
+          <label className="relative w-full min-w-[240px] max-w-[360px]">
+            <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <input value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} type="text" placeholder="Search reports" className="h-8 w-full rounded-md border border-border bg-background pl-7 pr-2 text-[12px] outline-none placeholder:text-muted-foreground focus:border-primary/40" />
+          </label>
+
+          <div className="flex flex-wrap items-center gap-1.5">
+            <button onClick={() => setShowFilters((p) => !p)} className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2.5 py-1.5 text-[11px] font-medium hover:bg-muted/40"><Filter className="h-3.5 w-3.5" />Filters</button>
+            <button onClick={() => setShowTags((p) => !p)} className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2.5 py-1.5 text-[11px] font-medium hover:bg-muted/40"><Tag className="h-3.5 w-3.5" />Tags</button>
+            <button onClick={() => setFavoritesOnly((p) => !p)} className={`inline-flex items-center gap-1 rounded-md border px-2.5 py-1.5 text-[11px] font-medium ${favoritesOnly ? "border-primary/40 bg-primary/10 text-primary" : "border-border bg-background hover:bg-muted/40"}`}><Heart className="h-3.5 w-3.5" />Favorites</button>
+            <button onClick={() => exportVisibleRows("csv")} className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2.5 py-1.5 text-[11px] font-medium hover:bg-muted/40"><Download className="h-3.5 w-3.5" />Export</button>
+            <button onClick={() => setShowVersion(true)} className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2.5 py-1.5 text-[11px] font-medium hover:bg-muted/40"><FileClock className="h-3.5 w-3.5" />Version History</button>
+            <button
+              onClick={() => {
+                if (!archiveTarget) return;
+                setReports((prev) => prev.map((r) => (r.id === archiveTarget.id ? { ...r, archived: true } : r)));
+                toast({ title: "Report archived", description: `${archiveTarget.reportName} moved to archive.` });
+                setActiveReport(null);
+              }}
+              className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2.5 py-1.5 text-[11px] font-medium hover:bg-muted/40"
+            ><Archive className="h-3.5 w-3.5" />Archive</button>
+          </div>
+        </div>
+
+        {showFilters && (
+          <div className="grid grid-cols-2 gap-2 border-b border-border bg-muted/15 px-3.5 py-2.5 md:grid-cols-4">
+            <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value as any); setPage(1); }} className="h-8 rounded-md border border-border bg-background px-2 text-xs"><option value="all">Status: All</option><option value="Active">Active</option><option value="Draft">Draft</option><option value="Legal Hold">Legal Hold</option></select>
+            <select value={ownerFilter} onChange={(e) => { setOwnerFilter(e.target.value); setPage(1); }} className="h-8 rounded-md border border-border bg-background px-2 text-xs"><option value="all">Owner: All</option>{OWNER_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}</select>
+            <select value={datasetFilter} onChange={(e) => { setDatasetFilter(e.target.value); setPage(1); }} className="h-8 rounded-md border border-border bg-background px-2 text-xs"><option value="all">Dataset: All</option>{DATASET_OPTIONS.map((d) => <option key={d} value={d}>{d}</option>)}</select>
+            <input value={scheduleFilter} onChange={(e) => { setScheduleFilter(e.target.value); setPage(1); }} placeholder="Schedule contains..." className="h-8 rounded-md border border-border bg-background px-2 text-xs" />
+          </div>
+        )}
+
+        {showTags && (
+          <div className="flex flex-wrap gap-1.5 border-b border-border bg-muted/15 px-3.5 py-2.5">
+            {TAG_OPTIONS.map((tag) => (
+              <button key={tag} onClick={() => { toggleTag(tag); setPage(1); }} className={`rounded-full border px-2 py-0.5 text-[11px] ${selectedTags.includes(tag) ? "border-primary/40 bg-primary/10 text-primary" : "border-border bg-background hover:bg-muted/40"}`}>{tag}</button>
+            ))}
+          </div>
+        )}
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="border-b border-border bg-muted/20">
+                {["Report Name", "Dataset", "Owner", "Schedule", "Status", "Usage", "Actions"].map((column) => (
+                  <th key={column} className="px-3.5 py-2 text-[10px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">{column}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {pageRows.map((row) => (
+                <tr key={row.id} onClick={() => setActiveReport(row)} className="cursor-pointer border-b border-border/70 last:border-b-0 hover:bg-muted/20">
+                  <td className="px-3.5 py-2.5 text-[12px] font-medium text-foreground">{row.reportName}</td>
+                  <td className="px-3.5 py-2.5 text-[12px] text-muted-foreground">{row.dataset}</td>
+                  <td className="px-3.5 py-2.5 text-[12px] text-muted-foreground">{row.owner}</td>
+                  <td className="px-3.5 py-2.5 text-[12px] text-muted-foreground">{row.schedule}</td>
+                  <td className="px-3.5 py-2.5 text-[12px]"><span className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold ${getStatusClassName(row.status)}`}>{row.status}</span></td>
+                  <td className="px-3.5 py-2.5 text-[12px] font-semibold text-foreground">{row.usage.toLocaleString()}</td>
+                  <td className="px-3.5 py-2.5" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center gap-1">
+                      <button onClick={() => setActiveReport(row)} className="rounded p-1 text-muted-foreground hover:bg-muted/40 hover:text-foreground" title="View"><Eye className="h-3.5 w-3.5" /></button>
+                      <button onClick={() => toast({ title: "Edit mode", description: `Editing ${row.reportName}` })} className="rounded p-1 text-muted-foreground hover:bg-muted/40 hover:text-foreground" title="Edit"><Pencil className="h-3.5 w-3.5" /></button>
+                      <button onClick={() => exportVisibleRows("json")} className="rounded p-1 text-muted-foreground hover:bg-muted/40 hover:text-foreground" title="Download"><Download className="h-3.5 w-3.5" /></button>
+                      <button onClick={() => setMenuReport(row)} className="rounded p-1 text-muted-foreground hover:bg-muted/40 hover:text-foreground" title="More"><MoreHorizontal className="h-3.5 w-3.5" /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {pageRows.length === 0 && <tr><td colSpan={7} className="px-3.5 py-6 text-center text-xs text-muted-foreground">No reports match current filters.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-3.5 py-2.5">
+          <p className="text-[11px] text-muted-foreground">Showing {(currentPage - 1) * PAGE_SIZE + (pageRows.length ? 1 : 0)}-{(currentPage - 1) * PAGE_SIZE + pageRows.length} of {filteredReports.length} reports</p>
+          <div className="flex items-center gap-1">
+            <button disabled={currentPage === 1} onClick={() => setPage((p) => Math.max(1, p - 1))} className="inline-flex h-7 w-7 items-center justify-center rounded border border-border bg-background text-muted-foreground disabled:opacity-40"><ChevronLeft className="h-3.5 w-3.5" /></button>
+            <span className="px-2 text-[11px]">{currentPage} / {pageCount}</span>
+            <button disabled={currentPage === pageCount} onClick={() => setPage((p) => Math.min(pageCount, p + 1))} className="inline-flex h-7 w-7 items-center justify-center rounded border border-border bg-background text-muted-foreground disabled:opacity-40"><ChevronRight className="h-3.5 w-3.5" /></button>
+          </div>
+        </div>
+      </div>
+
+      {showCreate && (
+        <Modal title="Create Report" onClose={() => setShowCreate(false)}>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <input value={newReport.reportName} onChange={(e) => setNewReport((p) => ({ ...p, reportName: e.target.value }))} placeholder="Report name" className="h-9 rounded-md border border-border bg-background px-2 text-sm" />
+            <select value={newReport.dataset} onChange={(e) => setNewReport((p) => ({ ...p, dataset: e.target.value }))} className="h-9 rounded-md border border-border bg-background px-2 text-sm">{DATASET_OPTIONS.map((d) => <option key={d}>{d}</option>)}</select>
+            <select value={newReport.owner} onChange={(e) => setNewReport((p) => ({ ...p, owner: e.target.value }))} className="h-9 rounded-md border border-border bg-background px-2 text-sm">{OWNER_OPTIONS.map((o) => <option key={o}>{o}</option>)}</select>
+            <select value={newReport.status} onChange={(e) => setNewReport((p) => ({ ...p, status: e.target.value as ReportLibraryItem["status"] }))} className="h-9 rounded-md border border-border bg-background px-2 text-sm"><option>Draft</option><option>Active</option><option>Legal Hold</option></select>
+            <input value={newReport.schedule} onChange={(e) => setNewReport((p) => ({ ...p, schedule: e.target.value }))} placeholder="Schedule" className="h-9 rounded-md border border-border bg-background px-2 text-sm md:col-span-2" />
+          </div>
+          <div className="mt-3 flex justify-end gap-2">
+            <button onClick={() => setShowCreate(false)} className="rounded-md border border-border px-3 py-1.5 text-xs">Cancel</button>
+            <button
+              onClick={() => {
+                if (!newReport.reportName.trim()) return;
+                const added: ReportLibraryItem = {
+                  id: `rpt-${Date.now()}`,
+                  ...newReport,
+                  usage: 0,
+                  tags: ["Operations"],
+                  favorite: false,
+                };
+                setReports((prev) => [added, ...prev]);
+                setShowCreate(false);
+                setPage(1);
+                toast({ title: "Report created", description: `${added.reportName} added to library.` });
+              }}
+              className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground"
+            >
+              Save Report
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      {showVersion && (
+        <Modal title="Version History" onClose={() => setShowVersion(false)}>
+          <div className="space-y-2 text-sm">
+            {(activeReport ? [activeReport] : pageRows.slice(0, 2)).map((row) => (
+              <div key={row.id} className="rounded-md border border-border p-3">
+                <p className="font-medium">{row.reportName}</p>
+                <p className="text-xs text-muted-foreground">v5 · Schema enrichment · 2 days ago</p>
+                <p className="text-xs text-muted-foreground">v4 · KPI threshold update · 10 days ago</p>
+              </div>
+            ))}
+          </div>
+        </Modal>
+      )}
+
+      {activeReport && (
+        <Modal title={`Report Details · ${activeReport.reportName}`} onClose={() => setActiveReport(null)}>
+          <div className="space-y-2 text-sm">
+            <p><strong>Dataset:</strong> {activeReport.dataset}</p>
+            <p><strong>Owner:</strong> {activeReport.owner}</p>
+            <p><strong>Schedule:</strong> {activeReport.schedule}</p>
+            <p><strong>Status:</strong> {activeReport.status}</p>
+            <p><strong>Usage:</strong> {activeReport.usage.toLocaleString()}</p>
+            <button onClick={() => setReports((prev) => prev.map((r) => r.id === activeReport.id ? { ...r, favorite: !r.favorite } : r))} className="rounded-md border border-border px-3 py-1.5 text-xs">{activeReport.favorite ? "Remove Favorite" : "Add Favorite"}</button>
+          </div>
+        </Modal>
+      )}
+
+      {menuReport && (
+        <Modal title={`Actions · ${menuReport.reportName}`} onClose={() => setMenuReport(null)}>
+          <div className="space-y-2">
+            <button onClick={() => { setReports((p) => p.map((r) => r.id === menuReport.id ? { ...r, archived: true } : r)); setMenuReport(null); }} className="w-full rounded-md border border-border px-3 py-2 text-left text-sm hover:bg-muted/30">Archive this report</button>
+            <button onClick={() => { setReports((p) => p.map((r) => r.id === menuReport.id ? { ...r, favorite: !r.favorite } : r)); setMenuReport(null); }} className="w-full rounded-md border border-border px-3 py-2 text-left text-sm hover:bg-muted/30">Toggle favorite</button>
+            <button onClick={() => { toast({ title: "Duplicated", description: `${menuReport.reportName} copied as draft.` }); setMenuReport(null); }} className="w-full rounded-md border border-border px-3 py-2 text-left text-sm hover:bg-muted/30">Duplicate as draft</button>
+          </div>
+        </Modal>
+      )}
+    </section>
   );
 }

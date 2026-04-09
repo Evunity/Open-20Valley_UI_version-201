@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Navigate, Routes, Route } from "react-router-dom";
 import { FilterProvider } from "@/hooks/useGlobalFilters";
 import { DropdownProvider } from "@/hooks/useDropdownManager";
 import ScrollToTop from "@/components/ScrollToTop";
@@ -160,6 +160,10 @@ export default function App() {
                 />
                 <Route
                   path="/reports-module"
+                  element={<Navigate to="/reports-module/executive-reporting-overview" replace />}
+                />
+                <Route
+                  path="/reports-module/:sectionId"
                   element={
                     <ProtectedRoute>
                       <Layout>
