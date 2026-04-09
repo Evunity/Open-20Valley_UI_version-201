@@ -1,239 +1,136 @@
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
-  FileText, BarChart3, Database, Palette, Lightbulb, Library, Clock, Send,
-  Activity, TrendingUp, Scale, AlertCircle, Plus, Download, Settings, Zap
+  Activity,
+  BookOpen,
+  CalendarClock,
+  ClipboardList,
+  Database,
+  FileClock,
+  FilePenLine,
+  FileText,
+  ShieldCheck,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ExecutiveReportingOverview from "@/components/reports/ExecutiveReportingOverview";
 import AdvancedReportBuilder from "@/components/reports/AdvancedReportBuilder";
-import DatasetManager from "@/components/reports/DatasetManager";
-import VisualizationDesigner from "@/components/reports/VisualizationDesigner";
-import InsightAuthoringLayer from "@/components/reports/InsightAuthoringLayer";
 import ReportLibraryModule from "@/components/reports/ReportLibraryModule";
-import SchedulingOrchestrator from "@/components/reports/SchedulingOrchestrator";
-import DeliveryDistributionHub from "@/components/reports/DeliveryDistributionHub";
+import InsightAuthoringLayer from "@/components/reports/InsightAuthoringLayer";
 import ReliabilityCenter from "@/components/reports/ReliabilityCenter";
-import ConsumptionIntelligence from "@/components/reports/ConsumptionIntelligence";
-import DecisionImpactEngine from "@/components/reports/DecisionImpactEngine";
 import RegulatoryIntelligenceHub from "@/components/reports/RegulatoryIntelligenceHub";
-import LayoutIntelligence from "@/components/reports/LayoutIntelligence";
-import SimulationPreview from "@/components/reports/SimulationPreview";
-import ExecutiveOneclickBriefing from "@/components/reports/ExecutiveOneclickBriefing";
-import PredictiveReporting from "@/components/reports/PredictiveReporting";
-import CrossModuleIntelligence from "@/components/reports/CrossModuleIntelligence";
+import DatasetManager from "@/components/reports/DatasetManager";
+import SchedulingOrchestrator from "@/components/reports/SchedulingOrchestrator";
 
-type IntelligenceWorkspace =
-  | 'executive-overview'
-  | 'report-builder'
-  | 'dataset-manager'
-  | 'visualization'
-  | 'insights'
-  | 'library'
-  | 'scheduling'
-  | 'delivery'
-  | 'reliability'
-  | 'consumption'
-  | 'decision-impact'
-  | 'regulatory'
-  | 'layout'
-  | 'simulation'
-  | 'briefing'
-  | 'predictive'
-  | 'cross-module';
-
-interface WorkspaceConfig {
-  id: IntelligenceWorkspace;
+interface ReportNavItem {
+  id:
+    | "executive-overview"
+    | "report-viz-builder"
+    | "report-library"
+    | "report-creation"
+    | "insights-impact"
+    | "reliability-consumption"
+    | "regulatory-hub"
+    | "dataset-manager"
+    | "report-history"
+    | "scheduling-distribution";
   label: string;
-  icon: React.FC<any>;
   description: string;
-  criticality: 'core' | 'enterprise' | 'strategic';
-  color: string;
+  icon: React.FC<any>;
 }
 
-const WORKSPACES: WorkspaceConfig[] = [
+const REPORT_NAV_ITEMS: ReportNavItem[] = [
   {
-    id: 'executive-overview',
-    label: 'Executive Reporting Overview',
-    icon: BarChart3,
-    description: 'Leadership control tower - decision velocity dashboards',
-    criticality: 'core',
-    color: 'from-blue-500 to-cyan-500'
-  },
-  {
-    id: 'report-builder',
-    label: 'Advanced Report Builder',
-    icon: FileText,
-    description: 'Guided + Expert modes with block-based composition',
-    criticality: 'core',
-    color: 'from-purple-500 to-pink-500'
-  },
-  {
-    id: 'dataset-manager',
-    label: 'Dataset Manager',
-    icon: Database,
-    description: 'Governed datasets with source lineage and SLA tracking',
-    criticality: 'enterprise',
-    color: 'from-green-500 to-emerald-500'
-  },
-  {
-    id: 'visualization',
-    label: 'Visualization Designer',
-    icon: Palette,
-    description: 'Drag-and-drop chart/table/heatmap creation',
-    criticality: 'enterprise',
-    color: 'from-orange-500 to-red-500'
-  },
-  {
-    id: 'insights',
-    label: 'Insight Authoring Layer',
-    icon: Lightbulb,
-    description: 'AI-powered narrative generation and recommendations',
-    criticality: 'strategic',
-    color: 'from-yellow-500 to-orange-500'
-  },
-  {
-    id: 'library',
-    label: 'Report Library',
-    icon: Library,
-    description: 'Catalog, versioning, and lineage tracking',
-    criticality: 'core',
-    color: 'from-indigo-500 to-blue-500'
-  },
-  {
-    id: 'scheduling',
-    label: 'Scheduling Orchestrator',
-    icon: Clock,
-    description: 'Trigger-based and time-based execution orchestration',
-    criticality: 'enterprise',
-    color: 'from-rose-500 to-pink-500'
-  },
-  {
-    id: 'delivery',
-    label: 'Delivery & Distribution Hub',
-    icon: Send,
-    description: 'Multi-channel delivery with compliance tracking',
-    criticality: 'enterprise',
-    color: 'from-cyan-500 to-blue-500'
-  },
-  {
-    id: 'reliability',
-    label: 'Reliability Center',
+    id: "executive-overview",
+    label: "Executive Reporting Overview",
+    description: "Leadership-level operational reporting health.",
     icon: Activity,
-    description: 'SLA monitoring, freshness, and failure intelligence',
-    criticality: 'core',
-    color: 'from-teal-500 to-green-500'
   },
   {
-    id: 'consumption',
-    label: 'Consumption Intelligence',
-    icon: TrendingUp,
-    description: 'Usage analytics and adoption metrics',
-    criticality: 'strategic',
-    color: 'from-violet-500 to-purple-500'
+    id: "report-viz-builder",
+    label: "Report & Viz Builder",
+    description: "Compose reports, charts, and narrative blocks.",
+    icon: Sparkles,
   },
   {
-    id: 'decision-impact',
-    label: 'Decision Impact Engine',
-    icon: Scale,
-    description: 'Outcome tracking and strategic ROI measurement',
-    criticality: 'strategic',
-    color: 'from-amber-500 to-orange-500'
+    id: "report-library",
+    label: "Report Library",
+    description: "Catalog of published and draft reporting assets.",
+    icon: BookOpen,
   },
   {
-    id: 'regulatory',
-    label: 'Regulatory Intelligence Hub',
-    icon: AlertCircle,
-    description: 'Compliance, audit trails, and governance',
-    criticality: 'core',
-    color: 'from-red-500 to-rose-500'
+    id: "report-creation",
+    label: "Report Creation",
+    description: "Guided report setup and template-driven assembly.",
+    icon: FilePenLine,
   },
   {
-    id: 'layout',
-    label: 'Layout Intelligence',
-    icon: Palette,
-    description: 'Pre-built report templates and branding',
-    criticality: 'enterprise',
-    color: 'from-pink-500 to-rose-500'
+    id: "insights-impact",
+    label: "Insights & Impact",
+    description: "Narratives and downstream decision influence.",
+    icon: ClipboardList,
   },
   {
-    id: 'simulation',
-    label: 'Simulation Preview',
-    icon: AlertCircle,
-    description: 'Render exact output before scheduling',
-    criticality: 'enterprise',
-    color: 'from-sky-500 to-blue-500'
+    id: "reliability-consumption",
+    label: "Reliability & Consumption",
+    description: "Freshness, SLA health, and readership telemetry.",
+    icon: ShieldCheck,
   },
   {
-    id: 'briefing',
-    label: 'Executive One-Click Briefing',
-    icon: Zap,
-    description: 'Board-ready summary generation in seconds',
-    criticality: 'strategic',
-    color: 'from-amber-500 to-yellow-500'
-  },
-  {
-    id: 'predictive',
-    label: 'Predictive Reporting',
-    icon: TrendingUp,
-    description: 'Forward-looking AI trends and forecasts',
-    criticality: 'strategic',
-    color: 'from-lime-500 to-green-500'
-  },
-  {
-    id: 'cross-module',
-    label: 'Cross-Module Intelligence',
+    id: "regulatory-hub",
+    label: "Regulatory Intelligence Hub",
+    description: "Compliance-aligned reporting and audit traces.",
     icon: FileText,
-    description: 'Strategic insights across all modules',
-    criticality: 'strategic',
-    color: 'from-cyan-500 to-blue-500'
-  }
+  },
+  {
+    id: "dataset-manager",
+    label: "Dataset Manager",
+    description: "Data source governance and lineage controls.",
+    icon: Database,
+  },
+  {
+    id: "report-history",
+    label: "Report History",
+    description: "Execution logs, retry history, and run outcomes.",
+    icon: FileClock,
+  },
+  {
+    id: "scheduling-distribution",
+    label: "Scheduling & Distribution",
+    description: "Publish cadence, subscriptions, and channel routing.",
+    icon: CalendarClock,
+  },
 ];
 
 export default function ReportsModule() {
-  const [activeWorkspace, setActiveWorkspace] = useState<IntelligenceWorkspace>('executive-overview');
-  const [viewMode, setViewMode] = useState<'grid' | 'details'>('grid');
+  const [activeSection, setActiveSection] = useState<ReportNavItem["id"]>("executive-overview");
 
   const activeConfig = useMemo(
-    () => WORKSPACES.find(w => w.id === activeWorkspace),
-    [activeWorkspace]
+    () => REPORT_NAV_ITEMS.find((item) => item.id === activeSection),
+    [activeSection],
   );
 
-  const renderWorkspace = () => {
-    switch (activeWorkspace) {
-      case 'executive-overview':
+  const renderContent = () => {
+    switch (activeSection) {
+      case "executive-overview":
         return <ExecutiveReportingOverview />;
-      case 'report-builder':
+      case "report-viz-builder":
         return <AdvancedReportBuilder />;
-      case 'dataset-manager':
-        return <DatasetManager />;
-      case 'visualization':
-        return <VisualizationDesigner />;
-      case 'insights':
-        return <InsightAuthoringLayer />;
-      case 'library':
+      case "report-library":
         return <ReportLibraryModule />;
-      case 'scheduling':
-        return <SchedulingOrchestrator />;
-      case 'delivery':
-        return <DeliveryDistributionHub />;
-      case 'reliability':
+      case "report-creation":
+        return <AdvancedReportBuilder />;
+      case "insights-impact":
+        return <InsightAuthoringLayer />;
+      case "reliability-consumption":
         return <ReliabilityCenter />;
-      case 'consumption':
-        return <ConsumptionIntelligence />;
-      case 'decision-impact':
-        return <DecisionImpactEngine />;
-      case 'regulatory':
+      case "regulatory-hub":
         return <RegulatoryIntelligenceHub />;
-      case 'layout':
-        return <LayoutIntelligence />;
-      case 'simulation':
-        return <SimulationPreview />;
-      case 'briefing':
-        return <ExecutiveOneclickBriefing />;
-      case 'predictive':
-        return <PredictiveReporting />;
-      case 'cross-module':
-        return <CrossModuleIntelligence />;
+      case "dataset-manager":
+        return <DatasetManager />;
+      case "report-history":
+        return <ReportLibraryModule />;
+      case "scheduling-distribution":
+        return <SchedulingOrchestrator />;
       default:
         return null;
     }
@@ -241,148 +138,58 @@ export default function ReportsModule() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-40">
-        <div className="px-8 py-6">
-          <div className="flex items-center justify-between mb-4">
-            <div></div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setViewMode(viewMode === 'grid' ? 'details' : 'grid')}
-                className="px-3 py-2 rounded-lg border border-border hover:bg-muted transition-colors text-sm font-medium"
-              >
-                {viewMode === 'grid' ? 'List View' : 'Grid View'}
-              </button>
-            </div>
+      <div className="flex min-h-screen">
+        <aside className="w-[300px] border-r border-border bg-card/30">
+          <div className="p-4">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+              Reports Workspace
+            </p>
           </div>
-        </div>
-      </div>
-
-      <div className="flex flex-col lg:flex-row h-[calc(100vh-120px)]">
-        {/* Workspace Navigator Sidebar */}
-        <div className="w-full lg:w-64 border-b lg:border-b-0 lg:border-r border-border bg-card/50">
-          <div className="p-4 space-y-2 h-full overflow-y-auto">
-            <div className="mb-4">
-              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                Intelligence Workspaces
-              </h3>
-            </div>
-
-            {/* Core workspaces */}
-            <div className="space-y-1 mb-6">
-              <div className="text-xs font-semibold text-muted-foreground/70 px-3 py-2">Core Platform</div>
-              {WORKSPACES.filter(w => w.criticality === 'core').map(workspace => {
-                const Icon = workspace.icon;
-                const isActive = activeWorkspace === workspace.id;
+          <nav className="px-3 pb-4">
+            <ul className="space-y-1">
+              {REPORT_NAV_ITEMS.map((item) => {
+                const Icon = item.icon;
+                const isActive = item.id === activeSection;
                 return (
-                  <button
-                    key={workspace.id}
-                    onClick={() => setActiveWorkspace(workspace.id)}
-                    className={cn(
-                      "w-full flex items-start gap-3 px-3 py-2 rounded-lg text-sm transition-colors text-left group",
-                      isActive
-                        ? "bg-primary/10 text-primary"
-                        : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-                    )}
-                  >
-                    <Icon className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                    <span className="flex-1">{workspace.label}</span>
-                  </button>
+                  <li key={item.id}>
+                    <button
+                      onClick={() => setActiveSection(item.id)}
+                      className={cn(
+                        "w-full rounded-md border px-3 py-2 text-left transition-colors",
+                        isActive
+                          ? "border-primary/30 bg-primary/10"
+                          : "border-transparent hover:border-border hover:bg-muted/40",
+                      )}
+                    >
+                      <div className="flex items-start gap-2.5">
+                        <Icon
+                          className={cn(
+                            "mt-0.5 h-4 w-4 shrink-0",
+                            isActive ? "text-primary" : "text-muted-foreground",
+                          )}
+                        />
+                        <div>
+                          <p className={cn("text-sm font-medium leading-5", isActive ? "text-primary" : "text-foreground")}>
+                            {item.label}
+                          </p>
+                          <p className="mt-0.5 text-xs leading-4 text-muted-foreground">{item.description}</p>
+                        </div>
+                      </div>
+                    </button>
+                  </li>
                 );
               })}
-            </div>
+            </ul>
+          </nav>
+        </aside>
 
-            {/* Enterprise workspaces */}
-            <div className="space-y-1 mb-6">
-              <div className="text-xs font-semibold text-muted-foreground/70 px-3 py-2">Enterprise</div>
-              {WORKSPACES.filter(w => w.criticality === 'enterprise').map(workspace => {
-                const Icon = workspace.icon;
-                const isActive = activeWorkspace === workspace.id;
-                return (
-                  <button
-                    key={workspace.id}
-                    onClick={() => setActiveWorkspace(workspace.id)}
-                    className={cn(
-                      "w-full flex items-start gap-3 px-3 py-2 rounded-lg text-sm transition-colors text-left group",
-                      isActive
-                        ? "bg-primary/10 text-primary"
-                        : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-                    )}
-                  >
-                    <Icon className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                    <span className="flex-1">{workspace.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Strategic workspaces */}
-            <div className="space-y-1">
-              <div className="text-xs font-semibold text-muted-foreground/70 px-3 py-2">Strategic</div>
-              {WORKSPACES.filter(w => w.criticality === 'strategic').map(workspace => {
-                const Icon = workspace.icon;
-                const isActive = activeWorkspace === workspace.id;
-                return (
-                  <button
-                    key={workspace.id}
-                    onClick={() => setActiveWorkspace(workspace.id)}
-                    className={cn(
-                      "w-full flex items-start gap-3 px-3 py-2 rounded-lg text-sm transition-colors text-left group",
-                      isActive
-                        ? "bg-primary/10 text-primary"
-                        : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-                    )}
-                  >
-                    <Icon className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                    <span className="flex-1">{workspace.label}</span>
-                  </button>
-                );
-              })}
-            </div>
+        <main className="flex-1 overflow-y-auto">
+          <div className="border-b border-border bg-card/20 px-6 py-4">
+            <h1 className="text-base font-semibold text-foreground">{activeConfig?.label}</h1>
+            <p className="text-xs text-muted-foreground">{activeConfig?.description}</p>
           </div>
-        </div>
-
-        {/* Main Content Area */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Workspace Header */}
-          <div className="border-b border-border bg-card/30 px-8 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                {activeConfig && (
-                  <>
-                    <div className={cn(
-                      "p-2 rounded-lg bg-gradient-to-br",
-                      activeConfig.color
-                    )}>
-                      <activeConfig.icon className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <h2 className="text-xl font-bold text-foreground">{activeConfig.label}</h2>
-                      <p className="text-sm text-muted-foreground">{activeConfig.description}</p>
-                    </div>
-                  </>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                <button className="px-3 py-2 rounded-lg border border-border hover:bg-muted transition-colors text-sm flex items-center gap-2">
-                  <Download className="w-4 h-4" />
-                  Export
-                </button>
-                <button className="px-3 py-2 rounded-lg border border-border hover:bg-muted transition-colors text-sm flex items-center gap-2">
-                  <Settings className="w-4 h-4" />
-                  Configure
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Workspace Content */}
-          <div className="flex-1 overflow-y-auto">
-            <div className="p-8">
-              {renderWorkspace()}
-            </div>
-          </div>
-        </div>
+          <div className="p-6">{renderContent()}</div>
+        </main>
       </div>
     </div>
   );

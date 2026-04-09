@@ -1,220 +1,181 @@
-import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { CheckCircle, AlertTriangle, TrendingUp, Clock } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { ArrowUpRight, Bot, CheckCircle2 } from "lucide-react";
+
+interface PipelineHealthRow {
+  dataset: string;
+  source: string;
+  freshness: string;
+  status: "Fresh" | "Delayed";
+  actionLabel: string;
+}
+
+interface ActivityEvent {
+  title: string;
+  timeAgo: string;
+  context: string;
+  actionLabel: string;
+}
+
+const PIPELINE_HEALTH_ROWS: PipelineHealthRow[] = [
+  {
+    dataset: "Alarm KPI Dataset",
+    source: "Alarm Module",
+    freshness: "2 min ago",
+    status: "Fresh",
+    actionLabel: "View Dataset",
+  },
+  {
+    dataset: "Transport KPI Dataset",
+    source: "Network PM",
+    freshness: "47 min ago",
+    status: "Delayed",
+    actionLabel: "Investigate",
+  },
+  {
+    dataset: "Revenue Correlation",
+    source: "Finance BI",
+    freshness: "5 min ago",
+    status: "Fresh",
+    actionLabel: "View Dataset",
+  },
+  {
+    dataset: "Regulatory SLA Snapshot",
+    source: "Compliance Engine",
+    freshness: "9 min ago",
+    status: "Fresh",
+    actionLabel: "View Dataset",
+  },
+];
+
+const RECENT_ACTIVITY: ActivityEvent[] = [
+  {
+    title: "Executive summary generated",
+    timeAgo: "3 min ago",
+    context: "One-Click Briefing",
+    actionLabel: "Open",
+  },
+  {
+    title: "Transport KPI delay threshold breached",
+    timeAgo: "11 min ago",
+    context: "Pipeline Monitor",
+    actionLabel: "Investigate",
+  },
+  {
+    title: "Q2 board report scheduled",
+    timeAgo: "26 min ago",
+    context: "Scheduling & Distribution",
+    actionLabel: "Review",
+  },
+  {
+    title: "Regulatory annex updated",
+    timeAgo: "42 min ago",
+    context: "Regulatory Intelligence Hub",
+    actionLabel: "View",
+  },
+  {
+    title: "Revenue correlation dataset refreshed",
+    timeAgo: "1 hr ago",
+    context: "Dataset Manager",
+    actionLabel: "Open",
+  },
+];
 
 export default function ExecutiveReportingOverview() {
-  // Reporting Reliability Score
-  const reliabilityData = {
-    score: 99.2,
-    status: 'Trusted',
-    pipelineHealth: 98.5,
-    dataFreshness: 99.1,
-    failureRate: 0.9,
-    schemaStability: 99.8
-  };
-
-  // SLA Reporting Coverage
-  const slaData = [
-    { name: 'On-Time', value: 94, color: '#22c55e' },
-    { name: 'Delayed <1h', value: 4, color: '#f59e0b' },
-    { name: 'Missed', value: 2, color: '#ef4444' }
-  ];
-
-  // Data Freshness Index
-  const freshnessData = [
-    { dataset: 'Transport KPI', status: 'on-time', time: 0, delay: 0 },
-    { dataset: 'RF Parameters', status: 'on-time', time: 0, delay: 0 },
-    { dataset: 'Power Metrics', status: 'on-time', time: 0, delay: 0 },
-    { dataset: 'Alarm Summary', status: 'delayed', time: 47, delay: 47 },
-    { dataset: 'Revenue Report', status: 'on-time', time: 0, delay: 0 },
-    { dataset: 'Compliance Data', status: 'on-time', time: 0, delay: 0 }
-  ];
-
-  // Trend data
-  const trendData = [
-    { month: 'Jan', reliability: 98.5, coverage: 92 },
-    { month: 'Feb', reliability: 98.8, coverage: 93 },
-    { month: 'Mar', reliability: 99.0, coverage: 94 },
-    { month: 'Apr', reliability: 99.2, coverage: 95 },
-    { month: 'May', reliability: 99.2, coverage: 94 },
-    { month: 'Jun', reliability: 99.2, coverage: 96 }
-  ];
-
   return (
-    <div className="space-y-8">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-500/20 rounded-xl p-8">
-        <h3 className="text-lg font-bold text-foreground mb-2">
-          Is our operational intelligence reliable enough to run the business?
-        </h3>
-        <p className="text-sm text-muted-foreground">
-          This control tower instantly answers whether your reporting infrastructure can support strategic decisions.
-        </p>
-      </div>
+    <section className="space-y-4">
+      <header className="flex flex-wrap items-center justify-end gap-2">
+        <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold tracking-wide text-emerald-700">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
+          LIVE
+        </span>
+        <button className="rounded-md border border-primary/40 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/15">
+          One-Click Briefing
+        </button>
+      </header>
 
-      {/* Executive KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Reporting Reliability Score */}
-        <div className="rounded-xl border border-border/50 p-6 bg-card/50">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">Reporting Reliability Score</p>
-              <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-bold text-foreground">{reliabilityData.score}</span>
-                <span className="text-sm text-muted-foreground">%</span>
-              </div>
-            </div>
-            <CheckCircle className="w-8 h-8 text-green-600" />
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.65fr_1fr]">
+        <article className="rounded-md border border-border bg-card">
+          <div className="flex items-center justify-between border-b border-border px-4 py-3">
+            <h2 className="text-sm font-semibold text-foreground">Pipeline Health Overview</h2>
+            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-[11px] font-medium text-emerald-700">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              All Healthy
+            </span>
           </div>
-          <div className="pt-4 border-t border-border/50">
-            <p className="text-xs font-semibold text-green-600">Status: {reliabilityData.status}</p>
-          </div>
-        </div>
 
-        {/* Pipeline Health */}
-        <div className="rounded-xl border border-border/50 p-6 bg-card/50">
-          <p className="text-sm text-muted-foreground mb-1">Pipeline Health</p>
-          <div className="flex items-baseline gap-2 mb-4">
-            <span className="text-4xl font-bold text-foreground">{reliabilityData.pipelineHealth}</span>
-            <span className="text-sm text-muted-foreground">%</span>
-          </div>
-          <div className="w-full bg-muted rounded-full h-2">
-            <div 
-              className="bg-green-500 h-2 rounded-full" 
-              style={{ width: `${reliabilityData.pipelineHealth}%` }}
-            />
-          </div>
-        </div>
-
-        {/* Data Freshness */}
-        <div className="rounded-xl border border-border/50 p-6 bg-card/50">
-          <p className="text-sm text-muted-foreground mb-1">Data Freshness Index</p>
-          <div className="flex items-baseline gap-2 mb-4">
-            <span className="text-4xl font-bold text-foreground">{reliabilityData.dataFreshness}</span>
-            <span className="text-sm text-muted-foreground">%</span>
-          </div>
-          <p className="text-xs text-orange-600 font-semibold">Transport KPI: 47 min delay detected</p>
-        </div>
-
-        {/* Schema Stability */}
-        <div className="rounded-xl border border-border/50 p-6 bg-card/50">
-          <p className="text-sm text-muted-foreground mb-1">Schema Stability</p>
-          <div className="flex items-baseline gap-2 mb-4">
-            <span className="text-4xl font-bold text-foreground">{reliabilityData.schemaStability}</span>
-            <span className="text-sm text-muted-foreground">%</span>
-          </div>
-          <div className="w-full bg-muted rounded-full h-2">
-            <div 
-              className="bg-purple-500 h-2 rounded-full" 
-              style={{ width: `${reliabilityData.schemaStability}%` }}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* SLA Coverage */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="rounded-xl border border-border/50 p-6 bg-card/50">
-          <h4 className="font-bold text-foreground mb-6">SLA Reporting Coverage</h4>
-          <ResponsiveContainer width="100%" height={250}>
-            <PieChart>
-              <Pie
-                data={slaData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, value }) => `${name}: ${value}%`}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {slaData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-border bg-muted/30">
+                  {["Dataset", "Source", "Freshness", "Status", "Action"].map((column) => (
+                    <th key={column} className="px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      {column}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {PIPELINE_HEALTH_ROWS.map((row) => (
+                  <tr key={row.dataset} className="border-b border-border/70 last:border-b-0">
+                    <td className="px-4 py-3 text-xs font-medium text-foreground">{row.dataset}</td>
+                    <td className="px-4 py-3 text-xs text-muted-foreground">{row.source}</td>
+                    <td className="px-4 py-3 text-xs text-muted-foreground">{row.freshness}</td>
+                    <td className="px-4 py-3 text-xs">
+                      <span
+                        className={
+                          row.status === "Fresh"
+                            ? "inline-flex rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-700"
+                            : "inline-flex rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-700"
+                        }
+                      >
+                        {row.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-xs">
+                      <button className="inline-flex items-center gap-1 font-medium text-primary hover:underline">
+                        {row.actionLabel}
+                        <ArrowUpRight className="h-3 w-3" />
+                      </button>
+                    </td>
+                  </tr>
                 ))}
-              </Pie>
-              <Tooltip formatter={(value) => `${value}%`} />
-            </PieChart>
-          </ResponsiveContainer>
-          <p className="text-xs text-muted-foreground mt-4">
-            94% of required regulatory reports delivered on-time. Massive enterprise differentiator.
-          </p>
-        </div>
+              </tbody>
+            </table>
+          </div>
+        </article>
 
-        {/* Reliability Trend */}
-        <div className="rounded-xl border border-border/50 p-6 bg-card/50">
-          <h4 className="font-bold text-foreground mb-6">6-Month Reliability Trend</h4>
-          <ResponsiveContainer width="100%" height={250}>
-            <LineChart data={trendData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" style={{ fontSize: '12px' }} />
-              <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: '12px' }} />
-              <Tooltip 
-                contentStyle={{
-                  backgroundColor: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "8px",
-                }}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="reliability" 
-                stroke="#3b82f6" 
-                dot={false}
-                strokeWidth={2}
-                name="Reliability %"
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* Data Freshness Alerts */}
-      <div className="rounded-xl border border-border/50 p-6 bg-card/50">
-        <h4 className="font-bold text-foreground mb-4">Freshness Status by Dataset</h4>
-        <div className="space-y-3">
-          {freshnessData.map((item, idx) => (
-            <div key={idx} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-              <div className="flex items-center gap-3">
-                {item.status === 'on-time' ? (
-                  <CheckCircle className="w-4 h-4 text-green-600" />
-                ) : (
-                  <AlertTriangle className="w-4 h-4 text-orange-600" />
-                )}
-                <span className="text-sm font-medium text-foreground">{item.dataset}</span>
-              </div>
-              <div className="text-right">
-                {item.delay > 0 ? (
-                  <span className="text-sm text-orange-600 font-semibold">{item.delay} min delay</span>
-                ) : (
-                  <span className="text-sm text-green-600 font-semibold">On-time</span>
-                )}
-              </div>
+        <aside className="space-y-4">
+          <section className="rounded-md border border-border bg-card">
+            <div className="flex items-center justify-between border-b border-border px-4 py-3">
+              <h3 className="text-sm font-semibold text-foreground">Recent Activity</h3>
+              <span className="text-xs font-medium text-muted-foreground">12 events</span>
             </div>
-          ))}
-        </div>
-      </div>
+            <div className="divide-y divide-border/70">
+              {RECENT_ACTIVITY.map((event) => (
+                <div key={`${event.title}-${event.timeAgo}`} className="px-4 py-3">
+                  <p className="text-xs font-medium text-foreground">{event.title}</p>
+                  <div className="mt-1 flex items-center justify-between gap-2">
+                    <div>
+                      <p className="text-[11px] text-muted-foreground">{event.timeAgo}</p>
+                      <p className="text-[11px] text-muted-foreground">{event.context}</p>
+                    </div>
+                    <button className="text-[11px] font-semibold text-primary hover:underline">{event.actionLabel}</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
 
-      {/* Key Insights */}
-      <div className="bg-blue-500/5 border border-blue-500/20 rounded-xl p-6">
-        <h4 className="font-bold text-foreground mb-4 flex items-center gap-2">
-          <TrendingUp className="w-4 h-4 text-blue-600" />
-          Strategic Implications
-        </h4>
-        <ul className="space-y-2 text-sm text-muted-foreground">
-          <li className="flex items-start gap-2">
-            <span className="text-blue-600 font-bold mt-0.5">•</span>
-            <span>Your reporting infrastructure is <strong className="text-foreground">enterprise-grade stable</strong> - safe to build strategic decisions on this foundation</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-blue-600 font-bold mt-0.5">•</span>
-            <span>Address Transport KPI delay (47 min) immediately - this dataset informs critical capacity planning</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-blue-600 font-bold mt-0.5">•</span>
-            <span>94% SLA coverage enables regulatory confidence - maintain this for compliance audits</span>
-          </li>
-        </ul>
+          <section className="rounded-md border border-border bg-card px-4 py-3">
+            <div className="mb-2 flex items-center gap-1.5">
+              <Bot className="h-4 w-4 text-primary" />
+              <h3 className="text-sm font-semibold text-foreground">AI Predictive Insight</h3>
+            </div>
+            <p className="text-xs leading-5 text-muted-foreground">
+              Congestion probability rising — 78% likelihood within 90 days for Cairo region.
+            </p>
+          </section>
+        </aside>
       </div>
-    </div>
+    </section>
   );
 }
