@@ -134,8 +134,8 @@ export default function ActivityAudit() {
         </div>
       </div>
 
-      <div className="border-b border-border bg-card/40 px-6">
-        <div className="flex flex-wrap gap-1 py-2">
+      <div className="bg-card border-b border-border rounded-lg p-4 mx-2 mt-2">
+        <div className="grid grid-cols-1 gap-2 auto-rows-max md:grid-cols-2 xl:grid-cols-5">
           {WORKSPACES.map((workspace) => {
             const Icon = workspace.icon;
             return (
@@ -143,14 +143,15 @@ export default function ActivityAudit() {
                 key={workspace.id}
                 onClick={() => setActiveWorkspace(workspace.id)}
                 className={cn(
-                  "inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors",
+                  "flex flex-col items-center justify-center gap-2 p-4 rounded-lg border-2 transition min-h-[180px]",
                   activeWorkspace === workspace.id
-                    ? "bg-primary/10 text-primary border border-primary/30"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground border border-transparent",
+                    ? "border-blue-600 bg-blue-50 dark:bg-blue-950"
+                    : "border-border hover:border-primary/40 bg-card",
                 )}
+                title={workspace.label}
               >
-                <Icon className="h-4 w-4" />
-                {workspace.label}
+                <Icon className={cn("w-6 h-6 flex-shrink-0", activeWorkspace === workspace.id ? "text-blue-600 dark:text-blue-400" : "text-muted-foreground")} />
+                <span className="text-xs font-semibold text-center text-foreground line-clamp-2 leading-tight">{workspace.label}</span>
               </button>
             );
           })}

@@ -254,9 +254,6 @@ export const AutomationManagement: React.FC = () => {
     return searchMatch && statusMatch && categoryMatch;
   });
 
-  const domainWorkspaces = WORKSPACES.filter(w => w.domain === activeDomain);
-  const currentDomain = DOMAINS.find(d => d.id === activeDomain);
-
   const resetModelSetupForm = () => {
     setEditingModelId(null);
     setSelectedModelTemplateId('');
@@ -902,45 +899,29 @@ export const AutomationManagement: React.FC = () => {
   return (
     <div className="automation-theme flex flex-col h-screen bg-background">
       {/* Primary Section Navigation */}
-      <div className="bg-card border-b border-border px-6 py-2 flex flex-wrap gap-2">
-        {DOMAINS.map(domain => {
-          const Icon = domain.icon;
-          return (
-            <button
-              key={domain.id}
-              onClick={() => {
-                setActiveDomain(domain.id as SuperDomain);
-                setActiveWorkspace(WORKSPACES.find(w => w.domain === domain.id)?.id || 'command_center');
-              }}
-              className={`px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-2 border ${
-                activeDomain === domain.id
-                  ? `${domain.bgColor} ${domain.color} border-current`
-                  : 'bg-muted/60 text-muted-foreground hover:bg-muted border-transparent'
-              }`}
-            >
-              <Icon className="w-4 h-4" />
-              {domain.label}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Domain Workspace Navigation */}
-      <div className="bg-card/40 border-b border-border px-6 overflow-x-auto">
-        <div className="flex gap-1 py-2">
-          {domainWorkspaces.map(workspace => (
-            <button
-              key={workspace.id}
-              onClick={() => setActiveWorkspace(workspace.id)}
-              className={`px-3 py-2 rounded-lg text-sm font-medium transition border ${
-                activeWorkspace === workspace.id
-                  ? 'bg-primary/10 text-primary border-primary/30'
-                  : 'text-muted-foreground border-transparent hover:bg-muted/70'
-              }`}
-            >
-              {workspace.label}
-            </button>
-          ))}
+      <div className="bg-card border-b border-border rounded-lg p-4 mx-2 mt-2">
+        <div className="grid grid-cols-1 gap-2 auto-rows-max md:grid-cols-3">
+          {DOMAINS.map(domain => {
+            const Icon = domain.icon;
+            return (
+              <button
+                key={domain.id}
+                onClick={() => {
+                  setActiveDomain(domain.id as SuperDomain);
+                  setActiveWorkspace(WORKSPACES.find(w => w.domain === domain.id)?.id || 'command_center');
+                }}
+                className={`flex flex-col items-center justify-center gap-2 p-4 rounded-lg border-2 transition min-h-[180px] ${
+                  activeDomain === domain.id
+                    ? 'border-blue-600 bg-blue-50 dark:bg-blue-950'
+                    : 'border-border hover:border-primary/40 bg-card'
+                }`}
+                title={domain.label}
+              >
+                <Icon className={`w-6 h-6 flex-shrink-0 ${activeDomain === domain.id ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
+                <span className="text-xs font-semibold text-center text-foreground line-clamp-2 leading-tight">{domain.label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
