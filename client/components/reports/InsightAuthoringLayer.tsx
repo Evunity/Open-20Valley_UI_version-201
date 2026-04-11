@@ -1,207 +1,152 @@
-import { Lightbulb, Sparkles, BookOpen, MessageSquare } from 'lucide-react';
+import { useState } from "react";
+import { Copy } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
-export default function InsightAuthoringLayer() {
-  const insights = [
-    {
-      title: 'Traffic Congestion Alert',
-      type: 'anomaly',
-      description: 'Transport layer utilization exceeded 85% threshold on Cairo-Site-1 over the past 6 hours',
-      recommendation: 'Action: Shift 30% of traffic to Alexandria Site to balance load and prevent degradation',
-      confidence: 94
-    },
-    {
-      title: 'RF Parameter Drift',
-      type: 'deviation',
-      description: 'Handover success rate decreased by 7% vs. baseline configuration',
-      recommendation: 'Review: Recent parameter changes from Command Center. Rollback to previous config and retest.',
-      confidence: 87
-    },
-    {
-      title: 'Cost Optimization Opportunity',
-      type: 'opportunity',
-      description: 'By consolidating 4G traffic to fewer cells during off-peak hours, you can reduce power consumption',
-      recommendation: 'Implement: Automated traffic consolidation policy to save ~$120K/month in power costs',
-      confidence: 91
-    }
-  ];
+type InsightsTab = "Strategic Insights" | "Authoring" | "Decision Impact" | "Trend Analysis";
 
+interface InsightItem {
+  id: string;
+  title: string;
+  text: string;
+  tag?: string;
+}
+
+const INSIGHTS: InsightItem[] = [
+  { id: "i1", title: "Did automation reduce outages?", text: "Outage duration dropped 12% in clusters where closed-loop actions were enabled." },
+  { id: "i2", title: "Which vendor drives instability?", text: "Ericsson cells account for 41% of recurring failure incidents over 30 days." },
+  { id: "i3", title: "Is congestion rising YoY?", text: "Peak-hour congestion is +8% YoY in high-density urban sectors." },
+  { id: "i4", title: "Are AI decisions improving KPIs?", text: "AI-guided remediation increased clear-rate by 2.1% quarter-over-quarter." },
+  { id: "i5", title: "Congestion probability next 90 days?", text: "Forecast indicates 67% probability of elevated congestion in North Cairo.", tag: "AI Forecast" },
+];
+
+function Modal({ title, children, onClose }: { title: string; children: React.ReactNode; onClose: () => void }) {
   return (
-    <div className="space-y-8">
-      {/* AI Narrative Generation */}
-      <div className="bg-indigo-500/5 border border-indigo-500/20 rounded-xl p-6">
-        <h3 className="font-bold text-foreground mb-2 flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-indigo-600" />
-          AI-Powered Narrative Generation
-        </h3>
-        <p className="text-sm text-muted-foreground mb-4">
-          Automatically generate natural language insights and actionable recommendations from data patterns.
-        </p>
-        <textarea
-          className="w-full px-4 py-3 rounded-lg border border-indigo-500/20 bg-indigo-500/5 text-sm text-muted-foreground font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
-          rows={6}
-          value={`Executive Summary:
-Transport network is operating near capacity limits. Immediate load balancing required.
-
-Key Metrics:
-• Average utilization: 83% (target: 70%)
-• Peak hour congestion: 92% utilization
-• Affected cells: Cairo-Site-1 (4G), Cairo-Site-2 (5G)
-
-Recommendations:
-1. Shift 30% of traffic to Alexandria Site [Cost: $5K implementation | Benefit: $150K/month relief]
-2. Deploy traffic steering policies to distribute 5G load [Timeline: 2 days]
-3. Increase backhaul capacity by 40Gbps [Timeline: 4 weeks]
-
-Decision Impact:
-Failure to act could result in service degradation affecting 2.4M subscribers.
-Immediate action recommended.`}
-          readOnly
-        />
-      </div>
-
-      {/* Intelligence Library */}
-      <div>
-        <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
-          <BookOpen className="w-5 h-5 text-blue-600" />
-          Generated Insights
-        </h3>
-
-        <div className="space-y-4">
-          {insights.map((insight, idx) => (
-            <div
-              key={idx}
-              className={`rounded-xl border p-6 ${
-                insight.type === 'anomaly'
-                  ? 'border-red-500/20 bg-red-500/5'
-                  : insight.type === 'deviation'
-                    ? 'border-orange-500/20 bg-orange-500/5'
-                    : 'border-green-500/20 bg-green-500/5'
-              }`}
-            >
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <h4 className="font-bold text-foreground">{insight.title}</h4>
-                  <p className="text-xs text-muted-foreground mt-1">{insight.type.toUpperCase()}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="text-right">
-                    <p className="text-xs text-muted-foreground">Confidence</p>
-                    <p className="font-bold text-foreground">{insight.confidence}%</p>
-                  </div>
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center" 
-                    style={{
-                      background: `conic-gradient(
-                        ${insight.type === 'anomaly' ? '#ef4444' : insight.type === 'deviation' ? '#f59e0b' : '#22c55e'} 0deg ${insight.confidence * 3.6}deg,
-                        hsl(var(--muted)) ${insight.confidence * 3.6}deg 360deg
-                      )`
-                    }}>
-                    <div className="w-10 h-10 rounded-full bg-card flex items-center justify-center">
-                      <span className="text-xs font-bold text-foreground">{insight.confidence}%</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <p className="text-sm text-foreground mb-3">{insight.description}</p>
-
-              <div className="bg-muted/30 p-3 rounded-lg border border-border/30 mb-3">
-                <p className="text-sm font-semibold text-foreground mb-1">Recommendation:</p>
-                <p className="text-sm text-muted-foreground">{insight.recommendation}</p>
-              </div>
-
-              <div className="flex gap-2">
-                <button className="flex-1 px-3 py-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors text-sm font-medium">
-                  Accept & Implement
-                </button>
-                <button className="px-3 py-2 rounded-lg border border-border hover:bg-muted transition-colors text-sm">
-                  Drill Down
-                </button>
-              </div>
-            </div>
-          ))}
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+      <div className="w-full max-w-xl rounded-xl border border-border bg-card shadow-xl">
+        <div className="flex items-center justify-between border-b border-border px-4 py-3">
+          <h3 className="text-sm font-semibold">{title}</h3>
+          <button onClick={onClose} className="rounded-lg px-2 py-1 text-xs hover:bg-muted">Close</button>
         </div>
-      </div>
-
-      {/* Insight Configuration */}
-      <div className="rounded-xl border border-border/50 p-6 bg-card/50">
-        <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
-          <MessageSquare className="w-5 h-5 text-purple-600" />
-          Configure Insight Generation
-        </h3>
-
-        <div className="space-y-4">
-          <div>
-            <label className="text-sm font-semibold text-foreground block mb-2">
-              Insight Types to Generate
-            </label>
-            <div className="space-y-2">
-              {[
-                { name: 'Anomalies', description: 'Detect unusual patterns and deviations' },
-                { name: 'Trends', description: 'Identify directional changes over time' },
-                { name: 'Correlations', description: 'Find relationships between metrics' },
-                { name: 'Opportunities', description: 'Suggest optimization and cost-saving actions' },
-                { name: 'Risks', description: 'Alert on potential SLA violations' }
-              ].map((type, idx) => (
-                <label key={idx} className="flex items-start gap-3 p-3 bg-muted/30 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
-                  <input type="checkbox" defaultChecked className="mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{type.name}</p>
-                    <p className="text-xs text-muted-foreground">{type.description}</p>
-                  </div>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          <div className="pt-4 border-t border-border/50">
-            <label className="text-sm font-semibold text-foreground block mb-2">
-              Minimum Confidence Threshold
-            </label>
-            <input
-              type="range"
-              min="50"
-              max="99"
-              defaultValue="80"
-              className="w-full"
-            />
-            <p className="text-xs text-muted-foreground mt-2">Only show insights with ≥ 80% confidence</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Smart Recommendations */}
-      <div className="rounded-xl border border-border/50 p-6 bg-card/50">
-        <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
-          <Lightbulb className="w-5 h-5 text-yellow-600" />
-          Next Recommended Actions
-        </h3>
-
-        <div className="space-y-3">
-          <div className="p-4 bg-muted/30 rounded-lg border border-border/30">
-            <p className="text-sm font-semibold text-foreground mb-1">1. Load Balancing Implementation</p>
-            <p className="text-xs text-muted-foreground">Shift 30% traffic from Cairo-Site-1 to Alexandria | Est. Cost: $5K | ROI: 30x over 1 month</p>
-            <button className="mt-2 text-xs px-3 py-1 bg-primary/10 text-primary rounded hover:bg-primary/20 transition-colors">
-              View Details & Execute
-            </button>
-          </div>
-
-          <div className="p-4 bg-muted/30 rounded-lg border border-border/30">
-            <p className="text-sm font-semibold text-foreground mb-1">2. RF Parameter Tuning</p>
-            <p className="text-xs text-muted-foreground">Optimize handover thresholds based on recent drift | Est. Cost: $0 (config only) | Benefit: +4% HO success</p>
-            <button className="mt-2 text-xs px-3 py-1 bg-primary/10 text-primary rounded hover:bg-primary/20 transition-colors">
-              Preview Changes
-            </button>
-          </div>
-
-          <div className="p-4 bg-muted/30 rounded-lg border border-border/30">
-            <p className="text-sm font-semibold text-foreground mb-1">3. Power Optimization</p>
-            <p className="text-xs text-muted-foreground">Enable traffic consolidation during 10PM-6AM | Est. Cost: $0 | Savings: $120K/month</p>
-            <button className="mt-2 text-xs px-3 py-1 bg-primary/10 text-primary rounded hover:bg-primary/20 transition-colors">
-              Create Policy
-            </button>
-          </div>
-        </div>
+        <div className="p-4">{children}</div>
       </div>
     </div>
+  );
+}
+
+export default function InsightAuthoringLayer() {
+  const { toast } = useToast();
+  const [tab, setTab] = useState<InsightsTab>("Strategic Insights");
+  const [briefingOpen, setBriefingOpen] = useState(false);
+  const [activeInsight, setActiveInsight] = useState<InsightItem | null>(null);
+  const [tone, setTone] = useState("Executive");
+  const [length, setLength] = useState("Standard");
+  const [prompt, setPrompt] = useState("");
+  const [generated, setGenerated] = useState("Q1 vendor reliability improved in aggregate, but risk remains concentrated in transport delay windows. Prioritize Ericsson ingestion stability and congestion controls for North Cairo.");
+  const [editing, setEditing] = useState(false);
+  const [inserted, setInserted] = useState(false);
+
+  return (
+    <section className="space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="inline-flex rounded-xl border border-border bg-card p-1">
+          {(["Strategic Insights", "Authoring", "Decision Impact", "Trend Analysis"] as InsightsTab[]).map((item) => (
+            <button key={item} onClick={() => setTab(item)} className={cn("rounded-lg px-3 py-1.5 text-xs font-semibold", tab === item ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground")}>{item}</button>
+          ))}
+        </div>
+        <button onClick={() => setBriefingOpen(true)} className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground">Generate Briefing</button>
+      </div>
+
+      {tab === "Strategic Insights" && (
+        <div className="grid grid-cols-1 gap-3 xl:grid-cols-[1.35fr_1fr]">
+          <article className="rounded-xl border border-border bg-card p-3">
+            <div className="mb-2 flex items-center justify-between">
+              <h3 className="text-sm font-semibold">Cross-Module Intelligence</h3>
+              <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">4 Insights</span>
+            </div>
+            <div className="space-y-2">
+              {INSIGHTS.map((insight) => (
+                <div key={insight.id} className="rounded-lg border border-border px-3 py-2">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium">{insight.title}</p>
+                    {insight.tag && <span className="rounded-full border border-violet-500/40 bg-violet-500/10 px-2 py-0.5 text-[10px] font-semibold text-violet-700">{insight.tag}</span>}
+                  </div>
+                  <p className="mt-1 text-[11px] text-muted-foreground">{insight.text}</p>
+                  <button onClick={() => setActiveInsight(insight)} className="mt-1 text-[11px] text-primary hover:underline">Open insight details</button>
+                </div>
+              ))}
+            </div>
+          </article>
+
+          <aside className="space-y-3 rounded-xl border border-border bg-card p-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold">Insight Authoring</h3>
+              <span className="text-[10px] font-semibold text-primary">AI-Assisted</span>
+            </div>
+            <div className="rounded-lg border border-border bg-background p-3">
+              <p className="text-[11px] text-muted-foreground">Report: Q1 Vendor Scorecard</p>
+              <p className="mt-1 text-sm">Vendor stability improved for Nokia and Huawei cohorts, while Ericsson transport ingestion requires remediation focus.</p>
+            </div>
+            <div className="rounded-lg border border-primary/30 bg-primary/5 p-3">
+              <h4 className="text-xs font-semibold uppercase tracking-[0.06em] text-primary">AI-Assisted Narrative</h4>
+              <input value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="Generate summary..." className="mt-2 h-9 w-full rounded-xl border border-border bg-background px-3 text-sm" />
+              <div className="mt-2 flex flex-wrap gap-1.5">{["Executive", "Technical", "Regulatory"].map((item) => <button key={item} onClick={() => setTone(item)} className={cn("rounded-full border px-2 py-0.5 text-[11px]", tone === item ? "border-primary/40 bg-primary/10 text-primary" : "border-border hover:bg-muted/30")}>{item}</button>)}</div>
+              <div className="mt-1.5 flex flex-wrap gap-1.5">{["Brief", "Standard", "Detailed"].map((item) => <button key={item} onClick={() => setLength(item)} className={cn("rounded-full border px-2 py-0.5 text-[11px]", length === item ? "border-primary/40 bg-primary/10 text-primary" : "border-border hover:bg-muted/30")}>{item}</button>)}</div>
+              <button onClick={() => { setGenerated(`[${tone} · ${length}] ${prompt || "Generated summary"} — Automation impact remains positive; prioritize transport lag remediation and vendor-specific anomaly guardrails.`); toast({ title: "Narrative generated", description: "AI-assisted summary updated." }); }} className="mt-2 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground">Generate</button>
+            </div>
+            <div className="rounded-lg border border-border bg-background p-3">
+              <div className="flex items-center justify-between"><p className="text-xs font-semibold uppercase tracking-[0.06em]">AI Generated — Editable</p><button onClick={() => setEditing((p) => !p)} className="text-[11px] text-primary hover:underline">{editing ? "Done" : "Edit"}</button></div>
+              {editing ? <textarea value={generated} onChange={(e) => setGenerated(e.target.value)} className="mt-2 h-24 w-full rounded-xl border border-border p-2 text-sm" /> : <p className="mt-2 text-sm">{generated}</p>}
+              <div className="mt-2 flex gap-1.5">
+                <button onClick={async () => { await navigator.clipboard.writeText(generated); toast({ title: "Copied", description: "Narrative copied to clipboard." }); }} className="inline-flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-xs"><Copy className="h-3.5 w-3.5" />Copy</button>
+                <button onClick={() => { setInserted(true); toast({ title: "Inserted", description: "Narrative inserted into report." }); }} className="rounded-lg bg-primary px-2.5 py-1.5 text-xs font-semibold text-primary-foreground">Insert to Report</button>
+              </div>
+              {inserted && <p className="mt-1 text-[11px] text-emerald-700">Inserted into Q1 Vendor Scorecard.</p>}
+            </div>
+          </aside>
+        </div>
+      )}
+
+      {tab === "Authoring" && (
+        <div className="rounded-xl border border-border bg-card p-4">
+          <h3 className="text-sm font-semibold">Narrative Draft Workspace</h3>
+          <p className="mt-1 text-xs text-muted-foreground">Draft executive narrative sections and maintain editorial revisions.</p>
+          <textarea value={generated} onChange={(e) => setGenerated(e.target.value)} className="mt-3 h-40 w-full rounded-xl border border-border p-3 text-sm" />
+          <div className="mt-2 flex justify-end gap-2">
+            <button onClick={() => toast({ title: "Draft saved", description: "Authoring draft saved locally." })} className="rounded-lg border border-border px-3 py-1.5 text-xs">Save Draft</button>
+            <button onClick={() => toast({ title: "Published", description: "Narrative published to report preview." })} className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground">Publish</button>
+          </div>
+        </div>
+      )}
+
+      {tab === "Decision Impact" && (
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+          {[
+            ["Automation Decisions", "+14%", "KPI uplift after guided remediations"],
+            ["Risk Avoidance", "9 incidents", "Potential SLA breaches prevented"],
+            ["Revenue Protection", "$1.2M", "Estimated impact preserved"],
+          ].map(([title, value, text]) => (
+            <article key={title} className="rounded-xl border border-border bg-card p-4">
+              <p className="text-xs text-muted-foreground">{title}</p>
+              <p className="mt-1 text-2xl font-bold">{value}</p>
+              <p className="text-xs text-muted-foreground">{text}</p>
+            </article>
+          ))}
+        </div>
+      )}
+
+      {tab === "Trend Analysis" && (
+        <div className="rounded-xl border border-border bg-card p-4">
+          <h3 className="text-sm font-semibold">Trend Analysis</h3>
+          <p className="mt-1 text-xs text-muted-foreground">7-day trend summary for congestion, clear-rate, and vendor stability.</p>
+          <div className="mt-3 grid grid-cols-7 gap-1.5">
+            {[32, 45, 40, 56, 52, 61, 58].map((v, idx) => <div key={idx} className="flex h-32 items-end"><div className="w-full rounded-t bg-primary/70" style={{ height: `${v}%` }} /></div>)}
+          </div>
+        </div>
+      )}
+
+      {briefingOpen && <Modal title="Generate Briefing" onClose={() => setBriefingOpen(false)}><p className="text-sm">Strategic briefing generated from latest insights, vendor risk profile, and congestion forecast. Ready for executive review.</p></Modal>}
+      {activeInsight && <Modal title={activeInsight.title} onClose={() => setActiveInsight(null)}><p className="text-sm">{activeInsight.text}</p></Modal>}
+    </section>
   );
 }

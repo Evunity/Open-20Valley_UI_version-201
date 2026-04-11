@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { Layout, Copy, Eye } from 'lucide-react';
+import SearchableDropdown from '@/components/SearchableDropdown';
 
 interface Template {
   id: string;
@@ -11,6 +13,8 @@ interface Template {
 }
 
 export default function LayoutIntelligence() {
+  const [logoPlacement, setLogoPlacement] = useState('Top Left (Standard)');
+  const [colorScheme, setColorScheme] = useState('Corporate Blue (Default)');
   const templates: Template[] = [
     {
       id: '1',
@@ -192,22 +196,28 @@ export default function LayoutIntelligence() {
         <div className="space-y-4">
           <div>
             <label className="text-sm font-semibold text-foreground block mb-2">Logo Placement</label>
-            <select className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm">
-              <option>Top Left (Standard)</option>
-              <option>Top Right</option>
-              <option>Header Bar</option>
-              <option>Watermark (Light)</option>
-            </select>
+            <SearchableDropdown
+              label=""
+              multiSelect={false}
+              compact
+              options={['Top Left (Standard)', 'Top Right', 'Header Bar', 'Watermark (Light)']}
+              selected={[logoPlacement]}
+              onChange={(selected) => setLogoPlacement(selected[0] ?? 'Top Left (Standard)')}
+              searchable={false}
+            />
           </div>
 
           <div>
             <label className="text-sm font-semibold text-foreground block mb-2">Color Scheme</label>
-            <select className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm">
-              <option>Corporate Blue (Default)</option>
-              <option>Dark Professional</option>
-              <option>Minimalist</option>
-              <option>Custom Brand Colors</option>
-            </select>
+            <SearchableDropdown
+              label=""
+              multiSelect={false}
+              compact
+              options={['Corporate Blue (Default)', 'Dark Professional', 'Minimalist', 'Custom Brand Colors']}
+              selected={[colorScheme]}
+              onChange={(selected) => setColorScheme(selected[0] ?? 'Corporate Blue (Default)')}
+              searchable={false}
+            />
           </div>
 
           <div>
