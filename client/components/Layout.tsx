@@ -140,18 +140,20 @@ export default function Layout({ children }: LayoutProps) {
     setDarkMode(!darkMode);
   };
 
+  const isReportsRoute = location.pathname.startsWith("/reports-module");
+
   useEffect(() => {
-    if (location.pathname.startsWith("/reports-module")) {
+    if (isReportsRoute) {
       setReportsExpanded(true);
     }
-  }, [location.pathname]);
+  }, [isReportsRoute]);
 
   const mainNavItems = [
     {
       path: "/",
       label: t("dashboard"),
       icon: LayoutDashboard,
-      matchPaths: ["/", "/voice-analytics", "/data-analytics", "/network-alarms", "/network-status", "/reports", "/ai-actions"],
+      matchPaths: ["/", "/voice-analytics", "/data-analytics", "/network-alarms", "/network-status", "/ai-actions"],
     },
     {
       path: "/analytics-management",
@@ -274,7 +276,7 @@ export default function Layout({ children }: LayoutProps) {
         <div className={cn(sidebarOpen ? "space-y-1" : "space-y-0.5")}>
           {mainNavItems.map(({ path, label, icon: Icon, matchPaths }) => {
             const moduleIsActive = isActive(matchPaths);
-            const isReportsModule = label === "Reports";
+            const isReportsModule = path === DEFAULT_REPORTS_SECTION.path;
 
             return (
               <div key={path} className="space-y-0.5">
@@ -284,7 +286,7 @@ export default function Layout({ children }: LayoutProps) {
                     className={cn(
                       "mx-1 flex w-[calc(100%-0.5rem)] items-center gap-2 rounded-lg px-2 py-2 text-xs transition-all duration-200",
                       moduleIsActive
-                        ? "bg-primary/20 border-l-2 border-primary text-primary font-medium"
+                        ? "bg-sidebar-accent/20 border-l-2 border-sidebar-accent text-sidebar-accent font-medium shadow-sm"
                         : "text-sidebar-foreground hover:bg-sidebar-accent/50",
                     )}
                   >
@@ -307,8 +309,10 @@ export default function Layout({ children }: LayoutProps) {
                         : "mx-2 flex h-9 items-center justify-center px-0",
                       moduleIsActive
                         ? cn(
-                            "text-primary font-medium",
-                            sidebarOpen ? "bg-primary/20 border-l-2 border-primary" : "bg-primary/15 ring-1 ring-primary/30",
+                            "text-sidebar-accent font-medium",
+                            sidebarOpen
+                              ? "bg-sidebar-accent/20 border-l-2 border-sidebar-accent shadow-sm"
+                              : "bg-sidebar-accent/15 ring-1 ring-sidebar-accent/40",
                           )
                         : "text-sidebar-foreground hover:bg-sidebar-accent/50",
                     )}
@@ -341,7 +345,7 @@ export default function Layout({ children }: LayoutProps) {
                           className={cn(
                             "block rounded-md px-2 py-1.5 text-[11px] transition-colors",
                             sectionActive
-                              ? "bg-primary/15 text-primary font-medium"
+                              ? "bg-sidebar-accent/15 text-sidebar-accent font-medium"
                               : "text-sidebar-foreground hover:bg-sidebar-accent/50",
                           )}
                         >
