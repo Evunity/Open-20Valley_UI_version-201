@@ -7,6 +7,7 @@ import { DropdownProvider } from "@/hooks/useDropdownManager";
 import ScrollToTop from "@/components/ScrollToTop";
 import Layout from "@/components/Layout";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { PlatformSettingsProvider } from "@/contexts/PlatformSettingsContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Login from "@/pages/Login";
 import DashboardNew from "@/pages/DashboardNew";
@@ -43,9 +44,10 @@ export default function App() {
           <TooltipProvider>
             <Toaster />
             <AuthProvider>
-            <BrowserRouter>
-              <ScrollToTop />
-              <Routes>
+            <PlatformSettingsProvider>
+              <BrowserRouter>
+                <ScrollToTop />
+                <Routes>
                 <Route path="/login" element={<Login />} />
                 
                 <Route
@@ -283,9 +285,10 @@ export default function App() {
                   }
                 />
                 <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </AuthProvider>
+                </Routes>
+              </BrowserRouter>
+            </PlatformSettingsProvider>
+            </AuthProvider>
         </TooltipProvider>
         </DropdownProvider>
       </FilterProvider>

@@ -1,4 +1,6 @@
 import { TimeMode } from './alarmData';
+import { formatPlatformDateTime } from './platformDateTime';
+import type { DateTimeFormat } from '@/contexts/PlatformSettingsContext';
 
 export type TimePreset = "1h" | "6h" | "24h" | "custom";
 
@@ -32,37 +34,30 @@ export interface TimeModeActions {
   resetState: () => void;
 }
 
+function getRuntimeDateConfig(): { timezone: string; format: DateTimeFormat } {
+  if (typeof document === "undefined") return { timezone: "UTC", format: "iso" };
+  const timezone = document.documentElement.getAttribute("data-timezone") || "UTC";
+  const formatAttr = document.documentElement.getAttribute("data-date-time-format");
+  const format = formatAttr === "european" || formatAttr === "us" ? formatAttr : "iso";
+  return { timezone, format };
+}
+
 // Get current time with format
 export function getCurrentTimeFormatted(): string {
-  return new Date().toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false
-  });
+  const { timezone, format } = getRuntimeDateConfig();
+  return formatPlatformDateTime(new Date(), timezone, format);
 }
 
 // Format time for display
 export function formatTime(date: Date): string {
-  return date.toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false
-  });
+  const { timezone, format } = getRuntimeDateConfig();
+  return formatPlatformDateTime(date, timezone, format);
 }
 
 // Format date and time
 export function formatDateTime(date: Date): string {
-  return date.toLocaleString('en-US', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false
-  });
+  const { timezone, format } = getRuntimeDateConfig();
+  return formatPlatformDateTime(date, timezone, format);
 }
 
 // Time preset utilities

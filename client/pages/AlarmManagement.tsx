@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { usePlatformSettings } from "@/contexts/PlatformSettingsContext";
+import { formatPlatformDateTime } from "@/utils/platformDateTime";
 
 type Mode = "Live" | "Snapshot" | "Historical";
 
@@ -49,8 +51,9 @@ const INITIAL_ROWS: AlarmRow[] = [
 
 export const AlarmManagement: React.FC = () => {
   const { toast } = useToast();
+  const { settings } = usePlatformSettings();
   const [mode, setMode] = useState<Mode>("Live");
-  const [lastUpdated, setLastUpdated] = useState("10:12:24");
+  const [lastUpdated, setLastUpdated] = useState(() => formatPlatformDateTime(new Date(), settings.timezone, settings.dateTimeFormat));
   const [search, setSearch] = useState("");
   const [vendor, setVendor] = useState("All Vendors");
   const [severity, setSeverity] = useState("All Severities");
@@ -88,6 +91,10 @@ export const AlarmManagement: React.FC = () => {
     });
     return out;
   }, [rows, search, vendor, severity, sortBy, sortDir]);
+
+  useEffect(() => {
+    setLastUpdated(formatPlatformDateTime(new Date(), settings.timezone, settings.dateTimeFormat));
+  }, [settings.timezone, settings.dateTimeFormat]);
 
   useEffect(() => {
     if (!selectedAlarmId) return;
@@ -139,12 +146,20 @@ export const AlarmManagement: React.FC = () => {
   const hasOverflowItems = !showFilters || !showVendor || !showSeverity || !showView || !showColumns || !showAcknowledge || !showAssign || !showComment || !showExport;
 
   const handleAcknowledge = () => {
+    if (settings.maintenanceMode) {
+      toast({ title: "Maintenance mode", description: "Write actions are disabled while maintenance mode is enabled." });
+      return;
+    }
     if (targetIds.length === 0) return;
     setRows((prev) => prev.map((r) => (targetIds.includes(r.id) ? { ...r, status: "Acknowledged" } : r)));
     toast({ title: "Acknowledged", description: `${targetIds.length} alarms updated.` });
   };
 
   const handleAssignApply = () => {
+    if (settings.maintenanceMode) {
+      toast({ title: "Maintenance mode", description: "Write actions are disabled while maintenance mode is enabled." });
+      return;
+    }
     setRows((prev) => prev.map((r) => (targetIds.includes(r.id) ? { ...r, assignment: assignInput, status: "Assigned" } : r)));
     setAssignOpen(false);
     toast({ title: "Assigned", description: `${targetIds.length} alarms assigned.` });
@@ -163,7 +178,7 @@ export const AlarmManagement: React.FC = () => {
             <button key={m} onClick={() => setMode(m)} className={cn("rounded-md px-3 py-1 text-xs font-semibold transition-colors", mode === m ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>{m}</button>
           ))}
         </div>
-        <button onClick={() => { setLastUpdated(new Date().toLocaleTimeString()); toast({ title: "Refreshed", description: "Alarm table refreshed; details panel preserved." }); }} className="rounded-lg border border-border px-2.5 py-1 text-xs">Refresh · {lastUpdated}</button>
+        <button onClick={() => { setLastUpdated(formatPlatformDateTime(new Date(), settings.timezone, settings.dateTimeFormat)); toast({ title: "Refreshed", description: "Alarm table refreshed; details panel preserved." }); }} className="rounded-lg border border-border px-2.5 py-1 text-xs">Refresh · {lastUpdated}</button>
       </div>
 
       {/* Toolbar */}
@@ -222,9 +237,9 @@ export const AlarmManagement: React.FC = () => {
             )}
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            {showAcknowledge && <button disabled={targetIds.length === 0} onClick={handleAcknowledge} className="h-10 rounded-lg border border-border px-3 text-sm disabled:opacity-40">Acknowledge</button>}
-            {showAssign && <button disabled={targetIds.length === 0} onClick={() => setAssignOpen(true)} className="h-10 rounded-lg border border-border px-3 text-sm disabled:opacity-40">Assign</button>}
-            {showComment && <button disabled={targetIds.length === 0} onClick={() => setCommentOpen(true)} className="h-10 rounded-lg border border-border px-3 text-sm disabled:opacity-40">Comment</button>}
+            {showAcknowledge && <button disabled={targetIds.length === 0 || settings.maintenanceMode} onClick={handleAcknowledge} className="h-10 rounded-lg border border-border px-3 text-sm disabled:opacity-40">Acknowledge</button>}
+            {showAssign && <button disabled={targetIds.length === 0 || settings.maintenanceMode} onClick={() => setAssignOpen(true)} className="h-10 rounded-lg border border-border px-3 text-sm disabled:opacity-40">Assign</button>}
+            {showComment && <button disabled={targetIds.length === 0 || settings.maintenanceMode} onClick={() => setCommentOpen(true)} className="h-10 rounded-lg border border-border px-3 text-sm disabled:opacity-40">Comment</button>}
             {showExport && <button onClick={handleExport} className="h-10 rounded-lg border border-border px-3 text-sm">Export</button>}
             {hasOverflowItems && (
               <DropdownMenu>
@@ -278,9 +293,9 @@ export const AlarmManagement: React.FC = () => {
                   )}
                   <DropdownMenuSeparator />
                   <DropdownMenuLabel>More Actions</DropdownMenuLabel>
-                  {!showAcknowledge && <DropdownMenuItem disabled={targetIds.length === 0} onSelect={handleAcknowledge}>Acknowledge</DropdownMenuItem>}
-                  {!showAssign && <DropdownMenuItem disabled={targetIds.length === 0} onSelect={() => setAssignOpen(true)}>Assign</DropdownMenuItem>}
-                  {!showComment && <DropdownMenuItem disabled={targetIds.length === 0} onSelect={() => setCommentOpen(true)}>Comment</DropdownMenuItem>}
+                  {!showAcknowledge && <DropdownMenuItem disabled={targetIds.length === 0 || settings.maintenanceMode} onSelect={handleAcknowledge}>Acknowledge</DropdownMenuItem>}
+                  {!showAssign && <DropdownMenuItem disabled={targetIds.length === 0 || settings.maintenanceMode} onSelect={() => setAssignOpen(true)}>Assign</DropdownMenuItem>}
+                  {!showComment && <DropdownMenuItem disabled={targetIds.length === 0 || settings.maintenanceMode} onSelect={() => setCommentOpen(true)}>Comment</DropdownMenuItem>}
                   {!showExport && <DropdownMenuItem onSelect={handleExport}>Export</DropdownMenuItem>}
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -384,7 +399,7 @@ export const AlarmManagement: React.FC = () => {
             <input value={assignInput} onChange={(e) => setAssignInput(e.target.value)} className="mt-2 h-9 w-full rounded border border-border px-2 text-sm" />
             <div className="mt-3 flex justify-end gap-2">
               <button onClick={() => setAssignOpen(false)} className="rounded border border-border px-3 py-1 text-xs">Cancel</button>
-              <button onClick={handleAssignApply} className="rounded bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">Apply</button>
+              <button disabled={settings.maintenanceMode} onClick={handleAssignApply} className="rounded bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground disabled:opacity-40">Apply</button>
             </div>
           </div>
         </div>
@@ -397,7 +412,7 @@ export const AlarmManagement: React.FC = () => {
             <textarea value={commentInput} onChange={(e) => setCommentInput(e.target.value)} className="mt-2 h-24 w-full rounded border border-border p-2 text-sm" />
             <div className="mt-3 flex justify-end gap-2">
               <button onClick={() => setCommentOpen(false)} className="rounded border border-border px-3 py-1 text-xs">Cancel</button>
-              <button onClick={() => { setCommentOpen(false); toast({ title: "Comment saved", description: `${targetIds.length} alarms updated.` }); }} className="rounded bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">Save</button>
+              <button disabled={settings.maintenanceMode} onClick={() => { if (settings.maintenanceMode) return; setCommentOpen(false); toast({ title: "Comment saved", description: `${targetIds.length} alarms updated.` }); }} className="rounded bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground disabled:opacity-40">Save</button>
             </div>
           </div>
         </div>
