@@ -1,7 +1,20 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { CheckCheck, Download, MessageSquare, UserPlus } from "lucide-react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { CheckCheck, Download, MessageSquare, MoreHorizontal, UserPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
-import SearchableDropdown from "@/components/SearchableDropdown";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 
 type Mode = "Live" | "Snapshot" | "Historical";
@@ -45,7 +58,7 @@ export const AlarmManagement: React.FC = () => {
   const [columnsView, setColumnsView] = useState("Ops Columns");
   const [rows, setRows] = useState(INITIAL_ROWS);
   const [selectedAlarmId, setSelectedAlarmId] = useState<string | null>(null);
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [selectedAlarmIds, setSelectedAlarmIds] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<keyof AlarmRow>("firstSeen");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [panelWidth, setPanelWidth] = useState(420);
@@ -55,6 +68,8 @@ export const AlarmManagement: React.FC = () => {
   const [commentInput, setCommentInput] = useState("");
   const [assignOpen, setAssignOpen] = useState(false);
   const [commentOpen, setCommentOpen] = useState(false);
+  const commandBarRef = useRef<HTMLDivElement | null>(null);
+  const [commandBarWidth, setCommandBarWidth] = useState(0);
 
   const selectedAlarm = rows.find((r) => r.id === selectedAlarmId) ?? null;
 
@@ -90,6 +105,17 @@ export const AlarmManagement: React.FC = () => {
     return () => clearTimeout(t);
   }, [selectedAlarmId, selectedAlarm?.site, selectedAlarm?.status]);
 
+  useEffect(() => {
+    const node = commandBarRef.current;
+    if (!node) return;
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      setCommandBarWidth(entry.contentRect.width);
+    });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
   const onRowKeyDown = (event: React.KeyboardEvent, index: number) => {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
@@ -99,7 +125,34 @@ export const AlarmManagement: React.FC = () => {
     if (event.key === "ArrowUp" && filtered[index - 1]) setSelectedAlarmId(filtered[index - 1].id);
   };
 
-  const targetIds = selectedIds.length > 0 ? selectedIds : selectedAlarmId ? [selectedAlarmId] : [];
+  const targetIds = selectedAlarmIds.length > 0 ? selectedAlarmIds : selectedAlarmId ? [selectedAlarmId] : [];
+  const showColumns = commandBarWidth >= 1360;
+  const showView = commandBarWidth >= 1180;
+  const showSeverity = commandBarWidth >= 1000;
+  const showVendor = commandBarWidth >= 840;
+  const showFilters = commandBarWidth >= 760;
+  const actionSlots = commandBarWidth >= 1280 ? 4 : commandBarWidth >= 1120 ? 3 : commandBarWidth >= 960 ? 2 : commandBarWidth >= 820 ? 1 : 0;
+  const showAcknowledge = actionSlots >= 1;
+  const showAssign = actionSlots >= 2;
+  const showComment = actionSlots >= 3;
+  const showExport = actionSlots >= 4;
+  const hasOverflowItems = !showFilters || !showVendor || !showSeverity || !showView || !showColumns || !showAcknowledge || !showAssign || !showComment || !showExport;
+
+  const handleAcknowledge = () => {
+    if (targetIds.length === 0) return;
+    setRows((prev) => prev.map((r) => (targetIds.includes(r.id) ? { ...r, status: "Acknowledged" } : r)));
+    toast({ title: "Acknowledged", description: `${targetIds.length} alarms updated.` });
+  };
+
+  const handleAssignApply = () => {
+    setRows((prev) => prev.map((r) => (targetIds.includes(r.id) ? { ...r, assignment: assignInput, status: "Assigned" } : r)));
+    setAssignOpen(false);
+    toast({ title: "Assigned", description: `${targetIds.length} alarms assigned.` });
+  };
+
+  const handleExport = () => {
+    toast({ title: "Export started", description: `${filtered.length} alarms exported.` });
+  };
 
   return (
     <section className="space-y-3">
@@ -114,21 +167,124 @@ export const AlarmManagement: React.FC = () => {
       </div>
 
       {/* Toolbar */}
-      <div className="rounded-xl border border-border bg-card p-2">
+      <div ref={commandBarRef} className="overflow-hidden rounded-xl border border-border bg-card p-2">
         <div className="flex items-center justify-between gap-2">
-          <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto pr-1">
-            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search alarms..." className="h-8 min-w-[220px] flex-1 rounded-lg border border-border bg-background px-2 text-xs" />
-            <button className="h-8 w-[110px] shrink-0 rounded-lg border border-border px-2 text-xs">Filters</button>
-            <div className="w-[150px] shrink-0"><SearchableDropdown label="" compact multiSelect={false} options={["All Vendors", "Huawei", "Nokia", "Ericsson"]} selected={[vendor]} onChange={(v) => setVendor(v[0] ?? "All Vendors")} dropdownId="alarm-vendor" /></div>
-            <div className="w-[150px] shrink-0"><SearchableDropdown label="" compact multiSelect={false} options={["All Severities", "Critical", "Major", "Minor"]} selected={[severity]} onChange={(v) => setSeverity(v[0] ?? "All Severities")} dropdownId="alarm-severity" /></div>
-            <div className="w-[180px] shrink-0"><SearchableDropdown label="" compact multiSelect={false} options={["Default View", "Escalation View", "Assignment View"]} selected={[tableView]} onChange={(v) => setTableView(v[0] ?? "Default View")} dropdownId="alarm-view" /></div>
-            <div className="w-[180px] shrink-0"><SearchableDropdown label="" compact multiSelect={false} options={["Ops Columns", "Minimal Columns", "Engineering Columns"]} selected={[columnsView]} onChange={(v) => setColumnsView(v[0] ?? "Ops Columns")} dropdownId="alarm-columns" /></div>
+          <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
+            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search alarms..." className="h-10 min-w-[240px] max-w-[420px] flex-1 rounded-lg border border-border bg-background px-3 text-sm" />
+            {showFilters && <button className="h-10 shrink-0 rounded-lg border border-border px-3 text-sm">Filters</button>}
+            {showVendor && (
+              <div className="w-[160px] shrink-0">
+                <Select value={vendor} onValueChange={setVendor}>
+                  <SelectTrigger className="h-10 rounded-lg border-border bg-background text-sm">
+                    <SelectValue placeholder="Vendor" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {["All Vendors", "Huawei", "Nokia", "Ericsson"].map((option) => <SelectItem key={option} value={option}>{option}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            {showSeverity && (
+              <div className="w-[160px] shrink-0">
+                <Select value={severity} onValueChange={setSeverity}>
+                  <SelectTrigger className="h-10 rounded-lg border-border bg-background text-sm">
+                    <SelectValue placeholder="Severity" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {["All Severities", "Critical", "Major", "Minor"].map((option) => <SelectItem key={option} value={option}>{option}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            {showView && (
+              <div className="w-[180px] shrink-0">
+                <Select value={tableView} onValueChange={setTableView}>
+                  <SelectTrigger className="h-10 rounded-lg border-border bg-background text-sm">
+                    <SelectValue placeholder="View" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {["Default View", "Escalation View", "Assignment View"].map((option) => <SelectItem key={option} value={option}>{option}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            {showColumns && (
+              <div className="w-[180px] shrink-0">
+                <Select value={columnsView} onValueChange={setColumnsView}>
+                  <SelectTrigger className="h-10 rounded-lg border-border bg-background text-sm">
+                    <SelectValue placeholder="Columns" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {["Ops Columns", "Minimal Columns", "Engineering Columns"].map((option) => <SelectItem key={option} value={option}>{option}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
-          <div className="flex shrink-0 items-center gap-1">
-            <button disabled={targetIds.length === 0} onClick={() => { setRows((prev) => prev.map((r) => (targetIds.includes(r.id) ? { ...r, status: "Acknowledged" } : r))); toast({ title: "Acknowledged", description: `${targetIds.length} alarms updated.` }); }} className="rounded-lg border border-border px-2 py-1 text-xs disabled:opacity-40">Acknowledge</button>
-            <button disabled={targetIds.length === 0} onClick={() => setAssignOpen(true)} className="rounded-lg border border-border px-2 py-1 text-xs disabled:opacity-40">Assign</button>
-            <button disabled={targetIds.length === 0} onClick={() => setCommentOpen(true)} className="rounded-lg border border-border px-2 py-1 text-xs disabled:opacity-40">Comment</button>
-            <button onClick={() => toast({ title: "Export started", description: `${targetIds.length || filtered.length} alarms exported.` })} className="rounded-lg border border-border px-2 py-1 text-xs">Export</button>
+          <div className="flex shrink-0 items-center gap-2">
+            {showAcknowledge && <button disabled={targetIds.length === 0} onClick={handleAcknowledge} className="h-10 rounded-lg border border-border px-3 text-sm disabled:opacity-40">Acknowledge</button>}
+            {showAssign && <button disabled={targetIds.length === 0} onClick={() => setAssignOpen(true)} className="h-10 rounded-lg border border-border px-3 text-sm disabled:opacity-40">Assign</button>}
+            {showComment && <button disabled={targetIds.length === 0} onClick={() => setCommentOpen(true)} className="h-10 rounded-lg border border-border px-3 text-sm disabled:opacity-40">Comment</button>}
+            {showExport && <button onClick={handleExport} className="h-10 rounded-lg border border-border px-3 text-sm">Export</button>}
+            {hasOverflowItems && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="inline-flex h-10 items-center gap-2 rounded-lg border border-border px-3 text-sm">
+                    <MoreHorizontal className="h-4 w-4" /> More
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-72">
+                  <DropdownMenuLabel>More Controls</DropdownMenuLabel>
+                  {!showFilters && <DropdownMenuItem onSelect={() => toast({ title: "Filters", description: "Additional filters panel is coming soon." })}>Filters</DropdownMenuItem>}
+                  {!showVendor && (
+                    <DropdownMenuSub>
+                      <DropdownMenuSubTrigger>Vendor</DropdownMenuSubTrigger>
+                      <DropdownMenuSubContent>
+                        <DropdownMenuRadioGroup value={vendor} onValueChange={setVendor}>
+                          {["All Vendors", "Huawei", "Nokia", "Ericsson"].map((option) => <DropdownMenuRadioItem key={option} value={option}>{option}</DropdownMenuRadioItem>)}
+                        </DropdownMenuRadioGroup>
+                      </DropdownMenuSubContent>
+                    </DropdownMenuSub>
+                  )}
+                  {!showSeverity && (
+                    <DropdownMenuSub>
+                      <DropdownMenuSubTrigger>Severity</DropdownMenuSubTrigger>
+                      <DropdownMenuSubContent>
+                        <DropdownMenuRadioGroup value={severity} onValueChange={setSeverity}>
+                          {["All Severities", "Critical", "Major", "Minor"].map((option) => <DropdownMenuRadioItem key={option} value={option}>{option}</DropdownMenuRadioItem>)}
+                        </DropdownMenuRadioGroup>
+                      </DropdownMenuSubContent>
+                    </DropdownMenuSub>
+                  )}
+                  {!showView && (
+                    <DropdownMenuSub>
+                      <DropdownMenuSubTrigger>View</DropdownMenuSubTrigger>
+                      <DropdownMenuSubContent>
+                        <DropdownMenuRadioGroup value={tableView} onValueChange={setTableView}>
+                          {["Default View", "Escalation View", "Assignment View"].map((option) => <DropdownMenuRadioItem key={option} value={option}>{option}</DropdownMenuRadioItem>)}
+                        </DropdownMenuRadioGroup>
+                      </DropdownMenuSubContent>
+                    </DropdownMenuSub>
+                  )}
+                  {!showColumns && (
+                    <DropdownMenuSub>
+                      <DropdownMenuSubTrigger>Columns</DropdownMenuSubTrigger>
+                      <DropdownMenuSubContent>
+                        <DropdownMenuRadioGroup value={columnsView} onValueChange={setColumnsView}>
+                          {["Ops Columns", "Minimal Columns", "Engineering Columns"].map((option) => <DropdownMenuRadioItem key={option} value={option}>{option}</DropdownMenuRadioItem>)}
+                        </DropdownMenuRadioGroup>
+                      </DropdownMenuSubContent>
+                    </DropdownMenuSub>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel>More Actions</DropdownMenuLabel>
+                  {!showAcknowledge && <DropdownMenuItem disabled={targetIds.length === 0} onSelect={handleAcknowledge}>Acknowledge</DropdownMenuItem>}
+                  {!showAssign && <DropdownMenuItem disabled={targetIds.length === 0} onSelect={() => setAssignOpen(true)}>Assign</DropdownMenuItem>}
+                  {!showComment && <DropdownMenuItem disabled={targetIds.length === 0} onSelect={() => setCommentOpen(true)}>Comment</DropdownMenuItem>}
+                  {!showExport && <DropdownMenuItem onSelect={handleExport}>Export</DropdownMenuItem>}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         </div>
       </div>
@@ -140,7 +296,7 @@ export const AlarmManagement: React.FC = () => {
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-border bg-muted/20">
-                  <th className="px-2 py-1.5"><input type="checkbox" checked={selectedIds.length === filtered.length && filtered.length > 0} onChange={() => setSelectedIds(selectedIds.length === filtered.length ? [] : filtered.map((r) => r.id))} /></th>
+                  <th className="px-2 py-1.5"><input type="checkbox" checked={selectedAlarmIds.length === filtered.length && filtered.length > 0} onChange={() => setSelectedAlarmIds(selectedAlarmIds.length === filtered.length ? [] : filtered.map((r) => r.id))} /></th>
                   {(["Severity", "Alarm ID", "Vendor", "Alarm Name", "Status", "Assignment", "Site", "First Seen"] as Array<keyof AlarmRow | "Alarm Name">).map((h) => (
                     <th
                       key={String(h)}
@@ -165,7 +321,7 @@ export const AlarmManagement: React.FC = () => {
                     onClick={() => setSelectedAlarmId(row.id)}
                     className={cn("border-b border-border/70 text-[12px] hover:bg-muted/15 last:border-b-0", selectedAlarmId === row.id && "bg-primary/10")}
                   >
-                    <td className="px-2 py-1.5"><input type="checkbox" checked={selectedIds.includes(row.id)} onChange={(e) => { e.stopPropagation(); setSelectedIds((prev) => (prev.includes(row.id) ? prev.filter((id) => id !== row.id) : [...prev, row.id])); }} /></td>
+                    <td className="px-2 py-1.5"><input type="checkbox" checked={selectedAlarmIds.includes(row.id)} onChange={(e) => { e.stopPropagation(); setSelectedAlarmIds((prev) => (prev.includes(row.id) ? prev.filter((id) => id !== row.id) : [...prev, row.id])); }} /></td>
                     <td className="px-2 py-1.5"><span className={cn("rounded-full px-2 py-0.5 text-[10px] font-semibold", row.severity === "Critical" ? "bg-rose-500/10 text-rose-700" : row.severity === "Major" ? "bg-amber-500/10 text-amber-700" : "bg-slate-500/10 text-slate-700")}>{row.severity}</span></td>
                     <td className="px-2 py-1.5 font-medium">{row.id}</td>
                     <td className="px-2 py-1.5">{row.vendor}</td>
@@ -228,7 +384,7 @@ export const AlarmManagement: React.FC = () => {
             <input value={assignInput} onChange={(e) => setAssignInput(e.target.value)} className="mt-2 h-9 w-full rounded border border-border px-2 text-sm" />
             <div className="mt-3 flex justify-end gap-2">
               <button onClick={() => setAssignOpen(false)} className="rounded border border-border px-3 py-1 text-xs">Cancel</button>
-              <button onClick={() => { setRows((prev) => prev.map((r) => (targetIds.includes(r.id) ? { ...r, assignment: assignInput, status: "Assigned" } : r))); setAssignOpen(false); toast({ title: "Assigned", description: `${targetIds.length} alarms assigned.` }); }} className="rounded bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">Apply</button>
+              <button onClick={handleAssignApply} className="rounded bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">Apply</button>
             </div>
           </div>
         </div>
