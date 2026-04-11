@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { CheckCircle2, ChevronLeft, ChevronRight, Download, Eye, FileCode2, Filter, GitBranch, Plus, Search, ShieldCheck, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import SearchableDropdown from "@/components/SearchableDropdown";
 
 interface DatasetRow {
   id: string;
@@ -126,8 +127,30 @@ export default function DatasetManager() {
 
         {filtersOpen && (
           <div className="grid grid-cols-2 gap-2 border-b border-border bg-muted/10 px-3.5 py-2.5">
-            <select value={ownerFilter} onChange={(e) => { setOwnerFilter(e.target.value); setPage(1); }} className="h-8 rounded-md border border-border bg-background px-2 text-xs"><option value="all">Owner: All</option>{owners.map((o) => <option key={o}>{o}</option>)}</select>
-            <select value={sourceFilter} onChange={(e) => { setSourceFilter(e.target.value); setPage(1); }} className="h-8 rounded-md border border-border bg-background px-2 text-xs"><option value="all">Source: All</option>{sources.map((s) => <option key={s}>{s}</option>)}</select>
+            <SearchableDropdown
+              label=""
+              compact
+              multiSelect={false}
+              options={["all", ...owners]}
+              selected={ownerFilter === "all" ? [] : [ownerFilter]}
+              onChange={(selected) => {
+                setOwnerFilter(selected[0] ?? "all");
+                setPage(1);
+              }}
+              placeholder="Search owner..."
+            />
+            <SearchableDropdown
+              label=""
+              compact
+              multiSelect={false}
+              options={["all", ...sources]}
+              selected={sourceFilter === "all" ? [] : [sourceFilter]}
+              onChange={(selected) => {
+                setSourceFilter(selected[0] ?? "all");
+                setPage(1);
+              }}
+              placeholder="Search source..."
+            />
           </div>
         )}
 
@@ -196,8 +219,24 @@ export default function DatasetManager() {
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             <input value={newDataset.name} onChange={(e) => setNewDataset((p) => ({ ...p, name: e.target.value }))} placeholder="Dataset name" className="h-9 rounded-md border border-border px-2 text-sm" />
             <input value={newDataset.sla} onChange={(e) => setNewDataset((p) => ({ ...p, sla: e.target.value }))} placeholder="SLA" className="h-9 rounded-md border border-border px-2 text-sm" />
-            <select value={newDataset.source} onChange={(e) => setNewDataset((p) => ({ ...p, source: e.target.value }))} className="h-9 rounded-md border border-border px-2 text-sm">{sources.map((s) => <option key={s}>{s}</option>)}</select>
-            <select value={newDataset.owner} onChange={(e) => setNewDataset((p) => ({ ...p, owner: e.target.value }))} className="h-9 rounded-md border border-border px-2 text-sm">{owners.map((o) => <option key={o}>{o}</option>)}</select>
+            <SearchableDropdown
+              label=""
+              compact
+              multiSelect={false}
+              options={sources}
+              selected={[newDataset.source]}
+              onChange={(selected) => setNewDataset((p) => ({ ...p, source: selected[0] ?? p.source }))}
+              placeholder="Search source..."
+            />
+            <SearchableDropdown
+              label=""
+              compact
+              multiSelect={false}
+              options={owners}
+              selected={[newDataset.owner]}
+              onChange={(selected) => setNewDataset((p) => ({ ...p, owner: selected[0] ?? p.owner }))}
+              placeholder="Search owner..."
+            />
           </div>
           <div className="mt-3 flex justify-end gap-2">
             <button onClick={() => setRegisterOpen(false)} className="rounded-md border border-border px-3 py-1.5 text-xs">Cancel</button>

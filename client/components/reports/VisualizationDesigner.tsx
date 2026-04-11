@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, ReferenceArea } from 'recharts';
 import { Palette, Grid3x3, Settings, Plus, AlertCircle, Zap, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import SearchableDropdown from '@/components/SearchableDropdown';
 
 interface Visualization {
   id: string;
@@ -25,6 +26,7 @@ const mockData = [
 ];
 
 export default function VisualizationDesigner() {
+  const [fontStyle, setFontStyle] = useState('Modern (System)');
   const [visualizations, setVisualizations] = useState<Visualization[]>([
     { id: '1', type: 'bar', title: 'Monthly Traffic', dataSource: 'Transport KPI' }
   ]);
@@ -273,11 +275,15 @@ export default function VisualizationDesigner() {
           </div>
           <div>
             <p className="text-sm font-semibold text-foreground mb-3">Font Style</p>
-            <select className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm">
-              <option>Modern (System)</option>
-              <option>Classic (Serif)</option>
-              <option>Minimal (Sans)</option>
-            </select>
+            <SearchableDropdown
+              label=""
+              multiSelect={false}
+              compact
+              options={['Modern (System)', 'Classic (Serif)', 'Minimal (Sans)']}
+              selected={[fontStyle]}
+              onChange={(selected) => setFontStyle(selected[0] ?? 'Modern (System)')}
+              searchable={false}
+            />
           </div>
         </div>
       </div>

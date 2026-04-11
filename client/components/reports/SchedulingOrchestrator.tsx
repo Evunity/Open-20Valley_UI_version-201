@@ -2,6 +2,7 @@ import { Clock, Zap, CheckCircle, AlertCircle } from 'lucide-react';
 
 import { useState } from 'react';
 import TimeInputWithAmPm from '@/components/TimeInputWithAmPm';
+import SearchableDropdown from '@/components/SearchableDropdown';
 
 interface Schedule {
   id: string;
@@ -16,6 +17,9 @@ interface Schedule {
 
 export default function SchedulingOrchestrator() {
   const [scheduleTime, setScheduleTime] = useState('06:00');
+  const [selectedReport, setSelectedReport] = useState('Transport Network KPI');
+  const [frequency, setFrequency] = useState('Daily');
+  const [timeZone, setTimeZone] = useState('UTC+2 (Cairo)');
 
   const schedules: Schedule[] = [
     {
@@ -184,22 +188,29 @@ export default function SchedulingOrchestrator() {
         <div className="space-y-4">
           <div>
             <label className="text-sm font-semibold text-foreground block mb-2">Report</label>
-            <select className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm">
-              <option>Transport Network KPI</option>
-              <option>Revenue Report</option>
-              <option>Executive Dashboard</option>
-            </select>
+            <SearchableDropdown
+              label=""
+              multiSelect={false}
+              compact
+              options={['Transport Network KPI', 'Revenue Report', 'Executive Dashboard']}
+              selected={[selectedReport]}
+              onChange={(selected) => setSelectedReport(selected[0] ?? 'Transport Network KPI')}
+              searchable={false}
+            />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-semibold text-foreground block mb-2">Frequency</label>
-              <select className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm">
-                <option>Daily</option>
-                <option>Weekly</option>
-                <option>Monthly</option>
-                <option>Custom</option>
-              </select>
+              <SearchableDropdown
+                label=""
+                multiSelect={false}
+                compact
+                options={['Daily', 'Weekly', 'Monthly', 'Custom']}
+                selected={[frequency]}
+                onChange={(selected) => setFrequency(selected[0] ?? 'Daily')}
+                searchable={false}
+              />
             </div>
 
             <div>
@@ -214,11 +225,15 @@ export default function SchedulingOrchestrator() {
 
           <div>
             <label className="text-sm font-semibold text-foreground block mb-2">Time Zone</label>
-            <select className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm">
-              <option>UTC+2 (Cairo)</option>
-              <option>UTC+3 (East Africa)</option>
-              <option>UTC+0 (GMT)</option>
-            </select>
+            <SearchableDropdown
+              label=""
+              multiSelect={false}
+              compact
+              options={['UTC+2 (Cairo)', 'UTC+3 (East Africa)', 'UTC+0 (GMT)']}
+              selected={[timeZone]}
+              onChange={(selected) => setTimeZone(selected[0] ?? 'UTC+2 (Cairo)')}
+              searchable={false}
+            />
           </div>
         </div>
       </div>

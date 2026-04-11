@@ -16,6 +16,7 @@ import {
   X,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import SearchableDropdown from "@/components/SearchableDropdown";
 
 interface ReportLibraryItem {
   id: string;
@@ -179,9 +180,30 @@ export default function ReportLibraryModule() {
 
         {showFilters && (
           <div className="grid grid-cols-2 gap-2 border-b border-border bg-muted/15 px-3.5 py-2.5 md:grid-cols-4">
-            <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value as any); setPage(1); }} className="h-8 rounded-md border border-border bg-background px-2 text-xs"><option value="all">Status: All</option><option value="Active">Active</option><option value="Draft">Draft</option><option value="Legal Hold">Legal Hold</option></select>
-            <select value={ownerFilter} onChange={(e) => { setOwnerFilter(e.target.value); setPage(1); }} className="h-8 rounded-md border border-border bg-background px-2 text-xs"><option value="all">Owner: All</option>{OWNER_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}</select>
-            <select value={datasetFilter} onChange={(e) => { setDatasetFilter(e.target.value); setPage(1); }} className="h-8 rounded-md border border-border bg-background px-2 text-xs"><option value="all">Dataset: All</option>{DATASET_OPTIONS.map((d) => <option key={d} value={d}>{d}</option>)}</select>
+            <SearchableDropdown
+              label=""
+              compact
+              multiSelect={false}
+              options={["all", "Active", "Draft", "Legal Hold"]}
+              selected={statusFilter === "all" ? [] : [statusFilter]}
+              onChange={(selected) => { setStatusFilter((selected[0] as ReportLibraryItem["status"]) ?? "all"); setPage(1); }}
+            />
+            <SearchableDropdown
+              label=""
+              compact
+              multiSelect={false}
+              options={["all", ...OWNER_OPTIONS]}
+              selected={ownerFilter === "all" ? [] : [ownerFilter]}
+              onChange={(selected) => { setOwnerFilter(selected[0] ?? "all"); setPage(1); }}
+            />
+            <SearchableDropdown
+              label=""
+              compact
+              multiSelect={false}
+              options={["all", ...DATASET_OPTIONS]}
+              selected={datasetFilter === "all" ? [] : [datasetFilter]}
+              onChange={(selected) => { setDatasetFilter(selected[0] ?? "all"); setPage(1); }}
+            />
             <input value={scheduleFilter} onChange={(e) => { setScheduleFilter(e.target.value); setPage(1); }} placeholder="Schedule contains..." className="h-8 rounded-md border border-border bg-background px-2 text-xs" />
           </div>
         )}
@@ -241,9 +263,30 @@ export default function ReportLibraryModule() {
         <Modal title="Create Report" onClose={() => setShowCreate(false)}>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             <input value={newReport.reportName} onChange={(e) => setNewReport((p) => ({ ...p, reportName: e.target.value }))} placeholder="Report name" className="h-9 rounded-md border border-border bg-background px-2 text-sm" />
-            <select value={newReport.dataset} onChange={(e) => setNewReport((p) => ({ ...p, dataset: e.target.value }))} className="h-9 rounded-md border border-border bg-background px-2 text-sm">{DATASET_OPTIONS.map((d) => <option key={d}>{d}</option>)}</select>
-            <select value={newReport.owner} onChange={(e) => setNewReport((p) => ({ ...p, owner: e.target.value }))} className="h-9 rounded-md border border-border bg-background px-2 text-sm">{OWNER_OPTIONS.map((o) => <option key={o}>{o}</option>)}</select>
-            <select value={newReport.status} onChange={(e) => setNewReport((p) => ({ ...p, status: e.target.value as ReportLibraryItem["status"] }))} className="h-9 rounded-md border border-border bg-background px-2 text-sm"><option>Draft</option><option>Active</option><option>Legal Hold</option></select>
+            <SearchableDropdown
+              label=""
+              compact
+              multiSelect={false}
+              options={DATASET_OPTIONS}
+              selected={[newReport.dataset]}
+              onChange={(selected) => setNewReport((p) => ({ ...p, dataset: selected[0] ?? p.dataset }))}
+            />
+            <SearchableDropdown
+              label=""
+              compact
+              multiSelect={false}
+              options={OWNER_OPTIONS}
+              selected={[newReport.owner]}
+              onChange={(selected) => setNewReport((p) => ({ ...p, owner: selected[0] ?? p.owner }))}
+            />
+            <SearchableDropdown
+              label=""
+              compact
+              multiSelect={false}
+              options={["Draft", "Active", "Legal Hold"]}
+              selected={[newReport.status]}
+              onChange={(selected) => setNewReport((p) => ({ ...p, status: (selected[0] as ReportLibraryItem["status"]) ?? p.status }))}
+            />
             <input value={newReport.schedule} onChange={(e) => setNewReport((p) => ({ ...p, schedule: e.target.value }))} placeholder="Schedule" className="h-9 rounded-md border border-border bg-background px-2 text-sm md:col-span-2" />
           </div>
           <div className="mt-3 flex justify-end gap-2">

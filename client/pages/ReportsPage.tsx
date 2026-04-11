@@ -208,14 +208,17 @@ export default function ReportsPage() {
           description="Report observability layer – visibility into generation, freshness, and delivery"
           actions={
             <>
-              <select
-                value={exportFormat}
-                onChange={(e) => setExportFormat(e.target.value as "xlsx" | "csv")}
-                className="px-3 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/50"
-              >
-                <option value="xlsx">Excel (.xlsx)</option>
-                <option value="csv">CSV (.csv)</option>
-              </select>
+              <div className="w-44">
+                <SearchableDropdown
+                  label=""
+                  compact
+                  multiSelect={false}
+                  options={["Excel (.xlsx)", "CSV (.csv)"]}
+                  selected={[exportFormat === "xlsx" ? "Excel (.xlsx)" : "CSV (.csv)"]}
+                  onChange={(selected) => setExportFormat(selected[0] === "CSV (.csv)" ? "csv" : "xlsx")}
+                  searchable={false}
+                />
+              </div>
               <button
                 onClick={handleExport}
                 className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"

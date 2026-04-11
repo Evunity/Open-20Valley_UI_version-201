@@ -33,6 +33,7 @@ export default function SearchableDropdown({
   const { isOpen, toggle: toggleDropdown, close: closeDropdown } = useDropdownManager(uniqueId);
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [highlightedIndex, setHighlightedIndex] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const filteredOptions = options.filter((option) =>
@@ -49,6 +50,10 @@ export default function SearchableDropdown({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [closeDropdown]);
+
+  useEffect(() => {
+    setHighlightedIndex(0);
+  }, [searchTerm, isOpen]);
 
   const toggleOption = (option: string) => {
     if (disabledOptions.includes(option)) {
@@ -96,6 +101,29 @@ export default function SearchableDropdown({
         role="button"
         tabIndex={0}
         onKeyDown={(e) => {
+          if (!isOpen && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
+            e.preventDefault();
+            toggleDropdown();
+            return;
+          }
+          if (e.key === "Escape") {
+            closeDropdown();
+            return;
+          }
+          if (isOpen && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
+            e.preventDefault();
+            setHighlightedIndex((prev) => {
+              if (filteredOptions.length === 0) return 0;
+              if (e.key === "ArrowDown") return (prev + 1) % filteredOptions.length;
+              return prev <= 0 ? filteredOptions.length - 1 : prev - 1;
+            });
+            return;
+          }
+          if (isOpen && e.key === "Enter" && filteredOptions[highlightedIndex]) {
+            e.preventDefault();
+            toggleOption(filteredOptions[highlightedIndex]);
+            return;
+          }
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
             toggleDropdown();
@@ -103,7 +131,7 @@ export default function SearchableDropdown({
         }}
         className={cn(
           "w-full border transition-all flex items-center justify-between cursor-pointer relative overflow-hidden",
-          compact ? "h-9 px-2.5 rounded-md" : "control-height px-3 rounded-lg",
+          compact ? "h-9 px-3 rounded-xl" : "control-height px-3 rounded-xl",
           isOpen
             ? "border-primary bg-primary/5 ring-1 ring-primary/30 ring-offset-0"
             : "border-border bg-background hover:border-primary/50"
@@ -149,17 +177,33 @@ export default function SearchableDropdown({
           )}
         </div>
 
-        <ChevronDown
-          className={cn(
-            "w-4 h-4 text-muted-foreground flex-shrink-0 transition-transform ml-2",
-            isOpen && "transform rotate-180"
+        <div className="ml-2 flex items-center gap-1">
+          {selected.length > 0 && (
+            <button
+              type="button"
+              className="inline-flex h-4 w-4 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
+              onClick={(e) => {
+                e.stopPropagation();
+                onChange([]);
+              }}
+              aria-label="Clear selection"
+              title="Clear selection"
+            >
+              <X className="h-3 w-3" />
+            </button>
           )}
-        />
+          <ChevronDown
+            className={cn(
+              "w-4 h-4 text-muted-foreground flex-shrink-0 transition-transform",
+              isOpen && "transform rotate-180"
+            )}
+          />
+        </div>
       </div>
 
       {isOpen && (
         <div className={cn(
-          "absolute top-full left-0 right-0 rounded-lg border border-border bg-card shadow-md z-50",
+          "absolute top-full left-0 right-0 z-50 rounded-xl border border-border bg-card shadow-lg",
           compact ? "mt-1.5" : "mt-2"
         )}>
           {searchable && (
@@ -202,8 +246,9 @@ export default function SearchableDropdown({
                     onClick={() => toggleOption(option)}
                     disabled={isDisabled}
                     className={cn(
-                      "w-full text-left px-3 text-sm transition-colors flex items-center gap-2",
+                      "w-full text-left px-3 text-sm transition-colors flex items-center gap-2 rounded-md",
                       compact ? "py-2" : "py-2.5",
+                      highlightedIndex === filteredOptions.indexOf(option) && "bg-muted/50",
                       isSelected
                         ? "bg-primary/10 text-primary font-medium"
                         : "text-foreground hover:bg-muted/50",
