@@ -247,11 +247,11 @@ export default function Settings2() {
               <div className="space-y-2">
                 {/* General Platform Settings */}
                 <div className="rounded-lg border border-border bg-card p-4">
-                  <h3 className="mb-4 text-xl font-semibold text-foreground">General Platform Settings</h3>
+                  <h3 className="mb-4 text-xl font-semibold text-foreground">{t("generalPlatformSettings")}</h3>
                   <div className="space-y-4">
                     {/* System Name */}
                     <div>
-                      <label className="block text-sm font-semibold text-foreground mb-2">System Name</label>
+                      <label className="block text-sm font-semibold text-foreground mb-2">{t("systemName")}</label>
                       <input
                         type="text"
                         value={systemConfig.systemName}
@@ -264,7 +264,7 @@ export default function Settings2() {
                     <div>
                       <label className="flex items-center gap-2 text-sm font-semibold text-foreground mb-3">
                         <Globe className="w-4 h-4 text-primary" />
-                        Default Timezone
+                        {t("defaultTimezone")}
                       </label>
                       <select
                         value={systemConfig.timezone}
@@ -320,7 +320,7 @@ export default function Settings2() {
                     <div>
                       <label className="flex items-center gap-2 text-sm font-semibold text-foreground mb-3">
                         <Calendar className="w-4 h-4 text-primary" />
-                        System-wide Date/Time Format
+                        {t("systemDateTimeFormat")}
                       </label>
 
                       {/* Format Options Grid */}
@@ -361,7 +361,7 @@ export default function Settings2() {
 
                       {/* Live Preview */}
                       <div className="bg-muted p-3 rounded-lg border border-border/50">
-                        <p className="text-xs font-semibold text-muted-foreground mb-1">Live Preview:</p>
+                        <p className="text-xs font-semibold text-muted-foreground mb-1">{t("livePreview")}:</p>
                         <p className="text-sm font-mono text-foreground">
                           {formatPlatformDateTime(new Date(), systemConfig.timezone, systemConfig.dateFormat as "iso" | "european" | "us")}
                         </p>
@@ -370,7 +370,7 @@ export default function Settings2() {
 
                     {/* Default Language */}
                     <div>
-                      <label className="block text-sm font-semibold text-foreground mb-2">Default Language</label>
+                      <label className="block text-sm font-semibold text-foreground mb-2">{t("defaultLanguage")}</label>
                       <select
                         value={systemConfig.language}
                         onChange={(e) => handleConfigChange('language', e.target.value)}
