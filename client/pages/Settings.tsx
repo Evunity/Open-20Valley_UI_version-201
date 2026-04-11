@@ -448,8 +448,8 @@ export default function Settings() {
                   <div>
                     <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Primary Color</label>
                     <div className="mt-1 flex gap-2">
-                      <input type="color" defaultValue="#2563eb" className="h-10 w-20 rounded-lg" />
-                      <input type="text" defaultValue="#2563eb" className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 font-mono text-sm bg-white dark:bg-gray-800 text-foreground" />
+                      <input type="color" defaultValue="#7c3aed" className="h-10 w-20 rounded-lg" />
+                      <input type="text" defaultValue="#7c3aed" className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 font-mono text-sm bg-white dark:bg-gray-800 text-foreground" />
                     </div>
                   </div>
                   <div>
