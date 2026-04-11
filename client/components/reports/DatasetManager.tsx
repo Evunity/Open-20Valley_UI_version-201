@@ -30,15 +30,15 @@ const INITIAL_DATASETS: DatasetRow[] = Array.from({ length: 14 }).map((_, idx) =
   validationHistory: ["Null check pass", "Schema drift pass", "SLA pass"],
 }));
 
-function Modal({ title, children, onClose }: { title: string; children: React.ReactNode; onClose: () => void }) {
+function Modal({ title, children, onClose, panelClassName = "max-w-3xl" }: { title: string; children: React.ReactNode; onClose: () => void; panelClassName?: string }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-3xl rounded-md border border-border bg-card">
+      <div className={`w-full rounded-md border border-border bg-card ${panelClassName}`}>
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
           <h3 className="text-sm font-semibold">{title}</h3>
           <button onClick={onClose} className="rounded p-1 hover:bg-muted"><X className="h-4 w-4" /></button>
         </div>
-        <div className="max-h-[70vh] overflow-auto p-4">{children}</div>
+        <div className="max-h-[82vh] overflow-auto p-5">{children}</div>
       </div>
     </div>
   );
@@ -138,6 +138,7 @@ export default function DatasetManager() {
                 setPage(1);
               }}
               placeholder="Search owner..."
+              dropdownId="dataset-manager-owner-filter"
             />
             <SearchableDropdown
               label=""
@@ -150,6 +151,7 @@ export default function DatasetManager() {
                 setPage(1);
               }}
               placeholder="Search source..."
+              dropdownId="dataset-manager-source-filter"
             />
           </div>
         )}
@@ -215,28 +217,46 @@ export default function DatasetManager() {
       </div>
 
       {registerOpen && (
-        <Modal title="Register Dataset" onClose={() => setRegisterOpen(false)}>
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-            <input value={newDataset.name} onChange={(e) => setNewDataset((p) => ({ ...p, name: e.target.value }))} placeholder="Dataset name" className="h-9 rounded-md border border-border px-2 text-sm" />
-            <input value={newDataset.sla} onChange={(e) => setNewDataset((p) => ({ ...p, sla: e.target.value }))} placeholder="SLA" className="h-9 rounded-md border border-border px-2 text-sm" />
-            <SearchableDropdown
-              label=""
-              compact
-              multiSelect={false}
-              options={sources}
-              selected={[newDataset.source]}
-              onChange={(selected) => setNewDataset((p) => ({ ...p, source: selected[0] ?? p.source }))}
-              placeholder="Search source..."
-            />
-            <SearchableDropdown
-              label=""
-              compact
-              multiSelect={false}
-              options={owners}
-              selected={[newDataset.owner]}
-              onChange={(selected) => setNewDataset((p) => ({ ...p, owner: selected[0] ?? p.owner }))}
-              placeholder="Search owner..."
-            />
+        <Modal title="Register Dataset" onClose={() => setRegisterOpen(false)} panelClassName="max-w-5xl">
+          <div className="mb-4 rounded-xl border border-border/70 bg-muted/15 p-4">
+            <h4 className="text-sm font-semibold">Dataset Registration Form</h4>
+            <p className="mt-1 text-xs text-muted-foreground">Define ownership, source, and SLA to onboard a dataset into report pipelines.</p>
+          </div>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <label className="space-y-1.5">
+              <span className="text-xs font-semibold text-muted-foreground">Dataset Name</span>
+              <input value={newDataset.name} onChange={(e) => setNewDataset((p) => ({ ...p, name: e.target.value }))} placeholder="Dataset name" className="h-10 rounded-xl border border-border px-3 text-sm" />
+            </label>
+            <label className="space-y-1.5">
+              <span className="text-xs font-semibold text-muted-foreground">SLA</span>
+              <input value={newDataset.sla} onChange={(e) => setNewDataset((p) => ({ ...p, sla: e.target.value }))} placeholder="SLA" className="h-10 rounded-xl border border-border px-3 text-sm" />
+            </label>
+            <div className="space-y-1.5">
+              <span className="text-xs font-semibold text-muted-foreground">Source System</span>
+              <SearchableDropdown
+                label=""
+                compact
+                multiSelect={false}
+                options={sources}
+                selected={[newDataset.source]}
+                onChange={(selected) => setNewDataset((p) => ({ ...p, source: selected[0] ?? p.source }))}
+                placeholder="Search source..."
+                dropdownId="dataset-manager-register-source"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <span className="text-xs font-semibold text-muted-foreground">Dataset Owner</span>
+              <SearchableDropdown
+                label=""
+                compact
+                multiSelect={false}
+                options={owners}
+                selected={[newDataset.owner]}
+                onChange={(selected) => setNewDataset((p) => ({ ...p, owner: selected[0] ?? p.owner }))}
+                placeholder="Search owner..."
+                dropdownId="dataset-manager-register-owner"
+              />
+            </div>
           </div>
           <div className="mt-3 flex justify-end gap-2">
             <button onClick={() => setRegisterOpen(false)} className="rounded-md border border-border px-3 py-1.5 text-xs">Cancel</button>

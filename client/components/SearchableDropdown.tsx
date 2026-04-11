@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useId } from "react";
 import { ChevronDown, X, Search, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDropdownManager } from "@/hooks/useDropdownManager";
@@ -28,8 +28,8 @@ export default function SearchableDropdown({
   compact = false,
   dropdownId,
 }: SearchableDropdownProps) {
-  // Generate unique ID from label if not provided
-  const uniqueId = dropdownId || `dropdown-${label.replace(/\s+/g, '-').toLowerCase()}`;
+  const generatedId = useId().replace(/:/g, "");
+  const uniqueId = dropdownId || `dropdown-${generatedId}`;
   const { isOpen, toggle: toggleDropdown, close: closeDropdown } = useDropdownManager(uniqueId);
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -54,6 +54,15 @@ export default function SearchableDropdown({
   useEffect(() => {
     setHighlightedIndex(0);
   }, [searchTerm, isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") closeDropdown();
+    };
+    document.addEventListener("keydown", onEscape);
+    return () => document.removeEventListener("keydown", onEscape);
+  }, [isOpen, closeDropdown]);
 
   const toggleOption = (option: string) => {
     if (disabledOptions.includes(option)) {
@@ -150,8 +159,13 @@ export default function SearchableDropdown({
                     <span className="truncate min-w-0 leading-none">{item}</span>
                     <button
                       onClick={(e) => {
+                        e.preventDefault();
                         e.stopPropagation();
                         removeOption(item);
+                      }}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
                       }}
                       className="hover:opacity-80 transition-opacity flex-shrink-0 w-4 h-4 inline-flex items-center justify-center rounded-full hover:bg-primary/15"
                       type="button"
@@ -168,12 +182,12 @@ export default function SearchableDropdown({
                 )}
               </div>
             ) : (
-              <span className="typo-input text-muted-foreground truncate">Select {label.toLowerCase()}...</span>
+              <span className="typo-input text-muted-foreground truncate">Select option...</span>
             )
           ) : singleSelection ? (
             <span className="typo-input text-foreground truncate">{singleSelection}</span>
           ) : (
-            <span className="typo-input text-muted-foreground truncate">Select {label.toLowerCase()}...</span>
+            <span className="typo-input text-muted-foreground truncate">Select option...</span>
           )}
         </div>
 
@@ -183,8 +197,13 @@ export default function SearchableDropdown({
               type="button"
               className="inline-flex h-4 w-4 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
               onClick={(e) => {
+                e.preventDefault();
                 e.stopPropagation();
                 onChange([]);
+              }}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
               }}
               aria-label="Clear selection"
               title="Clear selection"
