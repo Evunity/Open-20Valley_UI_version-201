@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { switchAppLanguage } from "@/i18n/runtime";
+import { applyGlobalDateFormatting } from "@/utils/platformDateTime";
 
 export type DateTimeFormat = "iso" | "european" | "us";
 export type AppLanguage = "en" | "es" | "fr" | "de" | "zh" | "ja" | "ar";
@@ -10,6 +11,7 @@ export interface PlatformSettings {
   dateTimeFormat: DateTimeFormat;
   language: AppLanguage;
   maintenanceMode: boolean;
+  themeColor: string;
   updatedAt: string;
 }
 
@@ -27,6 +29,7 @@ const DEFAULT_SETTINGS: PlatformSettings = {
   dateTimeFormat: "iso",
   language: "en",
   maintenanceMode: false,
+  themeColor: "#2563eb",
   updatedAt: new Date().toISOString(),
 };
 
@@ -56,14 +59,38 @@ function parseStoredSettings(raw: string | null): PlatformSettings {
   }
 }
 
+function hexToHslChannels(hex: string): string {
+  const clean = hex.replace("#", "");
+  if (clean.length !== 6) return "221 83% 53%";
+  const r = parseInt(clean.slice(0, 2), 16) / 255;
+  const g = parseInt(clean.slice(2, 4), 16) / 255;
+  const b = parseInt(clean.slice(4, 6), 16) / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  const d = max - min;
+  const s = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
+  let h = 0;
+  if (d !== 0) {
+    if (max === r) h = ((g - b) / d) % 6;
+    else if (max === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+  }
+  h = Math.round(h * 60);
+  if (h < 0) h += 360;
+  return `${h} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
+}
+
 export function PlatformSettingsProvider({ children }: { children: React.ReactNode }) {
   const [settings, setSettings] = useState<PlatformSettings>(() => parseStoredSettings(typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEY) : null));
 
   useEffect(() => {
     switchAppLanguage(settings.language);
+    applyGlobalDateFormatting(settings.timezone, settings.dateTimeFormat);
     document.documentElement.setAttribute("data-timezone", settings.timezone);
     document.documentElement.setAttribute("data-date-time-format", settings.dateTimeFormat);
     document.documentElement.setAttribute("data-maintenance-mode", String(settings.maintenanceMode));
+    document.documentElement.style.setProperty("--primary", hexToHslChannels(settings.themeColor));
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
   }, [settings]);
 

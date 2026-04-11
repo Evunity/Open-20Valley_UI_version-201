@@ -40,7 +40,8 @@ export default function Settings2() {
     timezone: settings.timezone,
     dateFormat: settings.dateTimeFormat,
     language: settings.language,
-    maintenanceMode: settings.maintenanceMode
+    maintenanceMode: settings.maintenanceMode,
+    themeColor: settings.themeColor
   });
 
   // Integration State
@@ -66,7 +67,8 @@ export default function Settings2() {
       timezone: settings.timezone,
       dateFormat: settings.dateTimeFormat,
       language: settings.language,
-      maintenanceMode: settings.maintenanceMode
+      maintenanceMode: settings.maintenanceMode,
+      themeColor: settings.themeColor
     });
   }, [settings]);
 
@@ -82,7 +84,8 @@ export default function Settings2() {
     systemConfig.timezone !== settings.timezone ||
     systemConfig.dateFormat !== settings.dateTimeFormat ||
     systemConfig.language !== settings.language ||
-    systemConfig.maintenanceMode !== settings.maintenanceMode
+    systemConfig.maintenanceMode !== settings.maintenanceMode ||
+    systemConfig.themeColor !== settings.themeColor
   );
 
   const handleSave = async () => {
@@ -106,6 +109,7 @@ export default function Settings2() {
         dateTimeFormat: systemConfig.dateFormat as "iso" | "european" | "us",
         language: systemConfig.language as typeof settings.language,
         maintenanceMode: systemConfig.maintenanceMode,
+        themeColor: systemConfig.themeColor,
       });
       setSavedStatus(`Settings saved (${new Date(saved.updatedAt).toLocaleTimeString()})`);
       toast({ title: "Settings saved", description: "Platform settings have been applied globally." });
@@ -123,7 +127,8 @@ export default function Settings2() {
       timezone: settings.timezone,
       dateFormat: settings.dateTimeFormat,
       language: settings.language,
-      maintenanceMode: settings.maintenanceMode
+      maintenanceMode: settings.maintenanceMode,
+      themeColor: settings.themeColor
     });
     toast({ title: "Reset complete", description: "Form restored to last saved settings." });
   };
@@ -959,8 +964,8 @@ export default function Settings2() {
                   <div>
                     <label className="text-sm font-semibold text-foreground">Theme color</label>
                     <div className="mt-1 flex gap-3">
-                      <input type="color" defaultValue="#2563eb" className="h-10 w-20 rounded-lg" />
-                      <input type="text" defaultValue="#2563eb" className="flex-1 rounded-lg border border-border px-4 py-2 font-mono" />
+                      <input type="color" value={systemConfig.themeColor} onChange={(e) => handleConfigChange('themeColor', e.target.value)} className="h-10 w-20 rounded-lg" />
+                      <input type="text" value={systemConfig.themeColor} onChange={(e) => handleConfigChange('themeColor', e.target.value)} className="flex-1 rounded-lg border border-border px-4 py-2 font-mono" />
                     </div>
                   </div>
                   <div>
