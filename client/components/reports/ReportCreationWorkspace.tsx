@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Settings2 } from "lucide-react";
+import { Copy, Pencil, Plus, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -16,6 +16,11 @@ interface PreviewRow {
   reliability: string;
   sla: string;
   delivery: string;
+  dataset?: string;
+  format?: string;
+  schedule?: string;
+  status?: string;
+  owner?: string;
 }
 
 function Modal({ title, children, onClose }: { title: string; children: React.ReactNode; onClose: () => void }) {
@@ -41,9 +46,12 @@ export default function ReportCreationWorkspace() {
     { id: "r3", email: "vendor-bo@partner.net", role: "External" },
   ]);
   const [selectedRow, setSelectedRow] = useState<string | null>(null);
+  const [activeCell, setActiveCell] = useState<{ rowId: string; column: string } | null>(null);
+  const [editingCell, setEditingCell] = useState<{ rowId: string; column: string } | null>(null);
   const [columns, setColumns] = useState(["#", "Report Name", "Reliability", "SLA Cov.", "Delivery Rate", "Actions"]);
   const [manageOpen, setManageOpen] = useState(false);
   const [addFilterOpen, setAddFilterOpen] = useState(false);
+  const [columnPickerOpen, setColumnPickerOpen] = useState(false);
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [newFilter, setNewFilter] = useState("SLA Cov. >= 95%");
   const [newRecipient, setNewRecipient] = useState({ email: "", role: "Viewer" });
@@ -55,6 +63,23 @@ export default function ReportCreationWorkspace() {
     { id: "p5", reportName: "Regulatory Audit", reliability: "97.9%", sla: "96.4%", delivery: "98.7%" },
     { id: "p6", reportName: "Transport Health", reliability: "94.1%", sla: "93.2%", delivery: "95.4%" },
   ]);
+
+  const OPTIONAL_COLUMNS = ["Owner", "Dataset", "Format", "Schedule", "Status"];
+
+  const visibleRows = rows.filter((row) => {
+    return filters.every((filter) => {
+      const normalized = filter.toLowerCase();
+      const parseThreshold = (text: string) => Number(text.replace(/[^\d.]/g, ""));
+      if (normalized.includes("reliability") && normalized.includes(">")) return parseFloat(row.reliability) > parseThreshold(filter);
+      if (normalized.includes("sla") && normalized.includes(">")) return parseFloat(row.sla) > parseThreshold(filter);
+      if (normalized.includes("delivery") && normalized.includes(">")) return parseFloat(row.delivery) > parseThreshold(filter);
+      return true;
+    });
+  });
+
+  const updateReportName = (rowId: string, value: string) => {
+    setRows((prev) => prev.map((row) => (row.id === rowId ? { ...row, reportName: value } : row)));
+  };
 
   return (
     <section className="space-y-3">
@@ -105,7 +130,7 @@ export default function ReportCreationWorkspace() {
           <div className="mb-2 flex items-center justify-between">
             <h3 className="text-sm font-semibold">Report Preview</h3>
             <div className="flex gap-1.5">
-              <button onClick={() => { if (!columns.includes("Owner")) setColumns((p) => [...p.slice(0, -1), "Owner", "Actions"]); }} className="inline-flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-xs"><Plus className="h-3.5 w-3.5" />Add Column</button>
+              <button onClick={() => setColumnPickerOpen(true)} className="inline-flex items-center gap-1 rounded-lg border border-border px-2 py-1 text-xs"><Plus className="h-3 w-3" />Add Column</button>
               <button onClick={() => toast({ title: "Report created", description: `${format} report is ready with ${rows.length} rows.` })} className="rounded-lg bg-primary px-2.5 py-1.5 text-xs font-semibold text-primary-foreground">Create</button>
             </div>
           </div>
@@ -113,23 +138,43 @@ export default function ReportCreationWorkspace() {
           <div className="overflow-x-auto rounded-lg border border-border">
             <table className="w-full text-left">
               <thead>
-                <tr className="border-b border-border bg-muted/20">{columns.map((c) => <th key={c} className="px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">{c}</th>)}</tr>
+                <tr className="border-b border-border bg-muted/20">{columns.map((c) => <th key={c} className="border-r border-border/80 px-2 py-1.5 text-[10px] font-semibold uppercase tracking-[0.06em] text-muted-foreground last:border-r-0">{c}</th>)}</tr>
               </thead>
               <tbody>
-                {rows.map((row, idx) => (
-                  <tr key={row.id} onClick={() => setSelectedRow(row.id)} className={cn("cursor-pointer border-b border-border/70 last:border-b-0", selectedRow === row.id ? "bg-primary/5" : "hover:bg-muted/20")}>
-                    <td className="px-3 py-2.5 text-[12px]">{idx + 1}</td>
-                    <td className="px-3 py-2.5 text-[12px] font-medium">{row.reportName}</td>
-                    <td className={cn("px-3 py-2.5 text-[12px] font-semibold", parseFloat(row.reliability) >= 95 ? "text-emerald-700" : "text-orange-600")}>{row.reliability}</td>
-                    <td className={cn("px-3 py-2.5 text-[12px] font-semibold", parseFloat(row.sla) >= 95 ? "text-emerald-700" : "text-orange-600")}>{row.sla}</td>
-                    <td className={cn("px-3 py-2.5 text-[12px] font-semibold", parseFloat(row.delivery) >= 95 ? "text-emerald-700" : "text-orange-600")}>{row.delivery}</td>
-                    {columns.includes("Owner") && <td className="px-3 py-2.5 text-[12px] text-muted-foreground">Ops BI</td>}
-                    <td className="px-3 py-2.5">
-                      <div className="flex items-center gap-1">
-                        <button onClick={(e) => { e.stopPropagation(); setRows((p) => p.map((r) => (r.id === row.id ? { ...r, reportName: `${r.reportName} (Edited)` } : r))); }} className="rounded border border-border p-1.5"><Settings2 className="h-3.5 w-3.5" /></button>
-                        <button onClick={(e) => { e.stopPropagation(); toast({ title: "Row action", description: `${row.reportName} prepared for export.` }); }} className="rounded border border-border px-2 py-1 text-[11px]">Run</button>
-                      </div>
-                    </td>
+                {visibleRows.map((row, idx) => (
+                  <tr key={row.id} onClick={() => setSelectedRow(row.id)} className={cn("cursor-pointer border-b border-border/80 last:border-b-0", selectedRow === row.id ? "bg-primary/5" : "hover:bg-muted/15")}>
+                    {columns.map((column) => {
+                      const isActive = activeCell?.rowId === row.id && activeCell.column === column;
+                      const baseCellClass = cn("border-r border-border/70 px-2 py-1.5 text-[12px] last:border-r-0", isActive && "ring-1 ring-inset ring-primary");
+                      if (column === "#") return <td key={`${row.id}-${column}`} className={baseCellClass} onClick={() => setActiveCell({ rowId: row.id, column })}>{idx + 1}</td>;
+                      if (column === "Report Name")
+                        return (
+                          <td key={`${row.id}-${column}`} className={baseCellClass} onClick={() => { setActiveCell({ rowId: row.id, column }); setEditingCell({ rowId: row.id, column }); }}>
+                            {editingCell?.rowId === row.id ? (
+                              <input autoFocus value={row.reportName} onChange={(e) => updateReportName(row.id, e.target.value)} onBlur={() => setEditingCell(null)} className="h-7 w-full rounded border border-border px-1.5 text-[12px]" />
+                            ) : (
+                              <span className="font-medium">{row.reportName}</span>
+                            )}
+                          </td>
+                        );
+                      if (column === "Reliability") return <td key={`${row.id}-${column}`} className={cn(baseCellClass, parseFloat(row.reliability) >= 95 ? "text-emerald-700" : "text-orange-600")} onClick={() => setActiveCell({ rowId: row.id, column })}>{row.reliability}</td>;
+                      if (column === "SLA Cov.") return <td key={`${row.id}-${column}`} className={cn(baseCellClass, parseFloat(row.sla) >= 95 ? "text-emerald-700" : "text-orange-600")} onClick={() => setActiveCell({ rowId: row.id, column })}>{row.sla}</td>;
+                      if (column === "Delivery Rate") return <td key={`${row.id}-${column}`} className={cn(baseCellClass, parseFloat(row.delivery) >= 95 ? "text-emerald-700" : "text-orange-600")} onClick={() => setActiveCell({ rowId: row.id, column })}>{row.delivery}</td>;
+                      if (column === "Owner") return <td key={`${row.id}-${column}`} className={baseCellClass} onClick={() => setActiveCell({ rowId: row.id, column })}>{row.owner ?? "Ops BI"}</td>;
+                      if (column === "Dataset") return <td key={`${row.id}-${column}`} className={baseCellClass} onClick={() => setActiveCell({ rowId: row.id, column })}>{row.dataset ?? "Unified KPI Mart"}</td>;
+                      if (column === "Format") return <td key={`${row.id}-${column}`} className={baseCellClass} onClick={() => setActiveCell({ rowId: row.id, column })}>{row.format ?? format}</td>;
+                      if (column === "Schedule") return <td key={`${row.id}-${column}`} className={baseCellClass} onClick={() => setActiveCell({ rowId: row.id, column })}>{row.schedule ?? "Daily"}</td>;
+                      if (column === "Status") return <td key={`${row.id}-${column}`} className={baseCellClass} onClick={() => setActiveCell({ rowId: row.id, column })}>{row.status ?? "Ready"}</td>;
+                      return (
+                        <td key={`${row.id}-${column}`} className={baseCellClass} onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center justify-end gap-1">
+                            <button onClick={() => setEditingCell({ rowId: row.id, column: "Report Name" })} className="rounded border border-border p-1" title="Edit"><Pencil className="h-3 w-3" /></button>
+                            <button onClick={() => setRows((prev) => [...prev, { ...row, id: `dup-${Date.now()}`, reportName: `${row.reportName} Copy` }])} className="rounded border border-border p-1" title="Duplicate"><Copy className="h-3 w-3" /></button>
+                            <button onClick={() => setRows((prev) => prev.filter((r) => r.id !== row.id))} className="rounded border border-border p-1 text-rose-600" title="Delete"><Trash2 className="h-3 w-3" /></button>
+                          </div>
+                        </td>
+                      );
+                    })}
                   </tr>
                 ))}
               </tbody>
@@ -137,7 +182,7 @@ export default function ReportCreationWorkspace() {
           </div>
 
           <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground">
-            <p>{rows.length} rows · {columns.length} columns</p>
+            <p>{visibleRows.length} rows · {columns.length} columns</p>
             <p><span className="text-emerald-700">green</span> = &gt;= 95% · <span className="text-orange-600">orange</span> = &lt; 95% threshold</p>
             <p className="font-semibold text-foreground">Ready to export</p>
           </div>
@@ -175,6 +220,32 @@ export default function ReportCreationWorkspace() {
       {scheduleOpen && (
         <Modal title="Schedule Report" onClose={() => setScheduleOpen(false)}>
           <p className="text-sm">Scheduling request queued for next available wave.</p>
+        </Modal>
+      )}
+
+      {columnPickerOpen && (
+        <Modal title="Column Picker" onClose={() => setColumnPickerOpen(false)}>
+          <div className="space-y-2">
+            {OPTIONAL_COLUMNS.map((col) => {
+              const checked = columns.includes(col);
+              return (
+                <label key={col} className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={() => {
+                      setColumns((prev) => {
+                        const base = prev.filter((x) => x !== "Actions" && !OPTIONAL_COLUMNS.includes(x));
+                        const optional = checked ? prev.filter((x) => OPTIONAL_COLUMNS.includes(x) && x !== col) : [...prev.filter((x) => OPTIONAL_COLUMNS.includes(x)), col];
+                        return [...base, ...optional, "Actions"];
+                      });
+                    }}
+                  />
+                  {col}
+                </label>
+              );
+            })}
+          </div>
         </Modal>
       )}
     </section>
