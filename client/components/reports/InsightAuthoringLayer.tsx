@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Copy, Sparkles } from "lucide-react";
+import { Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
@@ -57,90 +57,96 @@ export default function InsightAuthoringLayer() {
         <button onClick={() => setBriefingOpen(true)} className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground">Generate Briefing</button>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 xl:grid-cols-[1.35fr_1fr]">
-        <article className="rounded-xl border border-border bg-card p-3">
-          <div className="mb-2 flex items-center justify-between">
-            <h3 className="text-sm font-semibold">Cross-Module Intelligence</h3>
-            <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">4 Insights</span>
-          </div>
-          <div className="space-y-2">
-            {INSIGHTS.map((insight) => (
-              <div key={insight.id} className="rounded-lg border border-border px-3 py-2">
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium">{insight.title}</p>
-                  {insight.tag && <span className="rounded-full border border-violet-500/40 bg-violet-500/10 px-2 py-0.5 text-[10px] font-semibold text-violet-700">{insight.tag}</span>}
+      {tab === "Strategic Insights" && (
+        <div className="grid grid-cols-1 gap-3 xl:grid-cols-[1.35fr_1fr]">
+          <article className="rounded-xl border border-border bg-card p-3">
+            <div className="mb-2 flex items-center justify-between">
+              <h3 className="text-sm font-semibold">Cross-Module Intelligence</h3>
+              <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">4 Insights</span>
+            </div>
+            <div className="space-y-2">
+              {INSIGHTS.map((insight) => (
+                <div key={insight.id} className="rounded-lg border border-border px-3 py-2">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium">{insight.title}</p>
+                    {insight.tag && <span className="rounded-full border border-violet-500/40 bg-violet-500/10 px-2 py-0.5 text-[10px] font-semibold text-violet-700">{insight.tag}</span>}
+                  </div>
+                  <p className="mt-1 text-[11px] text-muted-foreground">{insight.text}</p>
+                  <button onClick={() => setActiveInsight(insight)} className="mt-1 text-[11px] text-primary hover:underline">Open insight details</button>
                 </div>
-                <p className="mt-1 text-[11px] text-muted-foreground">{insight.text}</p>
-                <button onClick={() => setActiveInsight(insight)} className="mt-1 text-[11px] text-primary hover:underline">Open insight details</button>
-              </div>
-            ))}
-          </div>
-        </article>
-
-        <aside className="space-y-3 rounded-xl border border-border bg-card p-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold">Insight Authoring</h3>
-            <span className="text-[10px] font-semibold text-primary">AI-Assisted</span>
-          </div>
-          <div className="rounded-lg border border-border bg-background p-3">
-            <p className="text-[11px] text-muted-foreground">Report: Q1 Vendor Scorecard</p>
-            <p className="mt-1 text-sm">Vendor stability improved for Nokia and Huawei cohorts, while Ericsson transport ingestion requires remediation focus.</p>
-          </div>
-
-          <div className="rounded-lg border border-primary/30 bg-primary/5 p-3">
-            <h4 className="text-xs font-semibold uppercase tracking-[0.06em] text-primary">AI-Assisted Narrative</h4>
-            <input value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="Generate summary..." className="mt-2 h-9 w-full rounded-xl border border-border bg-background px-3 text-sm" />
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {["Executive", "Technical", "Regulatory"].map((item) => (
-                <button key={item} onClick={() => setTone(item)} className={cn("rounded-full border px-2 py-0.5 text-[11px]", tone === item ? "border-primary/40 bg-primary/10 text-primary" : "border-border hover:bg-muted/30")}>{item}</button>
               ))}
             </div>
-            <div className="mt-1.5 flex flex-wrap gap-1.5">
-              {["Brief", "Standard", "Detailed"].map((item) => (
-                <button key={item} onClick={() => setLength(item)} className={cn("rounded-full border px-2 py-0.5 text-[11px]", length === item ? "border-primary/40 bg-primary/10 text-primary" : "border-border hover:bg-muted/30")}>{item}</button>
-              ))}
-            </div>
-            <button
-              onClick={() => {
-                setGenerated(`[${tone} · ${length}] ${prompt || "Generated summary"} — Automation impact remains positive; prioritize transport lag remediation and vendor-specific anomaly guardrails.`);
-                toast({ title: "Narrative generated", description: "AI-assisted summary updated." });
-              }}
-              className="mt-2 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground"
-            >
-              Generate
-            </button>
-          </div>
+          </article>
 
-          <div className="rounded-lg border border-border bg-background p-3">
+          <aside className="space-y-3 rounded-xl border border-border bg-card p-3">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold uppercase tracking-[0.06em]">AI Generated — Editable</p>
-              <button onClick={() => setEditing((p) => !p)} className="text-[11px] text-primary hover:underline">{editing ? "Done" : "Edit"}</button>
+              <h3 className="text-sm font-semibold">Insight Authoring</h3>
+              <span className="text-[10px] font-semibold text-primary">AI-Assisted</span>
             </div>
-            {editing ? (
-              <textarea value={generated} onChange={(e) => setGenerated(e.target.value)} className="mt-2 h-24 w-full rounded-xl border border-border p-2 text-sm" />
-            ) : (
-              <p className="mt-2 text-sm">{generated}</p>
-            )}
-            <div className="mt-2 flex gap-1.5">
-              <button onClick={async () => { await navigator.clipboard.writeText(generated); toast({ title: "Copied", description: "Narrative copied to clipboard." }); }} className="inline-flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-xs"><Copy className="h-3.5 w-3.5" />Copy</button>
-              <button onClick={() => { setInserted(true); toast({ title: "Inserted", description: "Narrative inserted into report." }); }} className="rounded-lg bg-primary px-2.5 py-1.5 text-xs font-semibold text-primary-foreground">Insert to Report</button>
+            <div className="rounded-lg border border-border bg-background p-3">
+              <p className="text-[11px] text-muted-foreground">Report: Q1 Vendor Scorecard</p>
+              <p className="mt-1 text-sm">Vendor stability improved for Nokia and Huawei cohorts, while Ericsson transport ingestion requires remediation focus.</p>
             </div>
-            {inserted && <p className="mt-1 text-[11px] text-emerald-700">Inserted into Q1 Vendor Scorecard.</p>}
+            <div className="rounded-lg border border-primary/30 bg-primary/5 p-3">
+              <h4 className="text-xs font-semibold uppercase tracking-[0.06em] text-primary">AI-Assisted Narrative</h4>
+              <input value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="Generate summary..." className="mt-2 h-9 w-full rounded-xl border border-border bg-background px-3 text-sm" />
+              <div className="mt-2 flex flex-wrap gap-1.5">{["Executive", "Technical", "Regulatory"].map((item) => <button key={item} onClick={() => setTone(item)} className={cn("rounded-full border px-2 py-0.5 text-[11px]", tone === item ? "border-primary/40 bg-primary/10 text-primary" : "border-border hover:bg-muted/30")}>{item}</button>)}</div>
+              <div className="mt-1.5 flex flex-wrap gap-1.5">{["Brief", "Standard", "Detailed"].map((item) => <button key={item} onClick={() => setLength(item)} className={cn("rounded-full border px-2 py-0.5 text-[11px]", length === item ? "border-primary/40 bg-primary/10 text-primary" : "border-border hover:bg-muted/30")}>{item}</button>)}</div>
+              <button onClick={() => { setGenerated(`[${tone} · ${length}] ${prompt || "Generated summary"} — Automation impact remains positive; prioritize transport lag remediation and vendor-specific anomaly guardrails.`); toast({ title: "Narrative generated", description: "AI-assisted summary updated." }); }} className="mt-2 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground">Generate</button>
+            </div>
+            <div className="rounded-lg border border-border bg-background p-3">
+              <div className="flex items-center justify-between"><p className="text-xs font-semibold uppercase tracking-[0.06em]">AI Generated — Editable</p><button onClick={() => setEditing((p) => !p)} className="text-[11px] text-primary hover:underline">{editing ? "Done" : "Edit"}</button></div>
+              {editing ? <textarea value={generated} onChange={(e) => setGenerated(e.target.value)} className="mt-2 h-24 w-full rounded-xl border border-border p-2 text-sm" /> : <p className="mt-2 text-sm">{generated}</p>}
+              <div className="mt-2 flex gap-1.5">
+                <button onClick={async () => { await navigator.clipboard.writeText(generated); toast({ title: "Copied", description: "Narrative copied to clipboard." }); }} className="inline-flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-xs"><Copy className="h-3.5 w-3.5" />Copy</button>
+                <button onClick={() => { setInserted(true); toast({ title: "Inserted", description: "Narrative inserted into report." }); }} className="rounded-lg bg-primary px-2.5 py-1.5 text-xs font-semibold text-primary-foreground">Insert to Report</button>
+              </div>
+              {inserted && <p className="mt-1 text-[11px] text-emerald-700">Inserted into Q1 Vendor Scorecard.</p>}
+            </div>
+          </aside>
+        </div>
+      )}
+
+      {tab === "Authoring" && (
+        <div className="rounded-xl border border-border bg-card p-4">
+          <h3 className="text-sm font-semibold">Narrative Draft Workspace</h3>
+          <p className="mt-1 text-xs text-muted-foreground">Draft executive narrative sections and maintain editorial revisions.</p>
+          <textarea value={generated} onChange={(e) => setGenerated(e.target.value)} className="mt-3 h-40 w-full rounded-xl border border-border p-3 text-sm" />
+          <div className="mt-2 flex justify-end gap-2">
+            <button onClick={() => toast({ title: "Draft saved", description: "Authoring draft saved locally." })} className="rounded-lg border border-border px-3 py-1.5 text-xs">Save Draft</button>
+            <button onClick={() => toast({ title: "Published", description: "Narrative published to report preview." })} className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground">Publish</button>
           </div>
-        </aside>
-      </div>
-
-      {briefingOpen && (
-        <Modal title="Generate Briefing" onClose={() => setBriefingOpen(false)}>
-          <p className="text-sm">Strategic briefing generated from latest insights, vendor risk profile, and congestion forecast. Ready for executive review.</p>
-        </Modal>
+        </div>
       )}
 
-      {activeInsight && (
-        <Modal title={activeInsight.title} onClose={() => setActiveInsight(null)}>
-          <p className="text-sm">{activeInsight.text}</p>
-        </Modal>
+      {tab === "Decision Impact" && (
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+          {[
+            ["Automation Decisions", "+14%", "KPI uplift after guided remediations"],
+            ["Risk Avoidance", "9 incidents", "Potential SLA breaches prevented"],
+            ["Revenue Protection", "$1.2M", "Estimated impact preserved"],
+          ].map(([title, value, text]) => (
+            <article key={title} className="rounded-xl border border-border bg-card p-4">
+              <p className="text-xs text-muted-foreground">{title}</p>
+              <p className="mt-1 text-2xl font-bold">{value}</p>
+              <p className="text-xs text-muted-foreground">{text}</p>
+            </article>
+          ))}
+        </div>
       )}
+
+      {tab === "Trend Analysis" && (
+        <div className="rounded-xl border border-border bg-card p-4">
+          <h3 className="text-sm font-semibold">Trend Analysis</h3>
+          <p className="mt-1 text-xs text-muted-foreground">7-day trend summary for congestion, clear-rate, and vendor stability.</p>
+          <div className="mt-3 grid grid-cols-7 gap-1.5">
+            {[32, 45, 40, 56, 52, 61, 58].map((v, idx) => <div key={idx} className="flex h-32 items-end"><div className="w-full rounded-t bg-primary/70" style={{ height: `${v}%` }} /></div>)}
+          </div>
+        </div>
+      )}
+
+      {briefingOpen && <Modal title="Generate Briefing" onClose={() => setBriefingOpen(false)}><p className="text-sm">Strategic briefing generated from latest insights, vendor risk profile, and congestion forecast. Ready for executive review.</p></Modal>}
+      {activeInsight && <Modal title={activeInsight.title} onClose={() => setActiveInsight(null)}><p className="text-sm">{activeInsight.text}</p></Modal>}
     </section>
   );
 }

@@ -9,6 +9,7 @@ import RegulatoryIntelligenceHub from "@/components/reports/RegulatoryIntelligen
 import DatasetManager from "@/components/reports/DatasetManager";
 import SchedulingOrchestrator from "@/components/reports/SchedulingOrchestrator";
 import ReportHistoryRegistry from "@/components/reports/ReportHistoryRegistry";
+import ReportCreationWorkspace from "@/components/reports/ReportCreationWorkspace";
 import { DEFAULT_REPORTS_SECTION } from "@/constants/reportsSections";
 
 export default function ReportsModule() {
@@ -20,8 +21,9 @@ export default function ReportsModule() {
       case "executive-reporting-overview":
         return <ExecutiveReportingOverview />;
       case "report-viz-builder":
-      case "report-creation":
         return <AdvancedReportBuilder />;
+      case "report-creation":
+        return <ReportCreationWorkspace />;
       case "report-library":
         return <ReportLibraryModule />;
       case "report-history":
