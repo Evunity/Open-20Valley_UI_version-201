@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { CheckCircle2, ChevronLeft, ChevronRight, Download, FileCode2, Filter, GitBranch, Plus, Search, ShieldCheck, X } from "lucide-react";
+import { CheckCircle2, ChevronLeft, ChevronRight, Download, Eye, FileCode2, Filter, GitBranch, Plus, Search, ShieldCheck, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface DatasetRow {
@@ -148,10 +148,31 @@ export default function DatasetManager() {
                   <td className="px-3.5 py-2.5 text-[12px] text-muted-foreground">{row.sla}</td>
                   <td className="px-3.5 py-2.5 text-[12px]">{row.certification ? <span className="rounded-full border border-emerald-600/25 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">Certified</span> : <span className="rounded-full border border-amber-600/25 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-700">Pending</span>}</td>
                   <td className="px-3.5 py-2.5" onClick={(e) => e.stopPropagation()}>
-                    <div className="flex gap-1">
-                      <button onClick={() => setSelected(row)} className="rounded border border-border px-2 py-1 text-[10px]">Details</button>
-                      <button onClick={() => setLineageModal(row)} className="rounded border border-border px-2 py-1 text-[10px]">Lineage</button>
-                      <button onClick={() => setValidationModal(row)} className="rounded border border-border px-2 py-1 text-[10px]">Validation</button>
+                    <div className="flex items-center gap-1 whitespace-nowrap">
+                      <button
+                        onClick={() => setSelected(row)}
+                        aria-label={`Open details for ${row.name}`}
+                        title="Details"
+                        className="inline-flex h-7 w-7 items-center justify-center rounded border border-border text-muted-foreground hover:bg-muted/20 hover:text-foreground"
+                      >
+                        <Eye className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        onClick={() => setLineageModal(row)}
+                        aria-label={`Open lineage for ${row.name}`}
+                        title="Lineage"
+                        className="inline-flex h-7 w-7 items-center justify-center rounded border border-border text-muted-foreground hover:bg-muted/20 hover:text-foreground"
+                      >
+                        <GitBranch className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        onClick={() => setValidationModal(row)}
+                        aria-label={`Open validation for ${row.name}`}
+                        title="Validation"
+                        className="inline-flex h-7 w-7 items-center justify-center rounded border border-border text-muted-foreground hover:bg-muted/20 hover:text-foreground"
+                      >
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                      </button>
                     </div>
                   </td>
                 </tr>
