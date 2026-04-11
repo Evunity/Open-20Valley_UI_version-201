@@ -360,18 +360,24 @@
   }
 
   .search-bar:focus-within {
-    @apply border-primary/50 ring-2 ring-primary/20;
+    @apply border-primary/50;
   }
 
   .search-bar-input {
     @apply w-full bg-transparent border-0 p-0 text-sm text-foreground;
-    outline: none;
-    box-shadow: none;
+    outline: none !important;
+    box-shadow: none !important;
+    border: 0 !important;
+    background: transparent !important;
+    -webkit-appearance: none;
+    appearance: none;
   }
 
   .search-bar-input:focus {
-    outline: none;
-    box-shadow: none;
+    outline: none !important;
+    box-shadow: none !important;
+    border: 0 !important;
+    background: transparent !important;
   }
 
   :where(p, span, li, a, button, label, td, th) {
