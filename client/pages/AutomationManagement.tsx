@@ -255,6 +255,8 @@ export const AutomationManagement: React.FC = () => {
     return searchMatch && statusMatch && categoryMatch;
   });
 
+  const domainWorkspaces = WORKSPACES.filter((workspace) => workspace.domain === activeDomain);
+
   const resetModelSetupForm = () => {
     setEditingModelId(null);
     setSelectedModelTemplateId('');
@@ -921,6 +923,24 @@ export const AutomationManagement: React.FC = () => {
               </button>
             );
           })}
+        </div>
+      </div>
+
+      <div className="bg-card/40 border-b border-border rounded-lg p-3 mx-2 mt-2">
+        <div className="grid grid-cols-1 gap-2 md:grid-cols-3 xl:grid-cols-5">
+          {domainWorkspaces.map((workspace) => (
+            <button
+              key={workspace.id}
+              onClick={() => setActiveWorkspace(workspace.id)}
+              className={`flex items-center justify-center rounded-lg border px-3 py-2 text-xs font-semibold transition ${
+                activeWorkspace === workspace.id
+                  ? 'border-primary/40 bg-primary/10 text-primary'
+                  : 'border-border bg-card hover:border-primary/30 text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {workspace.label}
+            </button>
+          ))}
         </div>
       </div>
 

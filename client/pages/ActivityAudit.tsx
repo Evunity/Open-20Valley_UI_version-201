@@ -1,15 +1,8 @@
 import { useState, useMemo, useEffect } from "react";
 import {
-  Shield, Activity, Users, Lock, TrendingUp, Download
+  Shield, Activity, Users, Lock, TrendingUp
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import type { LucideIcon } from "lucide-react";
 import ExecutiveRiskOverview from "@/components/audit/ExecutiveRiskOverview";
 import UnifiedActivityStream from "@/components/audit/UnifiedActivityStream";
@@ -60,7 +53,6 @@ const WORKSPACES: WorkspaceConfig[] = [
 
 export default function ActivityAudit() {
   const [activeWorkspace, setActiveWorkspace] = useState<AuditWorkspace>('executive-risk');
-  const [timeMode, setTimeMode] = useState<'live' | 'investigative' | 'historical'>('live');
   const [savedViews, setSavedViews] = useState<Record<string, any>>({});
   const [selectedSavedView, setSelectedSavedView] = useState<string | null>(null);
 
@@ -106,32 +98,8 @@ export default function ActivityAudit() {
 
   return (
     <div className="h-full min-h-0 w-full min-w-0 bg-background flex flex-col overflow-hidden">
-      {/* Header */}
-      <div className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-40">
-        <div className="px-8 py-3">
-          <div className="flex items-center justify-between">
-            <div></div>
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-2 px-3 py-2 h-10 rounded-lg border border-border bg-background">
-                <span className="text-xs font-semibold text-muted-foreground whitespace-nowrap">MODE:</span>
-                <Select value={timeMode} onValueChange={(value) => setTimeMode(value as any)}>
-                  <SelectTrigger className="h-8 min-w-[150px] border-0 bg-transparent px-1 text-sm font-medium text-foreground focus:ring-0">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="live">Live</SelectItem>
-                    <SelectItem value="investigative">Investigative</SelectItem>
-                    <SelectItem value="historical">Historical</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <button className="px-3 py-2 rounded-lg border border-border hover:bg-muted transition-colors text-sm flex items-center gap-2">
-                <Download className="w-4 h-4" />
-                Export
-              </button>
-            </div>
-          </div>
-        </div>
+      <div className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-40 px-6 py-3">
+        <h2 className="text-sm font-semibold text-foreground">Activity & Audit</h2>
       </div>
 
       <div className="bg-card border-b border-border rounded-lg p-4 mx-2 mt-2">
