@@ -1,6 +1,10 @@
+import { useState } from 'react';
 import { Zap, Plus, Copy, Download, Share2 } from 'lucide-react';
+import SearchableDropdown from '@/components/SearchableDropdown';
 
 export default function ExecutiveOneclickBriefing() {
+  const [layoutStyle, setLayoutStyle] = useState('Concise (1-2 pages, exec summary)');
+  const [outputFormat, setOutputFormat] = useState('PDF (Print-optimized)');
   const briefingTemplates = [
     {
       name: 'Network Health Summary',
@@ -106,22 +110,34 @@ export default function ExecutiveOneclickBriefing() {
           {/* Layout */}
           <div>
             <label className="text-sm font-semibold text-foreground block mb-2">Layout Style</label>
-            <select className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm">
-              <option>Concise (1-2 pages, exec summary)</option>
-              <option>Standard (2-3 pages, key metrics + narrative)</option>
-              <option>Detailed (3-5 pages, full analysis)</option>
-              <option>Deep Dive (5+ pages, with appendix)</option>
-            </select>
+            <SearchableDropdown
+              label=""
+              compact
+              multiSelect={false}
+              options={[
+                'Concise (1-2 pages, exec summary)',
+                'Standard (2-3 pages, key metrics + narrative)',
+                'Detailed (3-5 pages, full analysis)',
+                'Deep Dive (5+ pages, with appendix)',
+              ]}
+              selected={[layoutStyle]}
+              onChange={(selected) => setLayoutStyle(selected[0] ?? 'Concise (1-2 pages, exec summary)')}
+              searchable={false}
+            />
           </div>
 
           {/* Format */}
           <div>
             <label className="text-sm font-semibold text-foreground block mb-2">Output Format</label>
-            <select className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm">
-              <option>PDF (Print-optimized)</option>
-              <option>HTML (Interactive)</option>
-              <option>Markdown (For import)</option>
-            </select>
+            <SearchableDropdown
+              label=""
+              compact
+              multiSelect={false}
+              options={['PDF (Print-optimized)', 'HTML (Interactive)', 'Markdown (For import)']}
+              selected={[outputFormat]}
+              onChange={(selected) => setOutputFormat(selected[0] ?? 'PDF (Print-optimized)')}
+              searchable={false}
+            />
           </div>
         </div>
 

@@ -8,6 +8,8 @@ import ReliabilityCenter from "@/components/reports/ReliabilityCenter";
 import RegulatoryIntelligenceHub from "@/components/reports/RegulatoryIntelligenceHub";
 import DatasetManager from "@/components/reports/DatasetManager";
 import SchedulingOrchestrator from "@/components/reports/SchedulingOrchestrator";
+import ReportHistoryRegistry from "@/components/reports/ReportHistoryRegistry";
+import ReportCreationWorkspace from "@/components/reports/ReportCreationWorkspace";
 import { DEFAULT_REPORTS_SECTION } from "@/constants/reportsSections";
 
 export default function ReportsModule() {
@@ -19,11 +21,13 @@ export default function ReportsModule() {
       case "executive-reporting-overview":
         return <ExecutiveReportingOverview />;
       case "report-viz-builder":
-      case "report-creation":
         return <AdvancedReportBuilder />;
+      case "report-creation":
+        return <ReportCreationWorkspace />;
       case "report-library":
-      case "report-history":
         return <ReportLibraryModule />;
+      case "report-history":
+        return <ReportHistoryRegistry />;
       case "insights-impact":
         return <InsightAuthoringLayer />;
       case "reliability-consumption":

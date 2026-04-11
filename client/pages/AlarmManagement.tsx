@@ -1,506 +1,211 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import {
-  Alarm,
-  generateMockAlarms,
-  filterAlarms,
-  AlarmSeverity,
-  TimeMode,
-  calculateDuration,
-  AlarmComment
-} from '../utils/alarmData';
-import { initializeTimeMode, getCurrentTimeFormatted, getRefreshInterval, getModeBannerText, isAutoRefreshAllowed } from '../utils/timeModeManager';
-import { TimeModeSwitcher } from '../components/TimeModeSwitcher';
-import { AlarmFilterPanel, FilterState } from '../components/AlarmFilterPanel';
-import { AlarmTable } from '../components/AlarmTable';
-import { ObjectHierarchy } from '../components/ObjectHierarchy';
-import { ExpertModeToggle } from '../components/ExpertModeToggle';
-import { AlarmDetailsSidePanel } from '../components/AlarmDetailsSidePanel';
-import { AlarmOverviewWidgets } from '../components/AlarmOverviewWidgets';
-import { AlarmStormProtection, detectAlarmStorm, useAlarmStormView } from '../components/AlarmStormProtection';
-import { AlarmBulkOperations } from '../components/AlarmBulkOperations';
-import { AlarmSideInspectionPanel } from '../components/AlarmSideInspectionPanel';
-import { AlarmDetailsPage } from './AlarmDetailsPage';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useMemo, useState } from "react";
+import { Activity, CheckCheck, MessageSquare, UserPlus } from "lucide-react";
+import { cn } from "@/lib/utils";
+import SearchableDropdown from "@/components/SearchableDropdown";
+import { useToast } from "@/hooks/use-toast";
+
+type Mode = "Live" | "Snapshot" | "Historical";
+type ViewMode = "Grouped" | "Raw";
+
+interface AlarmRow {
+  id: string;
+  severity: "Critical" | "Major" | "Minor";
+  vendor: "Huawei" | "Nokia" | "Ericsson";
+  alarmName: string;
+  status: "Open" | "Acknowledged" | "Assigned";
+  assignment: string;
+  site: string;
+  firstSeen: string;
+}
+
+const INITIAL_ROWS: AlarmRow[] = [
+  { id: "ALM-10021", severity: "Critical", vendor: "Ericsson", alarmName: "RAN Backhaul Link Down", status: "Open", assignment: "Unassigned", site: "Cairo-NR-01", firstSeen: "09:20" },
+  { id: "ALM-10022", severity: "Major", vendor: "Huawei", alarmName: "Packet Loss Spike", status: "Assigned", assignment: "NOC L2", site: "Cairo-TR-14", firstSeen: "09:25" },
+  { id: "ALM-10023", severity: "Minor", vendor: "Nokia", alarmName: "Cell Throughput Degradation", status: "Acknowledged", assignment: "RAN Team", site: "Giza-LTE-03", firstSeen: "09:33" },
+  { id: "ALM-10024", severity: "Critical", vendor: "Huawei", alarmName: "Core Session Failure Burst", status: "Open", assignment: "Unassigned", site: "Core-Cairo-02", firstSeen: "09:37" },
+  { id: "ALM-10025", severity: "Major", vendor: "Ericsson", alarmName: "Congestion Threshold Breach", status: "Assigned", assignment: "Transport Ops", site: "Cairo-TR-11", firstSeen: "09:40" },
+  { id: "ALM-10026", severity: "Minor", vendor: "Nokia", alarmName: "Neighbor Relation Mismatch", status: "Open", assignment: "Unassigned", site: "Alex-LTE-09", firstSeen: "09:44" },
+];
+
+function Modal({ title, children, onClose }: { title: string; children: React.ReactNode; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+      <div className="w-full max-w-xl rounded-xl border border-border bg-card shadow-2xl">
+        <div className="flex items-center justify-between border-b border-border px-4 py-3">
+          <h3 className="text-sm font-semibold">{title}</h3>
+          <button onClick={onClose} className="rounded-lg px-2 py-1 text-xs hover:bg-muted">Close</button>
+        </div>
+        <div className="p-4">{children}</div>
+      </div>
+    </div>
+  );
+}
 
 export const AlarmManagement: React.FC = () => {
-  // State management
-  const [allAlarms, setAllAlarms] = useState<Alarm[]>([]);
-  const [filteredAlarms, setFilteredAlarms] = useState<Alarm[]>([]);
-  const [selectedAlarm, setSelectedAlarm] = useState<Alarm | null>(null);
-  const [expertMode, setExpertMode] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const { toast } = useToast();
+  const [mode, setMode] = useState<Mode>("Live");
+  const [lastUpdated, setLastUpdated] = useState("10:12:24");
+  const [viewMode, setViewMode] = useState<ViewMode>("Grouped");
+  const [search, setSearch] = useState("");
+  const [vendor, setVendor] = useState("All Vendors");
+  const [severity, setSeverity] = useState("All Severities");
+  const [tableView, setTableView] = useState("Default View");
+  const [columnsView, setColumnsView] = useState("Ops Columns");
+  const [highlightRule, setHighlightRule] = useState("Storm + Critical");
+  const [rows, setRows] = useState(INITIAL_ROWS);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [assignOpen, setAssignOpen] = useState(false);
+  const [commentOpen, setCommentOpen] = useState(false);
+  const [analyticsOpen, setAnalyticsOpen] = useState(false);
+  const [assignee, setAssignee] = useState("NOC L2");
+  const [comment, setComment] = useState("");
 
-  // Time mode state
-  const [timeMode, setTimeMode] = useState<TimeMode>('live');
-  const [lastRefresh, setLastRefresh] = useState(getCurrentTimeFormatted());
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
+  const filtered = useMemo(() => {
+    return rows.filter((row) => {
+      const q = search.toLowerCase();
+      const searchOk = row.alarmName.toLowerCase().includes(q) || row.id.toLowerCase().includes(q) || row.site.toLowerCase().includes(q);
+      const vendorOk = vendor === "All Vendors" || row.vendor === vendor;
+      const severityOk = severity === "All Severities" || row.severity === severity;
+      return searchOk && vendorOk && severityOk;
+    });
+  }, [rows, search, vendor, severity]);
 
-  // Filter state
-  const [filters, setFilters] = useState<FilterState>({
-    severity: ['critical', 'major'],
-    alarmType: [],
-    category: [],
-    technologies: [],
-    sourceSystem: [],
-    searchText: '',
-    showAcknowledgedOnly: false,
-    showUnacknowledgedOnly: false
-  });
-
-  // Object hierarchy drill-down
-  const [hierarchyFilters, setHierarchyFilters] = useState<{
-    region?: string;
-    cluster?: string;
-    site?: string;
-    node?: string;
-  }>({});
-
-  // Refresh interval
-  const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Alarm storm state
-  const { view: stormView, setView: setStormView } = useAlarmStormView();
-  const [dismissStormBanner, setDismissStormBanner] = useState(false);
-  const isStormActive = detectAlarmStorm(allAlarms.length, 3, 50);
-
-  // Bulk operations state
-  const [selectedAlarmIds, setSelectedAlarmIds] = useState<Set<string>>(new Set());
-
-  // Side inspection panel state
-  const [inspectionAlarm, setInspectionAlarm] = useState<Alarm | null>(null);
-  const [viewFullDetails, setViewFullDetails] = useState(false);
-
-  // Initialize alarms on mount
-  useEffect(() => {
-    const alarms = generateMockAlarms(80);
-    setAllAlarms(alarms);
-    setIsLoading(false);
-  }, []);
-
-  // Apply filters when dependencies change
-  useEffect(() => {
-    let filtered = [...allAlarms];
-
-    if (filters.severity.length > 0) {
-      filtered = filtered.filter(alarm => filters.severity.includes(alarm.severity));
-    }
-
-    if (filters.alarmType.length > 0) {
-      filtered = filtered.filter(alarm => filters.alarmType.includes(alarm.alarmType));
-    }
-
-    if (filters.category.length > 0) {
-      filtered = filtered.filter(alarm => filters.category.includes(alarm.category));
-    }
-
-    if (filters.technologies.length > 0) {
-      filtered = filtered.filter(alarm =>
-        alarm.technologies.some(tech => filters.technologies.includes(tech))
-      );
-    }
-
-    if (filters.sourceSystem.length > 0) {
-      filtered = filtered.filter(alarm => filters.sourceSystem.includes(alarm.sourceSystem));
-    }
-
-    if (filters.searchText) {
-      const searchLower = filters.searchText.toLowerCase();
-      filtered = filtered.filter(alarm =>
-        alarm.title.toLowerCase().includes(searchLower) ||
-        alarm.description.toLowerCase().includes(searchLower) ||
-        alarm.objectName.toLowerCase().includes(searchLower) ||
-        alarm.globalAlarmId.toLowerCase().includes(searchLower)
-      );
-    }
-
-    if (filters.showAcknowledgedOnly) {
-      filtered = filtered.filter(alarm => alarm.acknowledged);
-    }
-    if (filters.showUnacknowledgedOnly) {
-      filtered = filtered.filter(alarm => !alarm.acknowledged);
-    }
-
-    if (hierarchyFilters.region) {
-      filtered = filtered.filter(alarm => alarm.hierarchy.region === hierarchyFilters.region);
-    }
-    if (hierarchyFilters.cluster) {
-      filtered = filtered.filter(alarm => alarm.hierarchy.cluster === hierarchyFilters.cluster);
-    }
-    if (hierarchyFilters.site) {
-      filtered = filtered.filter(alarm => alarm.hierarchy.site === hierarchyFilters.site);
-    }
-    if (hierarchyFilters.node) {
-      filtered = filtered.filter(alarm => alarm.hierarchy.node === hierarchyFilters.node);
-    }
-
-    setFilteredAlarms(filtered);
-    
-    if (selectedAlarm && !filtered.find(a => a.globalAlarmId === selectedAlarm.globalAlarmId)) {
-      setSelectedAlarm(null);
-    }
-  }, [allAlarms, filters, hierarchyFilters, selectedAlarm]);
-
-  // Handle mode transition
-  const handleModeChange = (mode: TimeMode) => {
-    setTimeMode(mode);
-    setIsRefreshing(false);
-    setIsPaused(false);
-    setLastRefresh(getCurrentTimeFormatted());
-    
-    if (refreshIntervalRef.current) {
-      clearInterval(refreshIntervalRef.current);
-      refreshIntervalRef.current = null;
-    }
+  const kpis = {
+    faultIndex: "3.2",
+    critical: filtered.filter((r) => r.severity === "Critical").length,
+    major: filtered.filter((r) => r.severity === "Major").length,
+    minor: filtered.filter((r) => r.severity === "Minor").length,
+    serviceImpact: "14 Cells",
+    clearRate: "94.7%",
   };
 
-  // Refresh data
-  const refreshData = useCallback(() => {
-    if (timeMode !== 'live' || isPaused) return;
-    
-    setIsRefreshing(true);
-    setTimeout(() => {
-      setLastRefresh(getCurrentTimeFormatted());
-      setIsRefreshing(false);
-      
-      setAllAlarms(alarms =>
-        alarms.map(alarm => ({
-          ...alarm,
-          duration: calculateDuration(alarm.createdAt, alarm.updatedAt)
-        }))
-      );
-    }, 500);
-  }, [timeMode, isPaused]);
-
-  // Set up auto-refresh
-  useEffect(() => {
-    if (timeMode !== 'live') {
-      if (refreshIntervalRef.current) {
-        clearInterval(refreshIntervalRef.current);
-        refreshIntervalRef.current = null;
-      }
-      return;
-    }
-
-    refreshData();
-    refreshIntervalRef.current = setInterval(() => {
-      refreshData();
-    }, 5000);
-
-    return () => {
-      if (refreshIntervalRef.current) {
-        clearInterval(refreshIntervalRef.current);
-      }
-    };
-  }, [timeMode, isPaused, refreshData]);
-
-  // Handle adding comment
-  const handleAddComment = (alarmId: string, text: string, severity?: 'info' | 'warning' | 'critical') => {
-    const newComment: AlarmComment = {
-      id: `comment-${Date.now()}`,
-      author: 'Current User',
-      timestamp: new Date().toISOString(),
-      text,
-      severity
-    };
-
-    setAllAlarms(alarms =>
-      alarms.map(alarm =>
-        alarm.globalAlarmId === alarmId
-          ? { ...alarm, comments: [...alarm.comments, newComment] }
-          : alarm
-      )
-    );
-
-    if (selectedAlarm?.globalAlarmId === alarmId) {
-      setSelectedAlarm({
-        ...selectedAlarm,
-        comments: [...selectedAlarm.comments, newComment]
-      });
-    }
+  const toggleAll = () => {
+    if (selectedIds.length === filtered.length) setSelectedIds([]);
+    else setSelectedIds(filtered.map((r) => r.id));
   };
-
-  // Handle object hierarchy filter
-  const handleHierarchyFilter = (level: string, value: string) => {
-    setHierarchyFilters(prev => ({
-      ...prev,
-      [level]: prev[level as keyof typeof prev] === value ? undefined : value
-    }));
-  };
-
-  // Bulk operations handlers
-  const handleBulkAcknowledge = (alarmIds: string[]) => {
-    setAllAlarms(alarms =>
-      alarms.map(alarm =>
-        alarmIds.includes(alarm.globalAlarmId)
-          ? { ...alarm, acknowledged: true, acknowledgedBy: 'Current User', acknowledgedAt: new Date().toISOString() }
-          : alarm
-      )
-    );
-    setSelectedAlarmIds(new Set());
-  };
-
-  const handleBulkAssign = (alarmIds: string[], team: string) => {
-    setAllAlarms(alarms =>
-      alarms.map(alarm =>
-        alarmIds.includes(alarm.globalAlarmId)
-          ? { ...alarm, assignedTeam: team }
-          : alarm
-      )
-    );
-    setSelectedAlarmIds(new Set());
-  };
-
-  const handleBulkAddComment = (alarmIds: string[], commentText: string) => {
-    const newComment: AlarmComment = {
-      id: `comment-${Date.now()}`,
-      author: 'Current User',
-      timestamp: new Date().toISOString(),
-      text: commentText,
-      severity: 'info'
-    };
-
-    setAllAlarms(alarms =>
-      alarms.map(alarm =>
-        alarmIds.includes(alarm.globalAlarmId)
-          ? { ...alarm, comments: [...alarm.comments, newComment] }
-          : alarm
-      )
-    );
-    setSelectedAlarmIds(new Set());
-  };
-
-  const handleBulkExport = (alarmIds: string[]) => {
-    const selectedAlarms = allAlarms.filter(a => alarmIds.includes(a.globalAlarmId));
-    const csv = [
-      ['Global ID', 'Severity', 'Title', 'Object', 'Created', 'Duration', 'Team'],
-      ...selectedAlarms.map(a => [a.globalAlarmId, a.severity, a.title, a.objectName, a.createdAt, a.duration, a.assignedTeam || 'Unassigned'])
-    ].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
-
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `alarms-${Date.now()}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
-    setSelectedAlarmIds(new Set());
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-background">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground font-medium">Loading alarms...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Calculate summary stats
-  const summaryStats = {
-    critical: filteredAlarms.filter(a => a.severity === 'critical').length,
-    major: filteredAlarms.filter(a => a.severity === 'major').length,
-    minor: filteredAlarms.filter(a => a.severity === 'minor').length,
-    unacknowledged: filteredAlarms.filter(a => !a.acknowledged).length,
-    total: filteredAlarms.length
-  };
-
-  const isIncidentMode = summaryStats.critical >= 5 || summaryStats.major >= 10;
-  const incidentRegion = filteredAlarms.length > 0 ? filteredAlarms[0].hierarchy.region : null;
 
   return (
-    <div className="flex flex-col h-screen bg-background">
-      {/* Compact Top Bar */}
-      <div className="border-b border-border bg-card">
-        <div className="flex items-center justify-between px-4 py-3 gap-4">
-          {/* Mode and Status */}
-          <div className="flex items-center gap-3 flex-1">
-            <div className={`flex items-center gap-2 px-3 py-1.5 rounded text-xs font-semibold ${
-              timeMode === 'snapshot' ? 'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300' :
-              timeMode === 'historical' ? 'bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300' :
-              'bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300'
-            }`}>
-              <span className={`w-2 h-2 rounded-full ${
-                timeMode === 'live' ? 'bg-green-600' : 'bg-gray-600'
-              }`}></span>
-              {timeMode.toUpperCase()}
-            </div>
-            <span className="text-xs text-muted-foreground">{lastRefresh}</span>
-          </div>
-
-          {/* Alarm Counts */}
-          <div className="flex items-center gap-4 text-sm">
-            {summaryStats.critical > 0 && (
-              <div className="flex items-center gap-1">
-                <span className="w-2.5 h-2.5 rounded-full bg-red-600"></span>
-                <span className="font-semibold text-red-700 dark:text-red-400">{summaryStats.critical}</span>
-              </div>
-            )}
-            {summaryStats.major > 0 && (
-              <div className="flex items-center gap-1">
-                <span className="w-2.5 h-2.5 rounded-full bg-orange-600"></span>
-                <span className="font-semibold text-orange-700 dark:text-orange-400">{summaryStats.major}</span>
-              </div>
-            )}
-            {summaryStats.minor > 0 && (
-              <div className="flex items-center gap-1">
-                <span className="w-2.5 h-2.5 rounded-full bg-yellow-600"></span>
-                <span className="font-semibold text-yellow-700 dark:text-yellow-400">{summaryStats.minor}</span>
-              </div>
-            )}
-            <div className="border-l border-border pl-4">
-              <span className="text-foreground font-medium">{summaryStats.total} Total</span>
-            </div>
-          </div>
+    <section className="space-y-3">
+      {/* A. Top header strip */}
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-card px-3 py-2">
+        <div className="flex items-center gap-3">
+          <h1 className="text-sm font-semibold">Alarm Management</h1>
+          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-600/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-700"><Activity className="h-3 w-3" />Live</span>
+          <span className="text-[11px] text-muted-foreground">Last updated {lastUpdated}</span>
         </div>
-
-        {/* Incident Banner */}
-        {isIncidentMode && (
-          <div className="bg-gradient-to-r from-red-600 to-red-700 text-white px-4 py-2 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <span className="text-lg">🚨</span>
-              <span className="font-bold">MAJOR INCIDENT — {incidentRegion || 'Network'}</span>
-            </div>
-            <span className="text-xs font-semibold">Critical: {summaryStats.critical} | Major: {summaryStats.major}</span>
-          </div>
-        )}
-      </div>
-
-      {/* Alarm Storm Banner */}
-      {isStormActive && !dismissStormBanner && (
-        <AlarmStormProtection
-          isStormDetected={true}
-          alarmCountInWindow={allAlarms.length}
-          timeWindowMinutes={3}
-          onStormAnalyticsClick={() => console.log('Open storm analytics')}
-          currentView={stormView}
-          onViewChange={setStormView}
-          onDismiss={() => setDismissStormBanner(true)}
-        />
-      )}
-
-      {/* Main Layout */}
-      <div className="flex flex-1 overflow-hidden gap-0 bg-background">
-        {/* Left Sidebar - Collapsible */}
-        <div className={`transition-all duration-200 flex flex-col bg-card border-r border-border overflow-hidden ${
-          sidebarCollapsed ? 'w-0' : 'w-80'
-        }`}>
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            <TimeModeSwitcher
-              currentMode={timeMode}
-              isRefreshing={isRefreshing}
-              isPaused={isPaused}
-              lastRefresh={lastRefresh}
-              onModeChange={handleModeChange}
-              onPauseToggle={() => setIsPaused(!isPaused)}
-            />
-
-            <ExpertModeToggle
-              enabled={expertMode}
-              onToggle={setExpertMode}
-            />
-
-            {filteredAlarms.length > 0 && (
-              <ObjectHierarchy
-                hierarchy={filteredAlarms[0].hierarchy}
-                onHierarchyFilter={handleHierarchyFilter}
-                currentFilters={hierarchyFilters}
-              />
-            )}
-
-            <AlarmFilterPanel
-              onFiltersChange={setFilters}
-            />
-          </div>
-        </div>
-
-        {/* Sidebar Toggle Button */}
-        <button
-          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          className="w-8 flex items-center justify-center hover:bg-muted transition-colors border-r border-border"
-          title={sidebarCollapsed ? "Show filters" : "Hide filters"}
-        >
-          {sidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-        </button>
-
-        {/* Main Alarm List Area */}
-        <div className="flex-1 flex flex-col overflow-hidden p-4 gap-4">
-          {/* Bulk Operations Bar */}
-          {selectedAlarmIds.size > 0 && (
-            <div className="bg-primary/10 border border-primary/20 rounded-lg">
-              <AlarmBulkOperations
-                selectedAlarms={filteredAlarms.filter(a => selectedAlarmIds.has(a.globalAlarmId))}
-                onAcknowledge={handleBulkAcknowledge}
-                onAssign={handleBulkAssign}
-                onAddComment={handleBulkAddComment}
-                onExport={handleBulkExport}
-                onCancel={() => setSelectedAlarmIds(new Set())}
-              />
-            </div>
-          )}
-
-          {/* Alarm Table */}
-          {filteredAlarms.length === 0 ? (
-            <div className="flex-1 flex items-center justify-center bg-card rounded-lg border border-dashed border-border">
-              <div className="text-center">
-                <p className="text-foreground font-semibold mb-1">No alarms found</p>
-                <p className="text-muted-foreground text-sm">Try adjusting your filters</p>
-              </div>
-            </div>
-          ) : (
-            <div className="flex-1 bg-card rounded-lg border border-border overflow-hidden flex flex-col">
-              <AlarmTable
-                alarms={filteredAlarms}
-                expertMode={expertMode}
-                onAlarmSelect={(alarm) => {
-                  setInspectionAlarm(alarm);
-                  setSelectedAlarm(null);
-                }}
-                onObjectClick={(objectName, objectType) => {
-                  console.log(`Navigate to ${objectType}: ${objectName}`);
-                }}
-                selectedAlarmIds={selectedAlarmIds}
-                onSelectionChange={setSelectedAlarmIds}
-              />
-            </div>
-          )}
+        <div className="flex items-center gap-1.5">
+          {(["Live", "Snapshot", "Historical"] as Mode[]).map((item) => (
+            <button key={item} onClick={() => setMode(item)} className={cn("rounded-lg border px-2.5 py-1 text-xs", mode === item ? "border-primary bg-primary/10 text-primary" : "border-border")}>{item}</button>
+          ))}
+          <button onClick={() => { setLastUpdated(new Date().toLocaleTimeString()); toast({ title: "Console refreshed", description: "Alarm console has been updated." }); }} className="rounded-lg border border-border px-2.5 py-1 text-xs">Refresh</button>
         </div>
       </div>
 
-      {/* Full Details Page */}
-      {viewFullDetails && inspectionAlarm && (
-        <div className="fixed inset-0 bg-background z-50 overflow-auto">
-          <AlarmDetailsPage alarm={inspectionAlarm} />
-          <button
-            onClick={() => setViewFullDetails(false)}
-            className="fixed top-4 right-4 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded z-10"
-          >
-            Close Details
-          </button>
+      {/* B. KPI summary row */}
+      <div className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-6">
+        {[["Network Fault Index", kpis.faultIndex], ["Critical", String(kpis.critical)], ["Major", String(kpis.major)], ["Minor", String(kpis.minor)], ["Service Impact", kpis.serviceImpact], ["Clear Rate", kpis.clearRate]].map(([label, value]) => (
+          <article key={label} className="rounded-lg border border-border bg-card px-3 py-2">
+            <p className="text-[10px] text-muted-foreground">{label}</p>
+            <p className="text-lg font-semibold">{value}</p>
+          </article>
+        ))}
+      </div>
+
+      {/* C. Alarm storm banner */}
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-rose-600/30 bg-rose-500/10 px-3 py-2">
+        <p className="text-xs font-semibold text-rose-700">Alarm Storm Detected — 38 alarms in 5 minutes across Cairo transport cluster</p>
+        <div className="flex items-center gap-1">
+          {(["Grouped", "Raw"] as ViewMode[]).map((item) => <button key={item} onClick={() => setViewMode(item)} className={cn("rounded border px-2 py-1 text-[11px]", viewMode === item ? "border-rose-600/40 bg-rose-500/20 text-rose-700" : "border-rose-600/20 text-rose-700")}>{item}</button>)}
+          <button onClick={() => setAnalyticsOpen(true)} className="rounded border border-rose-600/30 px-2 py-1 text-[11px] text-rose-700">View Analytics</button>
         </div>
+      </div>
+
+      {/* E. Notice bars */}
+      <div className="space-y-1.5">
+        <div className="rounded-lg border border-amber-600/30 bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-700">Major Incident Active — Cairo Region</div>
+        <div className="flex items-center justify-between rounded-lg border border-slate-600/30 bg-slate-500/10 px-3 py-1.5 text-xs text-slate-700">
+          <span>Auto-refresh failed — Last successful update at 10:07:08</span>
+          <button onClick={() => { setLastUpdated(new Date().toLocaleTimeString()); toast({ title: "Refresh restored", description: "Auto-refresh resumed successfully." }); }} className="rounded border border-slate-600/30 px-2 py-0.5 text-[11px]">Retry Now</button>
+        </div>
+      </div>
+
+      {/* F. Toolbar */}
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-card p-2">
+        <div className="grid min-w-[680px] flex-1 grid-cols-1 gap-2 md:grid-cols-[1.6fr_repeat(5,minmax(0,1fr))]">
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search alarms..." className="h-8 rounded-lg border border-border bg-background px-2 text-xs" />
+          <button className="h-8 rounded-lg border border-border px-2 text-xs">Filters</button>
+          <SearchableDropdown label="" compact multiSelect={false} options={["All Vendors", "Huawei", "Nokia", "Ericsson"]} selected={[vendor]} onChange={(v) => setVendor(v[0] ?? "All Vendors")} dropdownId="alarm-vendor" />
+          <SearchableDropdown label="" compact multiSelect={false} options={["All Severities", "Critical", "Major", "Minor"]} selected={[severity]} onChange={(v) => setSeverity(v[0] ?? "All Severities")} dropdownId="alarm-severity" />
+          <SearchableDropdown label="" compact multiSelect={false} options={["Default View", "Escalation View", "Assignment View"]} selected={[tableView]} onChange={(v) => setTableView(v[0] ?? "Default View")} dropdownId="alarm-views" />
+          <SearchableDropdown label="" compact multiSelect={false} options={["Ops Columns", "Minimal Columns", "Engineering Columns"]} selected={[columnsView]} onChange={(v) => setColumnsView(v[0] ?? "Ops Columns")} dropdownId="alarm-columns" />
+          <SearchableDropdown label="" compact multiSelect={false} options={["Storm + Critical", "Major + Unassigned", "Custom"]} selected={[highlightRule]} onChange={(v) => setHighlightRule(v[0] ?? "Storm + Critical")} dropdownId="alarm-highlight" />
+        </div>
+        <div className="flex items-center gap-1">
+          <button onClick={() => { setRows((prev) => prev.map((r) => (selectedIds.includes(r.id) ? { ...r, status: "Acknowledged" } : r))); setSelectedIds([]); }} className="rounded-lg border border-border px-2 py-1 text-xs">Acknowledge</button>
+          <button onClick={() => setAssignOpen(true)} className="rounded-lg border border-border px-2 py-1 text-xs">Assign</button>
+          <button onClick={() => setCommentOpen(true)} className="rounded-lg border border-border px-2 py-1 text-xs">Comment</button>
+          <button onClick={() => toast({ title: "Export started", description: `${filtered.length} alarms exported.` })} className="rounded-lg border border-border px-2 py-1 text-xs">Export</button>
+        </div>
+      </div>
+
+      {/* G. Dense table */}
+      <div className="overflow-hidden rounded-xl border border-border bg-card">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="border-b border-border bg-muted/20">
+                <th className="px-2 py-1.5"><input type="checkbox" checked={selectedIds.length === filtered.length && filtered.length > 0} onChange={toggleAll} /></th>
+                {["Severity", "Alarm ID", "Vendor", "Alarm Name", "Status", "Assignment", "Site", "First Seen", "Actions"].map((h) => <th key={h} className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">{h}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((row) => (
+                <tr key={row.id} className="border-b border-border/70 hover:bg-muted/15 last:border-b-0">
+                  <td className="px-2 py-1.5"><input type="checkbox" checked={selectedIds.includes(row.id)} onChange={() => setSelectedIds((prev) => (prev.includes(row.id) ? prev.filter((id) => id !== row.id) : [...prev, row.id]))} /></td>
+                  <td className="px-2 py-1.5"><span className={cn("rounded-full px-2 py-0.5 text-[10px] font-semibold", row.severity === "Critical" ? "bg-rose-500/10 text-rose-700" : row.severity === "Major" ? "bg-amber-500/10 text-amber-700" : "bg-slate-500/10 text-slate-700")}>{row.severity}</span></td>
+                  <td className="px-2 py-1.5 text-[12px] font-medium">{row.id}</td>
+                  <td className="px-2 py-1.5 text-[12px]">{row.vendor}</td>
+                  <td className="px-2 py-1.5 text-[12px]">{row.alarmName}</td>
+                  <td className="px-2 py-1.5 text-[12px]">{row.status}</td>
+                  <td className="px-2 py-1.5 text-[12px]">{row.assignment}</td>
+                  <td className="px-2 py-1.5 text-[12px]">{row.site}</td>
+                  <td className="px-2 py-1.5 text-[12px]">{row.firstSeen}</td>
+                  <td className="px-2 py-1.5">
+                    <div className="flex items-center gap-1">
+                      <button onClick={() => setAssignOpen(true)} className="rounded border border-border p-1" title="Assign"><UserPlus className="h-3 w-3" /></button>
+                      <button onClick={() => setCommentOpen(true)} className="rounded border border-border p-1" title="Comment"><MessageSquare className="h-3 w-3" /></button>
+                      <button onClick={() => toast({ title: "Alarm acknowledged", description: row.id })} className="rounded border border-border p-1" title="Acknowledge"><CheckCheck className="h-3 w-3" /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {assignOpen && (
+        <Modal title="Assign Alarms" onClose={() => setAssignOpen(false)}>
+          <input value={assignee} onChange={(e) => setAssignee(e.target.value)} className="h-9 w-full rounded-xl border border-border px-3 text-sm" />
+          <div className="mt-3 flex justify-end"><button onClick={() => { setRows((prev) => prev.map((r) => (selectedIds.includes(r.id) ? { ...r, assignment: assignee, status: "Assigned" } : r))); setAssignOpen(false); }} className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground">Assign</button></div>
+        </Modal>
       )}
 
-      {/* Side Inspection Panel */}
-      {inspectionAlarm && !viewFullDetails && (
-        <AlarmSideInspectionPanel
-          alarm={inspectionAlarm}
-          onClose={() => setInspectionAlarm(null)}
-          onViewFullDetails={() => setViewFullDetails(true)}
-        />
+      {commentOpen && (
+        <Modal title="Add Comment" onClose={() => setCommentOpen(false)}>
+          <textarea value={comment} onChange={(e) => setComment(e.target.value)} className="h-24 w-full rounded-xl border border-border p-2 text-sm" placeholder="Enter operational note..." />
+          <div className="mt-3 flex justify-end"><button onClick={() => { setCommentOpen(false); toast({ title: "Comment added", description: "Alarm note saved." }); }} className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground">Save Comment</button></div>
+        </Modal>
       )}
 
-      {/* Original Alarm Details Side Panel */}
-      {selectedAlarm && (
-        <AlarmDetailsSidePanel
-          alarm={selectedAlarm}
-          onClose={() => setSelectedAlarm(null)}
-          onAddComment={handleAddComment}
-          expertMode={expertMode}
-        />
+      {analyticsOpen && (
+        <Modal title="Alarm Analytics" onClose={() => setAnalyticsOpen(false)}>
+          <div className="rounded-lg border border-border bg-muted/20 p-3 text-sm">
+            <p className="font-medium">Storm cluster analytics</p>
+            <p className="mt-1 text-muted-foreground">Correlation indicates 62% of events tied to transport backhaul instability in Cairo core links.</p>
+          </div>
+        </Modal>
       )}
-    </div>
+    </section>
   );
 };
