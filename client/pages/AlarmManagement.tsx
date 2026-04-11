@@ -51,7 +51,7 @@ export const AlarmManagement: React.FC = () => {
   const [severity, setSeverity] = useState("All Severities");
   const [tableView, setTableView] = useState("Default View");
   const [columnsView, setColumnsView] = useState("Ops Columns");
-  const [highlightRule, setHighlightRule] = useState("Storm + Critical");
+  const [activeFilters, setActiveFilters] = useState<string[]>(["Storm + Critical"]);
   const [rows, setRows] = useState(INITIAL_ROWS);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [assignOpen, setAssignOpen] = useState(false);
@@ -130,21 +130,30 @@ export const AlarmManagement: React.FC = () => {
       </div>
 
       {/* F. Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-card p-2">
-        <div className="grid min-w-[680px] flex-1 grid-cols-1 gap-2 md:grid-cols-[1.6fr_repeat(5,minmax(0,1fr))]">
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search alarms..." className="h-8 rounded-lg border border-border bg-background px-2 text-xs" />
-          <button className="h-8 rounded-lg border border-border px-2 text-xs">Filters</button>
-          <SearchableDropdown label="" compact multiSelect={false} options={["All Vendors", "Huawei", "Nokia", "Ericsson"]} selected={[vendor]} onChange={(v) => setVendor(v[0] ?? "All Vendors")} dropdownId="alarm-vendor" />
-          <SearchableDropdown label="" compact multiSelect={false} options={["All Severities", "Critical", "Major", "Minor"]} selected={[severity]} onChange={(v) => setSeverity(v[0] ?? "All Severities")} dropdownId="alarm-severity" />
-          <SearchableDropdown label="" compact multiSelect={false} options={["Default View", "Escalation View", "Assignment View"]} selected={[tableView]} onChange={(v) => setTableView(v[0] ?? "Default View")} dropdownId="alarm-views" />
-          <SearchableDropdown label="" compact multiSelect={false} options={["Ops Columns", "Minimal Columns", "Engineering Columns"]} selected={[columnsView]} onChange={(v) => setColumnsView(v[0] ?? "Ops Columns")} dropdownId="alarm-columns" />
-          <SearchableDropdown label="" compact multiSelect={false} options={["Storm + Critical", "Major + Unassigned", "Custom"]} selected={[highlightRule]} onChange={(v) => setHighlightRule(v[0] ?? "Storm + Critical")} dropdownId="alarm-highlight" />
+      <div className="rounded-xl border border-border bg-card p-2">
+        <div className="flex items-center justify-between gap-2">
+          <div className="grid min-w-0 flex-1 grid-cols-[minmax(220px,1.6fr)_110px_140px_140px_140px_140px] gap-2">
+            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search alarms..." className="h-8 rounded-lg border border-border bg-background px-2 text-xs" />
+            <button className="h-8 rounded-lg border border-border px-2 text-xs">Filters</button>
+            <SearchableDropdown label="" compact multiSelect={false} options={["All Vendors", "Huawei", "Nokia", "Ericsson"]} selected={[vendor]} onChange={(v) => setVendor(v[0] ?? "All Vendors")} dropdownId="alarm-vendor" />
+            <SearchableDropdown label="" compact multiSelect={false} options={["All Severities", "Critical", "Major", "Minor"]} selected={[severity]} onChange={(v) => setSeverity(v[0] ?? "All Severities")} dropdownId="alarm-severity" />
+            <SearchableDropdown label="" compact multiSelect={false} options={["Default View", "Escalation View", "Assignment View"]} selected={[tableView]} onChange={(v) => setTableView(v[0] ?? "Default View")} dropdownId="alarm-views" />
+            <SearchableDropdown label="" compact multiSelect={false} options={["Ops Columns", "Minimal Columns", "Engineering Columns"]} selected={[columnsView]} onChange={(v) => setColumnsView(v[0] ?? "Ops Columns")} dropdownId="alarm-columns" />
+          </div>
+          <div className="flex shrink-0 items-center gap-1">
+            <button onClick={() => { setRows((prev) => prev.map((r) => (selectedIds.includes(r.id) ? { ...r, status: "Acknowledged" } : r))); setSelectedIds([]); }} className="rounded-lg border border-border px-2 py-1 text-xs">Acknowledge</button>
+            <button onClick={() => setAssignOpen(true)} className="rounded-lg border border-border px-2 py-1 text-xs">Assign</button>
+            <button onClick={() => setCommentOpen(true)} className="rounded-lg border border-border px-2 py-1 text-xs">Comment</button>
+            <button onClick={() => toast({ title: "Export started", description: `${filtered.length} alarms exported.` })} className="rounded-lg border border-border px-2 py-1 text-xs">Export</button>
+          </div>
         </div>
-        <div className="flex items-center gap-1">
-          <button onClick={() => { setRows((prev) => prev.map((r) => (selectedIds.includes(r.id) ? { ...r, status: "Acknowledged" } : r))); setSelectedIds([]); }} className="rounded-lg border border-border px-2 py-1 text-xs">Acknowledge</button>
-          <button onClick={() => setAssignOpen(true)} className="rounded-lg border border-border px-2 py-1 text-xs">Assign</button>
-          <button onClick={() => setCommentOpen(true)} className="rounded-lg border border-border px-2 py-1 text-xs">Comment</button>
-          <button onClick={() => toast({ title: "Export started", description: `${filtered.length} alarms exported.` })} className="rounded-lg border border-border px-2 py-1 text-xs">Export</button>
+        <div className="mt-2 flex flex-wrap items-center gap-1.5 border-t border-border/70 pt-2">
+          {activeFilters.map((chip) => (
+            <span key={chip} className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
+              {chip}
+              <button onClick={() => setActiveFilters((prev) => prev.filter((f) => f !== chip))}>×</button>
+            </span>
+          ))}
         </div>
       </div>
 
