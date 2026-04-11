@@ -901,8 +901,8 @@ export const AutomationManagement: React.FC = () => {
 
   return (
     <div className="automation-theme flex flex-col h-screen bg-background">
-      {/* Domain Navigation */}
-      <div className="bg-card border-b border-border px-6 py-3 flex gap-2">
+      {/* Primary Section Navigation */}
+      <div className="bg-card border-b border-border px-6 py-2 flex flex-wrap gap-2">
         {DOMAINS.map(domain => {
           const Icon = domain.icon;
           return (
@@ -912,10 +912,10 @@ export const AutomationManagement: React.FC = () => {
                 setActiveDomain(domain.id as SuperDomain);
                 setActiveWorkspace(WORKSPACES.find(w => w.domain === domain.id)?.id || 'command_center');
               }}
-              className={`px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-2 ${
+              className={`px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-2 border ${
                 activeDomain === domain.id
-                  ? `${domain.bgColor} ${domain.color} border-2 border-current`
-                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                  ? `${domain.bgColor} ${domain.color} border-current`
+                  : 'bg-muted/60 text-muted-foreground hover:bg-muted border-transparent'
               }`}
             >
               <Icon className="w-4 h-4" />
@@ -925,17 +925,17 @@ export const AutomationManagement: React.FC = () => {
         })}
       </div>
 
-      {/* Workspace Tabs */}
-      <div className="bg-muted/50 border-b border-border px-6 overflow-x-auto">
-        <div className="flex gap-1">
+      {/* Domain Workspace Navigation */}
+      <div className="bg-card/40 border-b border-border px-6 overflow-x-auto">
+        <div className="flex gap-1 py-2">
           {domainWorkspaces.map(workspace => (
             <button
               key={workspace.id}
               onClick={() => setActiveWorkspace(workspace.id)}
-              className={`px-4 py-3 text-sm font-medium transition border-b-2 ${
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition border ${
                 activeWorkspace === workspace.id
-                  ? 'bg-card text-blue-600 dark:text-blue-400 border-b-blue-600 dark:border-b-blue-400'
-                  : 'text-muted-foreground border-b-transparent hover:bg-card/70'
+                  ? 'bg-primary/10 text-primary border-primary/30'
+                  : 'text-muted-foreground border-transparent hover:bg-muted/70'
               }`}
             >
               {workspace.label}

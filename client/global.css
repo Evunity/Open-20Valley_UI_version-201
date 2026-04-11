@@ -337,6 +337,24 @@
     color: hsl(var(--text-muted));
   }
 
+  /* Shared search-field normalization: remove nested/inset artifact across modules */
+  :where(input[type="search"], input[placeholder*="Search"], input[placeholder*="search"]) {
+    -webkit-appearance: none;
+    appearance: none;
+    box-shadow: none;
+    background-image: none;
+    background-clip: padding-box;
+    border-radius: 0.625rem;
+  }
+
+  :where(input[type="search"], input[placeholder*="Search"], input[placeholder*="search"])::-webkit-search-decoration,
+  :where(input[type="search"], input[placeholder*="Search"], input[placeholder*="search"])::-webkit-search-cancel-button,
+  :where(input[type="search"], input[placeholder*="Search"], input[placeholder*="search"])::-webkit-search-results-button,
+  :where(input[type="search"], input[placeholder*="Search"], input[placeholder*="search"])::-webkit-search-results-decoration {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
   :where(p, span, li, a, button, label, td, th) {
     overflow-wrap: anywhere;
     word-break: break-word;
