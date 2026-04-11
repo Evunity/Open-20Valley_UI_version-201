@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { usePlatformSettings } from "@/contexts/PlatformSettingsContext";
 import { formatPlatformDateTime } from "@/utils/platformDateTime";
+import { SearchBar } from "@/components/ui/search-bar";
 
 type Mode = "Live" | "Snapshot" | "Historical";
 
@@ -185,7 +186,7 @@ export const AlarmManagement: React.FC = () => {
       <div ref={commandBarRef} className="overflow-hidden rounded-xl border border-border bg-card p-2">
         <div className="flex items-center justify-between gap-2">
           <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
-            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search alarms..." className="h-10 min-w-[240px] max-w-[420px] flex-1 rounded-lg border border-border bg-background px-3 text-sm" />
+            <SearchBar value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search alarms..." containerClassName="min-w-[240px] max-w-[420px] flex-1" />
             {showFilters && <button className="h-10 shrink-0 rounded-lg border border-border px-3 text-sm">Filters</button>}
             {showVendor && (
               <div className="w-[160px] shrink-0">

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Eye, Hammer, Lock, Plus, Settings, Brain, Lightbulb, Shield, Map, TrendingUp, Search, Play, Pause, Calendar, Pencil, Trash2, Copy, Cpu, SlidersHorizontal } from 'lucide-react';
+import { Eye, Hammer, Lock, Plus, Settings, Brain, Lightbulb, Shield, Map, TrendingUp, Play, Pause, Calendar, Pencil, Trash2, Copy, Cpu, SlidersHorizontal } from 'lucide-react';
 import { AutomationCommandCenter } from '../components/AutomationCommandCenter';
 import { AutomationBuilder } from '../components/AutomationBuilder';
 import { WorkflowBuilder } from '../components/WorkflowBuilder';
@@ -15,6 +15,7 @@ import { TrustScoring } from '../components/TrustScoring';
 import { HumanInLoopDialog } from '../components/HumanInLoopDialog';
 import { AutonomyHeatmap } from '../components/AutonomyHeatmap';
 import { generateMockPolicies } from '../utils/automationData';
+import { SearchBar } from '@/components/ui/search-bar';
 
 type SuperDomain = 'awareness' | 'design' | 'execution';
 type WorkspaceType =
@@ -467,15 +468,12 @@ export const AutomationManagement: React.FC = () => {
               </div>
 
               <div className="bg-card border border-border rounded-lg p-3 flex flex-col md:flex-row gap-2 md:items-center">
-                <div className="flex items-center gap-2 flex-1">
-                  <Search className="w-4 h-4 text-muted-foreground" />
-                  <input
-                    value={workflowSearch}
-                    onChange={(e) => setWorkflowSearch(e.target.value)}
-                    placeholder="Search workflow by name..."
-                    className="w-full bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground"
-                  />
-                </div>
+                <SearchBar
+                  value={workflowSearch}
+                  onChange={(e) => setWorkflowSearch(e.target.value)}
+                  placeholder="Search workflow by name..."
+                  containerClassName="flex-1"
+                />
                 <select
                   value={workflowStatusFilter}
                   onChange={(e) => setWorkflowStatusFilter(e.target.value as any)}
@@ -602,15 +600,11 @@ export const AutomationManagement: React.FC = () => {
               {aiModelsTab === 'setup' ? (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                   <div className="bg-card border border-border rounded-lg p-3 space-y-3">
-                    <div className="flex items-center gap-2 border border-border rounded-md px-2.5 py-2">
-                      <Search className="w-4 h-4 text-muted-foreground" />
-                      <input
-                        value={modelSearch}
-                        onChange={(e) => setModelSearch(e.target.value)}
-                        placeholder="Search model..."
-                        className="w-full bg-transparent outline-none text-sm"
-                      />
-                    </div>
+                    <SearchBar
+                      value={modelSearch}
+                      onChange={(e) => setModelSearch(e.target.value)}
+                      placeholder="Search model..."
+                    />
                     <div className="space-y-2 max-h-[480px] overflow-y-auto">
                       {filteredModelTemplates.map((template) => (
                         <button
@@ -742,7 +736,12 @@ export const AutomationManagement: React.FC = () => {
               ) : (
                 <div className="space-y-3">
                   <div className="bg-card border border-border rounded-lg p-3 grid grid-cols-1 md:grid-cols-4 gap-2">
-                    <input value={modelManagementSearch} onChange={(e) => setModelManagementSearch(e.target.value)} placeholder="Search configured model..." className="px-2 py-1.5 rounded border border-border bg-background text-sm md:col-span-2" />
+                    <SearchBar
+                      value={modelManagementSearch}
+                      onChange={(e) => setModelManagementSearch(e.target.value)}
+                      placeholder="Search configured model..."
+                      containerClassName="md:col-span-2"
+                    />
                     <select value={modelStatusFilter} onChange={(e) => setModelStatusFilter(e.target.value as any)} className="px-2 py-1.5 rounded border border-border bg-background text-sm">
                       <option value="all">All status</option>
                       <option value="draft">Draft</option>

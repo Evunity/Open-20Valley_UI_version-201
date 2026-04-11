@@ -355,6 +355,25 @@
     appearance: none;
   }
 
+  .search-bar {
+    @apply flex items-center gap-2 h-10 rounded-lg border border-border bg-background px-3 transition-colors;
+  }
+
+  .search-bar:focus-within {
+    @apply border-primary/50 ring-2 ring-primary/20;
+  }
+
+  .search-bar-input {
+    @apply w-full bg-transparent border-0 p-0 text-sm text-foreground;
+    outline: none;
+    box-shadow: none;
+  }
+
+  .search-bar-input:focus {
+    outline: none;
+    box-shadow: none;
+  }
+
   :where(p, span, li, a, button, label, td, th) {
     overflow-wrap: anywhere;
     word-break: break-word;
