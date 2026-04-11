@@ -23,18 +23,25 @@ import {
   Globe,
   Calendar
 } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast";
+import { usePlatformSettings } from "@/contexts/PlatformSettingsContext";
+import { formatPlatformDateTime } from "@/utils/platformDateTime";
 
 export default function Settings2() {
+  const { toast } = useToast();
+  const { settings, saveSettings, t } = usePlatformSettings();
   const [activeTab, setActiveTab] = useState('system-config');
   const [savedStatus, setSavedStatus] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   // System Configuration State
   const [systemConfig, setSystemConfig] = useState({
-    systemName: 'OSS Platform',
-    timezone: 'UTC',
-    dateFormat: 'YYYY-MM-DD HH:mm:ss',
-    language: 'English',
-    maintenanceMode: false
+    systemName: settings.systemName,
+    timezone: settings.timezone,
+    dateFormat: settings.dateTimeFormat,
+    language: settings.language,
+    maintenanceMode: settings.maintenanceMode,
+    themeColor: settings.themeColor
   });
 
   // Integration State
@@ -54,6 +61,17 @@ export default function Settings2() {
 
   const [editingIntegration, setEditingIntegration] = useState<{ type: 'northbound' | 'southbound', name: string } | null>(null);
 
+  useEffect(() => {
+    setSystemConfig({
+      systemName: settings.systemName,
+      timezone: settings.timezone,
+      dateFormat: settings.dateTimeFormat,
+      language: settings.language,
+      maintenanceMode: settings.maintenanceMode,
+      themeColor: settings.themeColor
+    });
+  }, [settings]);
+
   const handleConfigChange = (field: string, value: any) => {
     setSystemConfig(prev => ({
       ...prev,
@@ -61,32 +79,59 @@ export default function Settings2() {
     }));
   };
 
-  const handleSave = () => {
-    // Save system config to localStorage
-    localStorage.setItem('systemConfig', JSON.stringify(systemConfig));
-    document.documentElement.lang = systemConfig.language.toLowerCase();
-    document.documentElement.setAttribute('data-timezone', systemConfig.timezone);
-    setSavedStatus('Settings saved successfully');
-    setTimeout(() => setSavedStatus(null), 3000);
+  const hasConfigChanges = (
+    systemConfig.systemName !== settings.systemName ||
+    systemConfig.timezone !== settings.timezone ||
+    systemConfig.dateFormat !== settings.dateTimeFormat ||
+    systemConfig.language !== settings.language ||
+    systemConfig.maintenanceMode !== settings.maintenanceMode ||
+    systemConfig.themeColor !== settings.themeColor
+  );
+
+  const handleSave = async () => {
+    if (!systemConfig.systemName.trim()) {
+      toast({ title: "Validation error", description: "System Name is required.", variant: "destructive" });
+      return;
+    }
+
+    if (!hasConfigChanges) return;
+
+    if (!settings.maintenanceMode && systemConfig.maintenanceMode) {
+      const confirmEnable = window.confirm("Enable maintenance mode? This will switch the app to read-only behavior for write actions.");
+      if (!confirmEnable) return;
+    }
+
+    setIsSaving(true);
+    try {
+      const saved = saveSettings({
+        systemName: systemConfig.systemName.trim(),
+        timezone: systemConfig.timezone,
+        dateTimeFormat: systemConfig.dateFormat as "iso" | "european" | "us",
+        language: systemConfig.language as typeof settings.language,
+        maintenanceMode: systemConfig.maintenanceMode,
+        themeColor: systemConfig.themeColor,
+      });
+      setSavedStatus(`Settings saved (${new Date(saved.updatedAt).toLocaleTimeString()})`);
+      toast({ title: "Settings saved", description: "Platform settings have been applied globally." });
+      setTimeout(() => setSavedStatus(null), 3000);
+    } catch {
+      toast({ title: "Save failed", description: "Unable to persist settings.", variant: "destructive" });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  useEffect(() => {
-    const storedConfig = localStorage.getItem('systemConfig');
-    if (!storedConfig) return;
-
-    try {
-      const parsedConfig = JSON.parse(storedConfig);
-      setSystemConfig(prev => ({ ...prev, ...parsedConfig }));
-      if (parsedConfig.language) {
-        document.documentElement.lang = String(parsedConfig.language).toLowerCase();
-      }
-      if (parsedConfig.timezone) {
-        document.documentElement.setAttribute('data-timezone', String(parsedConfig.timezone));
-      }
-    } catch (error) {
-      console.error('Failed to load saved system config:', error);
-    }
-  }, []);
+  const handleReset = () => {
+    setSystemConfig({
+      systemName: settings.systemName,
+      timezone: settings.timezone,
+      dateFormat: settings.dateTimeFormat,
+      language: settings.language,
+      maintenanceMode: settings.maintenanceMode,
+      themeColor: settings.themeColor
+    });
+    toast({ title: "Reset complete", description: "Form restored to last saved settings." });
+  };
 
   const handleEditNorthbound = (name: string) => {
     setEditingIntegration({ type: 'northbound', name });
@@ -207,11 +252,11 @@ export default function Settings2() {
               <div className="space-y-2">
                 {/* General Platform Settings */}
                 <div className="rounded-lg border border-border bg-card p-4">
-                  <h3 className="mb-4 text-xl font-semibold text-foreground">General Platform Settings</h3>
+                  <h3 className="mb-4 text-xl font-semibold text-foreground">{t("generalPlatformSettings")}</h3>
                   <div className="space-y-4">
                     {/* System Name */}
                     <div>
-                      <label className="block text-sm font-semibold text-foreground mb-2">System Name</label>
+                      <label className="block text-sm font-semibold text-foreground mb-2">{t("systemName")}</label>
                       <input
                         type="text"
                         value={systemConfig.systemName}
@@ -224,7 +269,7 @@ export default function Settings2() {
                     <div>
                       <label className="flex items-center gap-2 text-sm font-semibold text-foreground mb-3">
                         <Globe className="w-4 h-4 text-primary" />
-                        Default Timezone
+                        {t("defaultTimezone")}
                       </label>
                       <select
                         value={systemConfig.timezone}
@@ -280,15 +325,15 @@ export default function Settings2() {
                     <div>
                       <label className="flex items-center gap-2 text-sm font-semibold text-foreground mb-3">
                         <Calendar className="w-4 h-4 text-primary" />
-                        System-wide Date/Time Format
+                        {t("systemDateTimeFormat")}
                       </label>
 
                       {/* Format Options Grid */}
                       <div className="space-y-2 mb-4">
                         {[
-                          { format: 'YYYY-MM-DD HH:mm:ss', label: 'ISO 8601 Format', preview: '2024-01-15 14:30:45' },
-                          { format: 'DD/MM/YYYY HH:mm:ss', label: 'European Format', preview: '15/01/2024 14:30:45' },
-                          { format: 'MM/DD/YYYY HH:mm:ss', label: 'US Format', preview: '01/15/2024 14:30:45' }
+                          { format: 'iso', label: 'ISO 8601 Format' },
+                          { format: 'european', label: 'European Format' },
+                          { format: 'us', label: 'US Format' }
                         ].map(option => (
                           <label
                             key={option.format}
@@ -308,7 +353,9 @@ export default function Settings2() {
                             />
                             <div className="flex-1">
                               <p className="text-sm font-medium text-foreground">{option.label}</p>
-                              <p className="text-xs text-muted-foreground font-mono mt-1">{option.preview}</p>
+                              <p className="text-xs text-muted-foreground font-mono mt-1">
+                                {formatPlatformDateTime("2024-01-15T14:30:45Z", systemConfig.timezone, option.format as "iso" | "european" | "us")}
+                              </p>
                             </div>
                             {systemConfig.dateFormat === option.format && (
                               <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
@@ -319,30 +366,28 @@ export default function Settings2() {
 
                       {/* Live Preview */}
                       <div className="bg-muted p-3 rounded-lg border border-border/50">
-                        <p className="text-xs font-semibold text-muted-foreground mb-1">Live Preview:</p>
+                        <p className="text-xs font-semibold text-muted-foreground mb-1">{t("livePreview")}:</p>
                         <p className="text-sm font-mono text-foreground">
-                          {systemConfig.dateFormat === 'YYYY-MM-DD HH:mm:ss' && '2024-01-15 14:30:45'}
-                          {systemConfig.dateFormat === 'DD/MM/YYYY HH:mm:ss' && '15/01/2024 14:30:45'}
-                          {systemConfig.dateFormat === 'MM/DD/YYYY HH:mm:ss' && '01/15/2024 14:30:45'}
+                          {formatPlatformDateTime(new Date(), systemConfig.timezone, systemConfig.dateFormat as "iso" | "european" | "us")}
                         </p>
                       </div>
                     </div>
 
                     {/* Default Language */}
                     <div>
-                      <label className="block text-sm font-semibold text-foreground mb-2">Default Language</label>
+                      <label className="block text-sm font-semibold text-foreground mb-2">{t("defaultLanguage")}</label>
                       <select
                         value={systemConfig.language}
                         onChange={(e) => handleConfigChange('language', e.target.value)}
                         className="w-full rounded border border-border px-3 py-2 bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
                       >
-                        <option value="English">English</option>
-                        <option value="Spanish">Español (Spanish)</option>
-                        <option value="French">Français (French)</option>
-                        <option value="German">Deutsch (German)</option>
-                        <option value="Mandarin">中文 (Mandarin Chinese)</option>
-                        <option value="Japanese">日本語 (Japanese)</option>
-                        <option value="Arabic">العربية (Arabic)</option>
+                        <option value="en">English</option>
+                        <option value="es">Español (Spanish)</option>
+                        <option value="fr">Français (French)</option>
+                        <option value="de">Deutsch (German)</option>
+                        <option value="zh">中文 (Mandarin Chinese)</option>
+                        <option value="ja">日本語 (Japanese)</option>
+                        <option value="ar">العربية (Arabic)</option>
                       </select>
                     </div>
 
@@ -919,8 +964,8 @@ export default function Settings2() {
                   <div>
                     <label className="text-sm font-semibold text-foreground">Theme color</label>
                     <div className="mt-1 flex gap-3">
-                      <input type="color" defaultValue="#2563eb" className="h-10 w-20 rounded-lg" />
-                      <input type="text" defaultValue="#2563eb" className="flex-1 rounded-lg border border-border px-4 py-2 font-mono" />
+                      <input type="color" value={systemConfig.themeColor} onChange={(e) => handleConfigChange('themeColor', e.target.value)} className="h-10 w-20 rounded-lg" />
+                      <input type="text" value={systemConfig.themeColor} onChange={(e) => handleConfigChange('themeColor', e.target.value)} className="flex-1 rounded-lg border border-border px-4 py-2 font-mono" />
                     </div>
                   </div>
                   <div>
@@ -1021,14 +1066,18 @@ export default function Settings2() {
           <div className="mt-3 flex gap-2 border-t border-border pt-2">
             <button
               onClick={handleSave}
-              className="flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-2 text-white hover:bg-blue-700"
+              disabled={!hasConfigChanges || isSaving}
+              className="flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-2 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Save className="w-4 h-4" />
-              Save Settings
+              {isSaving ? "Saving..." : t("saveSettings")}
             </button>
-            <button className="flex items-center gap-2 rounded-lg bg-gray-200 dark:bg-gray-700 px-6 py-2 text-foreground hover:bg-gray-300 dark:hover:bg-gray-600">
+            <button
+              onClick={handleReset}
+              className="flex items-center gap-2 rounded-lg bg-gray-200 dark:bg-gray-700 px-6 py-2 text-foreground hover:bg-gray-300 dark:hover:bg-gray-600"
+            >
               <RotateCcw className="w-4 h-4" />
-              Reset
+              {t("reset")}
             </button>
           </div>
 

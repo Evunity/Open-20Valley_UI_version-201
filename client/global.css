@@ -337,6 +337,49 @@
     color: hsl(var(--text-muted));
   }
 
+  /* Shared search-field normalization: remove nested/inset artifact across modules */
+  :where(input[type="search"], input[placeholder*="Search"], input[placeholder*="search"]) {
+    -webkit-appearance: none;
+    appearance: none;
+    box-shadow: none;
+    background-image: none;
+    background-clip: padding-box;
+    border-radius: 0.625rem;
+  }
+
+  :where(input[type="search"], input[placeholder*="Search"], input[placeholder*="search"])::-webkit-search-decoration,
+  :where(input[type="search"], input[placeholder*="Search"], input[placeholder*="search"])::-webkit-search-cancel-button,
+  :where(input[type="search"], input[placeholder*="Search"], input[placeholder*="search"])::-webkit-search-results-button,
+  :where(input[type="search"], input[placeholder*="Search"], input[placeholder*="search"])::-webkit-search-results-decoration {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  .search-bar {
+    @apply flex items-center gap-2 h-10 rounded-lg border border-border bg-background px-3 transition-colors;
+  }
+
+  .search-bar:focus-within {
+    @apply border-primary/50;
+  }
+
+  .search-bar-input {
+    @apply w-full bg-transparent border-0 p-0 text-sm text-foreground;
+    outline: none !important;
+    box-shadow: none !important;
+    border: 0 !important;
+    background: transparent !important;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  .search-bar-input:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    border: 0 !important;
+    background: transparent !important;
+  }
+
   :where(p, span, li, a, button, label, td, th) {
     overflow-wrap: anywhere;
     word-break: break-word;

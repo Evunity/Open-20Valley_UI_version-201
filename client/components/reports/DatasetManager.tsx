@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { CheckCircle2, ChevronLeft, ChevronRight, Download, Eye, FileCode2, Filter, GitBranch, Plus, Search, ShieldCheck, X } from "lucide-react";
+import { CheckCircle2, ChevronLeft, ChevronRight, Download, Eye, FileCode2, Filter, GitBranch, Plus, ShieldCheck, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import SearchableDropdown from "@/components/SearchableDropdown";
+import { SearchBar } from "@/components/ui/search-bar";
 
 interface DatasetRow {
   id: string;
@@ -110,10 +111,13 @@ export default function DatasetManager() {
 
       <div className="overflow-hidden rounded-md border border-border bg-card">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-3.5 py-2.5">
-          <label className="relative w-full min-w-[240px] max-w-[360px]">
-            <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-            <input value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} placeholder="Search datasets" className="h-8 w-full rounded-md border border-border bg-background pl-7 pr-2 text-[12px]" />
-          </label>
+          <SearchBar
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            placeholder="Search datasets"
+            containerClassName="w-full min-w-[240px] max-w-[360px] h-8"
+            className="text-[12px]"
+          />
 
           <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
             <button onClick={() => setFiltersOpen((p) => !p)} className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2.5 py-1.5 hover:bg-muted/40"><Filter className="h-3.5 w-3.5" />Filters</button>

@@ -3,12 +3,14 @@ import { Link, useLocation } from "react-router-dom";
 import { Menu, X, LayoutDashboard, Settings, Moon, Sun, Gauge, Bell, Zap, Lock, Map, Terminal, BarChart3, Shield, ChevronDown, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DEFAULT_REPORTS_SECTION, REPORTS_SECTIONS } from "@/constants/reportsSections";
+import { usePlatformSettings } from "@/contexts/PlatformSettingsContext";
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 export default function Layout({ children }: LayoutProps) {
+  const { settings, t } = usePlatformSettings();
   const getResponsiveSidebarWidth = (viewportWidth: number) => (viewportWidth >= 1536 ? 320 : 280);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -147,24 +149,24 @@ export default function Layout({ children }: LayoutProps) {
   const mainNavItems = [
     {
       path: "/",
-      label: "Dashboard",
+      label: t("dashboard"),
       icon: LayoutDashboard,
       matchPaths: ["/", "/voice-analytics", "/data-analytics", "/network-alarms", "/network-status", "/reports", "/ai-actions"],
     },
     {
       path: "/analytics-management",
-      label: "Analytics Management",
+      label: t("analyticsManagement"),
       icon: Gauge,
       matchPaths: ["/analytics-management", "/analytics-home"],
     },
-    { path: "/alarm-management", label: "Alarm Management", icon: Bell, matchPaths: ["/alarm-management"] },
-    { path: "/automation-management", label: "Automation & AI", icon: Zap, matchPaths: ["/automation-management"] },
-    { path: "/topology-management", label: "Topology & Network", icon: Map, matchPaths: ["/topology-management", "/network"] },
-    { path: "/command-center", label: "Command Center", icon: Terminal, matchPaths: ["/command-center"] },
-    { path: "/activity-audit", label: "Activity & Audit", icon: Shield, matchPaths: ["/activity-audit", "/activity-log"] },
-    { path: DEFAULT_REPORTS_SECTION.path, label: "Reports", icon: BarChart3, matchPaths: ["/reports-module"] },
-    { path: "/access-control", label: "Access Control", icon: Lock, matchPaths: ["/access-control"] },
-    { path: "/settings-2", label: "Settings", icon: Settings, matchPaths: ["/settings-2", "/settings"] },
+    { path: "/alarm-management", label: t("alarmManagement"), icon: Bell, matchPaths: ["/alarm-management"] },
+    { path: "/automation-management", label: t("automationAi"), icon: Zap, matchPaths: ["/automation-management"] },
+    { path: "/topology-management", label: t("topologyNetwork"), icon: Map, matchPaths: ["/topology-management", "/network"] },
+    { path: "/command-center", label: t("commandCenter"), icon: Terminal, matchPaths: ["/command-center"] },
+    { path: "/activity-audit", label: t("activityAudit"), icon: Shield, matchPaths: ["/activity-audit", "/activity-log"] },
+    { path: DEFAULT_REPORTS_SECTION.path, label: t("reports"), icon: BarChart3, matchPaths: ["/reports-module"] },
+    { path: "/access-control", label: t("accessControl"), icon: Lock, matchPaths: ["/access-control"] },
+    { path: "/settings-2", label: t("settings"), icon: Settings, matchPaths: ["/settings-2", "/settings"] },
   ];
 
   const dashboardDrilldownRoutes = new Set([
@@ -218,8 +220,8 @@ export default function Layout({ children }: LayoutProps) {
               />
             </svg>
             <div className="flex flex-col min-w-0">
-              <span className="font-bold text-xs text-foreground">Open Valley</span>
-              <span className="text-xs text-muted-foreground leading-tight">Network Ops</span>
+              <span className="font-bold text-xs text-foreground truncate">{settings.systemName}</span>
+              <span className="text-xs text-muted-foreground leading-tight">{t("networkOps")}</span>
             </div>
           </Link>
         )}
@@ -317,6 +319,12 @@ export default function Layout({ children }: LayoutProps) {
                     </div>
                     {sidebarOpen && <span className="text-xs truncate">{label}</span>}
                   </Link>
+                )}
+
+                {moduleIsActive && settings.maintenanceMode && sidebarOpen && (
+                  <div className="mx-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-1 text-[10px] text-amber-700">
+                    {t("maintenanceMode")}
+                  </div>
                 )}
 
                 {isReportsModule && sidebarOpen && reportsExpanded && (

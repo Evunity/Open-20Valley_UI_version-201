@@ -142,7 +142,7 @@ export default function SearchableDropdown({
           "w-full border transition-all flex items-center justify-between cursor-pointer relative overflow-hidden",
           compact ? "h-9 px-3 rounded-xl" : "control-height px-3 rounded-xl",
           isOpen
-            ? "border-primary bg-primary/5 ring-1 ring-primary/30 ring-offset-0"
+            ? "border-primary bg-primary/5 shadow-none"
             : "border-border bg-background hover:border-primary/50"
         )}
       >

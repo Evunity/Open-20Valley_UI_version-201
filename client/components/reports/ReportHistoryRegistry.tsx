@@ -3,6 +3,7 @@ import { Download, Eye, MoreHorizontal } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import SearchableDropdown from "@/components/SearchableDropdown";
 import { cn } from "@/lib/utils";
+import { SearchBar } from "@/components/ui/search-bar";
 
 interface HistoryRow {
   id: string;
@@ -78,7 +79,7 @@ export default function ReportHistoryRegistry() {
       </div>
 
       <div className="grid grid-cols-1 gap-2 rounded-xl border border-border bg-card p-3 md:grid-cols-[1.8fr_1fr_1fr_1fr]">
-        <input value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} placeholder="Search reports by name, owner, or dataset..." className="h-9 rounded-xl border border-border bg-background px-3 text-sm" />
+        <SearchBar value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} placeholder="Search reports by name, owner, or dataset..." containerClassName="h-9 rounded-xl" className="text-sm" />
         <SearchableDropdown label="" compact multiSelect={false} options={["Last 30 Days", "Last 90 Days", "All Time"]} selected={[dateRange]} onChange={(v) => { setDateRange(v[0] ?? "Last 30 Days"); setPage(1); }} dropdownId="history-date" />
         <SearchableDropdown label="" compact multiSelect={false} options={["All Types", "Regulatory", "Executive", "Vendor", "Board", "Operational", "NOC Daily", "Evidence"]} selected={[typeFilter]} onChange={(v) => { setTypeFilter(v[0] ?? "All Types"); setPage(1); }} dropdownId="history-type" />
         <SearchableDropdown label="" compact multiSelect={false} options={["All Statuses", "Delivered", "Archived", "Frozen"]} selected={[statusFilter]} onChange={(v) => { setStatusFilter(v[0] ?? "All Statuses"); setPage(1); }} dropdownId="history-status" />

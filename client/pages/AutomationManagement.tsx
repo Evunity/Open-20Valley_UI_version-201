@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Eye, Hammer, Lock, Plus, Settings, Brain, Lightbulb, Shield, Map, TrendingUp, Search, Play, Pause, Calendar, Pencil, Trash2, Copy, Cpu, SlidersHorizontal } from 'lucide-react';
+import { Eye, Hammer, Lock, Plus, Settings, Brain, Lightbulb, Shield, Map, TrendingUp, Play, Pause, Calendar, Pencil, Trash2, Copy, Cpu, SlidersHorizontal } from 'lucide-react';
 import { AutomationCommandCenter } from '../components/AutomationCommandCenter';
 import { AutomationBuilder } from '../components/AutomationBuilder';
 import { WorkflowBuilder } from '../components/WorkflowBuilder';
@@ -15,6 +15,7 @@ import { TrustScoring } from '../components/TrustScoring';
 import { HumanInLoopDialog } from '../components/HumanInLoopDialog';
 import { AutonomyHeatmap } from '../components/AutonomyHeatmap';
 import { generateMockPolicies } from '../utils/automationData';
+import { SearchBar } from '@/components/ui/search-bar';
 
 type SuperDomain = 'awareness' | 'design' | 'execution';
 type WorkspaceType =
@@ -254,8 +255,7 @@ export const AutomationManagement: React.FC = () => {
     return searchMatch && statusMatch && categoryMatch;
   });
 
-  const domainWorkspaces = WORKSPACES.filter(w => w.domain === activeDomain);
-  const currentDomain = DOMAINS.find(d => d.id === activeDomain);
+  const domainWorkspaces = WORKSPACES.filter((workspace) => workspace.domain === activeDomain);
 
   const resetModelSetupForm = () => {
     setEditingModelId(null);
@@ -470,15 +470,12 @@ export const AutomationManagement: React.FC = () => {
               </div>
 
               <div className="bg-card border border-border rounded-lg p-3 flex flex-col md:flex-row gap-2 md:items-center">
-                <div className="flex items-center gap-2 flex-1">
-                  <Search className="w-4 h-4 text-muted-foreground" />
-                  <input
-                    value={workflowSearch}
-                    onChange={(e) => setWorkflowSearch(e.target.value)}
-                    placeholder="Search workflow by name..."
-                    className="w-full bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground"
-                  />
-                </div>
+                <SearchBar
+                  value={workflowSearch}
+                  onChange={(e) => setWorkflowSearch(e.target.value)}
+                  placeholder="Search workflow by name..."
+                  containerClassName="flex-1"
+                />
                 <select
                   value={workflowStatusFilter}
                   onChange={(e) => setWorkflowStatusFilter(e.target.value as any)}
@@ -605,15 +602,11 @@ export const AutomationManagement: React.FC = () => {
               {aiModelsTab === 'setup' ? (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                   <div className="bg-card border border-border rounded-lg p-3 space-y-3">
-                    <div className="flex items-center gap-2 border border-border rounded-md px-2.5 py-2">
-                      <Search className="w-4 h-4 text-muted-foreground" />
-                      <input
-                        value={modelSearch}
-                        onChange={(e) => setModelSearch(e.target.value)}
-                        placeholder="Search model..."
-                        className="w-full bg-transparent outline-none text-sm"
-                      />
-                    </div>
+                    <SearchBar
+                      value={modelSearch}
+                      onChange={(e) => setModelSearch(e.target.value)}
+                      placeholder="Search model..."
+                    />
                     <div className="space-y-2 max-h-[480px] overflow-y-auto">
                       {filteredModelTemplates.map((template) => (
                         <button
@@ -745,7 +738,12 @@ export const AutomationManagement: React.FC = () => {
               ) : (
                 <div className="space-y-3">
                   <div className="bg-card border border-border rounded-lg p-3 grid grid-cols-1 md:grid-cols-4 gap-2">
-                    <input value={modelManagementSearch} onChange={(e) => setModelManagementSearch(e.target.value)} placeholder="Search configured model..." className="px-2 py-1.5 rounded border border-border bg-background text-sm md:col-span-2" />
+                    <SearchBar
+                      value={modelManagementSearch}
+                      onChange={(e) => setModelManagementSearch(e.target.value)}
+                      placeholder="Search configured model..."
+                      containerClassName="md:col-span-2"
+                    />
                     <select value={modelStatusFilter} onChange={(e) => setModelStatusFilter(e.target.value as any)} className="px-2 py-1.5 rounded border border-border bg-background text-sm">
                       <option value="all">All status</option>
                       <option value="draft">Draft</option>
@@ -901,41 +899,43 @@ export const AutomationManagement: React.FC = () => {
 
   return (
     <div className="automation-theme flex flex-col h-screen bg-background">
-      {/* Domain Navigation */}
-      <div className="bg-card border-b border-border px-6 py-3 flex gap-2">
-        {DOMAINS.map(domain => {
-          const Icon = domain.icon;
-          return (
-            <button
-              key={domain.id}
-              onClick={() => {
-                setActiveDomain(domain.id as SuperDomain);
-                setActiveWorkspace(WORKSPACES.find(w => w.domain === domain.id)?.id || 'command_center');
-              }}
-              className={`px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-2 ${
-                activeDomain === domain.id
-                  ? `${domain.bgColor} ${domain.color} border-2 border-current`
-                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
-              }`}
-            >
-              <Icon className="w-4 h-4" />
-              {domain.label}
-            </button>
-          );
-        })}
+      {/* Primary Section Navigation */}
+      <div className="bg-card border-b border-border rounded-lg p-4 mx-2 mt-2">
+        <div className="grid grid-cols-1 gap-2 auto-rows-max md:grid-cols-3">
+          {DOMAINS.map(domain => {
+            const Icon = domain.icon;
+            return (
+              <button
+                key={domain.id}
+                onClick={() => {
+                  setActiveDomain(domain.id as SuperDomain);
+                  setActiveWorkspace(WORKSPACES.find(w => w.domain === domain.id)?.id || 'command_center');
+                }}
+                className={`flex flex-col items-center justify-center gap-2 p-4 rounded-lg border-2 transition min-h-[180px] ${
+                  activeDomain === domain.id
+                    ? 'border-blue-600 bg-blue-50 dark:bg-blue-950'
+                    : 'border-border hover:border-primary/40 bg-card'
+                }`}
+                title={domain.label}
+              >
+                <Icon className={`w-6 h-6 flex-shrink-0 ${activeDomain === domain.id ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
+                <span className="text-xs font-semibold text-center text-foreground line-clamp-2 leading-tight">{domain.label}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Workspace Tabs */}
-      <div className="bg-muted/50 border-b border-border px-6 overflow-x-auto">
-        <div className="flex gap-1">
-          {domainWorkspaces.map(workspace => (
+      <div className="bg-card/40 border-b border-border rounded-lg p-3 mx-2 mt-2">
+        <div className="grid grid-cols-1 gap-2 md:grid-cols-3 xl:grid-cols-5">
+          {domainWorkspaces.map((workspace) => (
             <button
               key={workspace.id}
               onClick={() => setActiveWorkspace(workspace.id)}
-              className={`px-4 py-3 text-sm font-medium transition border-b-2 ${
+              className={`flex items-center justify-center rounded-lg border px-3 py-2 text-xs font-semibold transition ${
                 activeWorkspace === workspace.id
-                  ? 'bg-card text-blue-600 dark:text-blue-400 border-b-blue-600 dark:border-b-blue-400'
-                  : 'text-muted-foreground border-b-transparent hover:bg-card/70'
+                  ? 'border-primary/40 bg-primary/10 text-primary'
+                  : 'border-border bg-card hover:border-primary/30 text-muted-foreground hover:text-foreground'
               }`}
             >
               {workspace.label}
