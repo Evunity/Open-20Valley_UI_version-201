@@ -98,11 +98,7 @@ export default function ActivityAudit() {
 
   return (
     <div className="h-full min-h-0 w-full min-w-0 bg-background flex flex-col overflow-hidden">
-      <div className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-40 px-6 py-3">
-        <h2 className="text-sm font-semibold text-foreground">Activity & Audit</h2>
-      </div>
-
-      <div className="bg-card border-b border-border rounded-lg p-4 mx-2 mt-2">
+      <div className="bg-card border-b border-border rounded-lg p-4 mx-2">
         <div className="grid grid-cols-1 gap-2 auto-rows-max md:grid-cols-2 xl:grid-cols-5">
           {WORKSPACES.map((workspace) => {
             const Icon = workspace.icon;
@@ -113,12 +109,12 @@ export default function ActivityAudit() {
                 className={cn(
                   "flex flex-col items-center justify-center gap-2 p-4 rounded-lg border-2 transition min-h-[180px]",
                   activeWorkspace === workspace.id
-                    ? "border-blue-600 bg-blue-50 dark:bg-blue-950"
+                    ? "border-primary bg-primary/10 dark:bg-primary/20"
                     : "border-border hover:border-primary/40 bg-card",
                 )}
                 title={workspace.label}
               >
-                <Icon className={cn("w-6 h-6 flex-shrink-0", activeWorkspace === workspace.id ? "text-blue-600 dark:text-blue-400" : "text-muted-foreground")} />
+                <Icon className={cn("w-6 h-6 flex-shrink-0", activeWorkspace === workspace.id ? "text-primary" : "text-muted-foreground")} />
                 <span className="text-xs font-semibold text-center text-foreground line-clamp-2 leading-tight">{workspace.label}</span>
               </button>
             );

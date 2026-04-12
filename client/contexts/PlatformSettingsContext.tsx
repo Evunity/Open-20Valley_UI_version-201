@@ -22,6 +22,8 @@ interface PlatformSettingsContextValue {
 }
 
 const STORAGE_KEY = "platform_settings_v1";
+const DEFAULT_THEME_COLOR = "#7c3aed";
+const LEGACY_DEFAULT_BLUE = "#2563eb";
 
 const DEFAULT_SETTINGS: PlatformSettings = {
   systemName: "OSS Platform",
@@ -29,7 +31,7 @@ const DEFAULT_SETTINGS: PlatformSettings = {
   dateTimeFormat: "iso",
   language: "en",
   maintenanceMode: false,
-  themeColor: "#2563eb",
+  themeColor: DEFAULT_THEME_COLOR,
   updatedAt: new Date().toISOString(),
 };
 
@@ -49,9 +51,15 @@ function parseStoredSettings(raw: string | null): PlatformSettings {
   if (!raw) return DEFAULT_SETTINGS;
   try {
     const parsed = JSON.parse(raw) as Partial<PlatformSettings>;
+    const normalizedThemeColor = (() => {
+      if (!parsed.themeColor) return DEFAULT_THEME_COLOR;
+      return parsed.themeColor.toLowerCase() === LEGACY_DEFAULT_BLUE ? DEFAULT_THEME_COLOR : parsed.themeColor;
+    })();
+
     return {
       ...DEFAULT_SETTINGS,
       ...parsed,
+      themeColor: normalizedThemeColor,
       updatedAt: parsed.updatedAt ?? DEFAULT_SETTINGS.updatedAt,
     };
   } catch {
@@ -61,7 +69,7 @@ function parseStoredSettings(raw: string | null): PlatformSettings {
 
 function hexToHslChannels(hex: string): string {
   const clean = hex.replace("#", "");
-  if (clean.length !== 6) return "221 83% 53%";
+  if (clean.length !== 6) return "262 83% 58%";
   const r = parseInt(clean.slice(0, 2), 16) / 255;
   const g = parseInt(clean.slice(2, 4), 16) / 255;
   const b = parseInt(clean.slice(4, 6), 16) / 255;
@@ -85,12 +93,17 @@ export function PlatformSettingsProvider({ children }: { children: React.ReactNo
   const [settings, setSettings] = useState<PlatformSettings>(() => parseStoredSettings(typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEY) : null));
 
   useEffect(() => {
+    const primary = hexToHslChannels(settings.themeColor);
     switchAppLanguage(settings.language);
     applyGlobalDateFormatting(settings.timezone, settings.dateTimeFormat);
     document.documentElement.setAttribute("data-timezone", settings.timezone);
     document.documentElement.setAttribute("data-date-time-format", settings.dateTimeFormat);
     document.documentElement.setAttribute("data-maintenance-mode", String(settings.maintenanceMode));
-    document.documentElement.style.setProperty("--primary", hexToHslChannels(settings.themeColor));
+    document.documentElement.style.setProperty("--primary", primary);
+    document.documentElement.style.setProperty("--accent", primary);
+    document.documentElement.style.setProperty("--ring", primary);
+    document.documentElement.style.setProperty("--sidebar-primary", primary);
+    document.documentElement.style.setProperty("--sidebar-accent", primary);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
   }, [settings]);
 
