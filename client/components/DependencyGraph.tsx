@@ -28,6 +28,8 @@ import {
   RefreshCw,
   ScanSearch,
   Search,
+  Square,
+  X,
   Target,
 } from 'lucide-react';
 import { TopologyObject } from '../utils/topologyData';
@@ -100,11 +102,13 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
   const [hideHealthy, setHideHealthy] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const [traceSource, setTraceSource] = useState<string>('none');
   const [traceTarget, setTraceTarget] = useState<string>('none');
   const [tracedPath, setTracedPath] = useState<string[]>([]);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<string>(new Date().toISOString());
+  const canvasViewportRef = React.useRef<HTMLDivElement | null>(null);
 
   const nodeMap = useMemo(() => new Map(topology.map((node) => [node.id, node])), [topology]);
 
@@ -193,6 +197,16 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
   }, [autoRefresh]);
 
   useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && isFullscreen) {
+        setIsFullscreen(false);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isFullscreen]);
+
+  useEffect(() => {
     if (region !== 'all' && !regionOptions.includes(region)) setRegion('all');
   }, [region, regionOptions]);
 
@@ -271,7 +285,7 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
 
   const tracedNodeSet = useMemo(() => new Set(tracedPath), [tracedPath]);
 
-  const buildLaneNodes = useCallback((): Node[] => {
+  const baseLaneNodes = useMemo((): Node[] => {
     const laneIndex = (node: TopologyObject) => {
       if (node.type === 'country' || node.type === 'region') return 0;
       if (node.type === 'cluster') return 1;
@@ -288,21 +302,19 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
     });
 
     const yCounters = new Map<string, number>();
-    const horizontalSpacing = Math.max(300, 240);
-    const verticalSpacing = Math.max(160, Math.min(240, 160 + Math.floor(scopedTopology.length / 90) * 20));
-    const laneX = [120, 120 + horizontalSpacing, 120 + horizontalSpacing * 2, 120 + horizontalSpacing * 3, 120 + horizontalSpacing * 4];
+    const verticalSpacing = Math.max(220, Math.min(300, 220 + Math.floor(scopedTopology.length / 80) * 18));
+    const laneSpacing = Math.max(320, 280);
+    const laneX = [180, 180 + laneSpacing, 180 + laneSpacing * 2, 180 + laneSpacing * 3, 180 + laneSpacing * 4];
 
     return scopedTopology.map((item) => {
       const lIdx = laneIndex(item);
       const h = hierarchyById.get(item.id);
       const groupKey = `${h?.region || 'region-unknown'}::${h?.cluster || 'cluster-unknown'}::${h?.site || 'site-unknown'}::${lIdx}`;
       const current = yCounters.get(groupKey) || 0;
-      const y = 80 + current * verticalSpacing + (h?.region ? Math.max(0, regionOptions.indexOf(h.region)) * 12 : 0);
+      const y = 120 + current * verticalSpacing + (h?.region ? Math.max(0, regionOptions.indexOf(h.region)) * 20 : 0);
       yCounters.set(groupKey, current + 1);
 
       const alerts = item.alarmSummary.critical + item.alarmSummary.major;
-      const isTraced = tracedNodeSet.size > 0 && tracedNodeSet.has(item.id);
-      const dimmed = (neighbors.size > 0 && !neighbors.has(item.id)) || (tracedNodeSet.size > 0 && !isTraced) || (showOnlyPaths && !isTraced);
 
       return {
         id: item.id,
@@ -314,18 +326,30 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
           health: item.healthState,
           alerts,
           childCount: item.childrenIds.length,
-          isHovered: hoveredId === item.id,
-          isDimmed: dimmed,
-          isRelated: neighbors.has(item.id) || isTraced,
+          isHovered: false,
+          isDimmed: false,
+          isRelated: false,
         },
         sourcePosition: 'right',
         targetPosition: 'left',
       } as Node;
     });
-  }, [hierarchyById, hoveredId, neighbors, regionOptions, scopedTopology, showOnlyPaths, tracedNodeSet]);
+  }, [hierarchyById, regionOptions, scopedTopology]);
 
   useEffect(() => {
-    const builtNodes = buildLaneNodes();
+    const builtNodes = baseLaneNodes.map((node) => {
+      const isTraced = tracedNodeSet.size > 0 && tracedNodeSet.has(node.id);
+      const dimmed = (neighbors.size > 0 && !neighbors.has(node.id)) || (tracedNodeSet.size > 0 && !isTraced) || (showOnlyPaths && !isTraced);
+      return {
+        ...node,
+        data: {
+          ...node.data,
+          isHovered: hoveredId === node.id,
+          isDimmed: dimmed,
+          isRelated: neighbors.has(node.id) || isTraced,
+        },
+      } as Node;
+    });
     const routeKeyCounter = new Map<string, number>();
     const builtEdges: Edge[] = graphEdges.map((edge) => {
       const source = nodeMap.get(edge.source);
@@ -357,7 +381,7 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
 
     setNodes(builtNodes);
     setEdges(builtEdges);
-  }, [buildLaneNodes, graphEdges, neighbors, nodeMap, setEdges, setNodes, showOnlyPaths, tracedNodeSet]);
+  }, [baseLaneNodes, graphEdges, hoveredId, neighbors, nodeMap, setEdges, setNodes, showOnlyPaths, tracedNodeSet]);
 
   const connectedForSelected = useMemo(() => {
     if (!clickedId) return { upstream: [] as string[], downstream: [] as string[] };
@@ -457,16 +481,19 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
 
   const fitToScreen = useCallback(() => {
     if (!nodes.length) return;
+    const viewportRect = canvasViewportRef.current?.getBoundingClientRect();
+    const viewportWidth = Math.max(480, viewportRect?.width || window.innerWidth);
+    const viewportHeight = Math.max(420, viewportRect?.height || window.innerHeight - 280);
     const bounds = getNodesBounds(nodes);
     const viewport = getViewportForBounds(
       {
-        x: bounds.x - 120,
-        y: bounds.y - 80,
-        width: bounds.width + 240,
-        height: bounds.height + 160,
+        x: bounds.x - 180,
+        y: bounds.y - 120,
+        width: bounds.width + 360,
+        height: bounds.height + 240,
       },
-      window.innerWidth,
-      Math.max(420, window.innerHeight - 280),
+      viewportWidth,
+      viewportHeight,
       0.4,
       2.0,
       0.1,
@@ -488,6 +515,11 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
   useEffect(() => {
     fitToScreen();
   }, [fitToScreen, nodes.length, edges.length]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => fitToScreen(), 80);
+    return () => clearTimeout(timer);
+  }, [fitToScreen, isFullscreen]);
 
   const focusRackSelection = useEffect(() => {
     if (rack === 'all') return;
@@ -516,7 +548,7 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-3">
+    <div className={cn('flex h-full min-h-0 flex-col gap-3', isFullscreen && 'fixed inset-0 z-50 bg-background p-3')}>
       <div className="grid grid-cols-2 gap-2 rounded-xl border border-border bg-card p-3 text-xs md:grid-cols-6">
         <Metric title="Nodes" value={scopedTopology.length.toString()} />
         <Metric title="Relationships" value={graphEdges.length.toString()} />
@@ -564,6 +596,10 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
           <Button size="sm" variant={hideHealthy ? 'default' : 'outline'} onClick={() => setHideHealthy((v) => !v)}>Hide Healthy</Button>
           <Button size="sm" variant="outline" onClick={() => setCollapsed(false)}><ChevronsDown className="mr-1 h-3.5 w-3.5" />Expand All</Button>
           <Button size="sm" variant="outline" onClick={() => setCollapsed(true)}><ChevronsUp className="mr-1 h-3.5 w-3.5" />Collapse All</Button>
+          <Button size="sm" variant={isFullscreen ? 'default' : 'outline'} onClick={() => setIsFullscreen((prev) => !prev)}>
+            {isFullscreen ? <X className="mr-1 h-3.5 w-3.5" /> : <Square className="mr-1 h-3.5 w-3.5" />}
+            {isFullscreen ? 'Exit Full Screen' : 'Full Screen'}
+          </Button>
         </div>
 
         <div className="mt-3 rounded-lg border border-border p-2">
@@ -593,55 +629,61 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
           No graph entities match the current filters. Try resetting filters or changing scope.
         </div>
       ) : (
-        <div className="flex-1 min-h-0 h-full w-full overflow-hidden rounded-xl border border-border bg-card">
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            nodeTypes={nodeTypes}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            connectionMode={ConnectionMode.Loose}
-            onNodeMouseEnter={(_, n) => setHoveredId(n.id)}
-            onNodeMouseLeave={() => setHoveredId(null)}
-            onNodeDoubleClick={(_, n) => {
-              const obj = nodeMap.get(n.id);
-              if (!obj) return;
-              if (obj.type === 'region') setRegion(obj.name);
-              if (obj.type === 'cluster') setCluster(obj.name);
-              if (obj.type === 'site') setSite(obj.name);
-              if (obj.type === 'rack') setRack(obj.name);
-            }}
-            onNodeClick={(_, n) => {
-              setClickedId(n.id);
-              const obj = nodeMap.get(n.id);
-              if (obj) {
-                onNodeSelect?.(obj);
-                const flowNode = nodes.find((item) => item.id === n.id);
-                if (flowNode) setCenter(flowNode.position.x + 110, flowNode.position.y + 44, { duration: 200, zoom: 1 });
-              }
-            }}
-            minZoom={0.4}
-            maxZoom={2.0}
-            defaultViewport={{ x: 0, y: 0, zoom: 1 }}
-            defaultEdgeOptions={{ type: 'smoothstep' }}
-            panOnDrag
-            panOnScroll
-            zoomOnScroll
-            zoomOnPinch
-            translateExtent={[[-10000, -10000], [10000, 10000]]}
-            nodeExtent={[[-10000, -10000], [10000, 10000]]}
-          >
-            <Background gap={22} size={1} className="opacity-30" />
-            <Panel position="bottom-left">
-              <div className="flex items-center gap-1 rounded-md border border-border bg-card/95 p-1 shadow">
-                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => zoomIn({ duration: 150 })} title="Zoom In"><Plus className="h-4 w-4" /></Button>
-                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => zoomOut({ duration: 150 })} title="Zoom Out"><Minus className="h-4 w-4" /></Button>
-                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={fitToScreen} title="Fit to Screen"><ScanSearch className="h-4 w-4" /></Button>
-                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={resetView} title="Reset View"><RefreshCw className="h-4 w-4" /></Button>
-                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={centerGraph} title="Center Graph"><Crosshair className="h-4 w-4" /></Button>
-              </div>
-            </Panel>
-          </ReactFlow>
+        <div className="flex-1 min-h-0 h-full w-full overflow-hidden rounded-xl border border-border bg-card" ref={canvasViewportRef}>
+          <div className="flex h-9 items-center justify-between border-b border-border px-3 text-xs text-muted-foreground">
+            <span>Dependency Graph Playground</span>
+            <span>{isFullscreen ? 'Full-screen analysis mode (Esc to exit)' : 'Embedded mode'}</span>
+          </div>
+          <div className="h-[calc(100%-2.25rem)] w-full">
+            <ReactFlow
+              nodes={nodes}
+              edges={edges}
+              nodeTypes={nodeTypes}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              connectionMode={ConnectionMode.Loose}
+              onNodeMouseEnter={(_, n) => setHoveredId(n.id)}
+              onNodeMouseLeave={() => setHoveredId(null)}
+              onNodeDoubleClick={(_, n) => {
+                const obj = nodeMap.get(n.id);
+                if (!obj) return;
+                if (obj.type === 'region') setRegion(obj.name);
+                if (obj.type === 'cluster') setCluster(obj.name);
+                if (obj.type === 'site') setSite(obj.name);
+                if (obj.type === 'rack') setRack(obj.name);
+              }}
+              onNodeClick={(_, n) => {
+                setClickedId(n.id);
+                const obj = nodeMap.get(n.id);
+                if (obj) {
+                  onNodeSelect?.(obj);
+                  const flowNode = nodes.find((item) => item.id === n.id);
+                  if (flowNode) setCenter(flowNode.position.x + 130, flowNode.position.y + 48, { duration: 200, zoom: 1 });
+                }
+              }}
+              minZoom={0.4}
+              maxZoom={2.0}
+              defaultViewport={{ x: 0, y: 0, zoom: 1 }}
+              defaultEdgeOptions={{ type: 'smoothstep' }}
+              panOnDrag
+              panOnScroll
+              zoomOnScroll
+              zoomOnPinch
+              translateExtent={[[-10000, -10000], [10000, 10000]]}
+              nodeExtent={[[-10000, -10000], [10000, 10000]]}
+            >
+              <Background gap={24} size={1} className="opacity-30" />
+              <Panel position="bottom-left">
+                <div className="flex items-center gap-1 rounded-md border border-border bg-card/95 p-1 shadow">
+                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => zoomIn({ duration: 150 })} title="Zoom In"><Plus className="h-4 w-4" /></Button>
+                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => zoomOut({ duration: 150 })} title="Zoom Out"><Minus className="h-4 w-4" /></Button>
+                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={fitToScreen} title="Fit to Screen"><ScanSearch className="h-4 w-4" /></Button>
+                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={resetView} title="Reset View"><RefreshCw className="h-4 w-4" /></Button>
+                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={centerGraph} title="Center Graph"><Crosshair className="h-4 w-4" /></Button>
+                </div>
+              </Panel>
+            </ReactFlow>
+          </div>
         </div>
       )}
 
