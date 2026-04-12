@@ -2,11 +2,13 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import ReactFlow, {
   Background,
   ConnectionMode,
-  Controls,
   Edge,
   MarkerType,
   Node,
+  Panel,
   ReactFlowProvider,
+  getNodesBounds,
+  getViewportForBounds,
   useEdgesState,
   useNodesState,
   useReactFlow,
@@ -17,9 +19,12 @@ import {
   ArrowUp,
   ChevronsDown,
   ChevronsUp,
+  Crosshair,
   Focus,
   GitBranch,
   Loader2,
+  Minus,
+  Plus,
   RefreshCw,
   ScanSearch,
   Search,
@@ -74,7 +79,7 @@ function getLevelKey(node: TopologyObject): ScopeLevel {
 }
 
 function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: DependencyGraphProps) {
-  const { fitView, setCenter } = useReactFlow();
+  const { setCenter, zoomIn, zoomOut, setViewport } = useReactFlow();
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
@@ -283,14 +288,16 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
     });
 
     const yCounters = new Map<string, number>();
-    const laneX = [40, 360, 680, 1000, 1320];
+    const horizontalSpacing = Math.max(300, 240);
+    const verticalSpacing = Math.max(160, Math.min(240, 160 + Math.floor(scopedTopology.length / 90) * 20));
+    const laneX = [120, 120 + horizontalSpacing, 120 + horizontalSpacing * 2, 120 + horizontalSpacing * 3, 120 + horizontalSpacing * 4];
 
     return scopedTopology.map((item) => {
       const lIdx = laneIndex(item);
       const h = hierarchyById.get(item.id);
       const groupKey = `${h?.region || 'region-unknown'}::${h?.cluster || 'cluster-unknown'}::${h?.site || 'site-unknown'}::${lIdx}`;
       const current = yCounters.get(groupKey) || 0;
-      const y = current * 110 + (h?.region ? regionOptions.indexOf(h.region) * 24 : 0);
+      const y = 80 + current * verticalSpacing + (h?.region ? Math.max(0, regionOptions.indexOf(h.region)) * 12 : 0);
       yCounters.set(groupKey, current + 1);
 
       const alerts = item.alarmSummary.critical + item.alarmSummary.major;
@@ -311,12 +318,15 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
           isDimmed: dimmed,
           isRelated: neighbors.has(item.id) || isTraced,
         },
+        sourcePosition: 'right',
+        targetPosition: 'left',
       } as Node;
     });
   }, [hierarchyById, hoveredId, neighbors, regionOptions, scopedTopology, showOnlyPaths, tracedNodeSet]);
 
   useEffect(() => {
     const builtNodes = buildLaneNodes();
+    const routeKeyCounter = new Map<string, number>();
     const builtEdges: Edge[] = graphEdges.map((edge) => {
       const source = nodeMap.get(edge.source);
       const target = nodeMap.get(edge.target);
@@ -326,10 +336,16 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
       const isRelated = neighbors.has(edge.source) && neighbors.has(edge.target);
       const dimmed = (neighbors.size > 0 && !isRelated) || (tracedNodeSet.size > 0 && !onTrace) || (showOnlyPaths && !onTrace);
 
+      const routeKey = `${source?.parentId || source?.id || 's'}->${target?.parentId || target?.id || 't'}`;
+      const edgeIdx = routeKeyCounter.get(routeKey) || 0;
+      routeKeyCounter.set(routeKey, edgeIdx + 1);
+      const edgeOffset = 40 + edgeIdx * 40;
+
       return {
         ...edge,
-        type: 'step',
+        type: 'smoothstep',
         markerEnd: { type: MarkerType.ArrowClosed },
+        pathOptions: { offset: edgeOffset, borderRadius: 12 },
         animated: onTrace,
         style: {
           stroke: onTrace ? 'hsl(var(--primary))' : sourceRisk || targetRisk ? '#f59e0b' : 'hsl(var(--muted-foreground))',
@@ -342,10 +358,6 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
     setNodes(builtNodes);
     setEdges(builtEdges);
   }, [buildLaneNodes, graphEdges, neighbors, nodeMap, setEdges, setNodes, showOnlyPaths, tracedNodeSet]);
-
-  useEffect(() => {
-    fitView({ padding: 0.2, duration: 250, minZoom: 0.35 });
-  }, [nodes.length, edges.length, fitView]);
 
   const connectedForSelected = useMemo(() => {
     if (!clickedId) return { upstream: [] as string[], downstream: [] as string[] };
@@ -443,6 +455,40 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
     setCenter(node.position.x + 110, node.position.y + 50, { duration: 260, zoom: 0.95 });
   };
 
+  const fitToScreen = useCallback(() => {
+    if (!nodes.length) return;
+    const bounds = getNodesBounds(nodes);
+    const viewport = getViewportForBounds(
+      {
+        x: bounds.x - 120,
+        y: bounds.y - 80,
+        width: bounds.width + 240,
+        height: bounds.height + 160,
+      },
+      window.innerWidth,
+      Math.max(420, window.innerHeight - 280),
+      0.4,
+      2.0,
+      0.1,
+    );
+    setViewport(viewport, { duration: 260 });
+  }, [nodes, setViewport]);
+
+  const centerGraph = useCallback(() => {
+    if (!nodes.length) return;
+    const bounds = getNodesBounds(nodes);
+    setCenter(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2, { duration: 220, zoom: 1 });
+  }, [nodes, setCenter]);
+
+  const resetView = useCallback(() => {
+    setViewport({ x: 0, y: 0, zoom: 1 }, { duration: 180 });
+    setTimeout(() => fitToScreen(), 200);
+  }, [fitToScreen, setViewport]);
+
+  useEffect(() => {
+    fitToScreen();
+  }, [fitToScreen, nodes.length, edges.length]);
+
   const focusRackSelection = useEffect(() => {
     if (rack === 'all') return;
     const rackNode = scopedTopology.find((node) => node.type === 'rack' && node.name === rack);
@@ -512,7 +558,7 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
 
         <div className="mt-2 flex flex-wrap gap-2">
           <Button size="sm" variant="outline" onClick={resetFilters}><RefreshCw className="mr-1 h-3.5 w-3.5" />Reset Filters</Button>
-          <Button size="sm" variant="outline" onClick={() => fitView({ padding: 0.25, duration: 220 })}><ScanSearch className="mr-1 h-3.5 w-3.5" />Fit to Screen</Button>
+          <Button size="sm" variant="outline" onClick={fitToScreen}><ScanSearch className="mr-1 h-3.5 w-3.5" />Fit to Screen</Button>
           <Button size="sm" variant="outline" disabled={!selectedEntity} onClick={focusSelection}><Focus className="mr-1 h-3.5 w-3.5" />Focus Selection</Button>
           <Button size="sm" variant={showOnlyPaths ? 'default' : 'outline'} onClick={() => setShowOnlyPaths((v) => !v)}><GitBranch className="mr-1 h-3.5 w-3.5" />Show Paths</Button>
           <Button size="sm" variant={hideHealthy ? 'default' : 'outline'} onClick={() => setHideHealthy((v) => !v)}>Hide Healthy</Button>
@@ -547,7 +593,7 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
           No graph entities match the current filters. Try resetting filters or changing scope.
         </div>
       ) : (
-        <div className="flex-1 min-h-0 rounded-xl border border-border bg-card">
+        <div className="flex-1 min-h-0 h-full w-full overflow-hidden rounded-xl border border-border bg-card">
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -568,15 +614,33 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
             onNodeClick={(_, n) => {
               setClickedId(n.id);
               const obj = nodeMap.get(n.id);
-              if (obj) onNodeSelect?.(obj);
+              if (obj) {
+                onNodeSelect?.(obj);
+                const flowNode = nodes.find((item) => item.id === n.id);
+                if (flowNode) setCenter(flowNode.position.x + 110, flowNode.position.y + 44, { duration: 200, zoom: 1 });
+              }
             }}
-            fitView
-            minZoom={0.2}
-            maxZoom={1.8}
-            defaultEdgeOptions={{ type: 'step' }}
+            minZoom={0.4}
+            maxZoom={2.0}
+            defaultViewport={{ x: 0, y: 0, zoom: 1 }}
+            defaultEdgeOptions={{ type: 'smoothstep' }}
+            panOnDrag
+            panOnScroll
+            zoomOnScroll
+            zoomOnPinch
+            translateExtent={[[-10000, -10000], [10000, 10000]]}
+            nodeExtent={[[-10000, -10000], [10000, 10000]]}
           >
             <Background gap={22} size={1} className="opacity-30" />
-            <Controls position="bottom-left" showInteractive={false} />
+            <Panel position="bottom-left">
+              <div className="flex items-center gap-1 rounded-md border border-border bg-card/95 p-1 shadow">
+                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => zoomIn({ duration: 150 })} title="Zoom In"><Plus className="h-4 w-4" /></Button>
+                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => zoomOut({ duration: 150 })} title="Zoom Out"><Minus className="h-4 w-4" /></Button>
+                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={fitToScreen} title="Fit to Screen"><ScanSearch className="h-4 w-4" /></Button>
+                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={resetView} title="Reset View"><RefreshCw className="h-4 w-4" /></Button>
+                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={centerGraph} title="Center Graph"><Crosshair className="h-4 w-4" /></Button>
+              </div>
+            </Panel>
           </ReactFlow>
         </div>
       )}

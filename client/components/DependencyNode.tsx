@@ -47,7 +47,7 @@ export default function DependencyNode({ data, selected }: DependencyNodeProps) 
       <Handle type="target" position={Position.Left} className="!h-2 !w-2 !bg-primary/40" />
       <div
         className={cn(
-          'w-[220px] rounded-lg border bg-card px-3 py-2.5 shadow-sm transition-all duration-150',
+          'min-h-[88px] w-[220px] rounded-lg border bg-card p-4 shadow-sm transition-all duration-150',
           style.card,
           selected && 'ring-2 ring-primary/60 shadow-md',
           data.isHovered && 'shadow-lg scale-[1.02]',
