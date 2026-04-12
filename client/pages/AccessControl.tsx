@@ -6,6 +6,7 @@ import TenantProvisioning from "@/components/access-control/TenantProvisioning";
 import RolesPermissions from "@/components/access-control/RolesPermissions";
 import SecurityPolicies from "@/components/access-control/SecurityPolicies";
 import AuditTrailWorkspace from "@/components/access-control/AuditTrailWorkspace";
+import UsersIdentityWorkspace from "@/components/access-control/UsersIdentityWorkspace";
 
 type AccessSubsectionId =
   | "tenant-overview"
@@ -73,14 +74,7 @@ export default function AccessControl() {
       case "tenant-provisioning":
         return <TenantProvisioning />;
       case "users-identity":
-        return (
-          <div className="rounded-xl border border-border bg-card p-6">
-            <h3 className="text-base font-semibold text-foreground">{activeMeta?.label}</h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              This subsection is reserved and intentionally scoped for the Access Control IA set.
-            </p>
-          </div>
-        );
+        return <UsersIdentityWorkspace />;
       case "roles-permissions":
         return <RolesPermissions />;
       case "security-policies":
