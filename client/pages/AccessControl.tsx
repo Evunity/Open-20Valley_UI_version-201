@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import TenantOverview from "@/components/access-control/TenantOverview";
 import TenantProvisioning from "@/components/access-control/TenantProvisioning";
 import RolesPermissions from "@/components/access-control/RolesPermissions";
+import SecurityPolicies from "@/components/access-control/SecurityPolicies";
 
 type AccessSubsectionId =
   | "tenant-overview"
@@ -82,6 +83,7 @@ export default function AccessControl() {
       case "roles-permissions":
         return <RolesPermissions />;
       case "security-policies":
+        return <SecurityPolicies />;
       case "audit-trail":
         return (
           <div className="rounded-xl border border-border bg-card p-6">
