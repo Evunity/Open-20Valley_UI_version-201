@@ -1,111 +1,74 @@
 import React from 'react';
 import { Handle, Position } from 'reactflow';
 import { cn } from '@/lib/utils';
-import { TopologyObject } from '../utils/topologyData';
 
 interface DependencyNodeProps {
   data: {
     label: string;
     type: string;
     health: string;
-    topology?: TopologyObject;
-    isSelected?: boolean;
+    alerts: number;
+    childCount: number;
+    isHovered?: boolean;
+    isDimmed?: boolean;
+    isRelated?: boolean;
   };
-  isConnecting?: boolean;
   selected?: boolean;
 }
 
-export default function DependencyNode({
-  data,
-  isConnecting,
-  selected,
-}: DependencyNodeProps) {
-  // Health state color mapping
-  const healthColors: Record<string, { bg: string; border: string; text: string }> = {
+export default function DependencyNode({ data, selected }: DependencyNodeProps) {
+  const healthStyles: Record<string, { dot: string; badge: string; card: string }> = {
     healthy: {
-      bg: 'bg-emerald-50 dark:bg-emerald-950',
-      border: 'border-emerald-300 dark:border-emerald-700',
-      text: 'text-emerald-700 dark:text-emerald-300',
+      dot: 'bg-emerald-500',
+      badge: 'text-emerald-700 bg-emerald-500/10 dark:text-emerald-300',
+      card: 'border-emerald-500/30',
     },
     degraded: {
-      bg: 'bg-amber-50 dark:bg-amber-950',
-      border: 'border-amber-300 dark:border-amber-700',
-      text: 'text-amber-700 dark:text-amber-300',
+      dot: 'bg-amber-500',
+      badge: 'text-amber-700 bg-amber-500/10 dark:text-amber-300',
+      card: 'border-amber-500/40',
     },
     down: {
-      bg: 'bg-red-50 dark:bg-red-950',
-      border: 'border-red-300 dark:border-red-700',
-      text: 'text-red-700 dark:text-red-300',
+      dot: 'bg-red-500',
+      badge: 'text-red-700 bg-red-500/10 dark:text-red-300',
+      card: 'border-red-500/40',
     },
     unknown: {
-      bg: 'bg-gray-50 dark:bg-gray-900',
-      border: 'border-gray-300 dark:border-gray-700',
-      text: 'text-gray-700 dark:text-gray-300',
+      dot: 'bg-slate-500',
+      badge: 'text-slate-700 bg-slate-500/10 dark:text-slate-300',
+      card: 'border-border',
     },
   };
 
-  const healthState = data.health || 'unknown';
-  const colors = healthColors[healthState] || healthColors.unknown;
-
-  // Status dot color
-  const statusDotColor =
-    healthState === 'healthy'
-      ? 'bg-emerald-500'
-      : healthState === 'degraded'
-      ? 'bg-amber-500'
-      : healthState === 'down'
-      ? 'bg-red-500'
-      : 'bg-gray-500';
+  const style = healthStyles[data.health] || healthStyles.unknown;
 
   return (
     <>
-      <Handle type="target" position={Position.Top} />
-      
+      <Handle type="target" position={Position.Left} className="!h-2 !w-2 !bg-primary/40" />
       <div
         className={cn(
-          'px-3 py-2 rounded-lg border-2 shadow-md transition-all duration-200',
-          'hover:shadow-lg hover:scale-105 cursor-pointer',
-          colors.bg,
-          colors.border,
-          selected && 'ring-2 ring-blue-500 shadow-lg scale-105',
-          isConnecting && 'opacity-50'
+          'w-[220px] rounded-lg border bg-card px-3 py-2.5 shadow-sm transition-all duration-150',
+          style.card,
+          selected && 'ring-2 ring-primary/60 shadow-md',
+          data.isHovered && 'shadow-lg scale-[1.02]',
+          data.isDimmed && 'opacity-20',
+          data.isRelated && 'ring-1 ring-primary/40',
         )}
       >
-        {/* Header with Status */}
-        <div className="flex items-center gap-2 mb-1">
-          {/* Status Indicator */}
-          <div className={cn('w-2 h-2 rounded-full', statusDotColor)} />
-          
-          {/* Node Label */}
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold text-foreground truncate">
-              {data.label}
-            </p>
+        <div className="mb-1.5 flex items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-2">
+            <span className={cn('h-2 w-2 rounded-full', style.dot)} />
+            <p className="truncate text-xs font-semibold text-foreground">{data.label}</p>
           </div>
+          <span className={cn('rounded px-1.5 py-0.5 text-[10px] font-medium capitalize', style.badge)}>{data.health}</span>
         </div>
 
-        {/* Node Type Badge */}
-        <div className="flex items-center gap-1">
-          <span className={cn(
-            'text-[10px] font-semibold px-1.5 py-0.5 rounded',
-            'bg-white/50 dark:bg-gray-800/50',
-            colors.text
-          )}>
-            {data.type}
-          </span>
+        <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+          <span className="truncate capitalize">{data.type}</span>
+          <span>alerts {data.alerts} • child {data.childCount}</span>
         </div>
-
-        {/* Health Status Text */}
-        <p className={cn(
-          'text-[10px] mt-1',
-          colors.text,
-          'font-medium capitalize'
-        )}>
-          {healthState}
-        </p>
       </div>
-
-      <Handle type="source" position={Position.Bottom} />
+      <Handle type="source" position={Position.Right} className="!h-2 !w-2 !bg-primary/40" />
     </>
   );
 }

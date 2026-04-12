@@ -59,7 +59,7 @@ const TopologyManagementContent: React.FC = () => {
     performance
   } = useTopology();
 
-  const [activeView, setActiveView] = useState<ViewType>('map');
+  const [activeView, setActiveView] = useState<ViewType>('dependency');
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [selectedTenant, setSelectedTenant] = useState<string | null>(null);
   const [selectedHierarchyLevel, setSelectedHierarchyLevel] = useState<string>('all');
