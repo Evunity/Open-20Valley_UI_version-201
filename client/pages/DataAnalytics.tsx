@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Download } from "lucide-react";
+import { ChevronDown, ChevronUp, Copy, Download, Plus, RotateCcw, Save, Trash2 } from "lucide-react";
 import * as XLSX from "xlsx";
 import {
   LineChart,
@@ -194,6 +194,179 @@ export default function DataAnalytics() {
     if (successRate > 96) return "neutral";
     return "danger";
   };
+
+  type SegmentLogic = "AND" | "OR";
+  type SegmentRule = {
+    id: string;
+    field: string;
+    operator: string;
+    value: string;
+  };
+
+  const dimensionOptions = [
+    "Country",
+    "Region",
+    "Vendor",
+    "Technology",
+    "Site Type",
+    "Cluster",
+    "Customer Tier",
+  ];
+  const operatorOptions = [
+    "equals",
+    "not equals",
+    "in",
+    "not in",
+    "greater than",
+    "less than",
+    "contains",
+  ];
+  const groupingOptions = ["Region", "Cluster", "Vendor", "Technology", "Site Type"];
+  const aggregationOptions = ["Count", "Sum", "Average", "Median", "Rate", "Percentile"];
+  const sortingOptions = ["By value", "By name", "By trend", "By change"];
+  const defaultRules: SegmentRule[] = [
+    { id: "rule-1", field: "Region", operator: "equals", value: "North" },
+  ];
+
+  const [segmentRules, setSegmentRules] = useState<SegmentRule[]>(defaultRules);
+  const [segmentLogic, setSegmentLogic] = useState<SegmentLogic>("AND");
+  const [segmentName, setSegmentName] = useState("High Traffic Sites");
+  const [savedSegments, setSavedSegments] = useState<
+    Array<{ id: string; name: string; rules: SegmentRule[]; logic: SegmentLogic }>
+  >([
+    { id: "seg-1", name: "High Traffic Sites", rules: defaultRules, logic: "AND" },
+    {
+      id: "seg-2",
+      name: "Urban Clusters",
+      rules: [{ id: "rule-2", field: "Site Type", operator: "equals", value: "Urban" }],
+      logic: "AND",
+    },
+    {
+      id: "seg-3",
+      name: "Premium Customers",
+      rules: [{ id: "rule-3", field: "Customer Tier", operator: "equals", value: "Premium" }],
+      logic: "AND",
+    },
+    {
+      id: "seg-4",
+      name: "Critical Nodes",
+      rules: [{ id: "rule-4", field: "Cluster", operator: "contains", value: "C" }],
+      logic: "OR",
+    },
+  ]);
+
+  const [groupBy, setGroupBy] = useState<string[]>(["Region", "Cluster"]);
+  const [aggregationType, setAggregationType] = useState("Count");
+  const [sortBy, setSortBy] = useState("By value");
+  const [hierarchyMode, setHierarchyMode] = useState<"Hierarchy" | "Flat">("Hierarchy");
+  const [topN, setTopN] = useState(4);
+  const [appliedSummary, setAppliedSummary] = useState("Default configuration");
+
+  const analyticsRecords = useMemo(() => {
+    const countries = ["USA", "Canada", "Mexico", "Brazil"];
+    const regions = ["North", "South", "East", "West", "Central"];
+    const vendors = ["Nokia", "Huawei", "Ericsson", "Cisco", "ZTE"];
+    const technologies = ["5G", "4G", "3G", "Fiber", "Microwave"];
+    const siteTypes = ["Urban", "Suburban", "Rural", "Industrial"];
+    const clusters = ["Cluster A", "Cluster B", "Cluster C", "Cluster D"];
+    const customerTiers = ["Standard", "Premium", "Enterprise"];
+
+    return Array.from({ length: 140 }, (_, idx) => {
+      const trend = trendData.length ? trendData[idx % trendData.length] : undefined;
+      return {
+        id: `record-${idx + 1}`,
+        Country: countries[idx % countries.length],
+        Region: regions[idx % regions.length],
+        Vendor: vendors[idx % vendors.length],
+        Technology: technologies[idx % technologies.length],
+        "Site Type": siteTypes[idx % siteTypes.length],
+        Cluster: clusters[idx % clusters.length],
+        "Customer Tier": customerTiers[idx % customerTiers.length],
+        Count: 80 + ((idx * 17) % 420),
+        "Success Rate": Number((95 + ((idx * 3) % 45) / 10).toFixed(2)),
+        Stability: Number((90 + ((idx * 5) % 60) / 10).toFixed(2)),
+        Sessions: 400 + ((idx * 113) % 1200),
+        trendDelta: Number(((trend?.dei ?? 8) - 8).toFixed(2)),
+        changeDelta: Number(((trend?.packet_loss ?? 0.2) - 0.2).toFixed(3)),
+      };
+    });
+  }, [trendData]);
+
+  const evaluateRule = (record: (typeof analyticsRecords)[number], rule: SegmentRule) => {
+    const source = String(record[rule.field as keyof typeof record] ?? "");
+    const normalizedSource = source.toLowerCase();
+    const normalizedValue = rule.value.toLowerCase();
+    const listValues = rule.value
+      .split(",")
+      .map((v) => v.trim().toLowerCase())
+      .filter(Boolean);
+    const sourceNumber = Number(source);
+    const valueNumber = Number(rule.value);
+
+    switch (rule.operator) {
+      case "equals":
+        return normalizedSource === normalizedValue;
+      case "not equals":
+        return normalizedSource !== normalizedValue;
+      case "in":
+        return listValues.includes(normalizedSource);
+      case "not in":
+        return !listValues.includes(normalizedSource);
+      case "greater than":
+        return Number.isFinite(sourceNumber) && Number.isFinite(valueNumber)
+          ? sourceNumber > valueNumber
+          : false;
+      case "less than":
+        return Number.isFinite(sourceNumber) && Number.isFinite(valueNumber)
+          ? sourceNumber < valueNumber
+          : false;
+      case "contains":
+        return normalizedSource.includes(normalizedValue);
+      default:
+        return true;
+    }
+  };
+
+  const filteredRecords = useMemo(() => {
+    if (!segmentRules.length) return analyticsRecords;
+    return analyticsRecords.filter((record) => {
+      const checks = segmentRules.map((rule) => evaluateRule(record, rule));
+      return segmentLogic === "AND" ? checks.every(Boolean) : checks.some(Boolean);
+    });
+  }, [analyticsRecords, segmentLogic, segmentRules]);
+
+  const groupedPreview = useMemo(() => {
+    const groupMap = new Map<string, (typeof analyticsRecords)>();
+    filteredRecords.forEach((record) => {
+      const keyFields = groupBy.length ? groupBy : ["Region"];
+      const key = keyFields.map((field) => record[field as keyof typeof record]).join(" / ");
+      groupMap.set(key, [...(groupMap.get(key) ?? []), record]);
+    });
+
+    const results = Array.from(groupMap.entries()).map(([group, items]) => {
+      const count = items.length;
+      const successRate = items.reduce((sum, item) => sum + item["Success Rate"], 0) / count;
+      const stability = items.reduce((sum, item) => sum + item.Stability, 0) / count;
+      const sessions = items.reduce((sum, item) => sum + item.Sessions, 0);
+      const value = aggregationType === "Count" ? count : sessions;
+      const trend = items.reduce((sum, item) => sum + item.trendDelta, 0) / count;
+      const change = items.reduce((sum, item) => sum + item.changeDelta, 0) / count;
+      return { group, count, successRate, stability, sessions, value, trend, change };
+    });
+
+    const sorted = [...results].sort((a, b) => {
+      if (sortBy === "By name") return a.group.localeCompare(b.group);
+      if (sortBy === "By trend") return b.trend - a.trend;
+      if (sortBy === "By change") return b.change - a.change;
+      return b.value - a.value;
+    });
+    return sorted.slice(0, topN);
+  }, [aggregationType, filteredRecords, groupBy, sortBy, topN]);
+
+  const coveragePercent = useMemo(() => {
+    if (!analyticsRecords.length) return 0;
+    return Math.round((filteredRecords.length / analyticsRecords.length) * 100);
+  }, [analyticsRecords.length, filteredRecords.length]);
 
   const handleExport = () => {
     const wb = XLSX.utils.book_new();
@@ -1201,369 +1374,444 @@ export default function DataAnalytics() {
 
       {/* Segmentation & Grouping Section */}
       <div className="space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground">Segmentation & Grouping</h2>
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-foreground">Segmentation & Grouping</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              Configure segmentation filters, grouping logic, and preview before applying.
+            </p>
+          </div>
+          <div className="inline-flex items-center gap-2 rounded-lg border border-violet-500/30 bg-violet-500/10 px-3 py-2 text-xs font-medium text-violet-700 dark:text-violet-300">
+            Applied: {appliedSummary}
+          </div>
         </div>
 
-        {/* Vendor Segmentation */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
-          {Object.entries(vendorSegmented).map(([segment, vendors]) =>
-            vendors.length > 0 ? (
-              <div key={segment} className="card-elevated rounded-xl border border-border/50 p-4 lg:p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={cn(
-                        "w-3 h-3 rounded-full",
-                        segment === "High performance"
-                          ? "bg-green-500"
-                          : segment === "Balanced"
-                            ? "bg-blue-500"
-                            : segment === "Congested"
-                              ? "bg-orange-500"
-                              : "bg-red-500"
-                      )}
-                    />
-                    <h3 className="text-base font-bold text-foreground">{segment}</h3>
-                  </div>
-                  <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium">
-                    {vendors.length}
-                  </span>
-                </div>
-                <div className="space-y-1.5">
-                  {vendors.map((vendor, idx) => (
-                    <div
-                      key={vendor.name}
-                      className="px-3 py-2.5 rounded border border-border/50 hover:bg-muted/30 transition-colors"
-                    >
-                      <p className="font-medium text-sm text-foreground">{vendor.name}</p>
-                      <div className="grid grid-cols-3 gap-1.5 mt-1.5 text-xs">
-                        <div>
-                          <p className="text-muted-foreground">Success</p>
-                          <p className="font-semibold">{vendor.call_success_rate.toFixed(1)}%</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground">Stability</p>
-                          <p className="font-semibold">{vendor.call_stability.toFixed(1)}%</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground">Sessions</p>
-                          <p className="font-semibold">{(vendor.count / 1000).toFixed(1)}k</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : null
-          )}
-        </div>
-
-        {/* Technology Segmentation */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
-          {Object.entries(techSegmented).map(([segment, techs]) =>
-            techs.length > 0 ? (
-              <div key={segment} className="card-elevated rounded-xl border border-border/50 p-4 lg:p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={cn(
-                        "w-3 h-3 rounded-full",
-                        segment === "High performance"
-                          ? "bg-green-500"
-                          : segment === "Balanced"
-                            ? "bg-blue-500"
-                            : segment === "Congested"
-                              ? "bg-orange-500"
-                              : "bg-red-500"
-                      )}
-                    />
-                    <h3 className="text-base font-bold text-foreground">{segment}</h3>
-                  </div>
-                  <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium">
-                    {techs.length}
-                  </span>
-                </div>
-                <div className="space-y-1.5">
-                  {techs.map((tech, idx) => (
-                    <div
-                      key={tech.name}
-                      className="px-3 py-2.5 rounded border border-border/50 hover:bg-muted/30 transition-colors"
-                    >
-                      <p className="font-medium text-sm text-foreground">{tech.name}</p>
-                      <div className="grid grid-cols-3 gap-1.5 mt-1.5 text-xs">
-                        <div>
-                          <p className="text-muted-foreground">Success</p>
-                          <p className="font-semibold">{tech.call_success_rate.toFixed(1)}%</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground">Stability</p>
-                          <p className="font-semibold">{tech.call_stability.toFixed(1)}%</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground">Sessions</p>
-                          <p className="font-semibold">{(tech.count / 1000).toFixed(1)}k</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : null
-          )}
-        </div>
-
-        {/* Region Segmentation */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
-          {Object.entries(regionSegmented).map(([segment, regions]) =>
-            regions.length > 0 ? (
-              <div key={segment} className="card-elevated rounded-xl border border-border/50 p-4 lg:p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={cn(
-                        "w-3 h-3 rounded-full",
-                        segment === "High performance"
-                          ? "bg-green-500"
-                          : segment === "Balanced"
-                            ? "bg-blue-500"
-                            : segment === "Congested"
-                              ? "bg-orange-500"
-                              : "bg-red-500"
-                      )}
-                    />
-                    <h3 className="text-base font-bold text-foreground">{segment}</h3>
-                  </div>
-                  <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium">
-                    {regions.length}
-                  </span>
-                </div>
-                <div className="space-y-1.5">
-                  {regions.map((region, idx) => (
-                    <div
-                      key={region.name}
-                      className="px-3 py-2.5 rounded border border-border/50 hover:bg-muted/30 transition-colors"
-                    >
-                      <p className="font-medium text-sm text-foreground">{region.name}</p>
-                      <div className="grid grid-cols-3 gap-1.5 mt-1.5 text-xs">
-                        <div>
-                          <p className="text-muted-foreground">Success</p>
-                          <p className="font-semibold">{region.call_success_rate.toFixed(1)}%</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground">Stability</p>
-                          <p className="font-semibold">{region.call_stability.toFixed(1)}%</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground">Sessions</p>
-                          <p className="font-semibold">{(region.count / 1000).toFixed(1)}k</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : null
-          )}
-        </div>
-
-        {/* Cluster Segmentation */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
-          {Object.entries(clusterSegmented).map(([segment, clusters]) =>
-            clusters.length > 0 ? (
-              <div key={segment} className="card-elevated rounded-xl border border-border/50 p-4 lg:p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={cn(
-                        "w-3 h-3 rounded-full",
-                        segment === "High performance"
-                          ? "bg-green-500"
-                          : segment === "Balanced"
-                            ? "bg-blue-500"
-                            : segment === "Congested"
-                              ? "bg-orange-500"
-                              : "bg-red-500"
-                      )}
-                    />
-                    <h3 className="text-base font-bold text-foreground">{segment}</h3>
-                  </div>
-                  <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium">
-                    {clusters.length}
-                  </span>
-                </div>
-                <div className="space-y-1.5">
-                  {clusters.map((cluster, idx) => (
-                    <div
-                      key={cluster.name}
-                      className="px-3 py-2.5 rounded border border-border/50 hover:bg-muted/30 transition-colors"
-                    >
-                      <p className="font-medium text-sm text-foreground">{cluster.name}</p>
-                      <div className="grid grid-cols-3 gap-1.5 mt-1.5 text-xs">
-                        <div>
-                          <p className="text-muted-foreground">Success</p>
-                          <p className="font-semibold">{cluster.call_success_rate.toFixed(1)}%</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground">Stability</p>
-                          <p className="font-semibold">{cluster.call_stability.toFixed(1)}%</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground">Sessions</p>
-                          <p className="font-semibold">{(cluster.count / 1000).toFixed(1)}k</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : null
-          )}
-        </div>
-      </div>
-
-      {/* Segmentation Distribution Charts - 2x2 Grid */}
-      <div className="space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground">Segmentation Distribution</h2>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Vendor Segmentation Distribution */}
-          <div className="card-elevated rounded-xl border border-border/50 p-6">
-            <div className="mb-4">
-              <h3 className="text-lg font-bold text-foreground">
-                Vendor Segmentation Distribution
-              </h3>
-            </div>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart
-                data={Object.entries(vendorSegmented).map(([category, items]) => ({
-                  category,
-                  count: items?.length || 0,
-                }))}
-                margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="card-elevated rounded-xl border border-border/50 p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-foreground">1. Segment Builder</h3>
+              <button
+                type="button"
+                onClick={() =>
+                  setSegmentRules((prev) => [
+                    ...prev,
+                    {
+                      id: `rule-${Date.now()}`,
+                      field: dimensionOptions[0],
+                      operator: operatorOptions[0],
+                      value: "",
+                    },
+                  ])
+                }
+                className="inline-flex items-center gap-1 rounded-md border border-violet-500/40 px-2.5 py-1.5 text-xs font-semibold text-violet-700 hover:bg-violet-500/10"
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis
-                  dataKey="category"
-                  stroke="hsl(var(--muted-foreground))"
-                  style={{ fontSize: "12px" }}
-                />
-                <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "8px",
-                  }}
-                />
-                <Bar dataKey="count" fill="#8b5cf6" radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+                <Plus className="h-3.5 w-3.5" />
+                Add Dimension
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {segmentRules.map((rule, index) => (
+                <div key={rule.id} className="rounded-lg border border-border/60 p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-semibold text-muted-foreground">Rule {index + 1}</p>
+                    <button
+                      type="button"
+                      onClick={() => setSegmentRules((prev) => prev.filter((item) => item.id !== rule.id))}
+                      className="text-muted-foreground hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 gap-2">
+                    <select
+                      value={rule.field}
+                      onChange={(e) =>
+                        setSegmentRules((prev) =>
+                          prev.map((item) =>
+                            item.id === rule.id ? { ...item, field: e.target.value } : item
+                          )
+                        )
+                      }
+                      className="rounded-md border border-border bg-background px-2.5 py-2 text-xs"
+                    >
+                      {dimensionOptions.map((dimension) => (
+                        <option key={dimension} value={dimension}>
+                          {dimension}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      value={rule.operator}
+                      onChange={(e) =>
+                        setSegmentRules((prev) =>
+                          prev.map((item) =>
+                            item.id === rule.id ? { ...item, operator: e.target.value } : item
+                          )
+                        )
+                      }
+                      className="rounded-md border border-border bg-background px-2.5 py-2 text-xs"
+                    >
+                      {operatorOptions.map((operator) => (
+                        <option key={operator} value={operator}>
+                          {operator}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      value={rule.value}
+                      onChange={(e) =>
+                        setSegmentRules((prev) =>
+                          prev.map((item) =>
+                            item.id === rule.id ? { ...item, value: e.target.value } : item
+                          )
+                        )
+                      }
+                      className="rounded-md border border-border bg-background px-2.5 py-2 text-xs"
+                      placeholder="Value (or comma-separated values)"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-muted-foreground">Rule logic:</span>
+              <button
+                type="button"
+                onClick={() => setSegmentLogic("AND")}
+                className={cn(
+                  "rounded-md px-3 py-1.5 text-xs font-semibold border",
+                  segmentLogic === "AND"
+                    ? "border-violet-500/50 bg-violet-500/15 text-violet-700"
+                    : "border-border text-muted-foreground"
+                )}
+              >
+                AND
+              </button>
+              <button
+                type="button"
+                onClick={() => setSegmentLogic("OR")}
+                className={cn(
+                  "rounded-md px-3 py-1.5 text-xs font-semibold border",
+                  segmentLogic === "OR"
+                    ? "border-violet-500/50 bg-violet-500/15 text-violet-700"
+                    : "border-border text-muted-foreground"
+                )}
+              >
+                OR
+              </button>
+            </div>
+
+            <div className="space-y-2 pt-2 border-t border-border/50">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Saved segments</p>
+              {savedSegments.map((segment) => (
+                <div key={segment.id} className="rounded-md border border-border/50 p-2.5 space-y-2">
+                  <p className="text-sm font-medium text-foreground">{segment.name}</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSegmentName(segment.name);
+                        setSegmentLogic(segment.logic);
+                        setSegmentRules(segment.rules.map((rule) => ({ ...rule, id: `${rule.id}-${Date.now()}` })));
+                      }}
+                      className="rounded-md border border-border px-2 py-1 text-[11px] font-medium hover:bg-muted/40"
+                    >
+                      Load
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSegmentName(`${segment.name} (Edited)`);
+                        setSegmentLogic(segment.logic);
+                        setSegmentRules(segment.rules.map((rule) => ({ ...rule, id: `${rule.id}-edit-${Date.now()}` })));
+                      }}
+                      className="rounded-md border border-border px-2 py-1 text-[11px] font-medium hover:bg-muted/40"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setSavedSegments((prev) => [
+                          ...prev,
+                          { ...segment, id: `${segment.id}-copy-${Date.now()}`, name: `${segment.name} Copy` },
+                        ])
+                      }
+                      className="rounded-md border border-border px-2 py-1 text-[11px] font-medium hover:bg-muted/40"
+                    >
+                      Duplicate
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSavedSegments((prev) => prev.filter((item) => item.id !== segment.id))}
+                      className="rounded-md border border-border px-2 py-1 text-[11px] font-medium text-destructive hover:bg-destructive/10"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
-          {/* Technology Segmentation Distribution */}
-          <div className="card-elevated rounded-xl border border-border/50 p-6">
-            <div className="mb-4">
-              <h3 className="text-lg font-bold text-foreground">
-                Technology Segmentation Distribution
-              </h3>
-            </div>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart
-                data={Object.entries(techSegmented).map(([category, items]) => ({
-                  category,
-                  count: items?.length || 0,
-                }))}
-                margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+          <div className="card-elevated rounded-xl border border-border/50 p-5 space-y-4">
+            <h3 className="text-lg font-semibold text-foreground">2. Grouping Builder</h3>
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-muted-foreground">Group By (multi-level order)</p>
+              <div className="space-y-2">
+                {groupBy.map((field, index) => (
+                  <div key={`${field}-${index}`} className="flex items-center gap-2 rounded-md border border-border/50 p-2">
+                    <select
+                      value={field}
+                      onChange={(e) =>
+                        setGroupBy((prev) => prev.map((item, idx) => (idx === index ? e.target.value : item)))
+                      }
+                      className="flex-1 rounded-md border border-border bg-background px-2 py-1.5 text-xs"
+                    >
+                      {groupingOptions.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setGroupBy((prev) => {
+                          if (index === 0) return prev;
+                          const copy = [...prev];
+                          [copy[index - 1], copy[index]] = [copy[index], copy[index - 1]];
+                          return copy;
+                        })
+                      }
+                      className="rounded border border-border px-1.5 py-1 text-muted-foreground hover:bg-muted/40"
+                    >
+                      <ChevronUp className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setGroupBy((prev) => {
+                          if (index === prev.length - 1) return prev;
+                          const copy = [...prev];
+                          [copy[index + 1], copy[index]] = [copy[index], copy[index + 1]];
+                          return copy;
+                        })
+                      }
+                      className="rounded border border-border px-1.5 py-1 text-muted-foreground hover:bg-muted/40"
+                    >
+                      <ChevronDown className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={() => setGroupBy((prev) => [...prev, groupingOptions[prev.length % groupingOptions.length]])}
+                className="text-xs font-medium text-violet-700 hover:underline"
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis
-                  dataKey="category"
-                  stroke="hsl(var(--muted-foreground))"
-                  style={{ fontSize: "12px" }}
+                + Add Group Level
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <label className="space-y-1">
+                <span className="text-xs font-semibold text-muted-foreground">Aggregation</span>
+                <select
+                  value={aggregationType}
+                  onChange={(e) => setAggregationType(e.target.value)}
+                  className="w-full rounded-md border border-border bg-background px-2.5 py-2 text-xs"
+                >
+                  {aggregationOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="space-y-1">
+                <span className="text-xs font-semibold text-muted-foreground">Sort</span>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="w-full rounded-md border border-border bg-background px-2.5 py-2 text-xs"
+                >
+                  {sortingOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <label className="space-y-1">
+                <span className="text-xs font-semibold text-muted-foreground">View mode</span>
+                <select
+                  value={hierarchyMode}
+                  onChange={(e) => setHierarchyMode(e.target.value as "Hierarchy" | "Flat")}
+                  className="w-full rounded-md border border-border bg-background px-2.5 py-2 text-xs"
+                >
+                  <option value="Hierarchy">Hierarchy</option>
+                  <option value="Flat">Flat</option>
+                </select>
+              </label>
+              <label className="space-y-1">
+                <span className="text-xs font-semibold text-muted-foreground">Top N</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={20}
+                  value={topN}
+                  onChange={(e) => setTopN(Math.max(1, Number(e.target.value) || 1))}
+                  className="w-full rounded-md border border-border bg-background px-2.5 py-2 text-xs"
                 />
-                <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "8px",
-                  }}
-                />
-                <Bar dataKey="count" fill="#3b82f6" radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+              </label>
+            </div>
           </div>
 
-          {/* Region Segmentation Distribution */}
-          <div className="card-elevated rounded-xl border border-border/50 p-6">
-            <div className="mb-4">
-              <h3 className="text-lg font-bold text-foreground">
-                Region Segmentation Distribution
-              </h3>
+          <div className="card-elevated rounded-xl border border-border/50 p-5 space-y-4">
+            <h3 className="text-lg font-semibold text-foreground">3. Preview / Result</h3>
+            <div className="rounded-lg border border-border/60 overflow-hidden">
+              <table className="w-full text-xs">
+                <thead className="bg-muted/40">
+                  <tr>
+                    <th className="text-left px-3 py-2 font-semibold">Group</th>
+                    <th className="text-right px-3 py-2 font-semibold">Count</th>
+                    <th className="text-right px-3 py-2 font-semibold">Success Rate</th>
+                    <th className="text-right px-3 py-2 font-semibold">Stability</th>
+                    <th className="text-right px-3 py-2 font-semibold">Sessions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {groupedPreview.map((row) => (
+                    <tr key={row.group} className="border-t border-border/50">
+                      <td className="px-3 py-2 text-foreground">{row.group}</td>
+                      <td className="px-3 py-2 text-right">{row.count}</td>
+                      <td className="px-3 py-2 text-right">{row.successRate.toFixed(1)}%</td>
+                      <td className="px-3 py-2 text-right">{row.stability.toFixed(1)}%</td>
+                      <td className="px-3 py-2 text-right">{row.sessions.toLocaleString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart
-                data={Object.entries(regionSegmented).map(([category, items]) => ({
-                  category,
-                  count: items?.length || 0,
-                }))}
-                margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis
-                  dataKey="category"
-                  stroke="hsl(var(--muted-foreground))"
-                  style={{ fontSize: "12px" }}
-                />
-                <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "8px",
-                  }}
-                />
-                <Bar dataKey="count" fill="#10b981" radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
 
-          {/* Cluster Segmentation Distribution */}
-          <div className="card-elevated rounded-xl border border-border/50 p-6">
-            <div className="mb-4">
-              <h3 className="text-lg font-bold text-foreground">
-                Cluster Segmentation Distribution
-              </h3>
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-muted-foreground">Distribution preview</p>
+              <div className="space-y-2">
+                {groupedPreview.map((row) => (
+                  <div key={`${row.group}-bar`} className="space-y-1">
+                    <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                      <span className="truncate pr-2">{row.group}</span>
+                      <span>{row.count}</span>
+                    </div>
+                    <div className="h-2 rounded-full bg-muted/60 overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-violet-500"
+                        style={{
+                          width: `${Math.max(6, (row.count / Math.max(...groupedPreview.map((item) => item.count), 1)) * 100)}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart
-                data={Object.entries(clusterSegmented).map(([category, items]) => ({
-                  category,
-                  count: items?.length || 0,
-                }))}
-                margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis
-                  dataKey="category"
-                  stroke="hsl(var(--muted-foreground))"
-                  style={{ fontSize: "12px" }}
-                />
-                <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "8px",
-                  }}
-                />
-                <Bar dataKey="count" fill="#f59e0b" radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+              <div className="rounded-md border border-violet-500/30 bg-violet-500/10 px-3 py-2">
+                Coverage: <span className="font-semibold">{coveragePercent}%</span>
+              </div>
+              <div className="rounded-md border border-border/60 px-3 py-2">
+                Groups: <span className="font-semibold">{groupedPreview.length}</span>
+              </div>
+              <div className="rounded-md border border-border/60 px-3 py-2">
+                Levels: <span className="font-semibold">{groupBy.length}</span>
+              </div>
+            </div>
           </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 border-t border-border/50 pt-4">
+          <button
+            type="button"
+            onClick={() => {
+              setAppliedSummary(`${segmentName || "Ad-hoc segment"} • ${groupBy.join(" > ")}`);
+              toast({
+                title: "Segmentation applied",
+                description: `Applied ${segmentLogic} rules with ${groupBy.length} grouping levels.`,
+              });
+            }}
+            className="inline-flex items-center gap-1.5 rounded-md bg-violet-600 px-3 py-2 text-xs font-semibold text-white hover:bg-violet-700"
+          >
+            Apply
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setSegmentRules(defaultRules);
+              setSegmentLogic("AND");
+              setGroupBy(["Region", "Cluster"]);
+              setAggregationType("Count");
+              setSortBy("By value");
+              setHierarchyMode("Hierarchy");
+              setTopN(4);
+              setSegmentName("High Traffic Sites");
+              toast({ title: "Configuration reset", description: "Defaults restored." });
+            }}
+            className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-2 text-xs font-semibold hover:bg-muted/40"
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+            Reset
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              const newSegment = {
+                id: `seg-${Date.now()}`,
+                name: segmentName || `Segment ${savedSegments.length + 1}`,
+                rules: segmentRules.map((rule) => ({ ...rule })),
+                logic: segmentLogic,
+              };
+              setSavedSegments((prev) => [newSegment, ...prev]);
+              toast({ title: "Segment saved", description: `${newSegment.name} added to saved list.` });
+            }}
+            className="inline-flex items-center gap-1.5 rounded-md border border-violet-500/40 px-3 py-2 text-xs font-semibold text-violet-700 hover:bg-violet-500/10"
+          >
+            <Save className="h-3.5 w-3.5" />
+            Save Segment
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              const payload = {
+                segment: { name: segmentName || "Ad-hoc", logic: segmentLogic, rules: segmentRules },
+                grouping: { groupBy, aggregationType, sortBy, hierarchyMode, topN },
+              };
+              const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+              const url = URL.createObjectURL(blob);
+              const link = document.createElement("a");
+              link.href = url;
+              link.download = "segmentation-grouping-config.json";
+              link.click();
+              URL.revokeObjectURL(url);
+              toast({ title: "Configuration exported", description: "JSON schema downloaded." });
+            }}
+            className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-2 text-xs font-semibold hover:bg-muted/40"
+          >
+            <Copy className="h-3.5 w-3.5" />
+            Export Configuration
+          </button>
+          <input
+            value={segmentName}
+            onChange={(e) => setSegmentName(e.target.value)}
+            className="ml-auto min-w-[180px] rounded-md border border-border bg-background px-2.5 py-2 text-xs"
+            placeholder="Segment name"
+          />
         </div>
       </div>
 
