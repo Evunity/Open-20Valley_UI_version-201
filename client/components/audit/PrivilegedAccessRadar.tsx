@@ -267,14 +267,17 @@ export default function PrivilegedAccessRadar() {
           className="border-0 bg-transparent p-0 shadow-none"
           row1ClassName="lg:grid-cols-[minmax(280px,2fr)_minmax(210px,1fr)_minmax(240px,1fr)_auto]"
           row1={[
-            <div className="relative">
-              <Search className="absolute left-3 top-3.5 w-4 h-4 text-muted-foreground pointer-events-none" />
-              <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search user, email, privileged account..."
-                className="pl-9"
-              />
+            <div className="space-y-1.5">
+              <span className="block text-xs font-semibold uppercase tracking-wide text-transparent select-none">Search</span>
+              <div className="relative">
+                <Search className="absolute left-3 top-3.5 w-4 h-4 text-muted-foreground pointer-events-none" />
+                <Input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search user, email, privileged account..."
+                  className="pl-9"
+                />
+              </div>
             </div>,
             <SearchableDropdown
               label="Time Range"
@@ -303,18 +306,21 @@ export default function PrivilegedAccessRadar() {
               compact={true}
               placeholder="Search action..."
             />,
-            <button
-              onClick={() => {
-                setSearch('');
-                setSelectedActions([]);
-                setTimePreset('24h');
-                setCustomFrom('');
-                setCustomTo('');
-              }}
-              className="h-9 px-3 rounded-md border border-input bg-input text-sm hover:bg-muted w-full sm:w-auto sm:min-w-[120px]"
-            >
-              Clear Filters
-            </button>
+            <div className="space-y-1.5">
+              <span className="block text-xs font-semibold uppercase tracking-wide text-transparent select-none">Actions</span>
+              <button
+                onClick={() => {
+                  setSearch('');
+                  setSelectedActions([]);
+                  setTimePreset('24h');
+                  setCustomFrom('');
+                  setCustomTo('');
+                }}
+                className="h-11 px-3 rounded-md border border-input bg-input text-sm hover:bg-muted w-full sm:w-auto sm:min-w-[120px]"
+              >
+                Clear Filters
+              </button>
+            </div>
           ]}
           row2={
             timePreset === 'custom'
