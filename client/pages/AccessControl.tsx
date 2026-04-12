@@ -2,6 +2,7 @@ import { useState, type ComponentType } from "react";
 import { Building2, ClipboardList, FileCheck2, Shield, UserCog, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import TenantOverview from "@/components/access-control/TenantOverview";
+import TenantProvisioning from "@/components/access-control/TenantProvisioning";
 
 type AccessSubsectionId =
   | "tenant-overview"
@@ -67,6 +68,7 @@ export default function AccessControl() {
       case "tenant-overview":
         return <TenantOverview />;
       case "tenant-provisioning":
+        return <TenantProvisioning />;
       case "users-identity":
       case "roles-permissions":
       case "security-policies":
