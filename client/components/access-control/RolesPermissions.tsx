@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const ACTIONS: PermissionAction[] = ["read", "create", "edit", "delete", "execute", "export"];
+const PERMISSION_COLUMN_CLASS = "w-[84px] min-w-[84px] whitespace-nowrap break-normal [overflow-wrap:normal]";
 
 type ActiveTab = "roles" | "matrix" | "scoped";
 
@@ -274,13 +275,19 @@ export default function RolesPermissions() {
                 ))}
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full text-sm">
+              <div className="overflow-x-auto overflow-y-visible">
+                <table className="w-full min-w-[760px] table-fixed text-sm">
+                  <colgroup>
+                    <col />
+                    {ACTIONS.map((action) => (
+                      <col key={`col-${action}`} style={{ width: "84px" }} />
+                    ))}
+                  </colgroup>
                   <thead className="bg-muted/30 text-muted-foreground">
                     <tr>
-                      <th className="px-3 py-2 text-left text-xs font-semibold">Module / Page</th>
+                      <th className="min-w-[220px] px-3 py-2 text-left text-xs font-semibold whitespace-nowrap break-normal [overflow-wrap:normal]">Module / Page</th>
                       {ACTIONS.map((action) => (
-                        <th key={action} className="px-2 py-2 text-center text-xs font-semibold capitalize">{action}</th>
+                        <th key={action} className={cn("px-2 py-2 text-center text-xs font-semibold capitalize", PERMISSION_COLUMN_CLASS)}>{action}</th>
                       ))}
                     </tr>
                   </thead>
@@ -407,7 +414,7 @@ function ModuleSection({
             {groupLabel}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="ml-auto rounded border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground">Actions</button>
+                <button className="ml-auto rounded border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground whitespace-nowrap">Actions</button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start">
                 <DropdownMenuItem onSelect={onGrantAll}>Grant All</DropdownMenuItem>
@@ -417,7 +424,7 @@ function ModuleSection({
           </div>
         </td>
         {ACTIONS.map((action) => (
-          <td key={`${moduleKey}-${action}`} className="px-2 py-2 text-center text-muted-foreground">—</td>
+          <td key={`${moduleKey}-${action}`} className={cn("px-2 py-2 text-center text-muted-foreground", PERMISSION_COLUMN_CLASS)}>—</td>
         ))}
       </tr>
 
@@ -427,7 +434,7 @@ function ModuleSection({
             <div className="pl-6 text-sm text-foreground">{row.pageLabel}</div>
           </td>
           {ACTIONS.map((action) => (
-            <td key={`${row.pageKey}-${action}`} className="px-2 py-2 text-center">
+            <td key={`${row.pageKey}-${action}`} className={cn("px-2 py-2 text-center", PERMISSION_COLUMN_CLASS)}>
               <PermissionCell
                 granted={row.permissions[action]}
                 locked={!!row.locked?.[action]}
