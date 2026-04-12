@@ -96,7 +96,6 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
   const [status, setStatus] = useState<UiStatus>('all');
   const [search, setSearch] = useState('');
 
-  const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [clickedId, setClickedId] = useState<string | null>(selectedNode?.id || null);
   const [showOnlyPaths, setShowOnlyPaths] = useState(false);
   const [hideHealthy, setHideHealthy] = useState(false);
@@ -109,6 +108,7 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
   const [tracedPath, setTracedPath] = useState<string[]>([]);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<string>(new Date().toISOString());
   const canvasViewportRef = React.useRef<HTMLDivElement | null>(null);
+  const graphShellRef = React.useRef<HTMLDivElement | null>(null);
 
   const nodeMap = useMemo(() => new Map(topology.map((node) => [node.id, node])), [topology]);
 
@@ -197,14 +197,13 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
   }, [autoRefresh]);
 
   useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && isFullscreen) {
-        setIsFullscreen(false);
-      }
+    const onFullScreenChange = () => {
+      const container = graphShellRef.current;
+      setIsFullscreen(!!container && document.fullscreenElement === container);
     };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [isFullscreen]);
+    document.addEventListener('fullscreenchange', onFullScreenChange);
+    return () => document.removeEventListener('fullscreenchange', onFullScreenChange);
+  }, []);
 
   useEffect(() => {
     if (region !== 'all' && !regionOptions.includes(region)) setRegion('all');
@@ -275,13 +274,13 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
 
   const neighbors = useMemo(() => {
     const set = new Set<string>();
-    if (!hoveredId && !clickedId) return set;
-    const seed = hoveredId || clickedId;
+    if (!clickedId) return set;
+    const seed = clickedId;
     if (!seed) return set;
     set.add(seed);
     (parentMap.get(seed) || []).forEach((id) => set.add(id));
     return set;
-  }, [clickedId, hoveredId, parentMap]);
+  }, [clickedId, parentMap]);
 
   const tracedNodeSet = useMemo(() => new Set(tracedPath), [tracedPath]);
 
@@ -302,8 +301,8 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
     });
 
     const yCounters = new Map<string, number>();
-    const verticalSpacing = Math.max(220, Math.min(300, 220 + Math.floor(scopedTopology.length / 80) * 18));
-    const laneSpacing = Math.max(320, 280);
+    const verticalSpacing = 360;
+    const laneSpacing = 500;
     const laneX = [180, 180 + laneSpacing, 180 + laneSpacing * 2, 180 + laneSpacing * 3, 180 + laneSpacing * 4];
 
     return scopedTopology.map((item) => {
@@ -344,7 +343,7 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
         ...node,
         data: {
           ...node.data,
-          isHovered: hoveredId === node.id,
+          isHovered: false,
           isDimmed: dimmed,
           isRelated: neighbors.has(node.id) || isTraced,
         },
@@ -363,14 +362,14 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
       const routeKey = `${source?.parentId || source?.id || 's'}->${target?.parentId || target?.id || 't'}`;
       const edgeIdx = routeKeyCounter.get(routeKey) || 0;
       routeKeyCounter.set(routeKey, edgeIdx + 1);
-      const edgeOffset = 40 + edgeIdx * 40;
+      const edgeOffset = 80 + edgeIdx * 70;
 
       return {
         ...edge,
         type: 'smoothstep',
         markerEnd: { type: MarkerType.ArrowClosed },
         pathOptions: { offset: edgeOffset, borderRadius: 12 },
-        animated: onTrace,
+        animated: false,
         style: {
           stroke: onTrace ? 'hsl(var(--primary))' : sourceRisk || targetRisk ? '#f59e0b' : 'hsl(var(--muted-foreground))',
           strokeWidth: onTrace ? 3.2 : 1.3,
@@ -381,7 +380,7 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
 
     setNodes(builtNodes);
     setEdges(builtEdges);
-  }, [baseLaneNodes, graphEdges, hoveredId, neighbors, nodeMap, setEdges, setNodes, showOnlyPaths, tracedNodeSet]);
+  }, [baseLaneNodes, graphEdges, neighbors, nodeMap, setEdges, setNodes, showOnlyPaths, tracedNodeSet]);
 
   const connectedForSelected = useMemo(() => {
     if (!clickedId) return { upstream: [] as string[], downstream: [] as string[] };
@@ -498,28 +497,18 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
       2.0,
       0.1,
     );
-    setViewport(viewport, { duration: 260 });
+    setViewport(viewport, { duration: 0 });
   }, [nodes, setViewport]);
 
   const centerGraph = useCallback(() => {
     if (!nodes.length) return;
     const bounds = getNodesBounds(nodes);
-    setCenter(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2, { duration: 220, zoom: 1 });
+    setCenter(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2, { duration: 0, zoom: 1 });
   }, [nodes, setCenter]);
 
   const resetView = useCallback(() => {
-    setViewport({ x: 0, y: 0, zoom: 1 }, { duration: 180 });
-    setTimeout(() => fitToScreen(), 200);
-  }, [fitToScreen, setViewport]);
-
-  useEffect(() => {
-    fitToScreen();
-  }, [fitToScreen, nodes.length, edges.length]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => fitToScreen(), 80);
-    return () => clearTimeout(timer);
-  }, [fitToScreen, isFullscreen]);
+    setViewport({ x: 0, y: 0, zoom: 1 }, { duration: 0 });
+  }, [setViewport]);
 
   const focusRackSelection = useEffect(() => {
     if (rack === 'all') return;
@@ -530,6 +519,16 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
   }, [onNodeSelect, rack, scopedTopology]);
 
   void focusRackSelection;
+
+  const toggleFullscreen = useCallback(async () => {
+    const container = graphShellRef.current;
+    if (!container) return;
+    if (document.fullscreenElement === container) {
+      await document.exitFullscreen();
+      return;
+    }
+    await container.requestFullscreen();
+  }, []);
 
   if (loading) {
     return (
@@ -548,7 +547,7 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
   }
 
   return (
-    <div className={cn('flex h-full min-h-0 flex-col gap-3', isFullscreen && 'fixed inset-0 z-50 bg-background p-3')}>
+    <div className="flex h-full min-h-0 flex-col gap-3">
       <div className="grid grid-cols-2 gap-2 rounded-xl border border-border bg-card p-3 text-xs md:grid-cols-6">
         <Metric title="Nodes" value={scopedTopology.length.toString()} />
         <Metric title="Relationships" value={graphEdges.length.toString()} />
@@ -596,7 +595,7 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
           <Button size="sm" variant={hideHealthy ? 'default' : 'outline'} onClick={() => setHideHealthy((v) => !v)}>Hide Healthy</Button>
           <Button size="sm" variant="outline" onClick={() => setCollapsed(false)}><ChevronsDown className="mr-1 h-3.5 w-3.5" />Expand All</Button>
           <Button size="sm" variant="outline" onClick={() => setCollapsed(true)}><ChevronsUp className="mr-1 h-3.5 w-3.5" />Collapse All</Button>
-          <Button size="sm" variant={isFullscreen ? 'default' : 'outline'} onClick={() => setIsFullscreen((prev) => !prev)}>
+          <Button size="sm" variant={isFullscreen ? 'default' : 'outline'} onClick={toggleFullscreen}>
             {isFullscreen ? <X className="mr-1 h-3.5 w-3.5" /> : <Square className="mr-1 h-3.5 w-3.5" />}
             {isFullscreen ? 'Exit Full Screen' : 'Full Screen'}
           </Button>
@@ -629,12 +628,12 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
           No graph entities match the current filters. Try resetting filters or changing scope.
         </div>
       ) : (
-        <div className="flex-1 min-h-0 h-full w-full overflow-hidden rounded-xl border border-border bg-card" ref={canvasViewportRef}>
+        <div className="flex-1 min-h-0 h-full w-full overflow-hidden rounded-xl border border-border bg-card" ref={graphShellRef}>
           <div className="flex h-9 items-center justify-between border-b border-border px-3 text-xs text-muted-foreground">
             <span>Dependency Graph Playground</span>
             <span>{isFullscreen ? 'Full-screen analysis mode (Esc to exit)' : 'Embedded mode'}</span>
           </div>
-          <div className="h-[calc(100%-2.25rem)] w-full">
+          <div className="h-[calc(100%-2.25rem)] w-full" ref={canvasViewportRef}>
             <ReactFlow
               nodes={nodes}
               edges={edges}
@@ -642,8 +641,6 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
               onNodesChange={onNodesChange}
               onEdgesChange={onEdgesChange}
               connectionMode={ConnectionMode.Loose}
-              onNodeMouseEnter={(_, n) => setHoveredId(n.id)}
-              onNodeMouseLeave={() => setHoveredId(null)}
               onNodeDoubleClick={(_, n) => {
                 const obj = nodeMap.get(n.id);
                 if (!obj) return;
@@ -658,7 +655,7 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
                 if (obj) {
                   onNodeSelect?.(obj);
                   const flowNode = nodes.find((item) => item.id === n.id);
-                  if (flowNode) setCenter(flowNode.position.x + 130, flowNode.position.y + 48, { duration: 200, zoom: 1 });
+                  if (flowNode) setCenter(flowNode.position.x + 130, flowNode.position.y + 48, { duration: 0, zoom: 1 });
                 }
               }}
               minZoom={0.4}
