@@ -366,7 +366,6 @@ export default function UsersIdentityWorkspace() {
                           <DropdownMenuItem onSelect={() => openEdit(user)}>Edit User</DropdownMenuItem>
                           <DropdownMenuItem onSelect={() => quickStatusToggle(user)}>{user.status === "Suspended" ? "Reactivate User" : "Suspend User"}</DropdownMenuItem>
                           <DropdownMenuItem onSelect={() => openEdit(user, true)}>Reset Password</DropdownMenuItem>
-                          <DropdownMenuItem onSelect={() => actionSimpleToast("Invite resent")}>Resend Invite</DropdownMenuItem>
                           <DropdownMenuItem onSelect={() => actionSimpleToast("User removed from tenant")}>Remove from Tenant</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
