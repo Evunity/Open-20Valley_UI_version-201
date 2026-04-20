@@ -3,12 +3,11 @@ import { ArrowDownUp, CalendarDays, Download, Search, UserSearch } from "lucide-
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import SearchableDropdown from "@/components/SearchableDropdown";
+import DualMonthCalendar from "@/components/DualMonthCalendar";
 import { cn } from "@/lib/utils";
-import type { DateRange as CalendarDateRange } from "react-day-picker";
 
 type ActivityResult = "Success" | "Failed" | "Denied" | "Pending";
 type ActivityCategory =
@@ -179,13 +178,19 @@ export default function ActivityAudit() {
     setSortDirection("asc");
   };
 
-  const dateLabel = dateRange.start && dateRange.end
-    ? `${dateRange.start.toLocaleDateString()} - ${dateRange.end.toLocaleDateString()}`
-    : "Select date range";
-  const selectedCalendarRange: CalendarDateRange | undefined =
-    dateRange.start || dateRange.end
-      ? { from: dateRange.start ?? undefined, to: dateRange.end ?? undefined }
-      : undefined;
+  const dateLabel = useMemo(() => {
+    if (!dateRange.start && !dateRange.end) return "Select date range";
+    const from = dateRange.start
+      ? dateRange.start.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+      : null;
+    const to = dateRange.end
+      ? dateRange.end.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+      : null;
+    if (from && to) return `${from} - ${to}`;
+    if (from) return `From ${from}`;
+    if (to) return `To ${to}`;
+    return "Select date range";
+  }, [dateRange.end, dateRange.start]);
 
   useEffect(() => {
     const onEscape = (event: KeyboardEvent) => {
@@ -256,25 +261,41 @@ export default function ActivityAudit() {
           <Popover open={activeOverlay === "date"} onOpenChange={(open) => setActiveOverlay(open ? "date" : null)}>
             <PopoverTrigger asChild>
               <Button variant="outline" className="h-9 w-full justify-start text-xs">
-                <CalendarDays className="h-4 w-4" /> {dateLabel}
+                <CalendarDays className="h-4 w-4 shrink-0" />
+                <span className="truncate">{dateLabel}</span>
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-3" align="start" sideOffset={8}>
-              <Calendar
-                mode="range"
-                numberOfMonths={1}
-                selected={selectedCalendarRange}
-                onSelect={(range) => {
-                  setDateRange({
-                    start: range?.from ?? null,
-                    end: range?.to ?? null,
-                  });
-                  if (range?.from && range?.to) {
+            <PopoverContent className="w-[360px] p-3" align="start" sideOffset={8}>
+              <div className="space-y-3">
+                <DualMonthCalendar
+                  startDate={dateRange.start}
+                  endDate={dateRange.end}
+                  onDateSelect={(date, isStart) => {
+                    if (isStart) {
+                      setDateRange({ start: date, end: null });
+                    } else {
+                      setDateRange((prev) => ({ start: prev.start, end: date }));
+                    }
+                  }}
+                  onRangeComplete={(start, end) => {
+                    setDateRange({ start, end });
                     setActiveOverlay(null);
-                  }
-                }}
-                initialFocus
-              />
+                  }}
+                />
+                {dateRange.start && dateRange.end && (
+                  <div className="space-y-2 border-t border-border/50 pt-2">
+                    <p className="truncate text-xs text-muted-foreground">
+                      Selected: {dateLabel}
+                    </p>
+                    <button
+                      onClick={() => setDateRange({ start: null, end: null })}
+                      className="h-8 rounded border border-border px-2 text-xs text-muted-foreground hover:text-foreground"
+                    >
+                      Clear range
+                    </button>
+                  </div>
+                )}
+              </div>
             </PopoverContent>
           </Popover>
 
