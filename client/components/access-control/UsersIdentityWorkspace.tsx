@@ -24,6 +24,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   createUser,
   getJitAccessRequests,
@@ -246,16 +248,22 @@ export default function UsersIdentityWorkspace() {
   };
 
   return (
-    <div className="space-y-3">
-      <button onClick={openAdd} className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
-        <Plus className="h-4 w-4" />
-        Add User
-      </button>
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="space-y-1">
+          <h2 className="text-sm font-semibold text-foreground">Users & Identity</h2>
+          <p className="text-xs text-muted-foreground">Manage user lifecycle, tenant assignment, role mapping, and JIT access requests.</p>
+        </div>
+        <Button onClick={openAdd} size="sm" className="h-9">
+          <Plus className="h-4 w-4" />
+          Add User
+        </Button>
+      </div>
 
       <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
         <div className="relative w-full lg:max-w-xl">
           <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <input value={searchInput} onChange={(e) => setSearchInput(e.target.value)} placeholder="Search users..." className="h-9 w-full rounded-md border border-input bg-background pl-8 pr-3 text-sm" />
+          <Input value={searchInput} onChange={(e) => setSearchInput(e.target.value)} placeholder="Search users..." className="h-9 w-full bg-background pl-8 pr-3 text-sm" />
         </div>
         <div className="flex items-center gap-2">
           <Select value={filters.tenant} onValueChange={(value) => setFilters((prev) => ({ ...prev, tenant: value, page: 1 }))}>
@@ -285,7 +293,7 @@ export default function UsersIdentityWorkspace() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.8fr_1fr]">
+      <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-[1.8fr_1fr]">
         <section className="rounded-xl border border-border bg-card overflow-hidden">
           {error && (
             <div className="m-3 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-700">
@@ -403,8 +411,8 @@ export default function UsersIdentityWorkspace() {
           <UserForm draft={draft} setDraft={setDraft} />
           {formError && <p className="text-xs text-red-600">{formError}</p>}
           <DialogFooter>
-            <button onClick={() => setAddOpen(false)} className="h-9 rounded-md border border-input px-3 text-sm">Cancel</button>
-            <button onClick={submitAdd} className="h-9 rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground">Create User</button>
+            <Button variant="outline" onClick={() => setAddOpen(false)} className="h-9">Cancel</Button>
+            <Button onClick={submitAdd} className="h-9">Create User</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -418,8 +426,8 @@ export default function UsersIdentityWorkspace() {
           <UserForm draft={draft} setDraft={setDraft} />
           {formError && <p className="text-xs text-red-600">{formError}</p>}
           <DialogFooter>
-            <button onClick={() => setEditOpen(false)} className="h-9 rounded-md border border-input px-3 text-sm">Cancel</button>
-            <button onClick={submitEdit} className="h-9 rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground">Save Changes</button>
+            <Button variant="outline" onClick={() => setEditOpen(false)} className="h-9">Cancel</Button>
+            <Button onClick={submitEdit} className="h-9">Save Changes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
