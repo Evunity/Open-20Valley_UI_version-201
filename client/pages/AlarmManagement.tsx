@@ -19,6 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import { usePlatformSettings } from "@/contexts/PlatformSettingsContext";
 import { formatPlatformDateTime } from "@/utils/platformDateTime";
 import { SearchBar } from "@/components/ui/search-bar";
+import SearchableDropdown from "@/components/SearchableDropdown";
 
 type Mode = "Live" | "Snapshot" | "Historical";
 
@@ -30,7 +31,13 @@ interface AlarmRow {
   status: "Open" | "Acknowledged" | "Assigned";
   assignment: string;
   site: string;
+  region: string;
   firstSeen: string;
+  lastUpdated: string;
+  serviceDomain: string;
+  technologyLayer: string;
+  description: string;
+  relatedAlarmCount: number;
 }
 
 interface AlarmDetails {
@@ -41,13 +48,24 @@ interface AlarmDetails {
   logs: string[];
 }
 
+const ASSIGNMENT_TEAMS = [
+  "NOC L1",
+  "NOC L2",
+  "RAN Team",
+  "Transport Ops",
+  "Core Ops",
+  "Field Support",
+  "Vendor Coordination",
+  "Incident Response",
+];
+
 const INITIAL_ROWS: AlarmRow[] = [
-  { id: "ALM-10021", severity: "Critical", vendor: "Ericsson", alarmName: "RAN Backhaul Link Down", status: "Open", assignment: "Unassigned", site: "Cairo-NR-01", firstSeen: "09:20" },
-  { id: "ALM-10022", severity: "Major", vendor: "Huawei", alarmName: "Packet Loss Spike", status: "Assigned", assignment: "NOC L2", site: "Cairo-TR-14", firstSeen: "09:25" },
-  { id: "ALM-10023", severity: "Minor", vendor: "Nokia", alarmName: "Cell Throughput Degradation", status: "Acknowledged", assignment: "RAN Team", site: "Giza-LTE-03", firstSeen: "09:33" },
-  { id: "ALM-10024", severity: "Critical", vendor: "Huawei", alarmName: "Core Session Failure Burst", status: "Open", assignment: "Unassigned", site: "Core-Cairo-02", firstSeen: "09:37" },
-  { id: "ALM-10025", severity: "Major", vendor: "Ericsson", alarmName: "Congestion Threshold Breach", status: "Assigned", assignment: "Transport Ops", site: "Cairo-TR-11", firstSeen: "09:40" },
-  { id: "ALM-10026", severity: "Minor", vendor: "Nokia", alarmName: "Neighbor Relation Mismatch", status: "Open", assignment: "Unassigned", site: "Alex-LTE-09", firstSeen: "09:44" },
+  { id: "ALM-10021", severity: "Critical", vendor: "Ericsson", alarmName: "RAN Backhaul Link Down", status: "Open", assignment: "Unassigned", site: "Cairo-NR-01", region: "Cairo East", firstSeen: "09:20", lastUpdated: "09:41", serviceDomain: "Mobile RAN", technologyLayer: "5G / Transport", description: "Backhaul link instability detected with repeated LOS events.", relatedAlarmCount: 4 },
+  { id: "ALM-10022", severity: "Major", vendor: "Huawei", alarmName: "Packet Loss Spike", status: "Assigned", assignment: "NOC L2", site: "Cairo-TR-14", region: "Cairo North", firstSeen: "09:25", lastUpdated: "09:46", serviceDomain: "IP Transport", technologyLayer: "MPLS Core", description: "Packet loss exceeded threshold on aggregation route.", relatedAlarmCount: 2 },
+  { id: "ALM-10023", severity: "Minor", vendor: "Nokia", alarmName: "Cell Throughput Degradation", status: "Acknowledged", assignment: "RAN Team", site: "Giza-LTE-03", region: "Giza", firstSeen: "09:33", lastUpdated: "09:49", serviceDomain: "Mobile Data", technologyLayer: "LTE Access", description: "Throughput drift identified against seasonal baseline.", relatedAlarmCount: 1 },
+  { id: "ALM-10024", severity: "Critical", vendor: "Huawei", alarmName: "Core Session Failure Burst", status: "Open", assignment: "Unassigned", site: "Core-Cairo-02", region: "Core DC", firstSeen: "09:37", lastUpdated: "09:52", serviceDomain: "Core Signaling", technologyLayer: "EPC / IMS", description: "Session setup failures spiked after signaling congestion.", relatedAlarmCount: 6 },
+  { id: "ALM-10025", severity: "Major", vendor: "Ericsson", alarmName: "Congestion Threshold Breach", status: "Assigned", assignment: "Transport Ops", site: "Cairo-TR-11", region: "Cairo South", firstSeen: "09:40", lastUpdated: "09:54", serviceDomain: "Transport", technologyLayer: "Microwave Backhaul", description: "Sustained congestion above configured guardrails.", relatedAlarmCount: 3 },
+  { id: "ALM-10026", severity: "Minor", vendor: "Nokia", alarmName: "Neighbor Relation Mismatch", status: "Open", assignment: "Unassigned", site: "Alex-LTE-09", region: "Alexandria", firstSeen: "09:44", lastUpdated: "09:57", serviceDomain: "RAN Optimization", technologyLayer: "LTE / SON", description: "Neighbor definitions out of sync after rollout.", relatedAlarmCount: 1 },
 ];
 
 export const AlarmManagement: React.FC = () => {
@@ -68,8 +86,9 @@ export const AlarmManagement: React.FC = () => {
   const [panelWidth, setPanelWidth] = useState(420);
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [details, setDetails] = useState<AlarmDetails | null>(null);
-  const [assignInput, setAssignInput] = useState("NOC L2");
+  const [assignSelection, setAssignSelection] = useState<string[]>([]);
   const [assignOpen, setAssignOpen] = useState(false);
+  const [assignSaving, setAssignSaving] = useState(false);
   const commandBarRef = useRef<HTMLDivElement | null>(null);
   const [commandBarWidth, setCommandBarWidth] = useState(0);
 
@@ -110,6 +129,18 @@ export const AlarmManagement: React.FC = () => {
     }, 300);
     return () => clearTimeout(t);
   }, [selectedAlarmId, selectedAlarm?.site, selectedAlarm?.status]);
+
+  useEffect(() => {
+    if (!selectedAlarm) {
+      setAssignSelection([]);
+      return;
+    }
+    if (selectedAlarm.assignment !== "Unassigned") {
+      setAssignSelection([selectedAlarm.assignment]);
+      return;
+    }
+    setAssignSelection([]);
+  }, [selectedAlarm]);
 
   useEffect(() => {
     const node = commandBarRef.current;
@@ -167,9 +198,19 @@ export const AlarmManagement: React.FC = () => {
       toast({ title: "Maintenance mode", description: "Write actions are disabled while maintenance mode is enabled." });
       return;
     }
-    setRows((prev) => prev.map((r) => (targetIds.includes(r.id) ? { ...r, assignment: assignInput, status: "Assigned" } : r)));
-    setAssignOpen(false);
-    toast({ title: "Assigned", description: `${targetIds.length} alarms assigned.` });
+    const selectedTeam = assignSelection[0];
+    if (!selectedTeam) {
+      toast({ title: "Select assignment", description: "Choose a team before applying assignment." });
+      return;
+    }
+    if (assignSaving) return;
+    setAssignSaving(true);
+    setTimeout(() => {
+      setRows((prev) => prev.map((r) => (targetIds.includes(r.id) ? { ...r, assignment: selectedTeam, status: "Assigned", lastUpdated: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) } : r)));
+      setAssignSaving(false);
+      setAssignOpen(false);
+      toast({ title: "Assigned", description: `${targetIds.length} alarms assigned to ${selectedTeam}.` });
+    }, 450);
   };
 
   const handleExport = () => {
@@ -384,14 +425,51 @@ export const AlarmManagement: React.FC = () => {
               ) : (
                 <>
                   <section className="rounded-lg border border-border p-2"><p className="text-[10px] font-semibold uppercase text-muted-foreground">Summary</p><p className="mt-1 text-xs">{details.summary}</p></section>
+                  <section className="rounded-lg border border-border p-2">
+                    <p className="text-[10px] font-semibold uppercase text-muted-foreground">Details</p>
+                    <dl className="mt-1 grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
+                      <DetailItem label="Alarm ID" value={selectedAlarm.id} />
+                      <DetailItem label="Alarm Name" value={selectedAlarm.alarmName} />
+                      <DetailItem label="Severity" value={selectedAlarm.severity} />
+                      <DetailItem label="Vendor" value={selectedAlarm.vendor} />
+                      <DetailItem label="Site" value={selectedAlarm.site} />
+                      <DetailItem label="Region / Location" value={selectedAlarm.region} />
+                      <DetailItem label="Status" value={selectedAlarm.status} />
+                      <DetailItem label="Assignee" value={selectedAlarm.assignment} />
+                      <DetailItem label="First Seen" value={selectedAlarm.firstSeen} />
+                      <DetailItem label="Last Updated" value={selectedAlarm.lastUpdated} />
+                      <DetailItem label="Affected Service" value={selectedAlarm.serviceDomain} />
+                      <DetailItem label="Technology / Layer" value={selectedAlarm.technologyLayer} />
+                      <DetailItem label="Related Alarms" value={`${selectedAlarm.relatedAlarmCount}`} />
+                    </dl>
+                    <p className="mt-2 text-[10px] font-semibold uppercase text-muted-foreground">Alarm Description</p>
+                    <p className="mt-1 text-xs text-foreground">{selectedAlarm.description}</p>
+                  </section>
                   <section className="rounded-lg border border-border p-2"><p className="text-[10px] font-semibold uppercase text-muted-foreground">Timeline</p><ul className="mt-1 list-disc space-y-1 pl-4 text-xs">{details.timeline.map((t) => <li key={t}>{t}</li>)}</ul></section>
                   <section className="rounded-lg border border-border p-2"><p className="text-[10px] font-semibold uppercase text-muted-foreground">Root Cause</p><p className="mt-1 text-xs">{details.rootCause}</p></section>
                   <section className="rounded-lg border border-border p-2">
                     <p className="text-[10px] font-semibold uppercase text-muted-foreground">Actions</p>
                     <ul className="mt-1 list-disc pl-4 text-xs">{details.actions.map((a) => <li key={a}>{a}</li>)}</ul>
-                    <div className="mt-2 grid grid-cols-2 gap-1">
-                      <input value={assignInput} onChange={(e) => setAssignInput(e.target.value)} className="h-8 rounded border border-border px-2 text-xs" />
-                      <button onClick={() => setRows((prev) => prev.map((r) => (r.id === selectedAlarm.id ? { ...r, assignment: assignInput, status: "Assigned" } : r)))} className="rounded border border-border text-xs">Apply Assign</button>
+                    <div className="mt-2 grid grid-cols-1 gap-2">
+                      <SearchableDropdown
+                        label="Assignment Team"
+                        showLabel={false}
+                        options={ASSIGNMENT_TEAMS}
+                        selected={assignSelection}
+                        onChange={setAssignSelection}
+                        multiSelect={false}
+                        searchable
+                        compact
+                        triggerPlaceholder="Search and select team"
+                        dropdownId={`alarm-assign-${selectedAlarm.id}`}
+                      />
+                      <button
+                        disabled={assignSaving || !assignSelection[0] || settings.maintenanceMode}
+                        onClick={() => handleAssignApply()}
+                        className="h-8 rounded border border-border px-2 text-xs disabled:opacity-40"
+                      >
+                        {assignSaving ? "Applying..." : "Apply Assign"}
+                      </button>
                     </div>
                   </section>
                   <section className="rounded-lg border border-border p-2"><p className="text-[10px] font-semibold uppercase text-muted-foreground">Logs</p><ul className="mt-1 space-y-1 text-xs">{details.logs.map((l) => <li key={l} className="font-mono text-[11px]">{l}</li>)}</ul></section>
@@ -406,10 +484,23 @@ export const AlarmManagement: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-md rounded-xl border border-border bg-card p-4">
             <h3 className="text-sm font-semibold">Assign Selected Alarms</h3>
-            <input value={assignInput} onChange={(e) => setAssignInput(e.target.value)} className="mt-2 h-9 w-full rounded border border-border px-2 text-sm" />
+            <div className="mt-2">
+              <SearchableDropdown
+                label="Assignment Team"
+                showLabel={false}
+                options={ASSIGNMENT_TEAMS}
+                selected={assignSelection}
+                onChange={setAssignSelection}
+                multiSelect={false}
+                searchable
+                compact
+                triggerPlaceholder="Search and select team"
+                dropdownId="alarm-assign-modal"
+              />
+            </div>
             <div className="mt-3 flex justify-end gap-2">
               <button onClick={() => setAssignOpen(false)} className="rounded border border-border px-3 py-1 text-xs">Cancel</button>
-              <button disabled={settings.maintenanceMode} onClick={handleAssignApply} className="rounded bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground disabled:opacity-40">Apply</button>
+              <button disabled={settings.maintenanceMode || assignSaving || !assignSelection[0]} onClick={handleAssignApply} className="rounded bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground disabled:opacity-40">{assignSaving ? "Applying..." : "Apply"}</button>
             </div>
           </div>
         </div>
@@ -418,3 +509,12 @@ export const AlarmManagement: React.FC = () => {
     </section>
   );
 };
+
+function DetailItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="space-y-0.5">
+      <dt className="text-[10px] uppercase text-muted-foreground">{label}</dt>
+      <dd className="truncate text-xs text-foreground" title={value}>{value}</dd>
+    </div>
+  );
+}
