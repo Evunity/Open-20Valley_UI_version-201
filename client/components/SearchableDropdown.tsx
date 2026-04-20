@@ -1,7 +1,7 @@
-import { useState, useRef, useEffect, useId } from "react";
+import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { ChevronDown, X, Search, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useDropdownManager } from "@/hooks/useDropdownManager";
 
 interface SearchableDropdownProps {
   label: string;
@@ -9,11 +9,15 @@ interface SearchableDropdownProps {
   selected: string[];
   onChange: (selected: string[]) => void;
   placeholder?: string;
+  triggerPlaceholder?: string;
   multiSelect?: boolean;
   disabledOptions?: string[];
   searchable?: boolean;
   compact?: boolean;
   dropdownId?: string;
+  showLabel?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 export default function SearchableDropdown({
@@ -22,34 +26,56 @@ export default function SearchableDropdown({
   selected,
   onChange,
   placeholder = "Search...",
+  triggerPlaceholder = "Select option...",
   multiSelect = true,
   disabledOptions = [],
   searchable = true,
   compact = false,
-  dropdownId,
+  showLabel = true,
+  open,
+  onOpenChange,
 }: SearchableDropdownProps) {
-  const generatedId = useId().replace(/:/g, "");
-  const uniqueId = dropdownId || `dropdown-${generatedId}`;
-  const { isOpen, toggle: toggleDropdown, close: closeDropdown } = useDropdownManager(uniqueId);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = open !== undefined;
+  const isOpen = isControlled ? open : internalOpen;
+
+  const setOpen = (nextOpen: boolean) => {
+    if (nextOpen === isOpen) return;
+    if (!isControlled) {
+      setInternalOpen(nextOpen);
+    }
+    onOpenChange?.(nextOpen);
+  };
+
+  const toggleDropdown = () => setOpen(!isOpen);
+  const closeDropdown = () => setOpen(false);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const [panelStyle, setPanelStyle] = useState<{ top: number; left: number; width: number }>({ top: 0, left: 0, width: 260 });
 
   const filteredOptions = options.filter((option) =>
     option.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   useEffect(() => {
+    if (!isOpen) return;
+
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      const clickedTrigger = dropdownRef.current?.contains(target);
+      const clickedPanel = panelRef.current?.contains(target);
+      if (!clickedTrigger && !clickedPanel) {
         closeDropdown();
       }
     }
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [closeDropdown]);
+  }, [isOpen, closeDropdown]);
 
   useEffect(() => {
     setHighlightedIndex(0);
@@ -63,6 +89,30 @@ export default function SearchableDropdown({
     document.addEventListener("keydown", onEscape);
     return () => document.removeEventListener("keydown", onEscape);
   }, [isOpen, closeDropdown]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const updatePanelPosition = () => {
+      const anchor = triggerRef.current;
+      if (!anchor) return;
+
+      const rect = anchor.getBoundingClientRect();
+      const desiredWidth = Math.max(rect.width, 220);
+      const width = Math.min(desiredWidth, window.innerWidth - 16);
+      const left = Math.min(Math.max(8, rect.left), window.innerWidth - width - 8);
+      const top = rect.bottom + 6;
+      setPanelStyle({ top, left, width });
+    };
+
+    updatePanelPosition();
+    window.addEventListener("resize", updatePanelPosition);
+    window.addEventListener("scroll", updatePanelPosition, true);
+    return () => {
+      window.removeEventListener("resize", updatePanelPosition);
+      window.removeEventListener("scroll", updatePanelPosition, true);
+    };
+  }, [isOpen]);
 
   const toggleOption = (option: string) => {
     if (disabledOptions.includes(option)) {
@@ -96,7 +146,7 @@ export default function SearchableDropdown({
 
   return (
     <div ref={dropdownRef} className="relative">
-      {label && (
+      {showLabel && label && (
         <label className={cn(
           "block typo-label",
           compact ? "text-[11px] mb-1.5" : "text-xs mb-2"
@@ -106,6 +156,7 @@ export default function SearchableDropdown({
       )}
 
       <div
+        ref={triggerRef}
         onClick={toggleDropdown}
         role="button"
         tabIndex={0}
@@ -182,12 +233,12 @@ export default function SearchableDropdown({
                 )}
               </div>
             ) : (
-              <span className="typo-input text-muted-foreground truncate">Select option...</span>
+              <span className="typo-input text-muted-foreground truncate">{triggerPlaceholder}</span>
             )
           ) : singleSelection ? (
             <span className="typo-input text-foreground truncate">{singleSelection}</span>
           ) : (
-            <span className="typo-input text-muted-foreground truncate">Select option...</span>
+            <span className="typo-input text-muted-foreground truncate">{triggerPlaceholder}</span>
           )}
         </div>
 
@@ -220,11 +271,12 @@ export default function SearchableDropdown({
         </div>
       </div>
 
-      {isOpen && (
-        <div className={cn(
-          "absolute top-full left-0 right-0 z-50 rounded-xl border border-border bg-card shadow-lg",
-          compact ? "mt-1.5" : "mt-2"
-        )}>
+      {isOpen && createPortal(
+        <div
+          ref={panelRef}
+          className="fixed z-[70] rounded-xl border border-border bg-card shadow-lg"
+          style={{ top: panelStyle.top, left: panelStyle.left, width: panelStyle.width }}
+        >
           {searchable && (
             <div className={cn("border-b border-border/50", compact ? "p-1.5" : "p-2")}>
               <div className={cn(
@@ -253,7 +305,7 @@ export default function SearchableDropdown({
             </div>
           )}
 
-          <div className="max-h-64 overflow-y-auto">
+          <div className="max-h-[280px] overflow-y-auto overscroll-contain">
             {filteredOptions.length > 0 ? (
               filteredOptions.map((option) => {
                 const isSelected = selected.includes(option);
@@ -297,7 +349,8 @@ export default function SearchableDropdown({
             )}
           </div>
 
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

@@ -1,8 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowDownUp, CalendarDays, Download, Search, UserSearch } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import SearchableDropdown from "@/components/SearchableDropdown";
 import DualMonthCalendar from "@/components/DualMonthCalendar";
@@ -51,6 +52,7 @@ type ActivityTab = "all-actions" | "user-investigation";
 type SortKey = "timestamp" | "userName" | "tenantName" | "module" | "actionCategory" | "result";
 
 type DateRange = { start: Date | null; end: Date | null };
+type FilterOverlay = "date" | "tenant" | "user" | "module" | "category" | "result" | null;
 
 const EVENTS: ActivityEvent[] = [
   { id: "evt-1", timestamp: "2026-04-20T12:10:00Z", userId: "u-1", userName: "Ahmed Khalil", email: "ahmed.k@telecom.eg", tenantId: "egypt", tenantName: "Egypt Operator", roleName: "Platform Admin", module: "Access Control", actionCategory: "Authentication", action: "login", targetType: "Session", targetName: "Web Console", result: "Success", ipAddress: "10.20.10.15", deviceInfo: "Windows 11 / Chrome", sessionId: "sess-8831", details: "SSO login with MFA" },
@@ -102,7 +104,7 @@ export default function ActivityAudit() {
   const [module, setModule] = useState("All Modules");
   const [category, setCategory] = useState<"All Categories" | ActivityCategory>("All Categories");
   const [result, setResult] = useState<"All Results" | ActivityResult>("All Results");
-  const [rangeOpen, setRangeOpen] = useState(false);
+  const [activeOverlay, setActiveOverlay] = useState<FilterOverlay>(null);
   const [dateRange, setDateRange] = useState<DateRange>({ start: null, end: null });
   const [sortKey, setSortKey] = useState<SortKey>("timestamp");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
@@ -176,9 +178,30 @@ export default function ActivityAudit() {
     setSortDirection("asc");
   };
 
-  const dateLabel = dateRange.start && dateRange.end
-    ? `${dateRange.start.toLocaleDateString()} - ${dateRange.end.toLocaleDateString()}`
-    : "Select date range";
+  const dateLabel = useMemo(() => {
+    if (!dateRange.start && !dateRange.end) return "Select date range";
+    const from = dateRange.start
+      ? dateRange.start.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+      : null;
+    const to = dateRange.end
+      ? dateRange.end.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+      : null;
+    if (from && to) return `${from} - ${to}`;
+    if (from) return `From ${from}`;
+    if (to) return `To ${to}`;
+    return "Select date range";
+  }, [dateRange.end, dateRange.start]);
+
+  useEffect(() => {
+    const onEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setActiveOverlay(null);
+      }
+    };
+
+    document.addEventListener("keydown", onEscape);
+    return () => document.removeEventListener("keydown", onEscape);
+  }, []);
 
   return (
     <div className="h-full min-h-0 w-full min-w-0 bg-background p-2">
@@ -229,63 +252,113 @@ export default function ActivityAudit() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 gap-2 xl:grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_1fr]">
+        <div className="grid grid-cols-1 gap-2 lg:grid-cols-[minmax(320px,2.4fr)_repeat(6,minmax(0,1fr))] lg:items-center">
           <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="Search user, email, action, target, module, session" className="h-9 pl-9" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="Search user, email, action, target, module, session" className="h-9 pl-9" />
           </div>
 
-          <div className="relative">
-            <Button variant="outline" className="h-9 w-full justify-start text-xs" onClick={() => setRangeOpen((prev) => !prev)}>
-              <CalendarDays className="h-4 w-4" /> {dateLabel}
-            </Button>
-            {rangeOpen && (
-              <div className="absolute left-0 top-full z-20 mt-2 w-[360px] rounded-lg border border-border bg-card p-3 shadow-lg">
+          <Popover open={activeOverlay === "date"} onOpenChange={(open) => setActiveOverlay(open ? "date" : null)}>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="h-9 w-full justify-start text-xs">
+                <CalendarDays className="h-4 w-4 shrink-0" />
+                <span className="truncate">{dateLabel}</span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[360px] p-3" align="start" sideOffset={8}>
+              <div className="space-y-3">
                 <DualMonthCalendar
                   startDate={dateRange.start}
                   endDate={dateRange.end}
-                  onDateSelect={(date, isStart) => setDateRange((prev) => ({ ...prev, [isStart ? "start" : "end"]: date }))}
-                  onRangeComplete={() => setRangeOpen(false)}
+                  onDateSelect={(date, isStart) => {
+                    if (isStart) {
+                      setDateRange({ start: date, end: null });
+                    } else {
+                      setDateRange((prev) => ({ start: prev.start, end: date }));
+                    }
+                  }}
+                  onRangeComplete={(start, end) => {
+                    setDateRange({ start, end });
+                    setActiveOverlay(null);
+                  }}
                 />
+                {dateRange.start && dateRange.end && (
+                  <div className="space-y-2 border-t border-border/50 pt-2">
+                    <p className="truncate text-xs text-muted-foreground">
+                      Selected: {dateLabel}
+                    </p>
+                    <button
+                      onClick={() => setDateRange({ start: null, end: null })}
+                      className="h-8 rounded border border-border px-2 text-xs text-muted-foreground hover:text-foreground"
+                    >
+                      Clear range
+                    </button>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            </PopoverContent>
+          </Popover>
 
           <SearchableDropdown
             label="Tenant(s)"
+            showLabel={false}
+            triggerPlaceholder="Select tenants"
             options={TENANTS}
             selected={selectedTenants}
             onChange={(values) => { setSelectedTenants(values); setPage(1); }}
             searchable
             compact
             dropdownId="audit-tenant-filter"
+            open={activeOverlay === "tenant"}
+            onOpenChange={(open) => setActiveOverlay(open ? "tenant" : null)}
           />
 
           {tab === "all-actions" ? (
             <SearchableDropdown
               label="User(s)"
+              showLabel={false}
+              triggerPlaceholder="Select users"
               options={users}
               selected={selectedUsers}
               onChange={(values) => { setSelectedUsers(values); setPage(1); }}
               searchable
               compact
               dropdownId="audit-user-filter"
+              open={activeOverlay === "user"}
+              onOpenChange={(open) => setActiveOverlay(open ? "user" : null)}
             />
           ) : (
-            <div className="rounded-xl border border-border bg-muted/20 px-3 py-2 text-xs text-muted-foreground">User locked by investigation mode</div>
+            <div className="inline-flex h-9 w-full items-center rounded-xl border border-border bg-muted/20 px-3 text-xs text-muted-foreground">
+              User locked by investigation mode
+            </div>
           )}
 
-          <Select value={module} onValueChange={(value) => { setModule(value); setPage(1); }}>
+          <Select
+            value={module}
+            onValueChange={(value) => { setModule(value); setPage(1); setActiveOverlay(null); }}
+            open={activeOverlay === "module"}
+            onOpenChange={(open) => setActiveOverlay(open ? "module" : null)}
+          >
             <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>{modules.map((option) => <SelectItem key={option} value={option}>{option}</SelectItem>)}</SelectContent>
           </Select>
 
-          <Select value={category} onValueChange={(value) => { setCategory(value as typeof category); setPage(1); }}>
+          <Select
+            value={category}
+            onValueChange={(value) => { setCategory(value as typeof category); setPage(1); setActiveOverlay(null); }}
+            open={activeOverlay === "category"}
+            onOpenChange={(open) => setActiveOverlay(open ? "category" : null)}
+          >
             <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>{categories.map((option) => <SelectItem key={option} value={option}>{option}</SelectItem>)}</SelectContent>
           </Select>
 
-          <Select value={result} onValueChange={(value) => { setResult(value as typeof result); setPage(1); }}>
+          <Select
+            value={result}
+            onValueChange={(value) => { setResult(value as typeof result); setPage(1); setActiveOverlay(null); }}
+            open={activeOverlay === "result"}
+            onOpenChange={(open) => setActiveOverlay(open ? "result" : null)}
+          >
             <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>{RESULTS.map((option) => <SelectItem key={option} value={option}>{option}</SelectItem>)}</SelectContent>
           </Select>
@@ -317,43 +390,59 @@ export default function ActivityAudit() {
               </Button>
             </div>
 
-            <div className="overflow-x-auto rounded-lg border border-border">
-              <table className="w-full table-fixed text-sm">
+            <div className="rounded-lg border border-border bg-card">
+              <div className="overflow-x-auto">
+                <table className="min-w-[1660px] w-full table-fixed text-sm">
+                  <colgroup>
+                    <col className="w-[140px]" />
+                    <col className="w-[120px]" />
+                    <col className="w-[190px]" />
+                    <col className="w-[140px]" />
+                    <col className="w-[120px]" />
+                    <col className="w-[130px]" />
+                    <col className="w-[170px]" />
+                    <col className="w-[150px]" />
+                    <col className="w-[110px]" />
+                    <col className="w-[110px]" />
+                    <col className="w-[170px]" />
+                    <col className="w-[105px]" />
+                    <col className="w-[155px]" />
+                  </colgroup>
                 <thead className="sticky top-0 z-10 bg-muted/40">
                   <tr>
-                    <HeaderCell label="Timestamp" className="w-[140px]" sortable onSort={() => toggleSort("timestamp")} />
-                    <HeaderCell label="User" className="w-[130px]" sortable onSort={() => toggleSort("userName")} />
-                    <HeaderCell label="Email" className="w-[170px]" />
-                    <HeaderCell label="Tenant / Company" className="w-[130px]" sortable onSort={() => toggleSort("tenantName")} />
-                    <HeaderCell label="Role" className="w-[120px]" />
-                    <HeaderCell label="Category" className="w-[120px]" sortable onSort={() => toggleSort("actionCategory")} />
-                    <HeaderCell label="Action" className="w-[160px]" />
-                    <HeaderCell label="Target" className="w-[150px]" />
-                    <HeaderCell label="Module" className="w-[120px]" sortable onSort={() => toggleSort("module")} />
-                    <HeaderCell label="Result" className="w-[90px]" sortable onSort={() => toggleSort("result")} />
-                    <HeaderCell label="IP / Device" className="w-[180px]" />
-                    <HeaderCell label="Session" className="w-[100px]" />
-                    <HeaderCell label="Details / View" className="sticky right-0 w-[110px] bg-muted/40" />
+                    <HeaderCell label="Timestamp" sortable onSort={() => toggleSort("timestamp")} />
+                    <HeaderCell label="User" sortable onSort={() => toggleSort("userName")} />
+                    <HeaderCell label="Email" />
+                    <HeaderCell label="Tenant / Company" sortable onSort={() => toggleSort("tenantName")} />
+                    <HeaderCell label="Role" />
+                    <HeaderCell label="Category" sortable onSort={() => toggleSort("actionCategory")} />
+                    <HeaderCell label="Action" />
+                    <HeaderCell label="Target" />
+                    <HeaderCell label="Module" sortable onSort={() => toggleSort("module")} />
+                    <HeaderCell label="Result" sortable onSort={() => toggleSort("result")} />
+                    <HeaderCell label="IP / Device" />
+                    <HeaderCell label="Session" />
+                    <HeaderCell label="Details / View" />
                   </tr>
                 </thead>
                 <tbody>
                   {paginatedEvents.map((event) => (
                     <tr key={event.id} className="cursor-pointer border-t border-border hover:bg-muted/20" onClick={() => setActiveRow(event)}>
-                      <td className="truncate px-2 py-2 text-xs text-muted-foreground" title={new Date(event.timestamp).toLocaleString()}>{new Date(event.timestamp).toLocaleString()}</td>
-                      <td className="truncate px-2 py-2 font-medium" title={event.userName}>{event.userName}</td>
-                      <td className="truncate px-2 py-2 text-muted-foreground" title={event.email}>{event.email}</td>
-                      <td className="truncate px-2 py-2 text-muted-foreground" title={event.tenantName}>{event.tenantName}</td>
-                      <td className="truncate px-2 py-2" title={event.roleName}>{event.roleName}</td>
-                      <td className="truncate px-2 py-2 text-muted-foreground" title={event.actionCategory}>{event.actionCategory}</td>
-                      <td className="truncate px-2 py-2" title={event.action}>{event.action}</td>
-                      <td className="truncate px-2 py-2 text-muted-foreground" title={event.targetName || event.targetType}>{event.targetName || event.targetType}</td>
-                      <td className="truncate px-2 py-2 text-muted-foreground" title={event.module}>{event.module}</td>
+                      <td className="px-2 py-2 text-xs text-muted-foreground"><span className="block truncate" title={new Date(event.timestamp).toLocaleString()}>{new Date(event.timestamp).toLocaleString()}</span></td>
+                      <td className="px-2 py-2 font-medium"><span className="block truncate" title={event.userName}>{event.userName}</span></td>
+                      <td className="px-2 py-2 text-muted-foreground"><span className="block truncate" title={event.email}>{event.email}</span></td>
+                      <td className="px-2 py-2 text-muted-foreground"><span className="block truncate" title={event.tenantName}>{event.tenantName}</span></td>
+                      <td className="px-2 py-2"><span className="block truncate" title={event.roleName}>{event.roleName}</span></td>
+                      <td className="px-2 py-2 text-muted-foreground"><span className="block truncate" title={event.actionCategory}>{event.actionCategory}</span></td>
+                      <td className="px-2 py-2"><span className="block truncate" title={event.action}>{event.action}</span></td>
+                      <td className="px-2 py-2 text-muted-foreground"><span className="block truncate" title={event.targetName || event.targetType}>{event.targetName || event.targetType}</span></td>
+                      <td className="px-2 py-2 text-muted-foreground"><span className="block truncate" title={event.module}>{event.module}</span></td>
                       <td className="px-2 py-2">
                         <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-semibold", event.result === "Success" && "bg-green-500/15 text-green-700", event.result === "Failed" && "bg-red-500/15 text-red-700", event.result === "Denied" && "bg-amber-500/15 text-amber-700", event.result === "Pending" && "bg-blue-500/15 text-blue-700")}>{event.result}</span>
                       </td>
-                      <td className="truncate px-2 py-2 text-xs text-muted-foreground" title={`${event.ipAddress} / ${event.deviceInfo}`}>{event.ipAddress} / {event.deviceInfo}</td>
-                      <td className="truncate px-2 py-2 font-mono text-xs text-muted-foreground" title={event.sessionId}>{event.sessionId}</td>
-                      <td className="sticky right-0 bg-card px-2 py-2"><Button variant="ghost" size="sm" className="h-7 text-xs text-primary">View</Button></td>
+                      <td className="px-2 py-2 text-xs text-muted-foreground"><span className="block truncate" title={`${event.ipAddress} / ${event.deviceInfo}`}>{event.ipAddress} / {event.deviceInfo}</span></td>
+                      <td className="px-2 py-2 font-mono text-xs text-muted-foreground"><span className="block truncate" title={event.sessionId}>{event.sessionId}</span></td>
+                      <td className="px-2 py-2"><Button variant="ghost" size="sm" className="h-7 text-xs text-primary">View</Button></td>
                     </tr>
                   ))}
                   {paginatedEvents.length === 0 && (
@@ -361,13 +450,14 @@ export default function ActivityAudit() {
                   )}
                 </tbody>
               </table>
-            </div>
+              </div>
 
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>Page {page} of {totalPages}</span>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((prev) => Math.max(1, prev - 1))}>Prev</Button>
-                <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}>Next</Button>
+              <div className="flex items-center justify-between border-t border-border px-3 py-2 text-xs text-muted-foreground">
+                <span>Page {page} of {totalPages}</span>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((prev) => Math.max(1, prev - 1))}>Prev</Button>
+                  <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}>Next</Button>
+                </div>
               </div>
             </div>
           </>
@@ -405,13 +495,13 @@ export default function ActivityAudit() {
 
 function HeaderCell({ label, sortable = false, onSort, className }: { label: string; sortable?: boolean; onSort?: () => void; className?: string }) {
   return (
-    <th className={cn("px-2 py-2 text-left text-xs font-semibold text-muted-foreground", className)}>
+    <th className={cn("px-2 py-2 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap", className)}>
       {sortable ? (
-        <button onClick={onSort} className="inline-flex items-center gap-1 hover:text-foreground">
-          {label}
+        <button onClick={onSort} className="inline-flex max-w-full items-center gap-1 hover:text-foreground">
+          <span className="truncate">{label}</span>
           <ArrowDownUp className="h-3.5 w-3.5" />
         </button>
-      ) : label}
+      ) : <span className="truncate">{label}</span>}
     </th>
   );
 }
