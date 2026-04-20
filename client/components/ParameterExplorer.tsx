@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Search, Filter, ChevronDown, Clock, User } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { Search, ChevronDown } from 'lucide-react';
 import SearchableDropdown from './SearchableDropdown';
 
 interface ParameterExplorerProps {
@@ -7,74 +7,87 @@ interface ParameterExplorerProps {
   onTargetChange: (target: any) => void;
 }
 
-interface Parameter {
+type ParameterCategory = 'RF' | 'Transport' | 'IP' | 'Power' | 'System';
+type ParameterTechnology = '2G' | '3G' | '4G' | '5G' | 'ORAN';
+type ParameterVendor = 'Huawei' | 'Nokia' | 'Ericsson' | 'ZTE';
+
+interface OutputColumn {
+  id: string;
+  parameterId: string;
   name: string;
-  currentValue: string;
-  defaultValue: string;
-  category: 'RF' | 'Transport' | 'IP' | 'Power' | 'System';
-  lastModified: string;
-  modifiedBy: string;
+  dataType: string;
+  unit: string;
   description: string;
-  technology: '2G' | '3G' | '4G' | '5G' | 'ORAN';
-  vendor: 'Huawei' | 'Nokia' | 'Ericsson' | 'ZTE';
+}
+
+interface Parameter {
+  id: string;
+  name: string;
+  description: string;
+  vendor: ParameterVendor;
+  technology: ParameterTechnology;
+  category: ParameterCategory;
+  command: string;
+  outputColumns: OutputColumn[];
 }
 
 const MOCK_PARAMETERS: Parameter[] = [
   {
+    id: 'param-hw-tx-power',
     name: 'TX Power',
-    currentValue: '40',
-    defaultValue: '43',
+    description: 'Defines per-cell transmission power policy used by the RAN scheduler and radio resource control procedures for balancing coverage and interference.',
     category: 'RF',
-    lastModified: '2024-12-02 14:30',
-    modifiedBy: 'Engineer.A',
-    description: 'Transmit power level in dBm',
+    command: 'LST TXPOWER: CELLID=<CELL_ID>;',
     technology: '4G',
-    vendor: 'Huawei'
+    vendor: 'Huawei',
+    outputColumns: [
+      { id: 'out-1', parameterId: 'param-hw-tx-power', name: 'CELL_ID', dataType: 'Integer', unit: '-', description: 'Unique cell identifier.' },
+      { id: 'out-2', parameterId: 'param-hw-tx-power', name: 'TX_POWER', dataType: 'Float', unit: 'dBm', description: 'Configured transmission power level.' },
+      { id: 'out-3', parameterId: 'param-hw-tx-power', name: 'POWER_PROFILE', dataType: 'String', unit: '-', description: 'Assigned power profile or template name.' },
+    ],
   },
   {
-    name: 'Cell Barring',
-    currentValue: 'False',
-    defaultValue: 'False',
+    id: 'param-nk-cell-barring',
+    name: 'Cell Barring Policy',
+    description: 'Controls access barring behavior to prevent user equipment from camping during maintenance, load shedding, or incident isolation.',
     category: 'RF',
-    lastModified: '2024-11-15 09:00',
-    modifiedBy: 'System',
-    description: 'Whether cell is barred from access',
+    command: 'show cell barring-policy',
     technology: '5G',
-    vendor: 'Nokia'
+    vendor: 'Nokia',
+    outputColumns: [
+      { id: 'out-4', parameterId: 'param-nk-cell-barring', name: 'NRCELL_ID', dataType: 'String', unit: '-', description: 'NR cell managed object identifier.' },
+      { id: 'out-5', parameterId: 'param-nk-cell-barring', name: 'BARRING_STATE', dataType: 'Boolean', unit: '-', description: 'True when access barring is enabled.' },
+      { id: 'out-6', parameterId: 'param-nk-cell-barring', name: 'BARRING_REASON', dataType: 'String', unit: '-', description: 'Operator reason code associated with barring policy.' },
+    ],
   },
   {
-    name: 'DL Bandwidth',
-    currentValue: '20',
-    defaultValue: '20',
+    id: 'param-er-transport-qos',
+    name: 'Transport QoS Profile',
+    description: 'Defines QoS class mapping and scheduling behavior for transport bearer handling between RAN and core-facing interfaces.',
     category: 'Transport',
-    lastModified: '2024-10-20 16:45',
-    modifiedBy: 'Engineer.B',
-    description: 'Downlink bandwidth in MHz',
+    command: 'get transport qos-profile',
     technology: '4G',
-    vendor: 'Ericsson'
+    vendor: 'Ericsson',
+    outputColumns: [
+      { id: 'out-7', parameterId: 'param-er-transport-qos', name: 'PROFILE_ID', dataType: 'String', unit: '-', description: 'QoS profile unique identifier.' },
+      { id: 'out-8', parameterId: 'param-er-transport-qos', name: 'QCI', dataType: 'Integer', unit: '-', description: 'Mapped QoS Class Identifier.' },
+      { id: 'out-9', parameterId: 'param-er-transport-qos', name: 'MAX_BITRATE', dataType: 'Float', unit: 'Mbps', description: 'Maximum transport bitrate threshold.' },
+    ],
   },
   {
-    name: 'IP Address',
-    currentValue: '192.168.1.100',
-    defaultValue: '192.168.1.1',
+    id: 'param-zte-ip-route-policy',
+    name: 'IP Route Policy',
+    description: 'Defines static route distribution and preference weighting for management and service plane destination reachability.',
     category: 'IP',
-    lastModified: '2024-12-01 11:20',
-    modifiedBy: 'Network.Admin',
-    description: 'Management IP address',
+    command: 'show ip route-policy',
     technology: '5G',
-    vendor: 'ZTE'
+    vendor: 'ZTE',
+    outputColumns: [
+      { id: 'out-10', parameterId: 'param-zte-ip-route-policy', name: 'POLICY_NAME', dataType: 'String', unit: '-', description: 'Configured route policy name.' },
+      { id: 'out-11', parameterId: 'param-zte-ip-route-policy', name: 'DESTINATION_PREFIX', dataType: 'String', unit: '-', description: 'Destination prefix covered by policy.' },
+      { id: 'out-12', parameterId: 'param-zte-ip-route-policy', name: 'PREFERENCE', dataType: 'Integer', unit: '-', description: 'Route preference priority value.' },
+    ],
   },
-  {
-    name: 'Power Supply Status',
-    currentValue: 'Active',
-    defaultValue: 'Standby',
-    category: 'Power',
-    lastModified: '2024-11-30 08:00',
-    modifiedBy: 'System',
-    description: 'Primary power supply status',
-    technology: '2G',
-    vendor: 'Huawei'
-  }
 ];
 
 export const ParameterExplorer: React.FC<ParameterExplorerProps> = ({ selectedTarget }) => {
@@ -82,172 +95,160 @@ export const ParameterExplorer: React.FC<ParameterExplorerProps> = ({ selectedTa
   const [selectedCategory, setSelectedCategory] = useState<string[]>([]);
   const [selectedTechnology, setSelectedTechnology] = useState<string[]>([]);
   const [selectedVendor, setSelectedVendor] = useState<string[]>([]);
-  const [expandedParam, setExpandedParam] = useState<string | null>(null);
+  const [expandedParamId, setExpandedParamId] = useState<string | null>(null);
+  const [parameterDescriptions, setParameterDescriptions] = useState<Record<string, string>>(
+    Object.fromEntries(MOCK_PARAMETERS.map((parameter) => [parameter.id, parameter.description])),
+  );
 
   const categories = ['RF', 'Transport', 'IP', 'Power', 'System'];
   const technologies = ['2G', '3G', '4G', '5G', 'ORAN'];
   const vendors = ['Huawei', 'Nokia', 'Ericsson', 'ZTE'];
 
-  const filteredParams = MOCK_PARAMETERS.filter(param => {
-    const matchesSearch = param.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         param.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = !selectedCategory.length || param.category === selectedCategory[0];
-    const matchesTechnology = !selectedTechnology.length || param.technology === selectedTechnology[0];
-    const matchesVendor = !selectedVendor.length || param.vendor === selectedVendor[0];
-    return matchesSearch && matchesCategory && matchesTechnology && matchesVendor;
-  });
+  const canEditDescription = Boolean((selectedTarget as { canEditParameters?: boolean } | undefined)?.canEditParameters ?? true);
+
+  const filteredParams = useMemo(() => {
+    return MOCK_PARAMETERS.filter((parameter) => {
+      const effectiveDescription = parameterDescriptions[parameter.id] ?? parameter.description;
+      const matchesSearch =
+        parameter.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        effectiveDescription.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        parameter.command.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCategory = !selectedCategory.length || parameter.category === selectedCategory[0];
+      const matchesTechnology = !selectedTechnology.length || parameter.technology === selectedTechnology[0];
+      const matchesVendor = !selectedVendor.length || parameter.vendor === selectedVendor[0];
+      return matchesSearch && matchesCategory && matchesTechnology && matchesVendor;
+    });
+  }, [parameterDescriptions, searchQuery, selectedCategory, selectedTechnology, selectedVendor]);
 
   return (
-    <div className="flex flex-col h-full gap-4 p-4">
-      {/* Search & Filters */}
+    <div className="flex h-full flex-col gap-4 p-4">
       <div className="space-y-3">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
           <input
             type="text"
-            placeholder="Search parameters by name or description..."
+            placeholder="Search parameter schema by name, description, or command..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onChange={(event) => setSearchQuery(event.target.value)}
+            className="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
         <div className="grid grid-cols-3 gap-3">
-          <SearchableDropdown
-            label="All Categories"
-            options={categories}
-            selected={selectedCategory}
-            onChange={setSelectedCategory}
-            placeholder="All Categories"
-            multiSelect={false}
-            searchable={true}
-            compact={true}
-          />
-
-          <SearchableDropdown
-            label="All Technologies"
-            options={technologies}
-            selected={selectedTechnology}
-            onChange={setSelectedTechnology}
-            placeholder="All Technologies"
-            multiSelect={false}
-            searchable={true}
-            compact={true}
-          />
-
-          <SearchableDropdown
-            label="All Vendors"
-            options={vendors}
-            selected={selectedVendor}
-            onChange={setSelectedVendor}
-            placeholder="All Vendors"
-            multiSelect={false}
-            searchable={true}
-            compact={true}
-          />
+          <SearchableDropdown label="All Categories" options={categories} selected={selectedCategory} onChange={setSelectedCategory} placeholder="All Categories" multiSelect={false} searchable compact />
+          <SearchableDropdown label="All Technologies" options={technologies} selected={selectedTechnology} onChange={setSelectedTechnology} placeholder="All Technologies" multiSelect={false} searchable compact />
+          <SearchableDropdown label="All Vendors" options={vendors} selected={selectedVendor} onChange={setSelectedVendor} placeholder="All Vendors" multiSelect={false} searchable compact />
         </div>
       </div>
 
-      {/* Parameters List */}
-      <div className="flex-1 overflow-y-auto space-y-2">
+      <div className="flex-1 space-y-2 overflow-y-auto">
         {filteredParams.length === 0 ? (
-          <div className="flex items-center justify-center h-32 text-gray-500">
+          <div className="flex h-32 items-center justify-center text-gray-500">
             <p className="text-sm">No parameters found matching your criteria</p>
           </div>
         ) : (
-          filteredParams.map((param) => (
-            <div key={param.name} className="border border-gray-200 rounded-lg overflow-hidden">
-              <button
-                onClick={() => setExpandedParam(expandedParam === param.name ? null : param.name)}
-                className="w-full p-3 bg-white hover:bg-gray-50 flex items-center justify-between transition"
-              >
-                <div className="text-left flex-1">
-                  <div className="flex items-center gap-2">
-                    <p className="font-semibold text-gray-900">{param.name}</p>
-                    <span className={`text-xs px-2 py-1 rounded font-semibold ${
-                      param.category === 'RF' ? 'bg-purple-100 text-purple-800' :
-                      param.category === 'Transport' ? 'bg-blue-100 text-blue-800' :
-                      param.category === 'IP' ? 'bg-green-100 text-green-800' :
-                      param.category === 'Power' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {param.category}
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-600 mt-1">{param.description}</p>
-                </div>
-                <ChevronDown className={`w-5 h-5 text-gray-400 transition ${
-                  expandedParam === param.name ? 'rotate-180' : ''
-                }`} />
-              </button>
+          filteredParams.map((parameter) => {
+            const effectiveDescription = parameterDescriptions[parameter.id] ?? parameter.description;
+            const isExpanded = expandedParamId === parameter.id;
 
-              {expandedParam === param.name && (
-                <div className="p-4 bg-gray-50 border-t border-gray-200 space-y-3">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-xs font-semibold text-gray-700 mb-1">Current Value</p>
-                      <p className="text-sm font-mono bg-white border border-gray-200 rounded px-3 py-2">
-                        {param.currentValue}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-gray-700 mb-1">Default Value</p>
-                      <p className="text-sm font-mono bg-white border border-gray-200 rounded px-3 py-2">
-                        {param.defaultValue}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-xs font-semibold text-muted-foreground mb-1">Technology</p>
-                      <p className="text-sm font-semibold text-foreground bg-card border border-border rounded px-3 py-2">
-                        {param.technology}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-muted-foreground mb-1">Vendor</p>
-                      <p className="text-sm font-semibold text-foreground bg-card border border-border rounded px-3 py-2">
-                        {param.vendor}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
+            return (
+              <div key={parameter.id} className="overflow-hidden rounded-lg border border-gray-200">
+                <button
+                  onClick={() => setExpandedParamId(isExpanded ? null : parameter.id)}
+                  className="flex w-full items-center justify-between bg-white p-3 text-left transition hover:bg-gray-50"
+                >
+                  <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-xs text-muted-foreground">Last Modified</p>
-                        <p className="text-sm font-semibold text-foreground">{param.lastModified}</p>
-                      </div>
+                      <p className="font-semibold text-gray-900">{parameter.name}</p>
+                      <span className="rounded bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-800">{parameter.category}</span>
+                      <span className="rounded bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-800">{parameter.vendor}</span>
+                      <span className="rounded bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-800">{parameter.technology}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <User className="w-4 h-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-xs text-muted-foreground">Modified By</p>
-                        <p className="text-sm font-semibold text-foreground">{param.modifiedBy}</p>
-                      </div>
-                    </div>
+                    <p className="mt-1 text-sm text-gray-600">{effectiveDescription}</p>
                   </div>
+                  <ChevronDown className={`h-5 w-5 text-gray-400 transition ${isExpanded ? 'rotate-180' : ''}`} />
+                </button>
 
-                  {param.currentValue !== param.defaultValue && (
-                    <div className="p-2 surface-warning border rounded">
-                      <p className="text-xs text-current">
-                        <strong>⚠️</strong> This parameter has been modified from default
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          ))
+                {isExpanded && (
+                  <div className="space-y-4 border-t border-gray-200 bg-gray-50 p-4">
+                    <section className="space-y-3">
+                      <h4 className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Section 1 — Parameter Information</h4>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="mb-1 text-xs font-semibold text-muted-foreground">Name</p>
+                          <p className="rounded border border-border bg-card px-3 py-2 text-sm font-semibold text-foreground">{parameter.name}</p>
+                        </div>
+                        <div>
+                          <p className="mb-1 text-xs font-semibold text-muted-foreground">Category</p>
+                          <p className="rounded border border-border bg-card px-3 py-2 text-sm font-semibold text-foreground">{parameter.category}</p>
+                        </div>
+                        <div>
+                          <p className="mb-1 text-xs font-semibold text-muted-foreground">Vendor</p>
+                          <p className="rounded border border-border bg-card px-3 py-2 text-sm font-semibold text-foreground">{parameter.vendor}</p>
+                        </div>
+                        <div>
+                          <p className="mb-1 text-xs font-semibold text-muted-foreground">Technology</p>
+                          <p className="rounded border border-border bg-card px-3 py-2 text-sm font-semibold text-foreground">{parameter.technology}</p>
+                        </div>
+                      </div>
+
+                      <div>
+                        <p className="mb-1 text-xs font-semibold text-muted-foreground">Command</p>
+                        <p className="rounded border border-border bg-card px-3 py-2 font-mono text-sm text-foreground">{parameter.command}</p>
+                      </div>
+
+                      <div>
+                        <p className="mb-1 text-xs font-semibold text-muted-foreground">Description</p>
+                        {canEditDescription ? (
+                          <textarea
+                            value={effectiveDescription}
+                            onChange={(event) => setParameterDescriptions((prev) => ({ ...prev, [parameter.id]: event.target.value }))}
+                            className="min-h-[90px] w-full rounded border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+                          />
+                        ) : (
+                          <p className="rounded border border-border bg-card px-3 py-2 text-sm text-foreground">{effectiveDescription}</p>
+                        )}
+                      </div>
+                    </section>
+
+                    <section className="space-y-2">
+                      <h4 className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Section 2 — Output Columns</h4>
+
+                      <div className="overflow-x-auto rounded border border-border bg-card">
+                        <table className="min-w-full text-left text-sm">
+                          <thead className="bg-muted/50">
+                            <tr>
+                              <th className="px-3 py-2 font-semibold text-muted-foreground">Column Name</th>
+                              <th className="px-3 py-2 font-semibold text-muted-foreground">Data Type</th>
+                              <th className="px-3 py-2 font-semibold text-muted-foreground">Unit</th>
+                              <th className="px-3 py-2 font-semibold text-muted-foreground">Description</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {parameter.outputColumns.map((column) => (
+                              <tr key={column.id} className="border-t border-border">
+                                <td className="px-3 py-2 font-mono text-foreground">{column.name}</td>
+                                <td className="px-3 py-2 text-foreground">{column.dataType}</td>
+                                <td className="px-3 py-2 text-foreground">{column.unit}</td>
+                                <td className="px-3 py-2 text-muted-foreground">{column.description}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                )}
+              </div>
+            );
+          })
         )}
       </div>
 
-      {/* Summary */}
-      <div className="surface-info border rounded-lg p-3">
+      <div className="rounded-lg border p-3 surface-info">
         <p className="text-sm text-current">
-          Showing <strong>{filteredParams.length}</strong> of <strong>{MOCK_PARAMETERS.length}</strong> parameters
+          Showing <strong>{filteredParams.length}</strong> of <strong>{MOCK_PARAMETERS.length}</strong> parameter definitions
         </p>
       </div>
     </div>
