@@ -1,12 +1,14 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowDownUp, CalendarDays, Download, Search, UserSearch } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import SearchableDropdown from "@/components/SearchableDropdown";
-import DualMonthCalendar from "@/components/DualMonthCalendar";
 import { cn } from "@/lib/utils";
+import type { DateRange as CalendarDateRange } from "react-day-picker";
 
 type ActivityResult = "Success" | "Failed" | "Denied" | "Pending";
 type ActivityCategory =
@@ -109,7 +111,6 @@ export default function ActivityAudit() {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(1);
   const [activeRow, setActiveRow] = useState<ActivityEvent | null>(null);
-  const datePopoverRef = useRef<HTMLDivElement>(null);
 
   const users = useMemo(() => Array.from(new Set(EVENTS.map((event) => event.userName))), []);
   const modules = useMemo(() => ["All Modules", ...Array.from(new Set(EVENTS.map((event) => event.module)))], []);
@@ -181,19 +182,10 @@ export default function ActivityAudit() {
   const dateLabel = dateRange.start && dateRange.end
     ? `${dateRange.start.toLocaleDateString()} - ${dateRange.end.toLocaleDateString()}`
     : "Select date range";
-
-  useEffect(() => {
-    if (activeOverlay !== "date") return;
-
-    const onOutsidePointer = (event: MouseEvent) => {
-      if (!datePopoverRef.current?.contains(event.target as Node)) {
-        setActiveOverlay(null);
-      }
-    };
-
-    document.addEventListener("mousedown", onOutsidePointer);
-    return () => document.removeEventListener("mousedown", onOutsidePointer);
-  }, [activeOverlay]);
+  const selectedCalendarRange: CalendarDateRange | undefined =
+    dateRange.start || dateRange.end
+      ? { from: dateRange.start ?? undefined, to: dateRange.end ?? undefined }
+      : undefined;
 
   useEffect(() => {
     const onEscape = (event: KeyboardEvent) => {
@@ -261,25 +253,30 @@ export default function ActivityAudit() {
               <Input value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="Search user, email, action, target, module, session" className="h-9 pl-9" />
           </div>
 
-          <div ref={datePopoverRef} className="relative">
-            <Button
-              variant="outline"
-              className="h-9 w-full justify-start text-xs"
-              onClick={() => setActiveOverlay((prev) => (prev === "date" ? null : "date"))}
-            >
-              <CalendarDays className="h-4 w-4" /> {dateLabel}
-            </Button>
-            {activeOverlay === "date" && (
-              <div className="absolute left-0 top-full z-30 mt-2 w-[360px] rounded-lg border border-border bg-card p-3 shadow-lg">
-                <DualMonthCalendar
-                  startDate={dateRange.start}
-                  endDate={dateRange.end}
-                  onDateSelect={(date, isStart) => setDateRange((prev) => ({ ...prev, [isStart ? "start" : "end"]: date }))}
-                  onRangeComplete={() => setActiveOverlay(null)}
-                />
-              </div>
-            )}
-          </div>
+          <Popover open={activeOverlay === "date"} onOpenChange={(open) => setActiveOverlay(open ? "date" : null)}>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="h-9 w-full justify-start text-xs">
+                <CalendarDays className="h-4 w-4" /> {dateLabel}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-3" align="start" sideOffset={8}>
+              <Calendar
+                mode="range"
+                numberOfMonths={1}
+                selected={selectedCalendarRange}
+                onSelect={(range) => {
+                  setDateRange({
+                    start: range?.from ?? null,
+                    end: range?.to ?? null,
+                  });
+                  if (range?.from && range?.to) {
+                    setActiveOverlay(null);
+                  }
+                }}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
 
           <SearchableDropdown
             label="Tenant(s)"
