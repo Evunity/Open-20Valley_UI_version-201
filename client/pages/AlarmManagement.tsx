@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { CheckCheck, Download, MessageSquare, MoreHorizontal, UserPlus } from "lucide-react";
+import { MoreHorizontal, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -69,9 +69,7 @@ export const AlarmManagement: React.FC = () => {
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [details, setDetails] = useState<AlarmDetails | null>(null);
   const [assignInput, setAssignInput] = useState("NOC L2");
-  const [commentInput, setCommentInput] = useState("");
   const [assignOpen, setAssignOpen] = useState(false);
-  const [commentOpen, setCommentOpen] = useState(false);
   const commandBarRef = useRef<HTMLDivElement | null>(null);
   const [commandBarWidth, setCommandBarWidth] = useState(0);
 
@@ -124,6 +122,16 @@ export const AlarmManagement: React.FC = () => {
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    const onEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setSelectedAlarmId(null);
+      }
+    };
+    document.addEventListener("keydown", onEscape);
+    return () => document.removeEventListener("keydown", onEscape);
+  }, []);
+
   const onRowKeyDown = (event: React.KeyboardEvent, index: number) => {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
@@ -138,13 +146,11 @@ export const AlarmManagement: React.FC = () => {
   const showView = commandBarWidth >= 1180;
   const showSeverity = commandBarWidth >= 1000;
   const showVendor = commandBarWidth >= 840;
-  const showFilters = commandBarWidth >= 760;
-  const actionSlots = commandBarWidth >= 1280 ? 4 : commandBarWidth >= 1120 ? 3 : commandBarWidth >= 960 ? 2 : commandBarWidth >= 820 ? 1 : 0;
+  const actionSlots = commandBarWidth >= 1280 ? 3 : commandBarWidth >= 1100 ? 2 : commandBarWidth >= 900 ? 1 : 0;
   const showAcknowledge = actionSlots >= 1;
   const showAssign = actionSlots >= 2;
-  const showComment = actionSlots >= 3;
-  const showExport = actionSlots >= 4;
-  const hasOverflowItems = !showFilters || !showVendor || !showSeverity || !showView || !showColumns || !showAcknowledge || !showAssign || !showComment || !showExport;
+  const showExport = actionSlots >= 3;
+  const hasOverflowItems = !showVendor || !showSeverity || !showView || !showColumns || !showAcknowledge || !showAssign || !showExport;
 
   const handleAcknowledge = () => {
     if (settings.maintenanceMode) {
@@ -187,7 +193,6 @@ export const AlarmManagement: React.FC = () => {
         <div className="flex items-center justify-between gap-2">
           <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
             <SearchBar value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search alarms..." containerClassName="min-w-[240px] max-w-[420px] flex-1" />
-            {showFilters && <button className="h-10 shrink-0 rounded-lg border border-border px-3 text-sm">Filters</button>}
             {showVendor && (
               <div className="w-[160px] shrink-0">
                 <Select value={vendor} onValueChange={setVendor}>
@@ -240,7 +245,6 @@ export const AlarmManagement: React.FC = () => {
           <div className="flex shrink-0 items-center gap-2">
             {showAcknowledge && <button disabled={targetIds.length === 0 || settings.maintenanceMode} onClick={handleAcknowledge} className="h-10 rounded-lg border border-border px-3 text-sm disabled:opacity-40">Acknowledge</button>}
             {showAssign && <button disabled={targetIds.length === 0 || settings.maintenanceMode} onClick={() => setAssignOpen(true)} className="h-10 rounded-lg border border-border px-3 text-sm disabled:opacity-40">Assign</button>}
-            {showComment && <button disabled={targetIds.length === 0 || settings.maintenanceMode} onClick={() => setCommentOpen(true)} className="h-10 rounded-lg border border-border px-3 text-sm disabled:opacity-40">Comment</button>}
             {showExport && <button onClick={handleExport} className="h-10 rounded-lg border border-border px-3 text-sm">Export</button>}
             {hasOverflowItems && (
               <DropdownMenu>
@@ -251,7 +255,6 @@ export const AlarmManagement: React.FC = () => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-72">
                   <DropdownMenuLabel>More Controls</DropdownMenuLabel>
-                  {!showFilters && <DropdownMenuItem onSelect={() => toast({ title: "Filters", description: "Additional filters panel is coming soon." })}>Filters</DropdownMenuItem>}
                   {!showVendor && (
                     <DropdownMenuSub>
                       <DropdownMenuSubTrigger>Vendor</DropdownMenuSubTrigger>
@@ -296,7 +299,6 @@ export const AlarmManagement: React.FC = () => {
                   <DropdownMenuLabel>More Actions</DropdownMenuLabel>
                   {!showAcknowledge && <DropdownMenuItem disabled={targetIds.length === 0 || settings.maintenanceMode} onSelect={handleAcknowledge}>Acknowledge</DropdownMenuItem>}
                   {!showAssign && <DropdownMenuItem disabled={targetIds.length === 0 || settings.maintenanceMode} onSelect={() => setAssignOpen(true)}>Assign</DropdownMenuItem>}
-                  {!showComment && <DropdownMenuItem disabled={targetIds.length === 0 || settings.maintenanceMode} onSelect={() => setCommentOpen(true)}>Comment</DropdownMenuItem>}
                   {!showExport && <DropdownMenuItem onSelect={handleExport}>Export</DropdownMenuItem>}
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -334,7 +336,7 @@ export const AlarmManagement: React.FC = () => {
                     key={row.id}
                     tabIndex={0}
                     onKeyDown={(e) => onRowKeyDown(e, index)}
-                    onClick={() => setSelectedAlarmId(row.id)}
+                    onClick={() => setSelectedAlarmId((prev) => (prev === row.id ? null : row.id))}
                     className={cn("border-b border-border/70 text-[12px] hover:bg-muted/15 last:border-b-0", selectedAlarmId === row.id && "bg-primary/10")}
                   >
                     <td className="px-2 py-1.5"><input type="checkbox" checked={selectedAlarmIds.includes(row.id)} onChange={(e) => { e.stopPropagation(); setSelectedAlarmIds((prev) => (prev.includes(row.id) ? prev.filter((id) => id !== row.id) : [...prev, row.id])); }} /></td>
@@ -367,7 +369,16 @@ export const AlarmManagement: React.FC = () => {
               }}
             />
             <div className="space-y-3 p-3">
-              <h3 className="text-sm font-semibold">Alarm Details · {selectedAlarm.id}</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold">Alarm Details · {selectedAlarm.id}</h3>
+                <button
+                  onClick={() => setSelectedAlarmId(null)}
+                  className="inline-flex h-7 w-7 items-center justify-center rounded border border-border text-muted-foreground hover:text-foreground"
+                  aria-label="Close alarm details"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
               {detailsLoading || !details ? (
                 <p className="text-xs text-muted-foreground">Loading details…</p>
               ) : (
@@ -381,8 +392,6 @@ export const AlarmManagement: React.FC = () => {
                     <div className="mt-2 grid grid-cols-2 gap-1">
                       <input value={assignInput} onChange={(e) => setAssignInput(e.target.value)} className="h-8 rounded border border-border px-2 text-xs" />
                       <button onClick={() => setRows((prev) => prev.map((r) => (r.id === selectedAlarm.id ? { ...r, assignment: assignInput, status: "Assigned" } : r)))} className="rounded border border-border text-xs">Apply Assign</button>
-                      <input value={commentInput} onChange={(e) => setCommentInput(e.target.value)} className="h-8 rounded border border-border px-2 text-xs col-span-2" placeholder="Add comment..." />
-                      <button onClick={() => toast({ title: "Comment logged", description: `Comment saved for ${selectedAlarm.id}.` })} className="rounded border border-border text-xs col-span-2">Save Comment</button>
                     </div>
                   </section>
                   <section className="rounded-lg border border-border p-2"><p className="text-[10px] font-semibold uppercase text-muted-foreground">Logs</p><ul className="mt-1 space-y-1 text-xs">{details.logs.map((l) => <li key={l} className="font-mono text-[11px]">{l}</li>)}</ul></section>
@@ -406,18 +415,6 @@ export const AlarmManagement: React.FC = () => {
         </div>
       )}
 
-      {commentOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md rounded-xl border border-border bg-card p-4">
-            <h3 className="text-sm font-semibold">Comment on Selected Alarms</h3>
-            <textarea value={commentInput} onChange={(e) => setCommentInput(e.target.value)} className="mt-2 h-24 w-full rounded border border-border p-2 text-sm" />
-            <div className="mt-3 flex justify-end gap-2">
-              <button onClick={() => setCommentOpen(false)} className="rounded border border-border px-3 py-1 text-xs">Cancel</button>
-              <button disabled={settings.maintenanceMode} onClick={() => { if (settings.maintenanceMode) return; setCommentOpen(false); toast({ title: "Comment saved", description: `${targetIds.length} alarms updated.` }); }} className="rounded bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground disabled:opacity-40">Save</button>
-            </div>
-          </div>
-        </div>
-      )}
     </section>
   );
 };
