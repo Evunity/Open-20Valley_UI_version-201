@@ -196,16 +196,15 @@ export default function RolesPermissions() {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <Button onClick={() => setCreateOpen(true)} className="h-9">
-          <Plus className="h-4 w-4" />
-          Create Role
-        </Button>
-      </div>
-
       <div className="grid grid-cols-1 gap-3 xl:grid-cols-[280px_1fr]">
         <section className="flex min-h-0 flex-col rounded-xl border border-border bg-card p-3">
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Roles</p>
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Roles</p>
+            <Button onClick={() => setCreateOpen(true)} size="sm" className="h-8">
+              <Plus className="h-4 w-4" />
+              Create Role
+            </Button>
+          </div>
           <div className="max-h-[640px] space-y-1 overflow-y-auto pr-1">
             {roles.map((role) => (
               <button
