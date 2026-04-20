@@ -41,6 +41,7 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface DependencyGraphProps {
   topology: TopologyObject[];
@@ -92,7 +93,9 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
   const [region, setRegion] = useState<string>('all');
   const [cluster, setCluster] = useState<string>('all');
   const [site, setSite] = useState<string>('all');
-  const [rack, setRack] = useState<string>('all');
+  const [siteCluster, setSiteCluster] = useState<string>('all');
+  const [technology, setTechnology] = useState<string>('all');
+  const [vendor, setVendor] = useState<string>('all');
   const [status, setStatus] = useState<UiStatus>('all');
   const [search, setSearch] = useState('');
 
@@ -166,16 +169,21 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
     return Array.from(new Set(rows.map((n) => n.name))).sort();
   }, [cluster, hierarchyById, region, topology]);
 
-  const rackOptions = useMemo(() => {
-    const rows = topology.filter((n) => n.type === 'rack').filter((n) => {
-      const h = hierarchyById.get(n.id);
-      if (region !== 'all' && h?.region !== region) return false;
-      if (cluster !== 'all' && h?.cluster !== cluster) return false;
-      if (site !== 'all' && h?.site !== site) return false;
-      return true;
-    });
-    return Array.from(new Set(rows.map((n) => n.name))).sort();
-  }, [cluster, hierarchyById, region, site, topology]);
+  const siteClusterOptions = useMemo(() => {
+    const clusterRows = clusterOptions.map((name) => ({ value: `cluster:${name}`, label: `Cluster · ${name}` }));
+    const siteRows = siteOptions.map((name) => ({ value: `site:${name}`, label: `Site · ${name}` }));
+    return [...clusterRows, ...siteRows];
+  }, [clusterOptions, siteOptions]);
+
+  const technologyOptions = useMemo(() => {
+    const rows = topology.filter((node) => Boolean(node.technology)).map((node) => node.technology as string);
+    return Array.from(new Set(rows)).sort();
+  }, [topology]);
+
+  const vendorOptions = useMemo(() => {
+    const rows = topology.filter((node) => Boolean(node.vendor)).map((node) => node.vendor as string);
+    return Array.from(new Set(rows)).sort();
+  }, [topology]);
 
   useEffect(() => {
     setLoading(true);
@@ -218,8 +226,28 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
   }, [site, siteOptions]);
 
   useEffect(() => {
-    if (rack !== 'all' && !rackOptions.includes(rack)) setRack('all');
-  }, [rack, rackOptions]);
+    if (siteCluster === 'all') {
+      setCluster('all');
+      setSite('all');
+      return;
+    }
+    if (!siteClusterOptions.some((option) => option.value === siteCluster)) {
+      setSiteCluster('all');
+      setCluster('all');
+      setSite('all');
+      return;
+    }
+    const [type, name] = siteCluster.split(':');
+    if (type === 'cluster') {
+      setCluster(name || 'all');
+      setSite('all');
+      return;
+    }
+    if (type === 'site') {
+      setSite(name || 'all');
+      return;
+    }
+  }, [siteCluster, siteClusterOptions]);
 
   const scopedTopology = useMemo(() => {
     let rows = [...topology];
@@ -229,7 +257,8 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
       if (region !== 'all' && h?.region !== region) return false;
       if (cluster !== 'all' && h?.cluster !== cluster) return false;
       if (site !== 'all' && h?.site !== site) return false;
-      if (rack !== 'all' && h?.rack !== rack && node.name !== rack) return false;
+      if (technology !== 'all' && node.technology !== technology) return false;
+      if (vendor !== 'all' && node.vendor !== vendor) return false;
       return true;
     });
 
@@ -253,12 +282,12 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
       const q = search.toLowerCase();
       rows = rows.filter((node) => {
         const h = hierarchyById.get(node.id);
-        return [node.name, node.type, h?.region, h?.cluster, h?.site, h?.rack].join(' ').toLowerCase().includes(q);
+        return [node.name, node.type, node.vendor, node.technology, h?.region, h?.cluster, h?.site].join(' ').toLowerCase().includes(q);
       });
     }
 
     return rows.slice(0, 400);
-  }, [cluster, collapsed, hierarchyById, hideHealthy, rack, region, scopeLevel, search, site, status, topology]);
+  }, [cluster, collapsed, hierarchyById, hideHealthy, region, scopeLevel, search, site, status, technology, topology, vendor]);
 
   const scopedNodeIds = useMemo(() => new Set(scopedTopology.map((n) => n.id)), [scopedTopology]);
 
@@ -460,7 +489,9 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
     setRegion('all');
     setCluster('all');
     setSite('all');
-    setRack('all');
+    setSiteCluster('all');
+    setTechnology('all');
+    setVendor('all');
     setStatus('all');
     setSearch('');
     setHideHealthy(false);
@@ -510,16 +541,6 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
     setViewport({ x: 0, y: 0, zoom: 1 }, { duration: 0 });
   }, [setViewport]);
 
-  const focusRackSelection = useEffect(() => {
-    if (rack === 'all') return;
-    const rackNode = scopedTopology.find((node) => node.type === 'rack' && node.name === rack);
-    if (!rackNode) return;
-    setClickedId(rackNode.id);
-    onNodeSelect?.(rackNode);
-  }, [onNodeSelect, rack, scopedTopology]);
-
-  void focusRackSelection;
-
   const toggleFullscreen = useCallback(async () => {
     const container = graphShellRef.current;
     if (!container) return;
@@ -561,30 +582,55 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
       </div>
 
       <div className="rounded-xl border border-border bg-card p-3">
-        <div className="grid grid-cols-1 gap-2 xl:grid-cols-8">
-          <Select value={scopeLevel} onValueChange={(v) => setScopeLevel(v as ScopeLevel)}>
-            <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Scope Level" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Levels</SelectItem><SelectItem value="global">Global</SelectItem><SelectItem value="country">Country</SelectItem><SelectItem value="region">Region</SelectItem><SelectItem value="cluster">Cluster</SelectItem><SelectItem value="site">Site</SelectItem><SelectItem value="node">Node</SelectItem><SelectItem value="rack">Rack</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="grid grid-cols-1 gap-2 xl:grid-cols-7">
+          <LabeledFilter label="Level" tooltip="Filter graph entities by hierarchy level (global to rack)." >
+            <Select value={scopeLevel} onValueChange={(v) => setScopeLevel(v as ScopeLevel)}>
+              <SelectTrigger className="h-9 w-full text-xs"><SelectValue placeholder="Level" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Levels</SelectItem><SelectItem value="global">Global</SelectItem><SelectItem value="country">Country</SelectItem><SelectItem value="region">Region</SelectItem><SelectItem value="cluster">Cluster</SelectItem><SelectItem value="site">Site</SelectItem><SelectItem value="node">Node</SelectItem><SelectItem value="rack">Rack</SelectItem>
+              </SelectContent>
+            </Select>
+          </LabeledFilter>
 
-          <FilterSelect value={region} onChange={setRegion} placeholder="Select region (e.g. Cairo, Alexandria, Riyadh)" options={regionOptions} emptyHint="No regions found for the current dataset." />
-          <FilterSelect value={cluster} onChange={setCluster} placeholder="Select cluster (e.g. Cairo-Cluster-1, Giza-Cluster-2)" options={clusterOptions} emptyHint="No clusters available for selected region." />
-          <FilterSelect value={site} onChange={setSite} placeholder="Select site (e.g. Abu Dhabi, Sharjah, Jeddah Core Site)" options={siteOptions} emptyHint="No sites available for selected region/cluster." />
-          <FilterSelect value={rack} onChange={setRack} placeholder="Select rack (e.g. Rack-A12, Rack-B04, Core-Rack-7)" options={rackOptions} emptyHint="No racks available for selected parent filters." />
+          <LabeledFilter label="Region" tooltip="Limit graph view to a specific geographic region.">
+            <FilterSelect value={region} onChange={setRegion} placeholder="Region" options={regionOptions} emptyHint="No regions found for the current dataset." />
+          </LabeledFilter>
 
-          <Select value={status} onValueChange={(v) => setStatus(v as UiStatus)}>
-            <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Status" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem><SelectItem value="healthy">Healthy</SelectItem><SelectItem value="warning">Warning</SelectItem><SelectItem value="degraded">Degraded</SelectItem><SelectItem value="critical">Critical</SelectItem><SelectItem value="offline">Offline</SelectItem>
-            </SelectContent>
-          </Select>
+          <LabeledFilter label="Site / Cluster" tooltip="Filter by a specific site or cluster scope.">
+            <Select value={siteCluster} onValueChange={setSiteCluster}>
+              <SelectTrigger className="h-9 w-full text-xs"><SelectValue placeholder="Site / Cluster" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Site / Cluster</SelectItem>
+                {siteClusterOptions.length > 0 ? siteClusterOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                )) : <div className="px-2 py-1 text-xs text-muted-foreground">No site/cluster options available.</div>}
+              </SelectContent>
+            </Select>
+          </LabeledFilter>
 
-          <div className="relative xl:col-span-2">
-            <Search className="pointer-events-none absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input value={search} onChange={(e) => setSearch(e.target.value)} className="h-9 pl-8 text-xs" placeholder="Search node, path, dependency, site, rack..." />
-          </div>
+          <LabeledFilter label="Technology" tooltip="Show nodes belonging to a specific technology domain.">
+            <FilterSelect value={technology} onChange={setTechnology} placeholder="Technology" options={technologyOptions} emptyHint="No technology tags available in current scope." />
+          </LabeledFilter>
+
+          <LabeledFilter label="Vendor" tooltip="Limit results to nodes from the selected vendor.">
+            <FilterSelect value={vendor} onChange={setVendor} placeholder="Vendor" options={vendorOptions} emptyHint="No vendor tags available in current scope." />
+          </LabeledFilter>
+
+          <LabeledFilter label="Status" tooltip="Filter by operational health status for troubleshooting.">
+            <Select value={status} onValueChange={(v) => setStatus(v as UiStatus)}>
+              <SelectTrigger className="h-9 w-full text-xs"><SelectValue placeholder="Status" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem><SelectItem value="healthy">Healthy</SelectItem><SelectItem value="warning">Warning</SelectItem><SelectItem value="degraded">Degraded</SelectItem><SelectItem value="critical">Critical</SelectItem><SelectItem value="offline">Offline</SelectItem>
+              </SelectContent>
+            </Select>
+          </LabeledFilter>
+
+          <LabeledFilter label="Search" tooltip="Search by node name, type, region, site, vendor, or technology.">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input value={search} onChange={(e) => setSearch(e.target.value)} className="h-9 w-full pl-8 text-xs" placeholder="Search..." />
+            </div>
+          </LabeledFilter>
         </div>
 
         <div className="mt-2 flex flex-wrap gap-2">
@@ -603,15 +649,21 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
 
         <div className="mt-3 rounded-lg border border-border p-2">
           <div className="grid grid-cols-1 gap-2 md:grid-cols-[1fr_1fr_auto]">
-            <Select value={traceSource} onValueChange={setTraceSource}>
-              <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Source node" /></SelectTrigger>
-              <SelectContent>{traceCandidates.map((n) => <SelectItem key={n.id} value={n.id}>{n.name}</SelectItem>)}</SelectContent>
-            </Select>
-            <Select value={traceTarget} onValueChange={setTraceTarget}>
-              <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Target node" /></SelectTrigger>
-              <SelectContent>{traceCandidates.map((n) => <SelectItem key={n.id} value={n.id}>{n.name}</SelectItem>)}</SelectContent>
-            </Select>
-            <Button onClick={handleTracePath} disabled={traceSource === 'none' || traceTarget === 'none'} className="h-9"><Target className="mr-1 h-4 w-4" />Trace Path</Button>
+            <LabeledFilter label="Source Node" tooltip="Select the dependency-path starting node.">
+              <Select value={traceSource} onValueChange={setTraceSource}>
+                <SelectTrigger className="h-9 w-full text-xs"><SelectValue placeholder="Source Node" /></SelectTrigger>
+                <SelectContent>{traceCandidates.map((n) => <SelectItem key={n.id} value={n.id}>{n.name}</SelectItem>)}</SelectContent>
+              </Select>
+            </LabeledFilter>
+            <LabeledFilter label="Target Node" tooltip="Select the dependency-path destination node.">
+              <Select value={traceTarget} onValueChange={setTraceTarget}>
+                <SelectTrigger className="h-9 w-full text-xs"><SelectValue placeholder="Target Node" /></SelectTrigger>
+                <SelectContent>{traceCandidates.map((n) => <SelectItem key={n.id} value={n.id}>{n.name}</SelectItem>)}</SelectContent>
+              </Select>
+            </LabeledFilter>
+            <div className="flex items-end">
+              <Button onClick={handleTracePath} disabled={traceSource === 'none' || traceTarget === 'none'} className="h-9 w-full"><Target className="mr-1 h-4 w-4" />Trace Path</Button>
+            </div>
           </div>
           {pathSummary && (
             <div className="mt-2 flex flex-wrap gap-2 text-xs">
@@ -645,9 +697,8 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
                 const obj = nodeMap.get(n.id);
                 if (!obj) return;
                 if (obj.type === 'region') setRegion(obj.name);
-                if (obj.type === 'cluster') setCluster(obj.name);
-                if (obj.type === 'site') setSite(obj.name);
-                if (obj.type === 'rack') setRack(obj.name);
+                if (obj.type === 'cluster') setSiteCluster(`cluster:${obj.name}`);
+                if (obj.type === 'site') setSiteCluster(`site:${obj.name}`);
               }}
               onNodeClick={(_, n) => {
                 setClickedId(n.id);
@@ -713,9 +764,10 @@ function DependencyGraphContent({ topology, selectedNode, onNodeSelect }: Depend
                   onClick={() => {
                     const h = hierarchyById.get(selectedEntity.id);
                     if (h?.region) setRegion(h.region);
-                    if (h?.cluster) setCluster(h.cluster);
-                    if (h?.site) setSite(h.site);
-                    if (h?.rack) setRack(h.rack);
+                    if (h?.site) setSiteCluster(`site:${h.site}`);
+                    else if (h?.cluster) setSiteCluster(`cluster:${h.cluster}`);
+                    if (selectedEntity.technology) setTechnology(selectedEntity.technology);
+                    if (selectedEntity.vendor) setVendor(selectedEntity.vendor);
                   }}
                 >
                   Filter by this entity
@@ -763,7 +815,7 @@ function FilterSelect({
 }) {
   return (
     <Select value={value} onValueChange={onChange}>
-      <SelectTrigger className="h-9 text-xs">
+      <SelectTrigger className="h-9 w-full text-xs">
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
@@ -771,6 +823,34 @@ function FilterSelect({
         {options.length > 0 ? options.map((option) => <SelectItem key={option} value={option}>{option}</SelectItem>) : <div className="px-2 py-1 text-xs text-muted-foreground">{emptyHint}</div>}
       </SelectContent>
     </Select>
+  );
+}
+
+function LabeledFilter({
+  label,
+  tooltip,
+  children,
+}: {
+  label: string;
+  tooltip: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <TooltipProvider>
+      <div className="min-w-0">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <p className="mb-1 cursor-help text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              {label}
+            </p>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p className="max-w-[240px] text-xs">{tooltip}</p>
+          </TooltipContent>
+        </Tooltip>
+        {children}
+      </div>
+    </TooltipProvider>
   );
 }
 
