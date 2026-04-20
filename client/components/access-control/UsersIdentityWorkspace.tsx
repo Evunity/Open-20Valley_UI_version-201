@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
-import { EllipsisVertical, Pencil, Plus, Search, UserRound } from "lucide-react";
+import { useEffect, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
+import { EllipsisVertical, Pencil, Plus, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -24,15 +24,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   createUser,
-  getJitAccessRequests,
   getUserById,
   getUsersIdentity,
-  patchJitAccessRequest,
   patchUser,
   patchUserStatus,
-  type JitAccessRequest,
   type UserIdentityRecord,
   type UserStatus,
   type UsersIdentityFilters,
@@ -44,10 +43,13 @@ type UserDraft = {
   firstName: string;
   lastName: string;
   email: string;
-  tenantNames: string[];
+  tenantName: string;
   primaryRoleName: string;
   status: UserStatus;
   sendInvitation: boolean;
+  changePassword: boolean;
+  newPassword: string;
+  confirmPassword: string;
 };
 
 const ROLES = ["Platform Admin", "RF Engineer", "NOC Operator", "Viewer", "Group Executive"];
@@ -78,14 +80,22 @@ export default function UsersIdentityWorkspace() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [jitRequests, setJitRequests] = useState<JitAccessRequest[]>([]);
-  const [jitLoading, setJitLoading] = useState(true);
-
   const [addOpen, setAddOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [activeUser, setActiveUser] = useState<UserIdentityRecord | null>(null);
-  const [draft, setDraft] = useState<UserDraft>({ firstName: "", lastName: "", email: "", tenantNames: [], primaryRoleName: "", status: "Pending", sendInvitation: true });
+  const [draft, setDraft] = useState<UserDraft>({
+    firstName: "",
+    lastName: "",
+    email: "",
+    tenantName: "",
+    primaryRoleName: "",
+    status: "Pending",
+    sendInvitation: true,
+    changePassword: false,
+    newPassword: "",
+    confirmPassword: "",
+  });
   const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -109,32 +119,25 @@ export default function UsersIdentityWorkspace() {
     }
   };
 
-  const loadJit = async () => {
-    setJitLoading(true);
-    try {
-      const data = await getJitAccessRequests();
-      setJitRequests(data);
-    } finally {
-      setJitLoading(false);
-    }
-  };
-
   useEffect(() => {
     loadUsers();
   }, [filters]);
 
-  useEffect(() => {
-    loadJit();
-  }, []);
-
   const totalPages = Math.max(1, Math.ceil(total / filters.pageSize));
-  const start = total === 0 ? 0 : (filters.page - 1) * filters.pageSize + 1;
-  const end = Math.min(total, filters.page * filters.pageSize);
-
-  const pendingJitCount = useMemo(() => jitRequests.filter((request) => request.status === "Pending").length, [jitRequests]);
 
   const openAdd = () => {
-    setDraft({ firstName: "", lastName: "", email: "", tenantNames: [], primaryRoleName: "", status: "Pending", sendInvitation: true });
+    setDraft({
+      firstName: "",
+      lastName: "",
+      email: "",
+      tenantName: "",
+      primaryRoleName: "",
+      status: "Pending",
+      sendInvitation: true,
+      changePassword: false,
+      newPassword: "",
+      confirmPassword: "",
+    });
     setFormError(null);
     setAddOpen(true);
   };
@@ -145,10 +148,13 @@ export default function UsersIdentityWorkspace() {
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
-      tenantNames: user.tenantNames,
+      tenantName: user.tenantNames[0] ?? "",
       primaryRoleName: user.primaryRoleName,
       status: user.status,
       sendInvitation: false,
+      changePassword: false,
+      newPassword: "",
+      confirmPassword: "",
     });
     setFormError(null);
     setEditOpen(true);
@@ -166,7 +172,7 @@ export default function UsersIdentityWorkspace() {
 
   const submitAdd = async () => {
     setFormError(null);
-    if (!draft.firstName.trim() || !draft.lastName.trim() || !draft.email.trim() || draft.tenantNames.length === 0 || !draft.primaryRoleName) {
+    if (!draft.firstName.trim() || !draft.lastName.trim() || !draft.email.trim() || !draft.tenantName || !draft.primaryRoleName) {
       setFormError("All required fields must be completed.");
       return;
     }
@@ -176,8 +182,8 @@ export default function UsersIdentityWorkspace() {
         firstName: draft.firstName.trim(),
         lastName: draft.lastName.trim(),
         email: draft.email.trim(),
-        tenantIds: draft.tenantNames.map((name) => name.toLowerCase().replace(/\s+/g, "-")),
-        tenantNames: draft.tenantNames,
+        tenantIds: [draft.tenantName.toLowerCase().replace(/\s+/g, "-")],
+        tenantNames: [draft.tenantName],
         primaryRoleId: draft.primaryRoleName.toLowerCase().replace(/\s+/g, "-"),
         primaryRoleName: draft.primaryRoleName,
         status: draft.status,
@@ -198,9 +204,24 @@ export default function UsersIdentityWorkspace() {
   const submitEdit = async () => {
     if (!activeUser) return;
     setFormError(null);
-    if (!draft.firstName.trim() || !draft.lastName.trim() || !draft.email.trim() || draft.tenantNames.length === 0 || !draft.primaryRoleName) {
+    if (!draft.firstName.trim() || !draft.lastName.trim() || !draft.email.trim() || !draft.tenantName || !draft.primaryRoleName) {
       setFormError("All required fields must be completed.");
       return;
+    }
+
+    if (draft.changePassword || draft.newPassword || draft.confirmPassword) {
+      if (!draft.newPassword || !draft.confirmPassword) {
+        setFormError("Both password fields are required when setting a new password.");
+        return;
+      }
+      if (draft.newPassword !== draft.confirmPassword) {
+        setFormError("New Password and Confirm Password must match.");
+        return;
+      }
+      if (draft.newPassword.length < 8) {
+        setFormError("Password must be at least 8 characters.");
+        return;
+      }
     }
 
     try {
@@ -208,11 +229,12 @@ export default function UsersIdentityWorkspace() {
         firstName: draft.firstName.trim(),
         lastName: draft.lastName.trim(),
         email: draft.email.trim(),
-        tenantIds: draft.tenantNames.map((name) => name.toLowerCase().replace(/\s+/g, "-")),
-        tenantNames: draft.tenantNames,
+        tenantIds: [draft.tenantName.toLowerCase().replace(/\s+/g, "-")],
+        tenantNames: [draft.tenantName],
         primaryRoleId: draft.primaryRoleName.toLowerCase().replace(/\s+/g, "-"),
         primaryRoleName: draft.primaryRoleName,
         status: draft.status,
+        ...(draft.changePassword && draft.newPassword ? { password: draft.newPassword } : {}),
       });
       setEditOpen(false);
       loadUsers();
@@ -233,31 +255,20 @@ export default function UsersIdentityWorkspace() {
 
   const actionSimpleToast = (title: string) => toast({ title, description: "Action completed." });
 
-  const updateJitStatus = async (requestId: string, status: JitAccessRequest["status"]) => {
-    try {
-      const updated = await patchJitAccessRequest(requestId, {
-        status,
-        approvedBy: status === "Approved" ? "Current Operator" : null,
-      });
-      setJitRequests((prev) => prev.map((item) => (item.id === requestId ? updated : item)));
-    } catch (err) {
-      toast({ title: "JIT action failed", description: err instanceof Error ? err.message : "Unable to update request.", variant: "destructive" });
-    }
-  };
-
   return (
     <div className="space-y-3">
-      <button onClick={openAdd} className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
-        <Plus className="h-4 w-4" />
-        Add User
-      </button>
-
-      <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
-        <div className="relative w-full lg:max-w-xl">
-          <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <input value={searchInput} onChange={(e) => setSearchInput(e.target.value)} placeholder="Search users..." className="h-9 w-full rounded-md border border-input bg-background pl-8 pr-3 text-sm" />
+      <div className="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
+        <div className="flex w-full items-center gap-2 xl:max-w-[560px]">
+          <div className="relative w-full">
+            <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input value={searchInput} onChange={(e) => setSearchInput(e.target.value)} placeholder="Search users..." className="h-9 w-full bg-background pl-8 pr-3 text-sm" />
+          </div>
+          <Button onClick={openAdd} size="sm" className="h-9 shrink-0">
+            <Plus className="h-4 w-4" />
+            Add User
+          </Button>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 self-start xl:self-auto">
           <Select value={filters.tenant} onValueChange={(value) => setFilters((prev) => ({ ...prev, tenant: value, page: 1 }))}>
             <SelectTrigger className="h-9 w-[132px] text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -285,114 +296,79 @@ export default function UsersIdentityWorkspace() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.8fr_1fr]">
-        <section className="rounded-xl border border-border bg-card overflow-hidden">
-          {error && (
-            <div className="m-3 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-700">
-              {error}
-              <button onClick={loadUsers} className="ml-2 underline">Retry</button>
-            </div>
-          )}
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[980px] text-sm">
-              <thead className="bg-muted/30 text-muted-foreground">
-                <tr>
-                  <th className="px-3 py-2 text-left text-xs font-semibold">Name</th>
-                  <th className="px-3 py-2 text-left text-xs font-semibold">Email</th>
-                  <th className="px-3 py-2 text-left text-xs font-semibold">Tenant(s)</th>
-                  <th className="px-3 py-2 text-left text-xs font-semibold">Role</th>
-                  <th className="px-3 py-2 text-left text-xs font-semibold">Status</th>
-                  <th className="px-3 py-2 text-left text-xs font-semibold">Last Login</th>
-                  <th className="px-3 py-2 text-left text-xs font-semibold">Actions</th>
+      <section className="rounded-xl border border-border bg-card overflow-hidden">
+        {error && (
+          <div className="m-3 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-700">
+            {error}
+            <button onClick={loadUsers} className="ml-2 underline">Retry</button>
+          </div>
+        )}
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[980px] text-sm">
+            <thead className="bg-muted/30 text-muted-foreground">
+              <tr>
+                <th className="px-3 py-2 text-left text-xs font-semibold">Name</th>
+                <th className="px-3 py-2 text-left text-xs font-semibold">Email</th>
+                <th className="px-3 py-2 text-left text-xs font-semibold">Tenant(s)</th>
+                <th className="px-3 py-2 text-left text-xs font-semibold">Role</th>
+                <th className="px-3 py-2 text-left text-xs font-semibold">Status</th>
+                <th className="px-3 py-2 text-left text-xs font-semibold">Last Login</th>
+                <th className="px-3 py-2 text-left text-xs font-semibold">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                Array.from({ length: 6 }).map((_, idx) => (
+                  <tr key={idx} className="border-t border-border"><td colSpan={7} className="px-3 py-2.5"><div className="h-5 animate-pulse rounded bg-muted/40" /></td></tr>
+                ))
+              ) : rows.length === 0 ? (
+                <tr><td colSpan={7} className="px-3 py-10 text-center text-sm text-muted-foreground">No users found for current filters.</td></tr>
+              ) : rows.map((user) => (
+                <tr key={user.id} className="border-t border-border hover:bg-muted/20">
+                  <td className="px-3 py-2.5">
+                    <button onClick={() => openDetails(user.id)} className="flex items-center gap-2 text-left">
+                      <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary">
+                        {user.firstName[0]}{user.lastName[0]}
+                      </span>
+                      <span className="font-medium text-foreground">{user.fullName}</span>
+                    </button>
+                  </td>
+                  <td className="px-3 py-2.5 text-muted-foreground">{user.email}</td>
+                  <td className="px-3 py-2.5 text-muted-foreground">{user.tenantNames.join(", ")}</td>
+                  <td className="px-3 py-2.5 text-foreground">{user.primaryRoleName}</td>
+                  <td className="px-3 py-2.5"><span className={cn("rounded-full px-2 py-0.5 text-xs font-semibold", statusStyle[user.status])}>{user.status}</span></td>
+                  <td className="px-3 py-2.5 text-muted-foreground">{formatLastLogin(user.lastLoginAt)}</td>
+                  <td className="px-3 py-2.5">
+                    <div className="flex items-center gap-1">
+                      <button onClick={() => openEdit(user)} className="rounded p-1.5 hover:bg-muted" title="Edit User"><Pencil className="h-4 w-4 text-muted-foreground" /></button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button className="rounded p-1.5 hover:bg-muted"><EllipsisVertical className="h-4 w-4 text-muted-foreground" /></button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onSelect={() => openDetails(user.id)}>View Details</DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => openEdit(user)}>Edit User</DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => quickStatusToggle(user)}>{user.status === "Suspended" ? "Reactivate User" : "Suspend User"}</DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => actionSimpleToast("Password reset requested")}>Reset Password</DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => actionSimpleToast("Invite resent")}>Resend Invite</DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => actionSimpleToast("User removed from tenant")}>Remove from Tenant</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  Array.from({ length: 6 }).map((_, idx) => (
-                    <tr key={idx} className="border-t border-border"><td colSpan={7} className="px-3 py-2.5"><div className="h-5 animate-pulse rounded bg-muted/40" /></td></tr>
-                  ))
-                ) : rows.length === 0 ? (
-                  <tr><td colSpan={7} className="px-3 py-10 text-center text-sm text-muted-foreground">No users found for current filters.</td></tr>
-                ) : rows.map((user) => (
-                  <tr key={user.id} className="border-t border-border hover:bg-muted/20">
-                    <td className="px-3 py-2.5">
-                      <button onClick={() => openDetails(user.id)} className="flex items-center gap-2 text-left">
-                        <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary">
-                          {user.firstName[0]}{user.lastName[0]}
-                        </span>
-                        <span className="font-medium text-foreground">{user.fullName}</span>
-                      </button>
-                    </td>
-                    <td className="px-3 py-2.5 text-muted-foreground">{user.email}</td>
-                    <td className="px-3 py-2.5 text-muted-foreground">{user.tenantNames.join(", ")}</td>
-                    <td className="px-3 py-2.5 text-foreground">{user.primaryRoleName}</td>
-                    <td className="px-3 py-2.5"><span className={cn("rounded-full px-2 py-0.5 text-xs font-semibold", statusStyle[user.status])}>{user.status}</span></td>
-                    <td className="px-3 py-2.5 text-muted-foreground">{formatLastLogin(user.lastLoginAt)}</td>
-                    <td className="px-3 py-2.5">
-                      <div className="flex items-center gap-1">
-                        <button onClick={() => openEdit(user)} className="rounded p-1.5 hover:bg-muted" title="Edit User"><Pencil className="h-4 w-4 text-muted-foreground" /></button>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <button className="rounded p-1.5 hover:bg-muted"><EllipsisVertical className="h-4 w-4 text-muted-foreground" /></button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onSelect={() => openDetails(user.id)}>View Details</DropdownMenuItem>
-                            <DropdownMenuItem onSelect={() => openEdit(user)}>Edit User</DropdownMenuItem>
-                            <DropdownMenuItem onSelect={() => quickStatusToggle(user)}>{user.status === "Suspended" ? "Reactivate User" : "Suspend User"}</DropdownMenuItem>
-                            <DropdownMenuItem onSelect={() => actionSimpleToast("Password reset requested")}>Reset Password</DropdownMenuItem>
-                            <DropdownMenuItem onSelect={() => actionSimpleToast("Invite resent")}>Resend Invite</DropdownMenuItem>
-                            <DropdownMenuItem onSelect={() => actionSimpleToast("User removed from tenant")}>Remove from Tenant</DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="flex items-center justify-between border-t border-border px-3 py-2 text-xs text-muted-foreground">
+          <span>Showing {total === 0 ? 0 : (filters.page - 1) * PAGE_SIZE + 1}-{Math.min(total, filters.page * PAGE_SIZE)} of {total} users</span>
+          <div className="flex items-center gap-2">
+            <button disabled={filters.page <= 1} onClick={() => setFilters((prev) => ({ ...prev, page: prev.page - 1 }))} className="h-7 rounded border border-input px-2 disabled:opacity-40">Prev</button>
+            <button disabled={filters.page >= totalPages} onClick={() => setFilters((prev) => ({ ...prev, page: prev.page + 1 }))} className="h-7 rounded border border-input px-2 disabled:opacity-40">Next</button>
           </div>
-          <div className="flex items-center justify-between border-t border-border px-3 py-2 text-xs text-muted-foreground">
-            <span>Showing {total === 0 ? 0 : (filters.page - 1) * PAGE_SIZE + 1}-{Math.min(total, filters.page * PAGE_SIZE)} of {total} users</span>
-            <div className="flex items-center gap-2">
-              <button disabled={filters.page <= 1} onClick={() => setFilters((prev) => ({ ...prev, page: prev.page - 1 }))} className="h-7 rounded border border-input px-2 disabled:opacity-40">Prev</button>
-              <button disabled={filters.page >= totalPages} onClick={() => setFilters((prev) => ({ ...prev, page: prev.page + 1 }))} className="h-7 rounded border border-input px-2 disabled:opacity-40">Next</button>
-            </div>
-          </div>
-        </section>
-
-        <section className="rounded-xl border border-border bg-card p-3">
-          <div className="mb-2 flex items-center justify-between">
-            <h3 className="text-sm font-semibold">JIT Access Requests</h3>
-            <span className="rounded-full bg-red-500/15 px-2 py-0.5 text-xs font-semibold text-red-700">{pendingJitCount}</span>
-          </div>
-          <div className="space-y-2">
-            {jitLoading ? (
-              Array.from({ length: 3 }).map((_, idx) => <div key={idx} className="h-16 animate-pulse rounded border border-border bg-muted/20" />)
-            ) : jitRequests.map((request) => (
-              <div key={request.id} className="rounded-md border border-border px-3 py-2">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-sm font-semibold">{request.userName}</p>
-                  <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-semibold",
-                    request.status === "Pending" ? "bg-amber-500/15 text-amber-700" :
-                    request.status === "Approved" ? "bg-green-500/15 text-green-700" : "bg-red-500/15 text-red-700")}>{request.status}</span>
-                </div>
-                <p className="mt-1 text-xs text-muted-foreground">Requesting: {request.requestedAccessText}</p>
-                {request.status === "Pending" ? (
-                  <p className="mt-1 text-[11px] text-primary">Duration: {request.durationText} · Reason: {request.reason}</p>
-                ) : (
-                  <p className="mt-1 text-[11px] text-muted-foreground">{request.status === "Approved" && request.expiresAt ? `Expires in ${minutesUntil(request.expiresAt)} min` : request.reason}</p>
-                )}
-                {request.status === "Pending" && (
-                  <div className="mt-2 flex gap-2">
-                    <button onClick={() => updateJitStatus(request.id, "Approved")} className="h-7 rounded bg-primary px-2 text-xs font-semibold text-primary-foreground">Approve</button>
-                    <button onClick={() => updateJitStatus(request.id, "Denied")} className="h-7 rounded border border-input px-2 text-xs">Deny</button>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
-      </div>
+        </div>
+      </section>
 
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
         <DialogContent>
@@ -400,11 +376,11 @@ export default function UsersIdentityWorkspace() {
             <DialogTitle>Add User</DialogTitle>
             <DialogDescription>Create a new user identity and assign role/tenants.</DialogDescription>
           </DialogHeader>
-          <UserForm draft={draft} setDraft={setDraft} />
+          <UserForm draft={draft} setDraft={setDraft} mode="add" />
           {formError && <p className="text-xs text-red-600">{formError}</p>}
           <DialogFooter>
-            <button onClick={() => setAddOpen(false)} className="h-9 rounded-md border border-input px-3 text-sm">Cancel</button>
-            <button onClick={submitAdd} className="h-9 rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground">Create User</button>
+            <Button variant="outline" onClick={() => setAddOpen(false)} className="h-9">Cancel</Button>
+            <Button onClick={submitAdd} className="h-9">Create User</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -415,11 +391,11 @@ export default function UsersIdentityWorkspace() {
             <DialogTitle>Edit User</DialogTitle>
             <DialogDescription>Update user profile, tenants, role, and status.</DialogDescription>
           </DialogHeader>
-          <UserForm draft={draft} setDraft={setDraft} />
+          <UserForm draft={draft} setDraft={setDraft} mode="edit" />
           {formError && <p className="text-xs text-red-600">{formError}</p>}
           <DialogFooter>
-            <button onClick={() => setEditOpen(false)} className="h-9 rounded-md border border-input px-3 text-sm">Cancel</button>
-            <button onClick={submitEdit} className="h-9 rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground">Save Changes</button>
+            <Button variant="outline" onClick={() => setEditOpen(false)} className="h-9">Cancel</Button>
+            <Button onClick={submitEdit} className="h-9">Save Changes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -446,29 +422,22 @@ export default function UsersIdentityWorkspace() {
   );
 }
 
-function UserForm({ draft, setDraft }: { draft: UserDraft; setDraft: Dispatch<SetStateAction<UserDraft>> }) {
-  const toggleTenant = (tenant: string) => {
-    setDraft((prev) => ({
-      ...prev,
-      tenantNames: prev.tenantNames.includes(tenant)
-        ? prev.tenantNames.filter((t) => t !== tenant)
-        : [...prev.tenantNames, tenant],
-    }));
-  };
-
+function UserForm({ draft, setDraft, mode }: { draft: UserDraft; setDraft: Dispatch<SetStateAction<UserDraft>>; mode: "add" | "edit" }) {
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-        <Field label="First Name *"><input value={draft.firstName} onChange={(e) => setDraft((p) => ({ ...p, firstName: e.target.value }))} className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm" /></Field>
-        <Field label="Last Name *"><input value={draft.lastName} onChange={(e) => setDraft((p) => ({ ...p, lastName: e.target.value }))} className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm" /></Field>
+        <Field label="First Name *"><Input value={draft.firstName} onChange={(e) => setDraft((p) => ({ ...p, firstName: e.target.value }))} className="h-9" /></Field>
+        <Field label="Last Name *"><Input value={draft.lastName} onChange={(e) => setDraft((p) => ({ ...p, lastName: e.target.value }))} className="h-9" /></Field>
       </div>
-      <Field label="Email *"><input value={draft.email} onChange={(e) => setDraft((p) => ({ ...p, email: e.target.value }))} className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm" /></Field>
-      <Field label="Tenant Assignment(s) *">
-        <div className="flex flex-wrap gap-1.5">
-          {TENANTS.map((tenant) => (
-            <button key={tenant} onClick={() => toggleTenant(tenant)} className={cn("rounded-full border px-2 py-1 text-xs", draft.tenantNames.includes(tenant) ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground")}>{tenant}</button>
-          ))}
-        </div>
+      <Field label="Email *"><Input value={draft.email} onChange={(e) => setDraft((p) => ({ ...p, email: e.target.value }))} className="h-9" /></Field>
+      <Field label="Tenant Assignment *">
+        <Select value={draft.tenantName || "none"} onValueChange={(value) => setDraft((p) => ({ ...p, tenantName: value === "none" ? "" : value }))}>
+          <SelectTrigger><SelectValue placeholder="Select tenant" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">Select tenant</SelectItem>
+            {TENANTS.map((tenant) => <SelectItem key={tenant} value={tenant}>{tenant}</SelectItem>)}
+          </SelectContent>
+        </Select>
       </Field>
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         <Field label="Primary Role *">
@@ -492,21 +461,55 @@ function UserForm({ draft, setDraft }: { draft: UserDraft; setDraft: Dispatch<Se
           </Select>
         </Field>
       </div>
-      <div className="flex items-center justify-between rounded-md border border-border px-3 py-2">
-        <span className="text-xs text-muted-foreground">Send invitation email</span>
-        <Switch checked={draft.sendInvitation} onCheckedChange={(checked) => setDraft((p) => ({ ...p, sendInvitation: checked }))} />
-      </div>
+      {mode === "edit" ? (
+        <div className="space-y-2 rounded-md border border-border px-3 py-3">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Password</p>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="h-8"
+              onClick={() => setDraft((prev) => ({ ...prev, changePassword: !prev.changePassword, newPassword: "", confirmPassword: "" }))}
+            >
+              {draft.changePassword ? "Cancel Password Change" : "Set New Password"}
+            </Button>
+          </div>
+          {draft.changePassword ? (
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              <Field label="New Password *">
+                <Input
+                  type="password"
+                  value={draft.newPassword}
+                  onChange={(e) => setDraft((p) => ({ ...p, newPassword: e.target.value }))}
+                  className="h-9"
+                />
+              </Field>
+              <Field label="Confirm Password *">
+                <Input
+                  type="password"
+                  value={draft.confirmPassword}
+                  onChange={(e) => setDraft((p) => ({ ...p, confirmPassword: e.target.value }))}
+                  className="h-9"
+                />
+              </Field>
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground">Use “Set New Password” to reset this user password.</p>
+          )}
+        </div>
+      ) : (
+        <div className="flex items-center justify-between rounded-md border border-border px-3 py-2">
+          <span className="text-xs text-muted-foreground">Send invitation email</span>
+          <Switch checked={draft.sendInvitation} onCheckedChange={(checked) => setDraft((p) => ({ ...p, sendInvitation: checked }))} />
+        </div>
+      )}
     </div>
   );
 }
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return <label className="block space-y-1"><span className="text-xs font-semibold text-muted-foreground">{label}</span>{children}</label>;
-}
-
-function minutesUntil(dateIso: string) {
-  const diff = new Date(dateIso).getTime() - Date.now();
-  return Math.max(0, Math.round(diff / (60 * 1000)));
 }
 
 function formatLastLogin(lastLoginAt: string | null) {
