@@ -198,17 +198,20 @@ export async function getUsersIdentity(filters: UsersIdentityFilters): Promise<{
   return { rows: rows.slice(start, end), total };
 }
 
-export async function createUser(payload: Omit<UserIdentityRecord, "id" | "fullName">): Promise<UserIdentityRecord> {
+export async function createUser(
+  payload: Omit<UserIdentityRecord, "id" | "fullName"> & { password?: string },
+): Promise<UserIdentityRecord> {
   await delay();
   const store = loadStore();
   const email = payload.email.trim().toLowerCase();
   if (store.users.some((user) => user.email.toLowerCase() === email)) throw new Error("Email already exists.");
 
+  const { password: _password, ...safePayload } = payload;
   const created: UserIdentityRecord = {
-    ...payload,
+    ...safePayload,
     id: `user-${Date.now()}`,
     email,
-    fullName: `${payload.firstName} ${payload.lastName}`.trim(),
+    fullName: `${safePayload.firstName} ${safePayload.lastName}`.trim(),
   };
   store.users.unshift(created);
   saveStore(store);
@@ -217,19 +220,15 @@ export async function createUser(payload: Omit<UserIdentityRecord, "id" | "fullN
 
 export async function patchUser(
   userId: string,
-  updates: Partial<UserIdentityRecord> & { password?: string; tenantId?: string; tenantName?: string },
+  updates: Partial<UserIdentityRecord> & { password?: string },
 ): Promise<UserIdentityRecord> {
   await delay();
   const store = loadStore();
   const index = store.users.findIndex((user) => user.id === userId);
   if (index < 0) throw new Error("User not found.");
 
-  const { password: _password, tenantId, tenantName, ...safeUpdates } = updates;
+  const { password: _password, ...safeUpdates } = updates;
   const next = { ...store.users[index], ...safeUpdates };
-  if (tenantId && tenantName) {
-    next.tenantIds = [tenantId];
-    next.tenantNames = [tenantName];
-  }
   next.fullName = `${next.firstName} ${next.lastName}`.trim();
   store.users[index] = next;
   saveStore(store);

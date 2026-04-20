@@ -42,8 +42,8 @@ type UserDraft = {
   firstName: string;
   lastName: string;
   email: string;
-  tenantId: string;
-  tenantName: string;
+  tenantIds: string[];
+  tenantNames: string[];
   primaryRoleName: string;
   status: UserStatus;
   changePassword: boolean;
@@ -93,8 +93,8 @@ export default function UsersIdentityWorkspace() {
     firstName: "",
     lastName: "",
     email: "",
-    tenantId: "",
-    tenantName: "",
+    tenantIds: [],
+    tenantNames: [],
     primaryRoleName: "",
     status: "Pending",
     changePassword: false,
@@ -135,8 +135,8 @@ export default function UsersIdentityWorkspace() {
       firstName: "",
       lastName: "",
       email: "",
-      tenantId: "",
-      tenantName: "",
+      tenantIds: [],
+      tenantNames: [],
       primaryRoleName: "",
       status: "Pending",
       changePassword: false,
@@ -147,17 +147,17 @@ export default function UsersIdentityWorkspace() {
     setAddOpen(true);
   };
 
-  const openEdit = (user: UserIdentityRecord) => {
+  const openEdit = (user: UserIdentityRecord, focusPassword = false) => {
     setActiveUser(user);
     setDraft({
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
-      tenantId: user.tenantIds[0] ?? "",
-      tenantName: user.tenantNames[0] ?? "",
+      tenantIds: user.tenantIds,
+      tenantNames: user.tenantNames,
       primaryRoleName: user.primaryRoleName,
       status: user.status,
-      changePassword: false,
+      changePassword: focusPassword,
       newPassword: "",
       confirmPassword: "",
     });
@@ -177,8 +177,21 @@ export default function UsersIdentityWorkspace() {
 
   const submitAdd = async () => {
     setFormError(null);
-    if (!draft.firstName.trim() || !draft.lastName.trim() || !draft.email.trim() || !draft.tenantName || !draft.tenantId || !draft.primaryRoleName) {
+    if (!draft.firstName.trim() || !draft.lastName.trim() || !draft.email.trim() || draft.tenantIds.length === 0 || !draft.primaryRoleName) {
       setFormError("All required fields must be completed.");
+      return;
+    }
+
+    if (!draft.newPassword || !draft.confirmPassword) {
+      setFormError("Password and Confirm Password are required.");
+      return;
+    }
+    if (draft.newPassword !== draft.confirmPassword) {
+      setFormError("Password and Confirm Password must match.");
+      return;
+    }
+    if (draft.newPassword.length < 8) {
+      setFormError("Password must be at least 8 characters.");
       return;
     }
 
@@ -187,12 +200,13 @@ export default function UsersIdentityWorkspace() {
         firstName: draft.firstName.trim(),
         lastName: draft.lastName.trim(),
         email: draft.email.trim(),
-        tenantIds: [draft.tenantId || draft.tenantName.toLowerCase().replace(/\s+/g, "-")],
-        tenantNames: [draft.tenantName],
+        tenantIds: draft.tenantIds,
+        tenantNames: draft.tenantNames,
         primaryRoleId: draft.primaryRoleName.toLowerCase().replace(/\s+/g, "-"),
         primaryRoleName: draft.primaryRoleName,
         status: draft.status,
         lastLoginAt: null,
+        password: draft.newPassword,
       });
 
       setAddOpen(false);
@@ -206,7 +220,7 @@ export default function UsersIdentityWorkspace() {
   const submitEdit = async () => {
     if (!activeUser) return;
     setFormError(null);
-    if (!draft.firstName.trim() || !draft.lastName.trim() || !draft.email.trim() || !draft.tenantName || !draft.tenantId || !draft.primaryRoleName) {
+    if (!draft.firstName.trim() || !draft.lastName.trim() || !draft.email.trim() || draft.tenantIds.length === 0 || !draft.primaryRoleName) {
       setFormError("All required fields must be completed.");
       return;
     }
@@ -231,8 +245,8 @@ export default function UsersIdentityWorkspace() {
         firstName: draft.firstName.trim(),
         lastName: draft.lastName.trim(),
         email: draft.email.trim(),
-        tenantId: draft.tenantId,
-        tenantName: draft.tenantName,
+        tenantIds: draft.tenantIds,
+        tenantNames: draft.tenantNames,
         primaryRoleId: draft.primaryRoleName.toLowerCase().replace(/\s+/g, "-"),
         primaryRoleName: draft.primaryRoleName,
         status: draft.status,
@@ -351,7 +365,7 @@ export default function UsersIdentityWorkspace() {
                           <DropdownMenuItem onSelect={() => openDetails(user.id)}>View Details</DropdownMenuItem>
                           <DropdownMenuItem onSelect={() => openEdit(user)}>Edit User</DropdownMenuItem>
                           <DropdownMenuItem onSelect={() => quickStatusToggle(user)}>{user.status === "Suspended" ? "Reactivate User" : "Suspend User"}</DropdownMenuItem>
-                          <DropdownMenuItem onSelect={() => actionSimpleToast("Password reset requested")}>Reset Password</DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => openEdit(user, true)}>Reset Password</DropdownMenuItem>
                           <DropdownMenuItem onSelect={() => actionSimpleToast("Invite resent")}>Resend Invite</DropdownMenuItem>
                           <DropdownMenuItem onSelect={() => actionSimpleToast("User removed from tenant")}>Remove from Tenant</DropdownMenuItem>
                         </DropdownMenuContent>
@@ -425,6 +439,24 @@ export default function UsersIdentityWorkspace() {
 }
 
 function UserForm({ draft, setDraft, mode }: { draft: UserDraft; setDraft: Dispatch<SetStateAction<UserDraft>>; mode: "add" | "edit" }) {
+  const toggleTenant = (tenantId: string, tenantName: string) => {
+    setDraft((prev) => {
+      const exists = prev.tenantIds.includes(tenantId);
+      if (exists) {
+        return {
+          ...prev,
+          tenantIds: prev.tenantIds.filter((id) => id !== tenantId),
+          tenantNames: prev.tenantNames.filter((name) => name !== tenantName),
+        };
+      }
+      return {
+        ...prev,
+        tenantIds: [...prev.tenantIds, tenantId],
+        tenantNames: [...prev.tenantNames, tenantName],
+      };
+    });
+  };
+
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -432,24 +464,31 @@ function UserForm({ draft, setDraft, mode }: { draft: UserDraft; setDraft: Dispa
         <Field label="Last Name *"><Input value={draft.lastName} onChange={(e) => setDraft((p) => ({ ...p, lastName: e.target.value }))} className="h-9" /></Field>
       </div>
       <Field label="Email *"><Input value={draft.email} onChange={(e) => setDraft((p) => ({ ...p, email: e.target.value }))} className="h-9" /></Field>
-      <Field label="Tenant Assignment *">
-        <Select
-          value={draft.tenantId || "none"}
-          onValueChange={(value) => {
-            if (value === "none") {
-              setDraft((p) => ({ ...p, tenantId: "", tenantName: "" }));
-              return;
-            }
-            const selected = TENANT_OPTIONS.find((tenant) => tenant.id === value);
-            setDraft((p) => ({ ...p, tenantId: value, tenantName: selected?.name ?? "" }));
-          }}
-        >
-          <SelectTrigger><SelectValue placeholder="Select tenant" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="none">Select tenant</SelectItem>
-            {TENANT_OPTIONS.map((tenant) => <SelectItem key={tenant.id} value={tenant.id}>{tenant.name}</SelectItem>)}
-          </SelectContent>
-        </Select>
+      <Field label="Tenant Assignments *">
+        <div className="space-y-2">
+          <div className="flex flex-wrap gap-1.5">
+            {TENANT_OPTIONS.map((tenant) => (
+              <button
+                key={tenant.id}
+                type="button"
+                onClick={() => toggleTenant(tenant.id, tenant.name)}
+                className={cn(
+                  "rounded-full border px-2.5 py-1 text-xs transition",
+                  draft.tenantIds.includes(tenant.id)
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border bg-background text-muted-foreground hover:border-primary/50",
+                )}
+              >
+                {tenant.name}
+              </button>
+            ))}
+          </div>
+          {draft.tenantNames.length > 0 ? (
+            <p className="text-xs text-muted-foreground">Selected: {draft.tenantNames.join(", ")}</p>
+          ) : (
+            <p className="text-xs text-muted-foreground">Select one or more tenants.</p>
+          )}
+        </div>
       </Field>
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         <Field label="Primary Role *">
@@ -473,10 +512,10 @@ function UserForm({ draft, setDraft, mode }: { draft: UserDraft; setDraft: Dispa
           </Select>
         </Field>
       </div>
-      {mode === "edit" ? (
-        <div className="space-y-2 rounded-md border border-border px-3 py-3">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Password</p>
+      <div className="space-y-2 rounded-md border border-border px-3 py-3">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Password</p>
+          {mode === "edit" ? (
             <Button
               type="button"
               size="sm"
@@ -486,31 +525,31 @@ function UserForm({ draft, setDraft, mode }: { draft: UserDraft; setDraft: Dispa
             >
               {draft.changePassword ? "Cancel Password Change" : "Set New Password"}
             </Button>
-          </div>
-          {draft.changePassword ? (
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-              <Field label="New Password *">
-                <Input
-                  type="password"
-                  value={draft.newPassword}
-                  onChange={(e) => setDraft((p) => ({ ...p, newPassword: e.target.value }))}
-                  className="h-9"
-                />
-              </Field>
-              <Field label="Confirm Password *">
-                <Input
-                  type="password"
-                  value={draft.confirmPassword}
-                  onChange={(e) => setDraft((p) => ({ ...p, confirmPassword: e.target.value }))}
-                  className="h-9"
-                />
-              </Field>
-            </div>
-          ) : (
-            <p className="text-xs text-muted-foreground">Use “Set New Password” to reset this user password.</p>
-          )}
+          ) : null}
         </div>
-      ) : null}
+        {mode === "add" || draft.changePassword ? (
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <Field label={mode === "add" ? "Password *" : "New Password *"}>
+              <Input
+                type="password"
+                value={draft.newPassword}
+                onChange={(e) => setDraft((p) => ({ ...p, newPassword: e.target.value }))}
+                className="h-9"
+              />
+            </Field>
+            <Field label="Confirm Password *">
+              <Input
+                type="password"
+                value={draft.confirmPassword}
+                onChange={(e) => setDraft((p) => ({ ...p, confirmPassword: e.target.value }))}
+                className="h-9"
+              />
+            </Field>
+          </div>
+        ) : (
+          <p className="text-xs text-muted-foreground">Use “Set New Password” to reset this user password.</p>
+        )}
+      </div>
     </div>
   );
 }
