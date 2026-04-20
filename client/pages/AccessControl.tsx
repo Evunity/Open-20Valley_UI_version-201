@@ -78,7 +78,7 @@ export default function AccessControl() {
   return (
     <div className="h-full min-h-0 w-full min-w-0 bg-background flex flex-col overflow-hidden">
       <div className="border-b border-border bg-card/50 px-4 py-3">
-        <div className="grid grid-cols-1 gap-2 auto-rows-max md:grid-cols-2 xl:grid-cols-6">
+        <div className="grid grid-cols-1 gap-2 auto-rows-max md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           {SUBSECTIONS.map((section) => {
             const Icon = section.icon;
             const isActive = activeSubsection === section.id;
