@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { MoreHorizontal, X } from "lucide-react";
+import { ChevronDown, MoreHorizontal, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -89,6 +89,7 @@ export const AlarmManagement: React.FC = () => {
   const [assignSelection, setAssignSelection] = useState<string[]>([]);
   const [assignOpen, setAssignOpen] = useState(false);
   const [assignSaving, setAssignSaving] = useState(false);
+  const [actionsExpanded, setActionsExpanded] = useState(false);
   const commandBarRef = useRef<HTMLDivElement | null>(null);
   const [commandBarWidth, setCommandBarWidth] = useState(0);
 
@@ -133,6 +134,7 @@ export const AlarmManagement: React.FC = () => {
   useEffect(() => {
     if (!selectedAlarm) {
       setAssignSelection([]);
+      setActionsExpanded(false);
       return;
     }
     if (selectedAlarm.assignment !== "Unassigned") {
@@ -284,9 +286,10 @@ export const AlarmManagement: React.FC = () => {
             )}
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            {showAcknowledge && <button disabled={targetIds.length === 0 || settings.maintenanceMode} onClick={handleAcknowledge} className="h-10 rounded-lg border border-border px-3 text-sm disabled:opacity-40">Acknowledge</button>}
-            {showAssign && <button disabled={targetIds.length === 0 || settings.maintenanceMode} onClick={() => setAssignOpen(true)} className="h-10 rounded-lg border border-border px-3 text-sm disabled:opacity-40">Assign</button>}
+            {showAcknowledge && <button disabled={targetIds.length === 0 || settings.maintenanceMode} onClick={handleAcknowledge} className="h-10 rounded-lg border border-border px-3 text-sm disabled:opacity-40">Acknowledge Selected{targetIds.length > 0 ? ` (${targetIds.length})` : ""}</button>}
+            {showAssign && <button disabled={targetIds.length === 0 || settings.maintenanceMode} onClick={() => setAssignOpen(true)} className="h-10 rounded-lg border border-border px-3 text-sm disabled:opacity-40">Assign Selected{targetIds.length > 0 ? ` (${targetIds.length})` : ""}</button>}
             {showExport && <button onClick={handleExport} className="h-10 rounded-lg border border-border px-3 text-sm">Export</button>}
+            {targetIds.length > 0 && <button onClick={() => setSelectedAlarmIds([])} className="h-10 rounded-lg border border-border px-3 text-sm">Clear Selection</button>}
             {hasOverflowItems && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -338,8 +341,9 @@ export const AlarmManagement: React.FC = () => {
                   )}
                   <DropdownMenuSeparator />
                   <DropdownMenuLabel>More Actions</DropdownMenuLabel>
-                  {!showAcknowledge && <DropdownMenuItem disabled={targetIds.length === 0 || settings.maintenanceMode} onSelect={handleAcknowledge}>Acknowledge</DropdownMenuItem>}
-                  {!showAssign && <DropdownMenuItem disabled={targetIds.length === 0 || settings.maintenanceMode} onSelect={() => setAssignOpen(true)}>Assign</DropdownMenuItem>}
+                  {!showAcknowledge && <DropdownMenuItem disabled={targetIds.length === 0 || settings.maintenanceMode} onSelect={handleAcknowledge}>Acknowledge Selected{targetIds.length > 0 ? ` (${targetIds.length})` : ""}</DropdownMenuItem>}
+                  {!showAssign && <DropdownMenuItem disabled={targetIds.length === 0 || settings.maintenanceMode} onSelect={() => setAssignOpen(true)}>Assign Selected{targetIds.length > 0 ? ` (${targetIds.length})` : ""}</DropdownMenuItem>}
+                  {targetIds.length > 0 && <DropdownMenuItem onSelect={() => setSelectedAlarmIds([])}>Clear Selection</DropdownMenuItem>}
                   {!showExport && <DropdownMenuItem onSelect={handleExport}>Export</DropdownMenuItem>}
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -445,11 +449,8 @@ export const AlarmManagement: React.FC = () => {
                     <p className="mt-2 text-[10px] font-semibold uppercase text-muted-foreground">Alarm Description</p>
                     <p className="mt-1 text-xs text-foreground">{selectedAlarm.description}</p>
                   </section>
-                  <section className="rounded-lg border border-border p-2"><p className="text-[10px] font-semibold uppercase text-muted-foreground">Timeline</p><ul className="mt-1 list-disc space-y-1 pl-4 text-xs">{details.timeline.map((t) => <li key={t}>{t}</li>)}</ul></section>
-                  <section className="rounded-lg border border-border p-2"><p className="text-[10px] font-semibold uppercase text-muted-foreground">Root Cause</p><p className="mt-1 text-xs">{details.rootCause}</p></section>
                   <section className="rounded-lg border border-border p-2">
-                    <p className="text-[10px] font-semibold uppercase text-muted-foreground">Actions</p>
-                    <ul className="mt-1 list-disc pl-4 text-xs">{details.actions.map((a) => <li key={a}>{a}</li>)}</ul>
+                    <p className="text-[10px] font-semibold uppercase text-muted-foreground">Assignment</p>
                     <div className="mt-2 grid grid-cols-1 gap-2">
                       <SearchableDropdown
                         label="Assignment Team"
@@ -471,6 +472,19 @@ export const AlarmManagement: React.FC = () => {
                         {assignSaving ? "Applying..." : "Apply Assign"}
                       </button>
                     </div>
+                  </section>
+                  <section className="rounded-lg border border-border p-2"><p className="text-[10px] font-semibold uppercase text-muted-foreground">Timeline</p><ul className="mt-1 list-disc space-y-1 pl-4 text-xs">{details.timeline.map((t) => <li key={t}>{t}</li>)}</ul></section>
+                  <section className="rounded-lg border border-border p-2"><p className="text-[10px] font-semibold uppercase text-muted-foreground">Root Cause</p><p className="mt-1 text-xs">{details.rootCause}</p></section>
+                  <section className="rounded-lg border border-border p-2">
+                    <button onClick={() => setActionsExpanded((prev) => !prev)} className="flex w-full items-center justify-between text-[10px] font-semibold uppercase text-muted-foreground">
+                      Actions
+                      <ChevronDown className={cn("h-4 w-4 transition-transform", actionsExpanded && "rotate-180")} />
+                    </button>
+                    {actionsExpanded && (
+                      <ul className="mt-2 list-disc pl-4 text-xs">
+                        {details.actions.map((a) => <li key={a}>{a}</li>)}
+                      </ul>
+                    )}
                   </section>
                   <section className="rounded-lg border border-border p-2"><p className="text-[10px] font-semibold uppercase text-muted-foreground">Logs</p><ul className="mt-1 space-y-1 text-xs">{details.logs.map((l) => <li key={l} className="font-mono text-[11px]">{l}</li>)}</ul></section>
                 </>

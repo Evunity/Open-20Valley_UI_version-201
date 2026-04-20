@@ -302,7 +302,7 @@ export default function SearchableDropdown({
             </div>
           )}
 
-          <div className="max-h-64 overflow-y-auto overscroll-contain">
+          <div className="max-h-[280px] overflow-y-auto overscroll-contain">
             {filteredOptions.length > 0 ? (
               filteredOptions.map((option) => {
                 const isSelected = selected.includes(option);
