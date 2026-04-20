@@ -1,9 +1,8 @@
 import { useState, type ComponentType } from "react";
-import { Building2, FileCheck2, Shield, UserCog, Users } from "lucide-react";
+import { Building2, FileCheck2, UserCog, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import TenantManagement from "@/components/access-control/TenantManagement";
 import RolesPermissions from "@/components/access-control/RolesPermissions";
-import SecurityPolicies from "@/components/access-control/SecurityPolicies";
 import AuditTrailWorkspace from "@/components/access-control/AuditTrailWorkspace";
 import UsersIdentityWorkspace from "@/components/access-control/UsersIdentityWorkspace";
 
@@ -11,7 +10,6 @@ type AccessSubsectionId =
   | "tenant-management"
   | "users-identity"
   | "roles-permissions"
-  | "security-policies"
   | "audit-trail";
 
 interface AccessSubsection {
@@ -41,12 +39,6 @@ const SUBSECTIONS: AccessSubsection[] = [
     description: "Role modeling and permission assignment",
   },
   {
-    id: "security-policies",
-    label: "Security Policies",
-    icon: Shield,
-    description: "Policy governance and enforcement",
-  },
-  {
     id: "audit-trail",
     label: "Audit Trail",
     icon: FileCheck2,
@@ -66,8 +58,6 @@ export default function AccessControl() {
         return <UsersIdentityWorkspace />;
       case "roles-permissions":
         return <RolesPermissions />;
-      case "security-policies":
-        return <SecurityPolicies />;
       case "audit-trail":
         return <AuditTrailWorkspace />;
       default:
@@ -78,7 +68,7 @@ export default function AccessControl() {
   return (
     <div className="h-full min-h-0 w-full min-w-0 bg-background flex flex-col overflow-hidden">
       <div className="border-b border-border bg-card/50 px-4 py-3">
-        <div className="grid grid-cols-1 gap-2 auto-rows-max md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        <div className="grid grid-cols-1 gap-2 auto-rows-max md:grid-cols-2 lg:grid-cols-4">
           {SUBSECTIONS.map((section) => {
             const Icon = section.icon;
             const isActive = activeSubsection === section.id;

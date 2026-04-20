@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { Ban, CheckCircle2, ChevronDown, ChevronRight, Plus, UserCircle2 } from "lucide-react";
+import { Ban, CheckCircle2, ChevronDown, ChevronRight, Loader2, Plus, UserCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -7,48 +7,28 @@ import {
   getRoleMatrix,
   getRoles,
   getScopes,
-  patchModulePermissions,
   patchRoleMatrix,
   type PermissionAction,
   type PermissionEntry,
   type Role,
   type ScopeOption,
 } from "@/services/accessControlRolesService";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 const ACTIONS: PermissionAction[] = ["read", "create", "edit", "delete", "execute", "export"];
 const PERMISSION_COLUMN_CLASS = "w-[84px] min-w-[84px] whitespace-nowrap break-normal [overflow-wrap:normal]";
 
-type ActiveTab = "roles" | "matrix" | "scoped";
-
 export default function RolesPermissions() {
   const { toast } = useToast();
 
-  const [tab, setTab] = useState<ActiveTab>("roles");
   const [roles, setRoles] = useState<Role[]>([]);
   const [scopes, setScopes] = useState<ScopeOption[]>([]);
   const [selectedRoleId, setSelectedRoleId] = useState<string>("");
   const [selectedScopeId, setSelectedScopeId] = useState("all-regions");
+  const [savedEntries, setSavedEntries] = useState<PermissionEntry[]>([]);
   const [entries, setEntries] = useState<PermissionEntry[]>([]);
   const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({
     dashboard: true,
@@ -59,8 +39,10 @@ export default function RolesPermissions() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const [createOpen, setCreateOpen] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
   const [roleName, setRoleName] = useState("");
   const [description, setDescription] = useState("");
   const [baseTemplate, setBaseTemplate] = useState("");
@@ -76,24 +58,19 @@ export default function RolesPermissions() {
       if (!grouped.has(entry.moduleKey)) {
         grouped.set(entry.moduleKey, { label: entry.moduleLabel, rows: [] });
       }
-      grouped.get(entry.moduleKey)!.rows.push(entry);
+      grouped.get(entry.moduleKey)?.rows.push(entry);
     });
     return Array.from(grouped.entries());
   }, [entries]);
 
-  const scopeBreakdown = useMemo(() => {
-    return scopes.map((scope) => ({
-      scope,
-      granted: entries.reduce((sum, entry) => sum + ACTIONS.filter((action) => entry.permissions[action]).length, 0),
-      total: entries.length * ACTIONS.length,
-    }));
-  }, [entries, scopes]);
+  const isDirty = useMemo(() => JSON.stringify(entries) !== JSON.stringify(savedEntries), [entries, savedEntries]);
 
   const loadStatic = async () => {
     const [rolesData, scopesData] = await Promise.all([getRoles(), getScopes()]);
-    setRoles(rolesData);
+    const cleanedRoles = rolesData.filter((role) => role.name.trim().toLowerCase() !== "test");
+    setRoles(cleanedRoles);
     setScopes(scopesData);
-    if (!selectedRoleId && rolesData.length > 0) setSelectedRoleId(rolesData[0].id);
+    if (!selectedRoleId && cleanedRoles.length > 0) setSelectedRoleId(cleanedRoles[0].id);
   };
 
   const loadMatrix = async (roleId: string, scopeId: string) => {
@@ -102,6 +79,7 @@ export default function RolesPermissions() {
     try {
       const matrix = await getRoleMatrix(roleId, scopeId);
       setEntries(matrix.entries);
+      setSavedEntries(matrix.entries);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load permission matrix.");
     } finally {
@@ -118,67 +96,80 @@ export default function RolesPermissions() {
     loadMatrix(selectedRoleId, selectedScopeId);
   }, [selectedRoleId, selectedScopeId]);
 
-  const togglePermission = async (entry: PermissionEntry, action: PermissionAction) => {
-    const oldEntries = entries;
-    const nextEntries = entries.map((row) =>
-      row.pageKey === entry.pageKey
-        ? { ...row, permissions: { ...row.permissions, [action]: !row.permissions[action] } }
-        : row
+  const togglePermission = (entry: PermissionEntry, action: PermissionAction) => {
+    setEntries((prev) =>
+      prev.map((row) =>
+        row.pageKey === entry.pageKey ? { ...row, permissions: { ...row.permissions, [action]: !row.permissions[action] } } : row,
+      ),
     );
-    setEntries(nextEntries);
-
-    try {
-      await patchRoleMatrix({
-        roleId: selectedRoleId,
-        scopeId: selectedScopeId,
-        pageKey: entry.pageKey,
-        action,
-        value: nextEntries.find((row) => row.pageKey === entry.pageKey)!.permissions[action],
-      });
-    } catch (err) {
-      setEntries(oldEntries);
-      toast({
-        title: "Update failed",
-        description: err instanceof Error ? err.message : "Permission change failed.",
-        variant: "destructive",
-      });
-    }
   };
 
-  const setModulePermissions = async (moduleKey: string, value: boolean) => {
-    const oldEntries = entries;
-    const nextEntries = entries.map((row) =>
-      row.moduleKey === moduleKey
-        ? {
-            ...row,
-            permissions: ACTIONS.reduce((acc, action) => {
-              acc[action] = row.locked?.[action] ? row.permissions[action] : value;
-              return acc;
-            }, {} as Record<PermissionAction, boolean>),
-          }
-        : row
+  const setModulePermissions = (moduleKey: string, value: boolean) => {
+    setEntries((prev) =>
+      prev.map((row) =>
+        row.moduleKey === moduleKey
+          ? {
+              ...row,
+              permissions: ACTIONS.reduce((acc, action) => {
+                acc[action] = row.locked?.[action] ? row.permissions[action] : value;
+                return acc;
+              }, {} as Record<PermissionAction, boolean>),
+            }
+          : row,
+      ),
     );
-    setEntries(nextEntries);
+  };
+
+  const savePermissionChanges = async () => {
+    if (!selectedRoleId || !selectedScopeId || !isDirty || saving) return;
+    setSaving(true);
 
     try {
-      await patchModulePermissions({ roleId: selectedRoleId, scopeId: selectedScopeId, moduleKey, value });
+      const prevByPage = new Map(savedEntries.map((entry) => [entry.pageKey, entry]));
+      const changedCalls: Array<Promise<unknown>> = [];
+
+      entries.forEach((entry) => {
+        const prev = prevByPage.get(entry.pageKey);
+        if (!prev) return;
+        ACTIONS.forEach((action) => {
+          if (prev.permissions[action] !== entry.permissions[action]) {
+            changedCalls.push(
+              patchRoleMatrix({
+                roleId: selectedRoleId,
+                scopeId: selectedScopeId,
+                pageKey: entry.pageKey,
+                action,
+                value: entry.permissions[action],
+              }),
+            );
+          }
+        });
+      });
+
+      await Promise.all(changedCalls);
+      setSavedEntries(entries);
+      toast({ title: "Permissions saved", description: "Role permission changes were saved successfully." });
     } catch (err) {
-      setEntries(oldEntries);
+      setEntries(savedEntries);
       toast({
-        title: "Module update failed",
-        description: err instanceof Error ? err.message : "Unable to apply module action.",
+        title: "Save failed",
+        description: err instanceof Error ? err.message : "Unable to save permission changes.",
         variant: "destructive",
       });
+    } finally {
+      setSaving(false);
     }
   };
 
   const submitCreateRole = async () => {
+    if (isCreating) return;
     setCreateError(null);
     if (!roleName.trim()) {
       setCreateError("Role Name is required.");
       return;
     }
 
+    setIsCreating(true);
     try {
       const role = await createRole({
         name: roleName,
@@ -187,8 +178,7 @@ export default function RolesPermissions() {
         initialScopeMode,
         cloneFromRoleId: cloneFromRoleId || undefined,
       });
-      const nextRoles = [...roles, role];
-      setRoles(nextRoles);
+      setRoles((prev) => [...prev, role]);
       setSelectedRoleId(role.id);
       setCreateOpen(false);
       setRoleName("");
@@ -199,134 +189,110 @@ export default function RolesPermissions() {
       toast({ title: "Role created", description: `${role.name} was created successfully.` });
     } catch (err) {
       setCreateError(err instanceof Error ? err.message : "Unable to create role.");
+    } finally {
+      setIsCreating(false);
     }
   };
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <button
-          onClick={() => setCreateOpen(true)}
-          className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
-        >
-          <Plus className="h-4 w-4" />
-          Create Role
-        </button>
-      </div>
-
-      <div className="rounded-xl border border-border bg-card p-2">
-        <div className="flex items-center gap-1">
-          <TabButton active={tab === "roles"} onClick={() => setTab("roles")}>Roles</TabButton>
-          <TabButton active={tab === "matrix"} onClick={() => setTab("matrix")}>Permission Matrix</TabButton>
-          <TabButton active={tab === "scoped"} onClick={() => setTab("scoped")}>Scoped Permissions</TabButton>
-        </div>
-      </div>
-
-      {(tab === "roles" || tab === "matrix") && (
-        <div className="grid grid-cols-1 gap-3 xl:grid-cols-[280px_1fr]">
-          <section className="rounded-xl border border-border bg-card p-3">
-            <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Roles</p>
-            <div className="space-y-1">
-              {roles.map((role) => (
-                <button
-                  key={role.id}
-                  onClick={() => setSelectedRoleId(role.id)}
-                  className={cn(
-                    "flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm transition",
-                    selectedRoleId === role.id ? "bg-primary/10 text-primary" : "text-foreground hover:bg-muted"
-                  )}
-                >
-                  <UserCircle2 className="h-4 w-4 flex-shrink-0" />
-                  <span className="truncate">{role.name}</span>
-                </button>
-              ))}
-            </div>
-          </section>
-
-          <section className="rounded-xl border border-border bg-card overflow-hidden">
-            <div className="flex flex-col gap-2 border-b border-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-              <h3 className="text-sm font-semibold">
-                Permission Matrix: <span className="text-primary">{selectedRole?.name ?? "-"}</span>
-              </h3>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">Scope:</span>
-                <Select value={selectedScopeId} onValueChange={setSelectedScopeId}>
-                  <SelectTrigger className="h-8 w-[170px] bg-background text-xs"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {scopes.map((scope) => (
-                      <SelectItem key={scope.id} value={scope.id}>{scope.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {error && (
-              <div className="m-3 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-700">
-                {error}
-                <button onClick={() => loadMatrix(selectedRoleId, selectedScopeId)} className="ml-2 underline">Retry</button>
-              </div>
-            )}
-
-            {loading ? (
-              <div className="space-y-2 p-4">
-                {Array.from({ length: 6 }).map((_, idx) => (
-                  <div key={idx} className="h-8 animate-pulse rounded bg-muted/50" />
-                ))}
-              </div>
-            ) : (
-              <div className="overflow-x-auto overflow-y-visible">
-                <table className="w-full min-w-[760px] table-fixed text-sm">
-                  <colgroup>
-                    <col />
-                    {ACTIONS.map((action) => (
-                      <col key={`col-${action}`} style={{ width: "84px" }} />
-                    ))}
-                  </colgroup>
-                  <thead className="bg-muted/30 text-muted-foreground">
-                    <tr>
-                      <th className="min-w-[220px] px-3 py-2 text-left text-xs font-semibold whitespace-nowrap break-normal [overflow-wrap:normal]">Module / Page</th>
-                      {ACTIONS.map((action) => (
-                        <th key={action} className={cn("px-2 py-2 text-center text-xs font-semibold capitalize", PERMISSION_COLUMN_CLASS)}>{action}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {moduleGroups.map(([moduleKey, group]) => (
-                      <ModuleSection
-                        key={moduleKey}
-                        moduleKey={moduleKey}
-                        groupLabel={group.label}
-                        rows={group.rows}
-                        expanded={!!expandedModules[moduleKey]}
-                        onToggleExpand={() => setExpandedModules((prev) => ({ ...prev, [moduleKey]: !prev[moduleKey] }))}
-                        onGrantAll={() => setModulePermissions(moduleKey, true)}
-                        onClearAll={() => setModulePermissions(moduleKey, false)}
-                        onTogglePermission={togglePermission}
-                      />
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </section>
-        </div>
-      )}
-
-      {tab === "scoped" && (
-        <section className="rounded-xl border border-border bg-card p-4">
-          <h3 className="text-sm font-semibold">Scoped Permissions</h3>
-          <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {scopeBreakdown.map(({ scope, granted, total }) => (
-              <div key={scope.id} className="rounded-md border border-border bg-background p-3">
-                <p className="text-sm font-semibold text-foreground">{scope.name}</p>
-                <p className="text-xs text-muted-foreground">{scope.type}</p>
-                <p className="mt-2 text-xs text-foreground">{granted} / {total} permissions granted</p>
-              </div>
+      <div className="grid grid-cols-1 gap-3 xl:grid-cols-[280px_1fr]">
+        <section className="flex min-h-0 flex-col rounded-xl border border-border bg-card p-3">
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Roles</p>
+            <Button onClick={() => setCreateOpen(true)} size="sm" className="h-8">
+              <Plus className="h-4 w-4" />
+              Create Role
+            </Button>
+          </div>
+          <div className="max-h-[640px] space-y-1 overflow-y-auto pr-1">
+            {roles.map((role) => (
+              <button
+                key={role.id}
+                onClick={() => setSelectedRoleId(role.id)}
+                className={cn(
+                  "flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm transition",
+                  selectedRoleId === role.id ? "bg-primary/10 text-primary" : "text-foreground hover:bg-muted",
+                )}
+              >
+                <UserCircle2 className="h-4 w-4 flex-shrink-0" />
+                <span className="truncate">{role.name}</span>
+              </button>
             ))}
           </div>
         </section>
-      )}
+
+        <section className="rounded-xl border border-border bg-card overflow-hidden">
+          <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-3">
+            <h3 className="mr-auto text-sm font-semibold">
+              Permission Matrix: <span className="text-primary">{selectedRole?.name ?? "-"}</span>
+            </h3>
+            <span className="text-xs text-muted-foreground">Scope:</span>
+            <Select value={selectedScopeId} onValueChange={setSelectedScopeId}>
+              <SelectTrigger className="h-8 w-[170px] bg-background text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {scopes.map((scope) => (
+                  <SelectItem key={scope.id} value={scope.id}>{scope.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button variant="outline" size="sm" onClick={() => setEntries(savedEntries)} disabled={!isDirty || saving}>Revert</Button>
+            <Button size="sm" onClick={savePermissionChanges} disabled={!isDirty || saving}>
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              Save Changes
+            </Button>
+          </div>
+
+          {error && (
+            <div className="m-3 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-700">
+              {error}
+              <button onClick={() => loadMatrix(selectedRoleId, selectedScopeId)} className="ml-2 underline">Retry</button>
+            </div>
+          )}
+
+          {loading ? (
+            <div className="space-y-2 p-4">
+              {Array.from({ length: 6 }).map((_, idx) => (
+                <div key={idx} className="h-8 animate-pulse rounded bg-muted/50" />
+              ))}
+            </div>
+          ) : (
+            <div className="overflow-x-auto overflow-y-visible">
+              <table className="w-full min-w-[760px] table-fixed text-sm">
+                <colgroup>
+                  <col />
+                  {ACTIONS.map((action) => (
+                    <col key={`col-${action}`} style={{ width: "84px" }} />
+                  ))}
+                </colgroup>
+                <thead className="bg-muted/30 text-muted-foreground">
+                  <tr>
+                    <th className="min-w-[220px] px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">Module / Page</th>
+                    {ACTIONS.map((action) => (
+                      <th key={action} className={cn("px-2 py-2 text-center text-xs font-semibold capitalize", PERMISSION_COLUMN_CLASS)}>{action}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {moduleGroups.map(([moduleKey, group]) => (
+                    <ModuleSection
+                      key={moduleKey}
+                      moduleKey={moduleKey}
+                      groupLabel={group.label}
+                      rows={group.rows}
+                      expanded={!!expandedModules[moduleKey]}
+                      onToggleExpand={() => setExpandedModules((prev) => ({ ...prev, [moduleKey]: !prev[moduleKey] }))}
+                      onGrantAll={() => setModulePermissions(moduleKey, true)}
+                      onClearAll={() => setModulePermissions(moduleKey, false)}
+                      onTogglePermission={togglePermission}
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+      </div>
 
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent>
@@ -336,10 +302,10 @@ export default function RolesPermissions() {
           </DialogHeader>
           <div className="space-y-3">
             <Field label="Role Name *">
-              <input value={roleName} onChange={(e) => setRoleName(e.target.value)} className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm" />
+              <Input value={roleName} onChange={(e) => setRoleName(e.target.value)} className="h-9" />
             </Field>
             <Field label="Description">
-              <input value={description} onChange={(e) => setDescription(e.target.value)} className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm" />
+              <Input value={description} onChange={(e) => setDescription(e.target.value)} className="h-9" />
             </Field>
             <Field label="Base Template">
               <Select value={baseTemplate || "none"} onValueChange={(value) => setBaseTemplate(value === "none" ? "" : value)}>
@@ -375,8 +341,11 @@ export default function RolesPermissions() {
             {createError && <p className="text-xs text-red-600">{createError}</p>}
           </div>
           <DialogFooter>
-            <button onClick={() => setCreateOpen(false)} className="h-9 rounded-md border border-input px-3 text-sm">Cancel</button>
-            <button onClick={submitCreateRole} className="h-9 rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90">Create</button>
+            <Button variant="outline" onClick={() => setCreateOpen(false)} className="h-9" disabled={isCreating}>Cancel</Button>
+            <Button onClick={submitCreateRole} className="h-9" disabled={isCreating}>
+              {isCreating ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              Create
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -412,15 +381,8 @@ function ModuleSection({
               {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
             </button>
             {groupLabel}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="ml-auto rounded border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground whitespace-nowrap">Actions</button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
-                <DropdownMenuItem onSelect={onGrantAll}>Grant All</DropdownMenuItem>
-                <DropdownMenuItem onSelect={onClearAll}>Clear All</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <button type="button" className="ml-auto rounded border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground" onClick={onGrantAll}>Grant All</button>
+            <button type="button" className="rounded border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground" onClick={onClearAll}>Clear All</button>
           </div>
         </td>
         {ACTIONS.map((action) => (
@@ -458,20 +420,6 @@ function PermissionCell({ granted, locked, ariaLabel, onToggle }: { granted: boo
       className="inline-flex h-7 w-7 items-center justify-center rounded-md hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
     >
       {granted ? <CheckCircle2 className="h-4.5 w-4.5 text-green-600" /> : <Ban className="h-4.5 w-4.5 text-red-600" />}
-    </button>
-  );
-}
-
-function TabButton({ active, children, onClick }: { active: boolean; children: ReactNode; onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "rounded-md px-3 py-1.5 text-xs font-semibold",
-        active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"
-      )}
-    >
-      {children}
     </button>
   );
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
-import { EllipsisVertical, Pencil, Plus, Search, UserRound } from "lucide-react";
+import { EllipsisVertical, Pencil, Plus, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -23,7 +23,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -43,14 +42,23 @@ type UserDraft = {
   firstName: string;
   lastName: string;
   email: string;
+  tenantIds: string[];
   tenantNames: string[];
   primaryRoleName: string;
   status: UserStatus;
-  sendInvitation: boolean;
+  changePassword: boolean;
+  newPassword: string;
+  confirmPassword: string;
 };
 
 const ROLES = ["Platform Admin", "RF Engineer", "NOC Operator", "Viewer", "Group Executive"];
-const TENANTS = ["Egypt Operator", "Saudi Operator", "Managed Svcs", "Enterprise Networks"];
+const TENANT_OPTIONS = [
+  { id: "egypt", name: "Egypt Operator" },
+  { id: "ksa", name: "Saudi Operator" },
+  { id: "managed", name: "Managed Svcs" },
+  { id: "enterprise", name: "Enterprise Networks" },
+];
+const TENANTS = TENANT_OPTIONS.map((tenant) => tenant.name);
 
 const statusStyle: Record<UserStatus, string> = {
   Active: "bg-green-500/15 text-green-700",
@@ -81,7 +89,18 @@ export default function UsersIdentityWorkspace() {
   const [editOpen, setEditOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [activeUser, setActiveUser] = useState<UserIdentityRecord | null>(null);
-  const [draft, setDraft] = useState<UserDraft>({ firstName: "", lastName: "", email: "", tenantNames: [], primaryRoleName: "", status: "Pending", sendInvitation: true });
+  const [draft, setDraft] = useState<UserDraft>({
+    firstName: "",
+    lastName: "",
+    email: "",
+    tenantIds: [],
+    tenantNames: [],
+    primaryRoleName: "",
+    status: "Pending",
+    changePassword: false,
+    newPassword: "",
+    confirmPassword: "",
+  });
   const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -110,25 +129,37 @@ export default function UsersIdentityWorkspace() {
   }, [filters]);
 
   const totalPages = Math.max(1, Math.ceil(total / filters.pageSize));
-  const start = total === 0 ? 0 : (filters.page - 1) * filters.pageSize + 1;
-  const end = Math.min(total, filters.page * filters.pageSize);
 
   const openAdd = () => {
-    setDraft({ firstName: "", lastName: "", email: "", tenantNames: [], primaryRoleName: "", status: "Pending", sendInvitation: true });
+    setDraft({
+      firstName: "",
+      lastName: "",
+      email: "",
+      tenantIds: [],
+      tenantNames: [],
+      primaryRoleName: "",
+      status: "Pending",
+      changePassword: false,
+      newPassword: "",
+      confirmPassword: "",
+    });
     setFormError(null);
     setAddOpen(true);
   };
 
-  const openEdit = (user: UserIdentityRecord) => {
+  const openEdit = (user: UserIdentityRecord, focusPassword = false) => {
     setActiveUser(user);
     setDraft({
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
+      tenantIds: user.tenantIds,
       tenantNames: user.tenantNames,
       primaryRoleName: user.primaryRoleName,
       status: user.status,
-      sendInvitation: false,
+      changePassword: focusPassword,
+      newPassword: "",
+      confirmPassword: "",
     });
     setFormError(null);
     setEditOpen(true);
@@ -146,8 +177,21 @@ export default function UsersIdentityWorkspace() {
 
   const submitAdd = async () => {
     setFormError(null);
-    if (!draft.firstName.trim() || !draft.lastName.trim() || !draft.email.trim() || draft.tenantNames.length === 0 || !draft.primaryRoleName) {
+    if (!draft.firstName.trim() || !draft.lastName.trim() || !draft.email.trim() || draft.tenantIds.length === 0 || !draft.primaryRoleName) {
       setFormError("All required fields must be completed.");
+      return;
+    }
+
+    if (!draft.newPassword || !draft.confirmPassword) {
+      setFormError("Password and Confirm Password are required.");
+      return;
+    }
+    if (draft.newPassword !== draft.confirmPassword) {
+      setFormError("Password and Confirm Password must match.");
+      return;
+    }
+    if (draft.newPassword.length < 8) {
+      setFormError("Password must be at least 8 characters.");
       return;
     }
 
@@ -156,17 +200,15 @@ export default function UsersIdentityWorkspace() {
         firstName: draft.firstName.trim(),
         lastName: draft.lastName.trim(),
         email: draft.email.trim(),
-        tenantIds: draft.tenantNames.map((name) => name.toLowerCase().replace(/\s+/g, "-")),
+        tenantIds: draft.tenantIds,
         tenantNames: draft.tenantNames,
         primaryRoleId: draft.primaryRoleName.toLowerCase().replace(/\s+/g, "-"),
         primaryRoleName: draft.primaryRoleName,
         status: draft.status,
         lastLoginAt: null,
+        password: draft.newPassword,
       });
 
-      if (draft.sendInvitation) {
-        toast({ title: "Invitation queued", description: `Invite sent to ${draft.email}.` });
-      }
       setAddOpen(false);
       setFilters((prev) => ({ ...prev, page: 1 }));
       loadUsers();
@@ -178,9 +220,24 @@ export default function UsersIdentityWorkspace() {
   const submitEdit = async () => {
     if (!activeUser) return;
     setFormError(null);
-    if (!draft.firstName.trim() || !draft.lastName.trim() || !draft.email.trim() || draft.tenantNames.length === 0 || !draft.primaryRoleName) {
+    if (!draft.firstName.trim() || !draft.lastName.trim() || !draft.email.trim() || draft.tenantIds.length === 0 || !draft.primaryRoleName) {
       setFormError("All required fields must be completed.");
       return;
+    }
+
+    if (draft.changePassword || draft.newPassword || draft.confirmPassword) {
+      if (!draft.newPassword || !draft.confirmPassword) {
+        setFormError("Both password fields are required when setting a new password.");
+        return;
+      }
+      if (draft.newPassword !== draft.confirmPassword) {
+        setFormError("New Password and Confirm Password must match.");
+        return;
+      }
+      if (draft.newPassword.length < 8) {
+        setFormError("Password must be at least 8 characters.");
+        return;
+      }
     }
 
     try {
@@ -188,11 +245,12 @@ export default function UsersIdentityWorkspace() {
         firstName: draft.firstName.trim(),
         lastName: draft.lastName.trim(),
         email: draft.email.trim(),
-        tenantIds: draft.tenantNames.map((name) => name.toLowerCase().replace(/\s+/g, "-")),
+        tenantIds: draft.tenantIds,
         tenantNames: draft.tenantNames,
         primaryRoleId: draft.primaryRoleName.toLowerCase().replace(/\s+/g, "-"),
         primaryRoleName: draft.primaryRoleName,
         status: draft.status,
+        ...(draft.changePassword && draft.newPassword ? { password: draft.newPassword } : {}),
       });
       setEditOpen(false);
       loadUsers();
@@ -307,8 +365,7 @@ export default function UsersIdentityWorkspace() {
                           <DropdownMenuItem onSelect={() => openDetails(user.id)}>View Details</DropdownMenuItem>
                           <DropdownMenuItem onSelect={() => openEdit(user)}>Edit User</DropdownMenuItem>
                           <DropdownMenuItem onSelect={() => quickStatusToggle(user)}>{user.status === "Suspended" ? "Reactivate User" : "Suspend User"}</DropdownMenuItem>
-                          <DropdownMenuItem onSelect={() => actionSimpleToast("Password reset requested")}>Reset Password</DropdownMenuItem>
-                          <DropdownMenuItem onSelect={() => actionSimpleToast("Invite resent")}>Resend Invite</DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => openEdit(user, true)}>Reset Password</DropdownMenuItem>
                           <DropdownMenuItem onSelect={() => actionSimpleToast("User removed from tenant")}>Remove from Tenant</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -334,7 +391,7 @@ export default function UsersIdentityWorkspace() {
             <DialogTitle>Add User</DialogTitle>
             <DialogDescription>Create a new user identity and assign role/tenants.</DialogDescription>
           </DialogHeader>
-          <UserForm draft={draft} setDraft={setDraft} />
+          <UserForm draft={draft} setDraft={setDraft} mode="add" />
           {formError && <p className="text-xs text-red-600">{formError}</p>}
           <DialogFooter>
             <Button variant="outline" onClick={() => setAddOpen(false)} className="h-9">Cancel</Button>
@@ -349,7 +406,7 @@ export default function UsersIdentityWorkspace() {
             <DialogTitle>Edit User</DialogTitle>
             <DialogDescription>Update user profile, tenants, role, and status.</DialogDescription>
           </DialogHeader>
-          <UserForm draft={draft} setDraft={setDraft} />
+          <UserForm draft={draft} setDraft={setDraft} mode="edit" />
           {formError && <p className="text-xs text-red-600">{formError}</p>}
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditOpen(false)} className="h-9">Cancel</Button>
@@ -380,28 +437,56 @@ export default function UsersIdentityWorkspace() {
   );
 }
 
-function UserForm({ draft, setDraft }: { draft: UserDraft; setDraft: Dispatch<SetStateAction<UserDraft>> }) {
-  const toggleTenant = (tenant: string) => {
-    setDraft((prev) => ({
-      ...prev,
-      tenantNames: prev.tenantNames.includes(tenant)
-        ? prev.tenantNames.filter((t) => t !== tenant)
-        : [...prev.tenantNames, tenant],
-    }));
+function UserForm({ draft, setDraft, mode }: { draft: UserDraft; setDraft: Dispatch<SetStateAction<UserDraft>>; mode: "add" | "edit" }) {
+  const toggleTenant = (tenantId: string, tenantName: string) => {
+    setDraft((prev) => {
+      const exists = prev.tenantIds.includes(tenantId);
+      if (exists) {
+        return {
+          ...prev,
+          tenantIds: prev.tenantIds.filter((id) => id !== tenantId),
+          tenantNames: prev.tenantNames.filter((name) => name !== tenantName),
+        };
+      }
+      return {
+        ...prev,
+        tenantIds: [...prev.tenantIds, tenantId],
+        tenantNames: [...prev.tenantNames, tenantName],
+      };
+    });
   };
 
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-        <Field label="First Name *"><input value={draft.firstName} onChange={(e) => setDraft((p) => ({ ...p, firstName: e.target.value }))} className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm" /></Field>
-        <Field label="Last Name *"><input value={draft.lastName} onChange={(e) => setDraft((p) => ({ ...p, lastName: e.target.value }))} className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm" /></Field>
+        <Field label="First Name *"><Input value={draft.firstName} onChange={(e) => setDraft((p) => ({ ...p, firstName: e.target.value }))} className="h-9" /></Field>
+        <Field label="Last Name *"><Input value={draft.lastName} onChange={(e) => setDraft((p) => ({ ...p, lastName: e.target.value }))} className="h-9" /></Field>
       </div>
-      <Field label="Email *"><input value={draft.email} onChange={(e) => setDraft((p) => ({ ...p, email: e.target.value }))} className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm" /></Field>
-      <Field label="Tenant Assignment(s) *">
-        <div className="flex flex-wrap gap-1.5">
-          {TENANTS.map((tenant) => (
-            <button key={tenant} onClick={() => toggleTenant(tenant)} className={cn("rounded-full border px-2 py-1 text-xs", draft.tenantNames.includes(tenant) ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground")}>{tenant}</button>
-          ))}
+      <Field label="Email *"><Input value={draft.email} onChange={(e) => setDraft((p) => ({ ...p, email: e.target.value }))} className="h-9" /></Field>
+      <Field label="Tenant Assignments *">
+        <div className="space-y-2">
+          <div className="flex flex-wrap gap-1.5">
+            {TENANT_OPTIONS.map((tenant) => (
+              <button
+                key={tenant.id}
+                type="button"
+                onClick={() => toggleTenant(tenant.id, tenant.name)}
+                className={cn(
+                  "rounded-full border px-2.5 py-1 text-xs transition",
+                  draft.tenantIds.includes(tenant.id)
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border bg-background text-muted-foreground hover:border-primary/50",
+                )}
+              >
+                {tenant.name}
+              </button>
+            ))}
+          </div>
+          {draft.tenantNames.length > 0 ? (
+            <p className="text-xs text-muted-foreground">Selected: {draft.tenantNames.join(", ")}</p>
+          ) : (
+            <p className="text-xs text-muted-foreground">Select one or more tenants.</p>
+          )}
         </div>
       </Field>
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -426,9 +511,43 @@ function UserForm({ draft, setDraft }: { draft: UserDraft; setDraft: Dispatch<Se
           </Select>
         </Field>
       </div>
-      <div className="flex items-center justify-between rounded-md border border-border px-3 py-2">
-        <span className="text-xs text-muted-foreground">Send invitation email</span>
-        <Switch checked={draft.sendInvitation} onCheckedChange={(checked) => setDraft((p) => ({ ...p, sendInvitation: checked }))} />
+      <div className="space-y-2 rounded-md border border-border px-3 py-3">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Password</p>
+          {mode === "edit" ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="h-8"
+              onClick={() => setDraft((prev) => ({ ...prev, changePassword: !prev.changePassword, newPassword: "", confirmPassword: "" }))}
+            >
+              {draft.changePassword ? "Cancel Password Change" : "Set New Password"}
+            </Button>
+          ) : null}
+        </div>
+        {mode === "add" || draft.changePassword ? (
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <Field label={mode === "add" ? "Password *" : "New Password *"}>
+              <Input
+                type="password"
+                value={draft.newPassword}
+                onChange={(e) => setDraft((p) => ({ ...p, newPassword: e.target.value }))}
+                className="h-9"
+              />
+            </Field>
+            <Field label="Confirm Password *">
+              <Input
+                type="password"
+                value={draft.confirmPassword}
+                onChange={(e) => setDraft((p) => ({ ...p, confirmPassword: e.target.value }))}
+                className="h-9"
+              />
+            </Field>
+          </div>
+        ) : (
+          <p className="text-xs text-muted-foreground">Use “Set New Password” to reset this user password.</p>
+        )}
       </div>
     </div>
   );
