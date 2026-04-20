@@ -1,8 +1,7 @@
-import { useState, useRef, useEffect, useId } from "react";
+import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { ChevronDown, X, Search, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useDropdownManager } from "@/hooks/useDropdownManager";
 
 interface SearchableDropdownProps {
   label: string;
@@ -17,6 +16,8 @@ interface SearchableDropdownProps {
   compact?: boolean;
   dropdownId?: string;
   showLabel?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 export default function SearchableDropdown({
@@ -30,12 +31,23 @@ export default function SearchableDropdown({
   disabledOptions = [],
   searchable = true,
   compact = false,
-  dropdownId,
   showLabel = true,
+  open,
+  onOpenChange,
 }: SearchableDropdownProps) {
-  const generatedId = useId().replace(/:/g, "");
-  const uniqueId = dropdownId || `dropdown-${generatedId}`;
-  const { isOpen, toggle: toggleDropdown, close: closeDropdown } = useDropdownManager(uniqueId);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = open !== undefined;
+  const isOpen = isControlled ? open : internalOpen;
+
+  const setOpen = (nextOpen: boolean) => {
+    if (!isControlled) {
+      setInternalOpen(nextOpen);
+    }
+    onOpenChange?.(nextOpen);
+  };
+
+  const toggleDropdown = () => setOpen(!isOpen);
+  const closeDropdown = () => setOpen(false);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [highlightedIndex, setHighlightedIndex] = useState(0);
@@ -60,7 +72,7 @@ export default function SearchableDropdown({
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [closeDropdown]);
+  }, [isOpen, closeDropdown]);
 
   useEffect(() => {
     setHighlightedIndex(0);

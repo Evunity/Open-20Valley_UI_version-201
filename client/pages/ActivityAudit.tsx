@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowDownUp, CalendarDays, Download, Search, UserSearch } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -51,6 +51,7 @@ type ActivityTab = "all-actions" | "user-investigation";
 type SortKey = "timestamp" | "userName" | "tenantName" | "module" | "actionCategory" | "result";
 
 type DateRange = { start: Date | null; end: Date | null };
+type FilterOverlay = "date" | "tenant" | "user" | "module" | "category" | "result" | null;
 
 const EVENTS: ActivityEvent[] = [
   { id: "evt-1", timestamp: "2026-04-20T12:10:00Z", userId: "u-1", userName: "Ahmed Khalil", email: "ahmed.k@telecom.eg", tenantId: "egypt", tenantName: "Egypt Operator", roleName: "Platform Admin", module: "Access Control", actionCategory: "Authentication", action: "login", targetType: "Session", targetName: "Web Console", result: "Success", ipAddress: "10.20.10.15", deviceInfo: "Windows 11 / Chrome", sessionId: "sess-8831", details: "SSO login with MFA" },
@@ -102,12 +103,13 @@ export default function ActivityAudit() {
   const [module, setModule] = useState("All Modules");
   const [category, setCategory] = useState<"All Categories" | ActivityCategory>("All Categories");
   const [result, setResult] = useState<"All Results" | ActivityResult>("All Results");
-  const [rangeOpen, setRangeOpen] = useState(false);
+  const [activeOverlay, setActiveOverlay] = useState<FilterOverlay>(null);
   const [dateRange, setDateRange] = useState<DateRange>({ start: null, end: null });
   const [sortKey, setSortKey] = useState<SortKey>("timestamp");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(1);
   const [activeRow, setActiveRow] = useState<ActivityEvent | null>(null);
+  const datePopoverRef = useRef<HTMLDivElement>(null);
 
   const users = useMemo(() => Array.from(new Set(EVENTS.map((event) => event.userName))), []);
   const modules = useMemo(() => ["All Modules", ...Array.from(new Set(EVENTS.map((event) => event.module)))], []);
@@ -180,6 +182,30 @@ export default function ActivityAudit() {
     ? `${dateRange.start.toLocaleDateString()} - ${dateRange.end.toLocaleDateString()}`
     : "Select date range";
 
+  useEffect(() => {
+    if (activeOverlay !== "date") return;
+
+    const onOutsidePointer = (event: MouseEvent) => {
+      if (!datePopoverRef.current?.contains(event.target as Node)) {
+        setActiveOverlay(null);
+      }
+    };
+
+    document.addEventListener("mousedown", onOutsidePointer);
+    return () => document.removeEventListener("mousedown", onOutsidePointer);
+  }, [activeOverlay]);
+
+  useEffect(() => {
+    const onEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setActiveOverlay(null);
+      }
+    };
+
+    document.addEventListener("keydown", onEscape);
+    return () => document.removeEventListener("keydown", onEscape);
+  }, []);
+
   return (
     <div className="h-full min-h-0 w-full min-w-0 bg-background p-2">
       <div className="space-y-3 rounded-xl border border-border bg-card p-3">
@@ -235,17 +261,21 @@ export default function ActivityAudit() {
               <Input value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="Search user, email, action, target, module, session" className="h-9 pl-9" />
           </div>
 
-          <div className="relative">
-            <Button variant="outline" className="h-9 w-full justify-start text-xs" onClick={() => setRangeOpen((prev) => !prev)}>
+          <div ref={datePopoverRef} className="relative">
+            <Button
+              variant="outline"
+              className="h-9 w-full justify-start text-xs"
+              onClick={() => setActiveOverlay((prev) => (prev === "date" ? null : "date"))}
+            >
               <CalendarDays className="h-4 w-4" /> {dateLabel}
             </Button>
-            {rangeOpen && (
+            {activeOverlay === "date" && (
               <div className="absolute left-0 top-full z-30 mt-2 w-[360px] rounded-lg border border-border bg-card p-3 shadow-lg">
                 <DualMonthCalendar
                   startDate={dateRange.start}
                   endDate={dateRange.end}
                   onDateSelect={(date, isStart) => setDateRange((prev) => ({ ...prev, [isStart ? "start" : "end"]: date }))}
-                  onRangeComplete={() => setRangeOpen(false)}
+                  onRangeComplete={() => setActiveOverlay(null)}
                 />
               </div>
             )}
@@ -261,6 +291,8 @@ export default function ActivityAudit() {
             searchable
             compact
             dropdownId="audit-tenant-filter"
+            open={activeOverlay === "tenant"}
+            onOpenChange={(open) => setActiveOverlay(open ? "tenant" : null)}
           />
 
           {tab === "all-actions" ? (
@@ -274,6 +306,8 @@ export default function ActivityAudit() {
               searchable
               compact
               dropdownId="audit-user-filter"
+              open={activeOverlay === "user"}
+              onOpenChange={(open) => setActiveOverlay(open ? "user" : null)}
             />
           ) : (
             <div className="inline-flex h-9 w-full items-center rounded-xl border border-border bg-muted/20 px-3 text-xs text-muted-foreground">
@@ -281,17 +315,32 @@ export default function ActivityAudit() {
             </div>
           )}
 
-          <Select value={module} onValueChange={(value) => { setModule(value); setPage(1); }}>
+          <Select
+            value={module}
+            onValueChange={(value) => { setModule(value); setPage(1); setActiveOverlay(null); }}
+            open={activeOverlay === "module"}
+            onOpenChange={(open) => setActiveOverlay(open ? "module" : null)}
+          >
             <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>{modules.map((option) => <SelectItem key={option} value={option}>{option}</SelectItem>)}</SelectContent>
           </Select>
 
-          <Select value={category} onValueChange={(value) => { setCategory(value as typeof category); setPage(1); }}>
+          <Select
+            value={category}
+            onValueChange={(value) => { setCategory(value as typeof category); setPage(1); setActiveOverlay(null); }}
+            open={activeOverlay === "category"}
+            onOpenChange={(open) => setActiveOverlay(open ? "category" : null)}
+          >
             <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>{categories.map((option) => <SelectItem key={option} value={option}>{option}</SelectItem>)}</SelectContent>
           </Select>
 
-          <Select value={result} onValueChange={(value) => { setResult(value as typeof result); setPage(1); }}>
+          <Select
+            value={result}
+            onValueChange={(value) => { setResult(value as typeof result); setPage(1); setActiveOverlay(null); }}
+            open={activeOverlay === "result"}
+            onOpenChange={(open) => setActiveOverlay(open ? "result" : null)}
+          >
             <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>{RESULTS.map((option) => <SelectItem key={option} value={option}>{option}</SelectItem>)}</SelectContent>
           </Select>
@@ -352,7 +401,7 @@ export default function ActivityAudit() {
                     <HeaderCell label="Action" />
                     <HeaderCell label="Target" />
                     <HeaderCell label="Module" sortable onSort={() => toggleSort("module")} />
-                    <HeaderCell label="Result" sortable onSort={() => toggleSort("result")} className="sticky right-[112px] z-20 bg-muted/40" />
+                    <HeaderCell label="Result" sortable onSort={() => toggleSort("result")} />
                     <HeaderCell label="IP / Device" />
                     <HeaderCell label="Session" />
                     <HeaderCell label="Details / View" className="sticky right-0 z-30 bg-muted/40 shadow-[-1px_0_0_0_hsl(var(--border))]" />
@@ -370,7 +419,7 @@ export default function ActivityAudit() {
                       <td className="truncate px-2 py-2" title={event.action}>{event.action}</td>
                       <td className="truncate px-2 py-2 text-muted-foreground" title={event.targetName || event.targetType}>{event.targetName || event.targetType}</td>
                       <td className="truncate px-2 py-2 text-muted-foreground" title={event.module}>{event.module}</td>
-                      <td className="sticky right-[112px] z-20 bg-card px-2 py-2">
+                      <td className="px-2 py-2">
                         <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-semibold", event.result === "Success" && "bg-green-500/15 text-green-700", event.result === "Failed" && "bg-red-500/15 text-red-700", event.result === "Denied" && "bg-amber-500/15 text-amber-700", event.result === "Pending" && "bg-blue-500/15 text-blue-700")}>{event.result}</span>
                       </td>
                       <td className="truncate px-2 py-2 text-xs text-muted-foreground" title={`${event.ipAddress} / ${event.deviceInfo}`}>{event.ipAddress} / {event.deviceInfo}</td>
