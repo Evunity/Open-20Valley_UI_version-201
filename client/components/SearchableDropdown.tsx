@@ -9,11 +9,13 @@ interface SearchableDropdownProps {
   selected: string[];
   onChange: (selected: string[]) => void;
   placeholder?: string;
+  triggerPlaceholder?: string;
   multiSelect?: boolean;
   disabledOptions?: string[];
   searchable?: boolean;
   compact?: boolean;
   dropdownId?: string;
+  showLabel?: boolean;
 }
 
 export default function SearchableDropdown({
@@ -22,11 +24,13 @@ export default function SearchableDropdown({
   selected,
   onChange,
   placeholder = "Search...",
+  triggerPlaceholder = "Select option...",
   multiSelect = true,
   disabledOptions = [],
   searchable = true,
   compact = false,
   dropdownId,
+  showLabel = true,
 }: SearchableDropdownProps) {
   const generatedId = useId().replace(/:/g, "");
   const uniqueId = dropdownId || `dropdown-${generatedId}`;
@@ -96,7 +100,7 @@ export default function SearchableDropdown({
 
   return (
     <div ref={dropdownRef} className="relative">
-      {label && (
+      {showLabel && label && (
         <label className={cn(
           "block typo-label",
           compact ? "text-[11px] mb-1.5" : "text-xs mb-2"
@@ -182,12 +186,12 @@ export default function SearchableDropdown({
                 )}
               </div>
             ) : (
-              <span className="typo-input text-muted-foreground truncate">Select option...</span>
+              <span className="typo-input text-muted-foreground truncate">{triggerPlaceholder}</span>
             )
           ) : singleSelection ? (
             <span className="typo-input text-foreground truncate">{singleSelection}</span>
           ) : (
-            <span className="typo-input text-muted-foreground truncate">Select option...</span>
+            <span className="typo-input text-muted-foreground truncate">{triggerPlaceholder}</span>
           )}
         </div>
 

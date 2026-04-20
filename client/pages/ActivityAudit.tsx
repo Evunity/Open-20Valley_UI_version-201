@@ -229,66 +229,78 @@ export default function ActivityAudit() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 gap-2 xl:grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_1fr]">
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="Search user, email, action, target, module, session" className="h-9 pl-9" />
-          </div>
+        <div className="overflow-x-auto">
+          <div className="flex min-w-[1220px] items-center gap-2">
+            <div className="relative min-w-[280px] flex-[2.4]">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="Search user, email, action, target, module, session" className="h-9 pl-9" />
+            </div>
 
-          <div className="relative">
-            <Button variant="outline" className="h-9 w-full justify-start text-xs" onClick={() => setRangeOpen((prev) => !prev)}>
-              <CalendarDays className="h-4 w-4" /> {dateLabel}
-            </Button>
-            {rangeOpen && (
-              <div className="absolute left-0 top-full z-20 mt-2 w-[360px] rounded-lg border border-border bg-card p-3 shadow-lg">
-                <DualMonthCalendar
-                  startDate={dateRange.start}
-                  endDate={dateRange.end}
-                  onDateSelect={(date, isStart) => setDateRange((prev) => ({ ...prev, [isStart ? "start" : "end"]: date }))}
-                  onRangeComplete={() => setRangeOpen(false)}
+            <div className="relative w-[160px] flex-shrink-0">
+              <Button variant="outline" className="h-9 w-full justify-start text-xs" onClick={() => setRangeOpen((prev) => !prev)}>
+                <CalendarDays className="h-4 w-4" /> {dateLabel}
+              </Button>
+              {rangeOpen && (
+                <div className="absolute left-0 top-full z-20 mt-2 w-[360px] rounded-lg border border-border bg-card p-3 shadow-lg">
+                  <DualMonthCalendar
+                    startDate={dateRange.start}
+                    endDate={dateRange.end}
+                    onDateSelect={(date, isStart) => setDateRange((prev) => ({ ...prev, [isStart ? "start" : "end"]: date }))}
+                    onRangeComplete={() => setRangeOpen(false)}
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="w-[160px] flex-shrink-0">
+              <SearchableDropdown
+                label="Tenant(s)"
+                showLabel={false}
+                triggerPlaceholder="Select tenants"
+                options={TENANTS}
+                selected={selectedTenants}
+                onChange={(values) => { setSelectedTenants(values); setPage(1); }}
+                searchable
+                compact
+                dropdownId="audit-tenant-filter"
+              />
+            </div>
+
+            <div className="w-[160px] flex-shrink-0">
+              {tab === "all-actions" ? (
+                <SearchableDropdown
+                  label="User(s)"
+                  showLabel={false}
+                  triggerPlaceholder="Select users"
+                  options={users}
+                  selected={selectedUsers}
+                  onChange={(values) => { setSelectedUsers(values); setPage(1); }}
+                  searchable
+                  compact
+                  dropdownId="audit-user-filter"
                 />
-              </div>
-            )}
+              ) : (
+                <div className="inline-flex h-9 w-full items-center rounded-xl border border-border bg-muted/20 px-3 text-xs text-muted-foreground">
+                  User locked by investigation mode
+                </div>
+              )}
+            </div>
+
+            <Select value={module} onValueChange={(value) => { setModule(value); setPage(1); }}>
+              <SelectTrigger className="h-9 w-[160px] flex-shrink-0 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>{modules.map((option) => <SelectItem key={option} value={option}>{option}</SelectItem>)}</SelectContent>
+            </Select>
+
+            <Select value={category} onValueChange={(value) => { setCategory(value as typeof category); setPage(1); }}>
+              <SelectTrigger className="h-9 w-[160px] flex-shrink-0 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>{categories.map((option) => <SelectItem key={option} value={option}>{option}</SelectItem>)}</SelectContent>
+            </Select>
+
+            <Select value={result} onValueChange={(value) => { setResult(value as typeof result); setPage(1); }}>
+              <SelectTrigger className="h-9 w-[160px] flex-shrink-0 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>{RESULTS.map((option) => <SelectItem key={option} value={option}>{option}</SelectItem>)}</SelectContent>
+            </Select>
           </div>
-
-          <SearchableDropdown
-            label="Tenant(s)"
-            options={TENANTS}
-            selected={selectedTenants}
-            onChange={(values) => { setSelectedTenants(values); setPage(1); }}
-            searchable
-            compact
-            dropdownId="audit-tenant-filter"
-          />
-
-          {tab === "all-actions" ? (
-            <SearchableDropdown
-              label="User(s)"
-              options={users}
-              selected={selectedUsers}
-              onChange={(values) => { setSelectedUsers(values); setPage(1); }}
-              searchable
-              compact
-              dropdownId="audit-user-filter"
-            />
-          ) : (
-            <div className="rounded-xl border border-border bg-muted/20 px-3 py-2 text-xs text-muted-foreground">User locked by investigation mode</div>
-          )}
-
-          <Select value={module} onValueChange={(value) => { setModule(value); setPage(1); }}>
-            <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
-            <SelectContent>{modules.map((option) => <SelectItem key={option} value={option}>{option}</SelectItem>)}</SelectContent>
-          </Select>
-
-          <Select value={category} onValueChange={(value) => { setCategory(value as typeof category); setPage(1); }}>
-            <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
-            <SelectContent>{categories.map((option) => <SelectItem key={option} value={option}>{option}</SelectItem>)}</SelectContent>
-          </Select>
-
-          <Select value={result} onValueChange={(value) => { setResult(value as typeof result); setPage(1); }}>
-            <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
-            <SelectContent>{RESULTS.map((option) => <SelectItem key={option} value={option}>{option}</SelectItem>)}</SelectContent>
-          </Select>
         </div>
 
         {tab === "user-investigation" && userSummary && (
