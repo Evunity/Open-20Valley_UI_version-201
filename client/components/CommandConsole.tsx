@@ -1,6 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Copy, Check, ChevronDown, Lightbulb, X, Zap, CheckCircle, AlertCircle, Clock, Pause, Play, RotateCcw } from 'lucide-react';
+import { Send, Copy, Check, ChevronDown, Lightbulb, Zap, CheckCircle, AlertCircle, Clock, Pause, Play, RotateCcw, Pencil, Trash2 } from 'lucide-react';
 import SearchableDropdown from './SearchableDropdown';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 
 interface ConsoleProps {
   selectedTarget: any;
@@ -16,39 +19,52 @@ interface CommandHistory {
   vendor: string;
 }
 
-const VENDOR_COMMANDS = {
-  'Huawei': [
-    'LST POWER;',
-    'LST CELL;',
-    'LST TRANSPORT;',
-    'GET CELLPOWER;',
-    'SET TXPOWER:40;',
-    'LST ALARMDATA;'
-  ],
-  'Nokia': [
-    'show running-config',
-    'show interfaces',
-    'show alarms',
-    'configure',
-    'set cell parameters',
-    'exit'
-  ],
-  'Ericsson': [
-    'go sw',
-    'list alarms',
-    'get transport data',
-    'set feature enable',
-    'get statistics',
-    'return'
-  ],
-  'ZTE': [
-    'show system',
-    'show transport',
-    'set parameter',
-    'show resource',
-    'list alarms',
-    'exit'
-  ]
+type QuickCommandScope = 'global' | 'vendor' | 'technology' | 'vendor_technology';
+
+interface QuickCommand {
+  id: string;
+  label: string;
+  commandText: string;
+  scope: QuickCommandScope;
+  vendor: string | null;
+  technology: string | null;
+  description: string | null;
+  createdByUserId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface QuickCommandFormState {
+  label: string;
+  commandText: string;
+  scope: QuickCommandScope;
+  vendor: string;
+  technology: string;
+  description: string;
+}
+
+const QUICK_COMMANDS_STORAGE_KEY = 'commandConsole.quickCommands.v2';
+const QUICK_COMMANDS_USER_ID = 'current-user';
+const VENDORS = ['Huawei', 'Nokia', 'Ericsson', 'ZTE'];
+const SITE_OPTIONS = ['Site-A', 'Site-B', 'Site-C', 'Site-D'];
+const TECHNOLOGY_OPTIONS = ['2G', '3G', '4G', '5G', 'O-RAN'];
+
+const DEFAULT_QUICK_COMMANDS: QuickCommand[] = [
+  { id: 'seed-huawei-list-cells', label: 'List Cells', commandText: 'LST CELL;', scope: 'vendor', vendor: 'Huawei', technology: null, description: 'List Huawei cells', createdByUserId: QUICK_COMMANDS_USER_ID, createdAt: '2026-04-20T00:00:00.000Z', updatedAt: '2026-04-20T00:00:00.000Z' },
+  { id: 'seed-huawei-alarm-data', label: 'Alarm Data', commandText: 'LST ALARMDATA;', scope: 'vendor', vendor: 'Huawei', technology: null, description: 'Fetch Huawei alarm data', createdByUserId: QUICK_COMMANDS_USER_ID, createdAt: '2026-04-20T00:00:00.000Z', updatedAt: '2026-04-20T00:00:00.000Z' },
+  { id: 'seed-nokia-show-intf', label: 'Show Interfaces', commandText: 'show interfaces', scope: 'vendor', vendor: 'Nokia', technology: null, description: 'Check interface status', createdByUserId: QUICK_COMMANDS_USER_ID, createdAt: '2026-04-20T00:00:00.000Z', updatedAt: '2026-04-20T00:00:00.000Z' },
+  { id: 'seed-ericsson-list-alarms', label: 'List Alarms', commandText: 'list alarms', scope: 'vendor', vendor: 'Ericsson', technology: null, description: 'List active alarms', createdByUserId: QUICK_COMMANDS_USER_ID, createdAt: '2026-04-20T00:00:00.000Z', updatedAt: '2026-04-20T00:00:00.000Z' },
+  { id: 'seed-zte-show-system', label: 'Show System', commandText: 'show system', scope: 'vendor', vendor: 'ZTE', technology: null, description: 'Show system status', createdByUserId: QUICK_COMMANDS_USER_ID, createdAt: '2026-04-20T00:00:00.000Z', updatedAt: '2026-04-20T00:00:00.000Z' },
+  { id: 'seed-global-health-check', label: 'Health Check', commandText: 'GET HEALTH;', scope: 'global', vendor: null, technology: null, description: 'Global network health check', createdByUserId: QUICK_COMMANDS_USER_ID, createdAt: '2026-04-20T00:00:00.000Z', updatedAt: '2026-04-20T00:00:00.000Z' },
+];
+
+const EMPTY_QUICK_COMMAND_FORM: QuickCommandFormState = {
+  label: '',
+  commandText: '',
+  scope: 'global',
+  vendor: '',
+  technology: '',
+  description: '',
 };
 
 const COMMAND_HINTS: Record<string, string> = {
@@ -66,29 +82,24 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
   const [selectedVendor, setSelectedVendor] = useState<string>('Huawei');
   const [mode, setMode] = useState<'raw' | 'guided' | 'script'>('raw');
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [customCommands, setCustomCommands] = useState<Record<string, string[]>>({});
-  const [showAddCommand, setShowAddCommand] = useState(false);
-  const [newCommandInput, setNewCommandInput] = useState('');
+  const [quickCommands, setQuickCommands] = useState<QuickCommand[]>([]);
+  const [quickCommandDialogOpen, setQuickCommandDialogOpen] = useState(false);
+  const [editingQuickCommandId, setEditingQuickCommandId] = useState<string | null>(null);
+  const [quickCommandForm, setQuickCommandForm] = useState<QuickCommandFormState>(EMPTY_QUICK_COMMAND_FORM);
+  const [quickCommandFormError, setQuickCommandFormError] = useState<string | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedSite, setSelectedSite] = useState<string[]>([]);
   const [selectedTechnology, setSelectedTechnology] = useState<string[]>([]);
   const [guidedCommand, setGuidedCommand] = useState<{ keyword: string; params: string }>({ keyword: '', params: '' });
-  const [quickCommandView, setQuickCommandView] = useState<'all' | 'saved'>('all');
-  const [savedCommands, setSavedCommands] = useState<string[]>([]);
   const [inlineSuggestion, setInlineSuggestion] = useState<string>('');
   const [showInlineSuggestion, setShowInlineSuggestion] = useState(false);
   const consoleEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Options for selectors
-  const SITE_OPTIONS = ['Site-A', 'Site-B', 'Site-C', 'Site-D'];
-  const TECHNOLOGY_OPTIONS = ['2G', '3G', '4G', '5G', 'O-RAN'];
-
   // Load from localStorage on mount
   useEffect(() => {
     const savedHistory = localStorage.getItem('commandHistory');
-    const savedCustomCommands = localStorage.getItem('customCommands');
-    const savedCmdList = localStorage.getItem('savedCommandsList');
+    const savedQuickCommands = localStorage.getItem(QUICK_COMMANDS_STORAGE_KEY);
 
     if (savedHistory) {
       try {
@@ -98,19 +109,33 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
       }
     }
 
-    if (savedCustomCommands) {
+    if (savedQuickCommands) {
       try {
-        setCustomCommands(JSON.parse(savedCustomCommands));
+        const parsed = JSON.parse(savedQuickCommands) as QuickCommand[];
+        setQuickCommands(Array.isArray(parsed) && parsed.length ? parsed : DEFAULT_QUICK_COMMANDS);
       } catch (e) {
-        console.error('Failed to load custom commands:', e);
+        console.error('Failed to load quick commands:', e);
+        setQuickCommands(DEFAULT_QUICK_COMMANDS);
       }
-    }
-
-    if (savedCmdList) {
+    } else {
       try {
-        setSavedCommands(JSON.parse(savedCmdList));
+        const legacySaved = JSON.parse(localStorage.getItem('savedCommandsList') || '[]') as string[];
+        const migratedLegacyCommands: QuickCommand[] = legacySaved.map((cmd, index) => ({
+          id: `migrated-${index}-${cmd}`,
+          label: `Migrated ${index + 1}`,
+          commandText: cmd,
+          scope: 'global',
+          vendor: null,
+          technology: null,
+          description: 'Migrated from previous saved commands.',
+          createdByUserId: QUICK_COMMANDS_USER_ID,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }));
+        setQuickCommands([...DEFAULT_QUICK_COMMANDS, ...migratedLegacyCommands]);
       } catch (e) {
-        console.error('Failed to load saved commands:', e);
+        console.error('Failed to migrate quick commands:', e);
+        setQuickCommands(DEFAULT_QUICK_COMMANDS);
       }
     }
   }, []);
@@ -120,15 +145,10 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
     localStorage.setItem('commandHistory', JSON.stringify(history));
   }, [history]);
 
-  // Save custom commands to localStorage whenever they change
+  // Persist quick commands in user preference storage
   useEffect(() => {
-    localStorage.setItem('customCommands', JSON.stringify(customCommands));
-  }, [customCommands]);
-
-  // Save saved commands to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem('savedCommandsList', JSON.stringify(savedCommands));
-  }, [savedCommands]);
+    localStorage.setItem(QUICK_COMMANDS_STORAGE_KEY, JSON.stringify(quickCommands));
+  }, [quickCommands]);
 
   const scrollToBottom = () => {
     consoleEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -138,6 +158,18 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
     scrollToBottom();
   }, [history]);
 
+  const currentTechnology = selectedTechnology[0] || '';
+  const visibleQuickCommands = quickCommands
+    .filter((quickCommand) => {
+      if (quickCommand.scope === 'global') return true;
+      if (quickCommand.scope === 'vendor') return quickCommand.vendor === selectedVendor;
+      if (quickCommand.scope === 'technology') return quickCommand.technology === currentTechnology;
+      if (quickCommand.scope === 'vendor_technology') {
+        return quickCommand.vendor === selectedVendor && quickCommand.technology === currentTechnology;
+      }
+      return false;
+    })
+    .sort((a, b) => a.label.localeCompare(b.label));
 
   const getCommandSyntaxValidation = (cmd: string) => {
     const trimmed = cmd.trim().toUpperCase();
@@ -151,8 +183,7 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
     if (!upperInput) return [];
 
     const allCommands = [
-      ...getQuickCommands(),
-      ...(VENDOR_COMMANDS[selectedVendor as keyof typeof VENDOR_COMMANDS] || []),
+      ...visibleQuickCommands.map((quickCommand) => quickCommand.commandText),
       ...Object.keys(COMMAND_HINTS)
     ];
 
@@ -238,49 +269,94 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
     setCommand(cmd);
   };
 
-  const addCustomCommand = () => {
-    if (!newCommandInput.trim()) return;
-
-    // Add to global saved commands (persists across vendors)
-    setSavedCommands(prev => [...new Set([...prev, newCommandInput.trim()])]);
-
-    // Also add to vendor-specific for quick access
-    setCustomCommands(prev => ({
-      ...prev,
-      [selectedVendor]: [
-        ...(prev[selectedVendor] || []),
-        newCommandInput.trim()
-      ]
-    }));
-    setNewCommandInput('');
-    setShowAddCommand(false);
+  const openQuickCommandDialogForCreate = () => {
+    setEditingQuickCommandId(null);
+    setQuickCommandForm({
+      ...EMPTY_QUICK_COMMAND_FORM,
+      vendor: selectedVendor,
+      technology: currentTechnology,
+    });
+    setQuickCommandFormError(null);
+    setQuickCommandDialogOpen(true);
   };
 
-  const removeCustomCommand = (index: number) => {
-    const cmd = getQuickCommands()[index];
-
-    // Remove from global saved commands
-    setSavedCommands(prev => prev.filter(c => c !== cmd));
-
-    // Remove from vendor-specific
-    setCustomCommands(prev => ({
-      ...prev,
-      [selectedVendor]: prev[selectedVendor]?.filter((_, i) => i !== index) || []
-    }));
+  const openQuickCommandDialogForEdit = (quickCommand: QuickCommand) => {
+    setEditingQuickCommandId(quickCommand.id);
+    setQuickCommandForm({
+      label: quickCommand.label,
+      commandText: quickCommand.commandText,
+      scope: quickCommand.scope,
+      vendor: quickCommand.vendor ?? '',
+      technology: quickCommand.technology ?? '',
+      description: quickCommand.description ?? '',
+    });
+    setQuickCommandFormError(null);
+    setQuickCommandDialogOpen(true);
   };
 
-  const getQuickCommands = () => {
-    const defaults = VENDOR_COMMANDS[selectedVendor as keyof typeof VENDOR_COMMANDS] || [];
+  const validateQuickCommandForm = (): string | null => {
+    if (!quickCommandForm.label.trim()) return 'Shortcut name is required.';
+    if (!quickCommandForm.commandText.trim()) return 'Command text is required.';
+    if ((quickCommandForm.scope === 'vendor' || quickCommandForm.scope === 'vendor_technology') && !quickCommandForm.vendor) {
+      return 'Vendor is required for this scope.';
+    }
+    if ((quickCommandForm.scope === 'technology' || quickCommandForm.scope === 'vendor_technology') && !quickCommandForm.technology) {
+      return 'Technology is required for this scope.';
+    }
+    return null;
+  };
 
-    if (quickCommandView === 'saved') {
-      return savedCommands.slice(0, 6);
+  const saveQuickCommand = () => {
+    const validationError = validateQuickCommandForm();
+    if (validationError) {
+      setQuickCommandFormError(validationError);
+      return;
     }
 
-    // Show saved commands first, then vendor defaults
-    return [...savedCommands, ...defaults].slice(0, 6);
+    const nowIso = new Date().toISOString();
+    const normalizedVendor = quickCommandForm.scope === 'vendor' || quickCommandForm.scope === 'vendor_technology' ? quickCommandForm.vendor : null;
+    const normalizedTechnology = quickCommandForm.scope === 'technology' || quickCommandForm.scope === 'vendor_technology' ? quickCommandForm.technology : null;
+
+    if (editingQuickCommandId) {
+      setQuickCommands((prev) => prev.map((quickCommand) => (
+        quickCommand.id === editingQuickCommandId
+          ? {
+              ...quickCommand,
+              label: quickCommandForm.label.trim(),
+              commandText: quickCommandForm.commandText.trim(),
+              scope: quickCommandForm.scope,
+              vendor: normalizedVendor,
+              technology: normalizedTechnology,
+              description: quickCommandForm.description.trim() || null,
+              updatedAt: nowIso,
+            }
+          : quickCommand
+      )));
+    } else {
+      const newQuickCommand: QuickCommand = {
+        id: `quick-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        label: quickCommandForm.label.trim(),
+        commandText: quickCommandForm.commandText.trim(),
+        scope: quickCommandForm.scope,
+        vendor: normalizedVendor,
+        technology: normalizedTechnology,
+        description: quickCommandForm.description.trim() || null,
+        createdByUserId: QUICK_COMMANDS_USER_ID,
+        createdAt: nowIso,
+        updatedAt: nowIso,
+      };
+      setQuickCommands((prev) => [newQuickCommand, ...prev]);
+    }
+
+    setQuickCommandDialogOpen(false);
+    setQuickCommandForm(EMPTY_QUICK_COMMAND_FORM);
+    setQuickCommandFormError(null);
   };
 
-  const hasSavedCommands = savedCommands.length > 0;
+  const removeQuickCommand = (quickCommandId: string) => {
+    if (!window.confirm('Remove this quick command shortcut?')) return;
+    setQuickCommands((prev) => prev.filter((quickCommand) => quickCommand.id !== quickCommandId));
+  };
 
   const { isValid } = getCommandSyntaxValidation(command);
 
@@ -333,7 +409,7 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
             </label>
             <SearchableDropdown
               label=""
-              options={Object.keys(VENDOR_COMMANDS)}
+              options={VENDORS}
               selected={selectedVendor ? [selectedVendor] : []}
               onChange={(selected) => setSelectedVendor(selected[0] || '')}
               placeholder="Select vendor..."
@@ -369,10 +445,10 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
             />
           </div>
           <button
-            onClick={() => setShowAddCommand(!showAddCommand)}
+            onClick={openQuickCommandDialogForCreate}
             className="flex-1 text-xs bg-primary/10 hover:bg-primary/20 border border-primary/30 rounded text-primary font-medium transition h-9 flex items-center justify-center"
           >
-            + Add
+            + Add Quick Command
           </button>
         </div>
       </div>
@@ -382,105 +458,151 @@ export const CommandConsole: React.FC<ConsoleProps> = ({ selectedTarget, onTarge
         <div className="mb-2 flex items-center justify-between">
           <label className="block text-xs font-semibold text-muted-foreground flex items-center gap-1">
             <Lightbulb className="w-4 h-4 text-yellow-600" />
-            Quick Commands ({selectedVendor})
+            Quick Commands (User Managed)
           </label>
-          {hasSavedCommands && (
-            <div className="flex gap-1 bg-muted/40 border border-border rounded p-0.5">
-              <button
-                onClick={() => setQuickCommandView('all')}
-                className={`px-2 py-0.5 text-xs rounded transition ${
-                  quickCommandView === 'all'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                All
-              </button>
-              <button
-                onClick={() => setQuickCommandView('saved')}
-                className={`px-2 py-0.5 text-xs rounded transition ${
-                  quickCommandView === 'saved'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                Saved
-              </button>
-            </div>
-          )}
+          <p className="text-[11px] text-muted-foreground">
+            Context: {selectedVendor || 'Any'} / {currentTechnology || 'Any Technology'}
+          </p>
         </div>
 
-        {showAddCommand && (
-          <div className="mb-2 p-2 bg-muted/40 border border-border rounded flex gap-2">
-            <input
-              type="text"
-              value={newCommandInput}
-              onChange={(e) => setNewCommandInput(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  addCustomCommand();
-                }
-              }}
-              placeholder={`Add custom ${selectedVendor} command...`}
-              className="flex-1 px-2 py-1 text-xs border border-border rounded bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-              autoFocus
-            />
-            <button
-              onClick={addCustomCommand}
-              disabled={!newCommandInput.trim()}
-              className="px-2 py-1 text-xs bg-primary text-primary-foreground rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/90 transition"
-            >
-              Save
-            </button>
-            <button
-              onClick={() => {
-                setShowAddCommand(false);
-                setNewCommandInput('');
-              }}
-              className="px-2 py-1 text-xs bg-muted hover:bg-muted/80 border border-border rounded transition"
-            >
-              Cancel
-            </button>
-          </div>
-        )}
-
-        <div className="grid grid-cols-3 gap-1.5 mb-3">
-          {getQuickCommands().map((cmd, i) => {
-            const isSaved = savedCommands.includes(cmd);
+        <div className="grid grid-cols-2 gap-1.5 mb-3">
+          {visibleQuickCommands.map((quickCommand) => {
             return (
               <div
-                key={i}
-                className="relative group"
+                key={quickCommand.id}
+                className="relative group rounded border border-border bg-muted/30 p-2"
               >
                 <button
-                  onClick={() => pasteCommand(cmd)}
-                  className={`w-full px-2 py-1 text-xs border rounded transition font-mono text-left ${
-                    isSaved
-                      ? 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/50'
-                      : 'bg-muted/60 hover:bg-muted border-border'
-                  } text-foreground pr-6`}
-                  title={`Paste: ${cmd}`}
+                  onClick={() => pasteCommand(quickCommand.commandText)}
+                  className="w-full px-2 py-1 text-xs border rounded transition font-mono text-left bg-background hover:bg-muted border-border text-foreground"
+                  title={`Paste: ${quickCommand.commandText}`}
                 >
-                  {cmd.length > 20 ? cmd.substring(0, 17) + '...' : cmd}
+                  {quickCommand.label}
                 </button>
-                {isSaved && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSavedCommands(prev => prev.filter(c => c !== cmd));
-                    }}
-                    className="absolute top-1/2 -translate-y-1/2 right-1 w-3.5 h-3.5 bg-gray-400 dark:bg-gray-600 hover:bg-gray-500 dark:hover:bg-gray-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition flex items-center justify-center shadow-sm"
-                    title="Remove saved command"
-                  >
-                    <X className="w-2.5 h-2.5" />
-                  </button>
-                )}
+                <p className="mt-1 text-[11px] text-muted-foreground truncate">{quickCommand.commandText}</p>
+                <div className="mt-1 flex items-center justify-between">
+                  <span className="rounded-full border border-border px-2 py-0.5 text-[10px] text-muted-foreground">
+                    {quickCommand.scope.replace('_', ' + ')}
+                  </span>
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
+                    <button
+                      onClick={() => openQuickCommandDialogForEdit(quickCommand)}
+                      className="rounded border border-border p-1 hover:bg-muted"
+                      title="Edit quick command"
+                    >
+                      <Pencil className="h-3 w-3" />
+                    </button>
+                    <button
+                      onClick={() => removeQuickCommand(quickCommand.id)}
+                      className="rounded border border-border p-1 hover:bg-muted text-red-600"
+                      title="Delete quick command"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  </div>
+                </div>
               </div>
             );
           })}
         </div>
+        {visibleQuickCommands.length === 0 && (
+          <div className="mb-3 rounded border border-dashed border-border bg-muted/20 p-3 text-xs text-muted-foreground">
+            No quick commands match this context. Click <strong>+ Add Quick Command</strong> to create one.
+          </div>
+        )}
       </div>
+
+      <Dialog open={quickCommandDialogOpen} onOpenChange={setQuickCommandDialogOpen}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle>{editingQuickCommandId ? 'Edit Quick Command' : 'Add Quick Command'}</DialogTitle>
+            <DialogDescription>
+              Manage user shortcuts with Global, Vendor, Technology, or Vendor + Technology scope.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Shortcut Name</label>
+              <Input
+                value={quickCommandForm.label}
+                onChange={(event) => setQuickCommandForm((prev) => ({ ...prev, label: event.target.value }))}
+                placeholder="e.g. LTE Health Check"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Command Text</label>
+              <Textarea
+                value={quickCommandForm.commandText}
+                onChange={(event) => setQuickCommandForm((prev) => ({ ...prev, commandText: event.target.value }))}
+                placeholder="Enter command text"
+                className="min-h-[84px]"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Scope</label>
+              <select
+                value={quickCommandForm.scope}
+                onChange={(event) => setQuickCommandForm((prev) => ({ ...prev, scope: event.target.value as QuickCommandScope }))}
+                className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
+                <option value="global">Global</option>
+                <option value="vendor">Vendor-specific</option>
+                <option value="technology">Technology-specific</option>
+                <option value="vendor_technology">Vendor + Technology</option>
+              </select>
+            </div>
+            {(quickCommandForm.scope === 'vendor' || quickCommandForm.scope === 'vendor_technology') && (
+              <div>
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">Vendor</label>
+                <select
+                  value={quickCommandForm.vendor}
+                  onChange={(event) => setQuickCommandForm((prev) => ({ ...prev, vendor: event.target.value }))}
+                  className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                >
+                  <option value="">Select vendor</option>
+                  {VENDORS.map((vendor) => <option key={vendor} value={vendor}>{vendor}</option>)}
+                </select>
+              </div>
+            )}
+            {(quickCommandForm.scope === 'technology' || quickCommandForm.scope === 'vendor_technology') && (
+              <div>
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">Technology</label>
+                <select
+                  value={quickCommandForm.technology}
+                  onChange={(event) => setQuickCommandForm((prev) => ({ ...prev, technology: event.target.value }))}
+                  className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                >
+                  <option value="">Select technology</option>
+                  {TECHNOLOGY_OPTIONS.map((technology) => <option key={technology} value={technology}>{technology}</option>)}
+                </select>
+              </div>
+            )}
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Description (Optional)</label>
+              <Input
+                value={quickCommandForm.description}
+                onChange={(event) => setQuickCommandForm((prev) => ({ ...prev, description: event.target.value }))}
+                placeholder="Optional shortcut description"
+              />
+            </div>
+            {quickCommandFormError && <p className="text-xs font-medium text-red-600">{quickCommandFormError}</p>}
+          </div>
+          <DialogFooter>
+            <button
+              onClick={() => setQuickCommandDialogOpen(false)}
+              className="rounded border border-border px-3 py-2 text-sm hover:bg-muted"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={saveQuickCommand}
+              className="rounded bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+            >
+              {editingQuickCommandId ? 'Save Changes' : 'Add Quick Command'}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Command Input - Mode Specific */}
       <div className="space-y-1">

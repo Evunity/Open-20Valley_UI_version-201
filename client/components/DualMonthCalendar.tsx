@@ -34,7 +34,15 @@ export default function DualMonthCalendar({
   const normalizedStartDate = convertToDate(startDate);
   const normalizedEndDate = convertToDate(endDate);
 
-  const [isSelectingStart, setIsSelectingStart] = useState(!normalizedStartDate);
+  const [isSelectingStart, setIsSelectingStart] = useState(!normalizedStartDate || !!normalizedEndDate);
+
+  useEffect(() => {
+    // If no start date exists, or a full range is already selected,
+    // restart selection from the start date on next click.
+    if (!normalizedStartDate || normalizedEndDate) {
+      setIsSelectingStart(true);
+    }
+  }, [normalizedStartDate, normalizedEndDate]);
 
   const weekDays = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
 
