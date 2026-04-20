@@ -323,7 +323,7 @@ export default function TenantManagement() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="flex h-full min-h-0 flex-col gap-4">
       <div className="rounded-xl border border-border bg-card p-4">
         <h2 className="text-sm font-semibold text-foreground">Tenant Management Workspace</h2>
         <p className="mt-1 text-xs text-muted-foreground">
@@ -331,8 +331,8 @@ export default function TenantManagement() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[320px_minmax(0,1fr)]">
-        <aside className="rounded-xl border border-border bg-card p-3">
+      <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 xl:grid-cols-[320px_minmax(0,1fr)]">
+        <aside className="flex min-h-0 flex-col rounded-xl border border-border bg-card p-3">
           <div className="relative mb-3">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -344,7 +344,7 @@ export default function TenantManagement() {
             />
           </div>
           <p className="mb-2 text-xs text-muted-foreground">Showing {filteredTenants.length} of {tenants.length} tenants</p>
-          <div className="max-h-[calc(100vh-280px)] space-y-2 overflow-auto pr-1">
+          <div className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
             {filteredTenants.map((tenant) => {
               const isSelected = tenant.id === selectedTenantId;
               return (
@@ -379,7 +379,7 @@ export default function TenantManagement() {
           </div>
         </aside>
 
-        <section className="space-y-4 rounded-xl border border-border bg-card p-4">
+        <section className="min-h-0 space-y-4 overflow-y-auto rounded-xl border border-border bg-card p-4">
           <div className="flex flex-col gap-3 border-b border-border pb-4 md:flex-row md:items-center md:justify-between">
             <div>
               <h3 className="text-base font-semibold text-foreground">{draft.tenantName}</h3>
