@@ -1,16 +1,14 @@
 import { useState, type ComponentType } from "react";
-import { Building2, ClipboardList, FileCheck2, Shield, UserCog, Users } from "lucide-react";
+import { Building2, FileCheck2, Shield, UserCog, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
-import TenantOverview from "@/components/access-control/TenantOverview";
-import TenantProvisioning from "@/components/access-control/TenantProvisioning";
+import TenantManagement from "@/components/access-control/TenantManagement";
 import RolesPermissions from "@/components/access-control/RolesPermissions";
 import SecurityPolicies from "@/components/access-control/SecurityPolicies";
 import AuditTrailWorkspace from "@/components/access-control/AuditTrailWorkspace";
 import UsersIdentityWorkspace from "@/components/access-control/UsersIdentityWorkspace";
 
 type AccessSubsectionId =
-  | "tenant-overview"
-  | "tenant-provisioning"
+  | "tenant-management"
   | "users-identity"
   | "roles-permissions"
   | "security-policies"
@@ -25,16 +23,10 @@ interface AccessSubsection {
 
 const SUBSECTIONS: AccessSubsection[] = [
   {
-    id: "tenant-overview",
-    label: "Tenant Overview",
+    id: "tenant-management",
+    label: "Tenant Management",
     icon: Building2,
-    description: "Tenant topology and enterprise summary",
-  },
-  {
-    id: "tenant-provisioning",
-    label: "Tenant Provisioning",
-    icon: ClipboardList,
-    description: "Provision and onboard new tenants",
+    description: "Unified tenant workspace and module access control",
   },
   {
     id: "users-identity",
@@ -63,16 +55,13 @@ const SUBSECTIONS: AccessSubsection[] = [
 ];
 
 export default function AccessControl() {
-  const [activeSubsection, setActiveSubsection] = useState<AccessSubsectionId>("tenant-overview");
+  const [activeSubsection, setActiveSubsection] = useState<AccessSubsectionId>("tenant-management");
 
-  const activeMeta = SUBSECTIONS.find((section) => section.id === activeSubsection);
 
   const renderSubsection = () => {
     switch (activeSubsection) {
-      case "tenant-overview":
-        return <TenantOverview />;
-      case "tenant-provisioning":
-        return <TenantProvisioning />;
+      case "tenant-management":
+        return <TenantManagement />;
       case "users-identity":
         return <UsersIdentityWorkspace />;
       case "roles-permissions":
