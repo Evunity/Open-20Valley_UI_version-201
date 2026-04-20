@@ -1,25 +1,14 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, MoreHorizontal, X } from "lucide-react";
+import { ChevronDown, Download, Settings2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { usePlatformSettings } from "@/contexts/PlatformSettingsContext";
 import { formatPlatformDateTime } from "@/utils/platformDateTime";
 import { SearchBar } from "@/components/ui/search-bar";
 import SearchableDropdown from "@/components/SearchableDropdown";
+import * as XLSX from "xlsx";
 
 type Mode = "Live" | "Snapshot" | "Historical";
 
@@ -47,6 +36,40 @@ interface AlarmDetails {
   actions: string[];
   logs: string[];
 }
+
+type AlarmColumnKey =
+  | "severity"
+  | "id"
+  | "vendor"
+  | "alarmName"
+  | "status"
+  | "assignment"
+  | "site"
+  | "region"
+  | "technologyLayer"
+  | "firstSeen"
+  | "lastUpdated";
+
+type AlarmColumnConfig = {
+  key: AlarmColumnKey;
+  label: string;
+  visible: boolean;
+  width: number;
+};
+
+const DEFAULT_COLUMNS: AlarmColumnConfig[] = [
+  { key: "severity", label: "Severity", visible: true, width: 120 },
+  { key: "id", label: "Alarm ID", visible: true, width: 140 },
+  { key: "vendor", label: "Vendor", visible: true, width: 120 },
+  { key: "alarmName", label: "Alarm Name", visible: true, width: 260 },
+  { key: "status", label: "Status", visible: true, width: 130 },
+  { key: "assignment", label: "Assignment", visible: true, width: 150 },
+  { key: "site", label: "Site", visible: true, width: 150 },
+  { key: "region", label: "Region", visible: false, width: 150 },
+  { key: "technologyLayer", label: "Technology", visible: false, width: 170 },
+  { key: "firstSeen", label: "First Seen", visible: true, width: 110 },
+  { key: "lastUpdated", label: "Last Updated", visible: false, width: 120 },
+];
 
 const ASSIGNMENT_TEAMS = [
   "NOC L1",
@@ -76,8 +99,8 @@ export const AlarmManagement: React.FC = () => {
   const [search, setSearch] = useState("");
   const [vendor, setVendor] = useState("All Vendors");
   const [severity, setSeverity] = useState("All Severities");
-  const [tableView, setTableView] = useState("Default View");
-  const [columnsView, setColumnsView] = useState("Ops Columns");
+  const [columns, setColumns] = useState<AlarmColumnConfig[]>(DEFAULT_COLUMNS);
+  const [columnsOpen, setColumnsOpen] = useState(false);
   const [rows, setRows] = useState(INITIAL_ROWS);
   const [selectedAlarmId, setSelectedAlarmId] = useState<string | null>(null);
   const [selectedAlarmIds, setSelectedAlarmIds] = useState<string[]>([]);
@@ -89,10 +112,9 @@ export const AlarmManagement: React.FC = () => {
   const [assignSelection, setAssignSelection] = useState<string[]>([]);
   const [assignOpen, setAssignOpen] = useState(false);
   const [assignSaving, setAssignSaving] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [actionsExpanded, setActionsExpanded] = useState(false);
-  const commandBarRef = useRef<HTMLDivElement | null>(null);
   const headerCheckboxRef = useRef<HTMLInputElement | null>(null);
-  const [commandBarWidth, setCommandBarWidth] = useState(0);
 
   const selectedAlarm = rows.find((r) => r.id === selectedAlarmId) ?? null;
 
@@ -146,17 +168,6 @@ export const AlarmManagement: React.FC = () => {
   }, [selectedAlarm]);
 
   useEffect(() => {
-    const node = commandBarRef.current;
-    if (!node) return;
-    const observer = new ResizeObserver((entries) => {
-      const entry = entries[0];
-      setCommandBarWidth(entry.contentRect.width);
-    });
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
     const onEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setSelectedAlarmId(null);
@@ -165,6 +176,23 @@ export const AlarmManagement: React.FC = () => {
     document.addEventListener("keydown", onEscape);
     return () => document.removeEventListener("keydown", onEscape);
   }, []);
+
+  useEffect(() => {
+    const raw = sessionStorage.getItem("alarm-management-columns");
+    if (!raw) return;
+    try {
+      const parsed = JSON.parse(raw) as AlarmColumnConfig[];
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        setColumns(parsed);
+      }
+    } catch {
+      // noop
+    }
+  }, []);
+
+  useEffect(() => {
+    sessionStorage.setItem("alarm-management-columns", JSON.stringify(columns));
+  }, [columns]);
 
   const visibleAlarmIds = useMemo(() => filtered.map((row) => row.id), [filtered]);
   const selectedVisibleCount = useMemo(
@@ -203,15 +231,7 @@ export const AlarmManagement: React.FC = () => {
 
   const selectedCount = selectedAlarmIds.length;
   const bulkTargetIds = selectedAlarmIds;
-  const showColumns = commandBarWidth >= 1360;
-  const showView = commandBarWidth >= 1180;
-  const showSeverity = commandBarWidth >= 1000;
-  const showVendor = commandBarWidth >= 840;
-  const actionSlots = commandBarWidth >= 1280 ? 3 : commandBarWidth >= 1100 ? 2 : commandBarWidth >= 900 ? 1 : 0;
-  const showAcknowledge = actionSlots >= 1;
-  const showAssign = actionSlots >= 2;
-  const showExport = actionSlots >= 3;
-  const hasOverflowItems = !showVendor || !showSeverity || !showView || !showColumns || !showAcknowledge || !showAssign || !showExport;
+  const visibleColumns = useMemo(() => columns.filter((column) => column.visible), [columns]);
 
   const handleAcknowledge = () => {
     if (settings.maintenanceMode) {
@@ -245,7 +265,70 @@ export const AlarmManagement: React.FC = () => {
   };
 
   const handleExport = () => {
-    toast({ title: "Export started", description: `${filtered.length} alarms exported.` });
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const exportRows = bulkTargetIds.length > 0
+        ? filtered.filter((row) => bulkTargetIds.includes(row.id))
+        : filtered;
+
+      const rowsForSheet = exportRows.map((row) => {
+        const item: Record<string, string> = {};
+        visibleColumns.forEach((column) => {
+          item[column.label] = String(row[column.key]);
+        });
+        return item;
+      });
+
+      const workbook = XLSX.utils.book_new();
+      const dataSheet = XLSX.utils.json_to_sheet(rowsForSheet);
+      XLSX.utils.book_append_sheet(workbook, dataSheet, "Alarms");
+
+      const filtersSheet = XLSX.utils.aoa_to_sheet([
+        ["Filter", "Value"],
+        ["Vendor", vendor],
+        ["Severity", severity],
+        ["Search", search || "—"],
+        ["Export Scope", bulkTargetIds.length > 0 ? `Selected (${bulkTargetIds.length})` : `Filtered (${filtered.length})`],
+      ]);
+      XLSX.utils.book_append_sheet(workbook, filtersSheet, "Filters");
+
+      const stamp = new Date().toISOString().slice(0, 10);
+      XLSX.writeFile(workbook, `alarms-export-${stamp}.xlsx`);
+      toast({ title: "Export complete", description: `${exportRows.length} alarms exported.` });
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const toggleColumnVisibility = (key: AlarmColumnKey) => {
+    setColumns((prev) => prev.map((column) => (column.key === key ? { ...column, visible: !column.visible } : column)));
+  };
+
+  const moveColumn = (index: number, direction: -1 | 1) => {
+    setColumns((prev) => {
+      const nextIndex = index + direction;
+      if (nextIndex < 0 || nextIndex >= prev.length) return prev;
+      const updated = [...prev];
+      const [moving] = updated.splice(index, 1);
+      updated.splice(nextIndex, 0, moving);
+      return updated;
+    });
+  };
+
+  const setColumnWidth = (key: AlarmColumnKey, width: number) => {
+    setColumns((prev) => prev.map((column) => (column.key === key ? { ...column, width } : column)));
+  };
+
+  const renderCell = (row: AlarmRow, column: AlarmColumnConfig) => {
+    if (column.key === "severity") {
+      return (
+        <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-semibold", row.severity === "Critical" ? "bg-rose-500/10 text-rose-700" : row.severity === "Major" ? "bg-amber-500/10 text-amber-700" : "bg-slate-500/10 text-slate-700")}>
+          {row.severity}
+        </span>
+      );
+    }
+    return row[column.key];
   };
 
   return (
@@ -261,58 +344,63 @@ export const AlarmManagement: React.FC = () => {
       </div>
 
       {/* Toolbar */}
-      <div ref={commandBarRef} className="overflow-visible rounded-xl border border-border bg-card p-2">
+      <div className="overflow-visible rounded-xl border border-border bg-card p-2">
         <div className="grid gap-2 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
           <div className="flex min-w-0 flex-wrap items-center gap-2">
             <SearchBar value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search alarms..." containerClassName="min-w-[240px] max-w-[420px] flex-1" />
-            {showVendor && (
-              <div className="w-[160px] shrink-0">
-                <Select value={vendor} onValueChange={setVendor}>
-                  <SelectTrigger className="h-10 rounded-lg border-border bg-background text-sm">
-                    <SelectValue placeholder="Vendor" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {["All Vendors", "Huawei", "Nokia", "Ericsson"].map((option) => <SelectItem key={option} value={option}>{option}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            {showSeverity && (
-              <div className="w-[160px] shrink-0">
-                <Select value={severity} onValueChange={setSeverity}>
-                  <SelectTrigger className="h-10 rounded-lg border-border bg-background text-sm">
-                    <SelectValue placeholder="Severity" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {["All Severities", "Critical", "Major", "Minor"].map((option) => <SelectItem key={option} value={option}>{option}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            {showView && (
-              <div className="w-[180px] shrink-0">
-                <Select value={tableView} onValueChange={setTableView}>
-                  <SelectTrigger className="h-10 rounded-lg border-border bg-background text-sm">
-                    <SelectValue placeholder="View" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {["Default View", "Escalation View", "Assignment View"].map((option) => <SelectItem key={option} value={option}>{option}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            {showColumns && (
-              <div className="w-[180px] shrink-0">
-                <Select value={columnsView} onValueChange={setColumnsView}>
-                  <SelectTrigger className="h-10 rounded-lg border-border bg-background text-sm">
-                    <SelectValue placeholder="Columns" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {["Ops Columns", "Minimal Columns", "Engineering Columns"].map((option) => <SelectItem key={option} value={option}>{option}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+            <div className="w-[160px] shrink-0">
+              <Select value={vendor} onValueChange={setVendor}>
+                <SelectTrigger className="h-10 rounded-lg border-border bg-background text-sm">
+                  <SelectValue placeholder="Vendor" />
+                </SelectTrigger>
+                <SelectContent>
+                  {["All Vendors", "Huawei", "Nokia", "Ericsson"].map((option) => <SelectItem key={option} value={option}>{option}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="w-[160px] shrink-0">
+              <Select value={severity} onValueChange={setSeverity}>
+                <SelectTrigger className="h-10 rounded-lg border-border bg-background text-sm">
+                  <SelectValue placeholder="Severity" />
+                </SelectTrigger>
+                <SelectContent>
+                  {["All Severities", "Critical", "Major", "Minor"].map((option) => <SelectItem key={option} value={option}>{option}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <Popover open={columnsOpen} onOpenChange={setColumnsOpen}>
+              <PopoverTrigger asChild>
+                <button className="inline-flex h-10 items-center gap-2 rounded-lg border border-border px-3 text-sm">
+                  <Settings2 className="h-4 w-4" />
+                  Columns
+                </button>
+              </PopoverTrigger>
+              <PopoverContent align="start" className="w-[340px] p-3">
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold text-foreground">Customize Columns</p>
+                  <div className="max-h-[320px] space-y-2 overflow-y-auto pr-1">
+                    {columns.map((column, index) => (
+                      <div key={column.key} className="rounded border border-border p-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <label className="flex items-center gap-2 text-xs">
+                            <input type="checkbox" checked={column.visible} onChange={() => toggleColumnVisibility(column.key)} />
+                            {column.label}
+                          </label>
+                          <div className="flex items-center gap-1">
+                            <button disabled={index === 0} onClick={() => moveColumn(index, -1)} className="h-6 rounded border border-border px-2 text-[11px] disabled:opacity-40">↑</button>
+                            <button disabled={index === columns.length - 1} onClick={() => moveColumn(index, 1)} className="h-6 rounded border border-border px-2 text-[11px] disabled:opacity-40">↓</button>
+                          </div>
+                        </div>
+                        <div className="mt-2">
+                          <input type="range" min={90} max={320} value={column.width} onChange={(event) => setColumnWidth(column.key, Number(event.target.value))} className="w-full" />
+                          <p className="text-[10px] text-muted-foreground">Width: {column.width}px</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
           <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
             {selectedCount > 0 ? (
@@ -322,65 +410,10 @@ export const AlarmManagement: React.FC = () => {
                 <button onClick={clearSelection} className="h-10 rounded-lg border border-border px-3 text-sm">Clear Selection</button>
               </>
             ) : null}
-            {showExport && <button onClick={handleExport} className="h-10 rounded-lg border border-border px-3 text-sm">Export</button>}
-            {hasOverflowItems && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="inline-flex h-10 items-center gap-2 rounded-lg border border-border px-3 text-sm">
-                    <MoreHorizontal className="h-4 w-4" /> More
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-72">
-                  <DropdownMenuLabel>More Controls</DropdownMenuLabel>
-                  {!showVendor && (
-                    <DropdownMenuSub>
-                      <DropdownMenuSubTrigger>Vendor</DropdownMenuSubTrigger>
-                      <DropdownMenuSubContent>
-                        <DropdownMenuRadioGroup value={vendor} onValueChange={setVendor}>
-                          {["All Vendors", "Huawei", "Nokia", "Ericsson"].map((option) => <DropdownMenuRadioItem key={option} value={option}>{option}</DropdownMenuRadioItem>)}
-                        </DropdownMenuRadioGroup>
-                      </DropdownMenuSubContent>
-                    </DropdownMenuSub>
-                  )}
-                  {!showSeverity && (
-                    <DropdownMenuSub>
-                      <DropdownMenuSubTrigger>Severity</DropdownMenuSubTrigger>
-                      <DropdownMenuSubContent>
-                        <DropdownMenuRadioGroup value={severity} onValueChange={setSeverity}>
-                          {["All Severities", "Critical", "Major", "Minor"].map((option) => <DropdownMenuRadioItem key={option} value={option}>{option}</DropdownMenuRadioItem>)}
-                        </DropdownMenuRadioGroup>
-                      </DropdownMenuSubContent>
-                    </DropdownMenuSub>
-                  )}
-                  {!showView && (
-                    <DropdownMenuSub>
-                      <DropdownMenuSubTrigger>View</DropdownMenuSubTrigger>
-                      <DropdownMenuSubContent>
-                        <DropdownMenuRadioGroup value={tableView} onValueChange={setTableView}>
-                          {["Default View", "Escalation View", "Assignment View"].map((option) => <DropdownMenuRadioItem key={option} value={option}>{option}</DropdownMenuRadioItem>)}
-                        </DropdownMenuRadioGroup>
-                      </DropdownMenuSubContent>
-                    </DropdownMenuSub>
-                  )}
-                  {!showColumns && (
-                    <DropdownMenuSub>
-                      <DropdownMenuSubTrigger>Columns</DropdownMenuSubTrigger>
-                      <DropdownMenuSubContent>
-                        <DropdownMenuRadioGroup value={columnsView} onValueChange={setColumnsView}>
-                          {["Ops Columns", "Minimal Columns", "Engineering Columns"].map((option) => <DropdownMenuRadioItem key={option} value={option}>{option}</DropdownMenuRadioItem>)}
-                        </DropdownMenuRadioGroup>
-                      </DropdownMenuSubContent>
-                    </DropdownMenuSub>
-                  )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuLabel>More Actions</DropdownMenuLabel>
-                  {selectedCount > 0 && !showAcknowledge && <DropdownMenuItem disabled={settings.maintenanceMode} onSelect={handleAcknowledge}>Acknowledge Selected ({selectedCount})</DropdownMenuItem>}
-                  {selectedCount > 0 && !showAssign && <DropdownMenuItem disabled={settings.maintenanceMode} onSelect={() => setAssignOpen(true)}>Assign Selected ({selectedCount})</DropdownMenuItem>}
-                  {selectedCount > 0 && <DropdownMenuItem onSelect={clearSelection}>Clear Selection</DropdownMenuItem>}
-                  {!showExport && <DropdownMenuItem onSelect={handleExport}>Export</DropdownMenuItem>}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
+            <button disabled={exporting} onClick={handleExport} className="inline-flex h-10 items-center gap-2 rounded-lg border border-border px-3 text-sm disabled:opacity-40">
+              <Download className="h-4 w-4" />
+              {exporting ? "Exporting..." : "Export"}
+            </button>
           </div>
         </div>
       </div>
@@ -390,20 +423,25 @@ export const AlarmManagement: React.FC = () => {
         <div className="min-w-0 flex-1 overflow-hidden rounded-xl border border-border bg-card">
           <div className="overflow-x-auto">
             <table className="w-full text-left">
+              <colgroup>
+                <col style={{ width: 44 }} />
+                {visibleColumns.map((column) => (
+                  <col key={`col-${column.key}`} style={{ width: column.width }} />
+                ))}
+              </colgroup>
               <thead>
                 <tr className="border-b border-border bg-muted/20">
                   <th className="px-2 py-1.5"><input ref={headerCheckboxRef} type="checkbox" checked={allVisibleSelected} onChange={toggleSelectAllVisible} /></th>
-                  {(["Severity", "Alarm ID", "Vendor", "Alarm Name", "Status", "Assignment", "Site", "First Seen"] as Array<keyof AlarmRow | "Alarm Name">).map((h) => (
+                  {visibleColumns.map((column) => (
                     <th
-                      key={String(h)}
+                      key={column.key}
                       onClick={() => {
-                        if (h === "Alarm Name") return;
-                        setSortBy(h as keyof AlarmRow);
+                        setSortBy(column.key as keyof AlarmRow);
                         setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
                       }}
-                      className="cursor-pointer px-2 py-1.5 text-[10px] font-semibold uppercase tracking-[0.06em] text-muted-foreground"
+                      className="cursor-pointer truncate px-2 py-1.5 text-[10px] font-semibold uppercase tracking-[0.06em] text-muted-foreground"
                     >
-                      {h}
+                      {column.label}
                     </th>
                   ))}
                 </tr>
@@ -418,14 +456,11 @@ export const AlarmManagement: React.FC = () => {
                     className={cn("border-b border-border/70 text-[12px] hover:bg-muted/15 last:border-b-0", selectedAlarmId === row.id && "bg-primary/10")}
                   >
                     <td className="px-2 py-1.5"><input type="checkbox" checked={selectedAlarmIds.includes(row.id)} onChange={(e) => { e.stopPropagation(); setSelectedAlarmIds((prev) => (prev.includes(row.id) ? prev.filter((id) => id !== row.id) : [...prev, row.id])); }} /></td>
-                    <td className="px-2 py-1.5"><span className={cn("rounded-full px-2 py-0.5 text-[10px] font-semibold", row.severity === "Critical" ? "bg-rose-500/10 text-rose-700" : row.severity === "Major" ? "bg-amber-500/10 text-amber-700" : "bg-slate-500/10 text-slate-700")}>{row.severity}</span></td>
-                    <td className="px-2 py-1.5 font-medium">{row.id}</td>
-                    <td className="px-2 py-1.5">{row.vendor}</td>
-                    <td className="px-2 py-1.5">{row.alarmName}</td>
-                    <td className="px-2 py-1.5">{row.status}</td>
-                    <td className="px-2 py-1.5">{row.assignment}</td>
-                    <td className="px-2 py-1.5">{row.site}</td>
-                    <td className="px-2 py-1.5">{row.firstSeen}</td>
+                    {visibleColumns.map((column) => (
+                      <td key={`${row.id}-${column.key}`} className="truncate px-2 py-1.5">
+                        {renderCell(row, column)}
+                      </td>
+                    ))}
                   </tr>
                 ))}
               </tbody>
