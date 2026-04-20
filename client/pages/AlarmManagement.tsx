@@ -91,6 +91,7 @@ export const AlarmManagement: React.FC = () => {
   const [assignSaving, setAssignSaving] = useState(false);
   const [actionsExpanded, setActionsExpanded] = useState(false);
   const commandBarRef = useRef<HTMLDivElement | null>(null);
+  const headerCheckboxRef = useRef<HTMLInputElement | null>(null);
   const [commandBarWidth, setCommandBarWidth] = useState(0);
 
   const selectedAlarm = rows.find((r) => r.id === selectedAlarmId) ?? null;
@@ -165,6 +166,32 @@ export const AlarmManagement: React.FC = () => {
     return () => document.removeEventListener("keydown", onEscape);
   }, []);
 
+  const visibleAlarmIds = useMemo(() => filtered.map((row) => row.id), [filtered]);
+  const selectedVisibleCount = useMemo(
+    () => visibleAlarmIds.filter((id) => selectedAlarmIds.includes(id)).length,
+    [selectedAlarmIds, visibleAlarmIds]
+  );
+  const allVisibleSelected = filtered.length > 0 && selectedVisibleCount === filtered.length;
+  const isPartiallySelected = selectedVisibleCount > 0 && !allVisibleSelected;
+
+  useEffect(() => {
+    if (headerCheckboxRef.current) {
+      headerCheckboxRef.current.indeterminate = isPartiallySelected;
+    }
+  }, [isPartiallySelected]);
+
+  const clearSelection = () => {
+    setSelectedAlarmIds([]);
+  };
+
+  const toggleSelectAllVisible = () => {
+    if (allVisibleSelected) {
+      setSelectedAlarmIds((prev) => prev.filter((id) => !visibleAlarmIds.includes(id)));
+      return;
+    }
+    setSelectedAlarmIds((prev) => Array.from(new Set([...prev, ...visibleAlarmIds])));
+  };
+
   const onRowKeyDown = (event: React.KeyboardEvent, index: number) => {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
@@ -232,9 +259,9 @@ export const AlarmManagement: React.FC = () => {
       </div>
 
       {/* Toolbar */}
-      <div ref={commandBarRef} className="overflow-hidden rounded-xl border border-border bg-card p-2">
+      <div ref={commandBarRef} className="overflow-visible rounded-xl border border-border bg-card p-2">
         <div className="flex items-center justify-between gap-2">
-          <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
             <SearchBar value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search alarms..." containerClassName="min-w-[240px] max-w-[420px] flex-1" />
             {showVendor && (
               <div className="w-[160px] shrink-0">
@@ -286,10 +313,14 @@ export const AlarmManagement: React.FC = () => {
             )}
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            {showAcknowledge && <button disabled={targetIds.length === 0 || settings.maintenanceMode} onClick={handleAcknowledge} className="h-10 rounded-lg border border-border px-3 text-sm disabled:opacity-40">Acknowledge Selected{targetIds.length > 0 ? ` (${targetIds.length})` : ""}</button>}
-            {showAssign && <button disabled={targetIds.length === 0 || settings.maintenanceMode} onClick={() => setAssignOpen(true)} className="h-10 rounded-lg border border-border px-3 text-sm disabled:opacity-40">Assign Selected{targetIds.length > 0 ? ` (${targetIds.length})` : ""}</button>}
+            {targetIds.length > 0 ? (
+              <>
+                <button disabled={settings.maintenanceMode} onClick={handleAcknowledge} className="h-10 rounded-lg border border-border px-3 text-sm disabled:opacity-40">Acknowledge Selected ({targetIds.length})</button>
+                <button disabled={settings.maintenanceMode} onClick={() => setAssignOpen(true)} className="h-10 rounded-lg border border-border px-3 text-sm disabled:opacity-40">Assign Selected ({targetIds.length})</button>
+                <button onClick={clearSelection} className="h-10 rounded-lg border border-border px-3 text-sm">Clear Selection</button>
+              </>
+            ) : null}
             {showExport && <button onClick={handleExport} className="h-10 rounded-lg border border-border px-3 text-sm">Export</button>}
-            {targetIds.length > 0 && <button onClick={() => setSelectedAlarmIds([])} className="h-10 rounded-lg border border-border px-3 text-sm">Clear Selection</button>}
             {hasOverflowItems && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -341,9 +372,9 @@ export const AlarmManagement: React.FC = () => {
                   )}
                   <DropdownMenuSeparator />
                   <DropdownMenuLabel>More Actions</DropdownMenuLabel>
-                  {!showAcknowledge && <DropdownMenuItem disabled={targetIds.length === 0 || settings.maintenanceMode} onSelect={handleAcknowledge}>Acknowledge Selected{targetIds.length > 0 ? ` (${targetIds.length})` : ""}</DropdownMenuItem>}
-                  {!showAssign && <DropdownMenuItem disabled={targetIds.length === 0 || settings.maintenanceMode} onSelect={() => setAssignOpen(true)}>Assign Selected{targetIds.length > 0 ? ` (${targetIds.length})` : ""}</DropdownMenuItem>}
-                  {targetIds.length > 0 && <DropdownMenuItem onSelect={() => setSelectedAlarmIds([])}>Clear Selection</DropdownMenuItem>}
+                  {targetIds.length > 0 && !showAcknowledge && <DropdownMenuItem disabled={settings.maintenanceMode} onSelect={handleAcknowledge}>Acknowledge Selected ({targetIds.length})</DropdownMenuItem>}
+                  {targetIds.length > 0 && !showAssign && <DropdownMenuItem disabled={settings.maintenanceMode} onSelect={() => setAssignOpen(true)}>Assign Selected ({targetIds.length})</DropdownMenuItem>}
+                  {targetIds.length > 0 && <DropdownMenuItem onSelect={clearSelection}>Clear Selection</DropdownMenuItem>}
                   {!showExport && <DropdownMenuItem onSelect={handleExport}>Export</DropdownMenuItem>}
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -359,7 +390,7 @@ export const AlarmManagement: React.FC = () => {
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-border bg-muted/20">
-                  <th className="px-2 py-1.5"><input type="checkbox" checked={selectedAlarmIds.length === filtered.length && filtered.length > 0} onChange={() => setSelectedAlarmIds(selectedAlarmIds.length === filtered.length ? [] : filtered.map((r) => r.id))} /></th>
+                  <th className="px-2 py-1.5"><input ref={headerCheckboxRef} type="checkbox" checked={allVisibleSelected} onChange={toggleSelectAllVisible} /></th>
                   {(["Severity", "Alarm ID", "Vendor", "Alarm Name", "Status", "Assignment", "Site", "First Seen"] as Array<keyof AlarmRow | "Alarm Name">).map((h) => (
                     <th
                       key={String(h)}
