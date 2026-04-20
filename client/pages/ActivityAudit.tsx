@@ -374,21 +374,21 @@ export default function ActivityAudit() {
 
             <div className="rounded-lg border border-border bg-card">
               <div className="overflow-x-auto">
-                <table className="min-w-[1680px] table-fixed text-sm">
+                <table className="min-w-[1660px] w-full table-fixed text-sm">
                   <colgroup>
-                    <col className="w-[160px]" />
                     <col className="w-[140px]" />
-                    <col className="w-[210px]" />
-                    <col className="w-[150px]" />
-                    <col className="w-[130px]" />
-                    <col className="w-[150px]" />
-                    <col className="w-[180px]" />
-                    <col className="w-[160px]" />
-                    <col className="w-[130px]" />
-                    <col className="w-[110px]" />
-                    <col className="w-[190px]" />
                     <col className="w-[120px]" />
-                    <col className="w-[112px]" />
+                    <col className="w-[190px]" />
+                    <col className="w-[140px]" />
+                    <col className="w-[120px]" />
+                    <col className="w-[130px]" />
+                    <col className="w-[170px]" />
+                    <col className="w-[150px]" />
+                    <col className="w-[110px]" />
+                    <col className="w-[110px]" />
+                    <col className="w-[170px]" />
+                    <col className="w-[105px]" />
+                    <col className="w-[155px]" />
                   </colgroup>
                 <thead className="sticky top-0 z-10 bg-muted/40">
                   <tr>
@@ -404,27 +404,27 @@ export default function ActivityAudit() {
                     <HeaderCell label="Result" sortable onSort={() => toggleSort("result")} />
                     <HeaderCell label="IP / Device" />
                     <HeaderCell label="Session" />
-                    <HeaderCell label="Details / View" className="sticky right-0 z-30 bg-muted/40 shadow-[-1px_0_0_0_hsl(var(--border))]" />
+                    <HeaderCell label="Details / View" />
                   </tr>
                 </thead>
                 <tbody>
                   {paginatedEvents.map((event) => (
                     <tr key={event.id} className="cursor-pointer border-t border-border hover:bg-muted/20" onClick={() => setActiveRow(event)}>
-                      <td className="truncate px-2 py-2 text-xs text-muted-foreground" title={new Date(event.timestamp).toLocaleString()}>{new Date(event.timestamp).toLocaleString()}</td>
-                      <td className="truncate px-2 py-2 font-medium" title={event.userName}>{event.userName}</td>
-                      <td className="truncate px-2 py-2 text-muted-foreground" title={event.email}>{event.email}</td>
-                      <td className="truncate px-2 py-2 text-muted-foreground" title={event.tenantName}>{event.tenantName}</td>
-                      <td className="truncate px-2 py-2" title={event.roleName}>{event.roleName}</td>
-                      <td className="truncate px-2 py-2 text-muted-foreground" title={event.actionCategory}>{event.actionCategory}</td>
-                      <td className="truncate px-2 py-2" title={event.action}>{event.action}</td>
-                      <td className="truncate px-2 py-2 text-muted-foreground" title={event.targetName || event.targetType}>{event.targetName || event.targetType}</td>
-                      <td className="truncate px-2 py-2 text-muted-foreground" title={event.module}>{event.module}</td>
+                      <td className="px-2 py-2 text-xs text-muted-foreground"><span className="block truncate" title={new Date(event.timestamp).toLocaleString()}>{new Date(event.timestamp).toLocaleString()}</span></td>
+                      <td className="px-2 py-2 font-medium"><span className="block truncate" title={event.userName}>{event.userName}</span></td>
+                      <td className="px-2 py-2 text-muted-foreground"><span className="block truncate" title={event.email}>{event.email}</span></td>
+                      <td className="px-2 py-2 text-muted-foreground"><span className="block truncate" title={event.tenantName}>{event.tenantName}</span></td>
+                      <td className="px-2 py-2"><span className="block truncate" title={event.roleName}>{event.roleName}</span></td>
+                      <td className="px-2 py-2 text-muted-foreground"><span className="block truncate" title={event.actionCategory}>{event.actionCategory}</span></td>
+                      <td className="px-2 py-2"><span className="block truncate" title={event.action}>{event.action}</span></td>
+                      <td className="px-2 py-2 text-muted-foreground"><span className="block truncate" title={event.targetName || event.targetType}>{event.targetName || event.targetType}</span></td>
+                      <td className="px-2 py-2 text-muted-foreground"><span className="block truncate" title={event.module}>{event.module}</span></td>
                       <td className="px-2 py-2">
                         <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-semibold", event.result === "Success" && "bg-green-500/15 text-green-700", event.result === "Failed" && "bg-red-500/15 text-red-700", event.result === "Denied" && "bg-amber-500/15 text-amber-700", event.result === "Pending" && "bg-blue-500/15 text-blue-700")}>{event.result}</span>
                       </td>
-                      <td className="truncate px-2 py-2 text-xs text-muted-foreground" title={`${event.ipAddress} / ${event.deviceInfo}`}>{event.ipAddress} / {event.deviceInfo}</td>
-                      <td className="truncate px-2 py-2 font-mono text-xs text-muted-foreground" title={event.sessionId}>{event.sessionId}</td>
-                      <td className="sticky right-0 z-30 bg-card px-2 py-2 shadow-[-1px_0_0_0_hsl(var(--border))]"><Button variant="ghost" size="sm" className="h-7 text-xs text-primary">View</Button></td>
+                      <td className="px-2 py-2 text-xs text-muted-foreground"><span className="block truncate" title={`${event.ipAddress} / ${event.deviceInfo}`}>{event.ipAddress} / {event.deviceInfo}</span></td>
+                      <td className="px-2 py-2 font-mono text-xs text-muted-foreground"><span className="block truncate" title={event.sessionId}>{event.sessionId}</span></td>
+                      <td className="px-2 py-2"><Button variant="ghost" size="sm" className="h-7 text-xs text-primary">View</Button></td>
                     </tr>
                   ))}
                   {paginatedEvents.length === 0 && (
@@ -477,7 +477,7 @@ export default function ActivityAudit() {
 
 function HeaderCell({ label, sortable = false, onSort, className }: { label: string; sortable?: boolean; onSort?: () => void; className?: string }) {
   return (
-    <th className={cn("px-2 py-2 text-left text-xs font-semibold text-muted-foreground", className)}>
+    <th className={cn("px-2 py-2 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap", className)}>
       {sortable ? (
         <button onClick={onSort} className="inline-flex max-w-full items-center gap-1 hover:text-foreground">
           <span className="truncate">{label}</span>
