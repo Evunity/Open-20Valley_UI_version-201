@@ -201,7 +201,8 @@ export const AlarmManagement: React.FC = () => {
     if (event.key === "ArrowUp" && filtered[index - 1]) setSelectedAlarmId(filtered[index - 1].id);
   };
 
-  const targetIds = selectedAlarmIds.length > 0 ? selectedAlarmIds : selectedAlarmId ? [selectedAlarmId] : [];
+  const selectedCount = selectedAlarmIds.length;
+  const bulkTargetIds = selectedAlarmIds;
   const showColumns = commandBarWidth >= 1360;
   const showView = commandBarWidth >= 1180;
   const showSeverity = commandBarWidth >= 1000;
@@ -217,12 +218,13 @@ export const AlarmManagement: React.FC = () => {
       toast({ title: "Maintenance mode", description: "Write actions are disabled while maintenance mode is enabled." });
       return;
     }
-    if (targetIds.length === 0) return;
-    setRows((prev) => prev.map((r) => (targetIds.includes(r.id) ? { ...r, status: "Acknowledged" } : r)));
-    toast({ title: "Acknowledged", description: `${targetIds.length} alarms updated.` });
+    if (bulkTargetIds.length === 0) return;
+    setRows((prev) => prev.map((r) => (bulkTargetIds.includes(r.id) ? { ...r, status: "Acknowledged" } : r)));
+    toast({ title: "Acknowledged", description: `${bulkTargetIds.length} alarms updated.` });
   };
 
-  const handleAssignApply = () => {
+  const handleAssignApply = (ids: string[]) => {
+    if (ids.length === 0) return;
     if (settings.maintenanceMode) {
       toast({ title: "Maintenance mode", description: "Write actions are disabled while maintenance mode is enabled." });
       return;
@@ -235,10 +237,10 @@ export const AlarmManagement: React.FC = () => {
     if (assignSaving) return;
     setAssignSaving(true);
     setTimeout(() => {
-      setRows((prev) => prev.map((r) => (targetIds.includes(r.id) ? { ...r, assignment: selectedTeam, status: "Assigned", lastUpdated: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) } : r)));
+      setRows((prev) => prev.map((r) => (ids.includes(r.id) ? { ...r, assignment: selectedTeam, status: "Assigned", lastUpdated: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) } : r)));
       setAssignSaving(false);
       setAssignOpen(false);
-      toast({ title: "Assigned", description: `${targetIds.length} alarms assigned to ${selectedTeam}.` });
+      toast({ title: "Assigned", description: `${ids.length} alarms assigned to ${selectedTeam}.` });
     }, 450);
   };
 
@@ -260,8 +262,8 @@ export const AlarmManagement: React.FC = () => {
 
       {/* Toolbar */}
       <div ref={commandBarRef} className="overflow-visible rounded-xl border border-border bg-card p-2">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex min-w-0 flex-1 items-center gap-2">
+        <div className="grid gap-2 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
             <SearchBar value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search alarms..." containerClassName="min-w-[240px] max-w-[420px] flex-1" />
             {showVendor && (
               <div className="w-[160px] shrink-0">
@@ -312,11 +314,11 @@ export const AlarmManagement: React.FC = () => {
               </div>
             )}
           </div>
-          <div className="flex shrink-0 items-center gap-2">
-            {targetIds.length > 0 ? (
+          <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+            {selectedCount > 0 ? (
               <>
-                <button disabled={settings.maintenanceMode} onClick={handleAcknowledge} className="h-10 rounded-lg border border-border px-3 text-sm disabled:opacity-40">Acknowledge Selected ({targetIds.length})</button>
-                <button disabled={settings.maintenanceMode} onClick={() => setAssignOpen(true)} className="h-10 rounded-lg border border-border px-3 text-sm disabled:opacity-40">Assign Selected ({targetIds.length})</button>
+                <button disabled={settings.maintenanceMode} onClick={handleAcknowledge} className="h-10 rounded-lg border border-border px-3 text-sm disabled:opacity-40">Acknowledge Selected ({selectedCount})</button>
+                <button disabled={settings.maintenanceMode} onClick={() => setAssignOpen(true)} className="h-10 rounded-lg border border-border px-3 text-sm disabled:opacity-40">Assign Selected ({selectedCount})</button>
                 <button onClick={clearSelection} className="h-10 rounded-lg border border-border px-3 text-sm">Clear Selection</button>
               </>
             ) : null}
@@ -372,9 +374,9 @@ export const AlarmManagement: React.FC = () => {
                   )}
                   <DropdownMenuSeparator />
                   <DropdownMenuLabel>More Actions</DropdownMenuLabel>
-                  {targetIds.length > 0 && !showAcknowledge && <DropdownMenuItem disabled={settings.maintenanceMode} onSelect={handleAcknowledge}>Acknowledge Selected ({targetIds.length})</DropdownMenuItem>}
-                  {targetIds.length > 0 && !showAssign && <DropdownMenuItem disabled={settings.maintenanceMode} onSelect={() => setAssignOpen(true)}>Assign Selected ({targetIds.length})</DropdownMenuItem>}
-                  {targetIds.length > 0 && <DropdownMenuItem onSelect={clearSelection}>Clear Selection</DropdownMenuItem>}
+                  {selectedCount > 0 && !showAcknowledge && <DropdownMenuItem disabled={settings.maintenanceMode} onSelect={handleAcknowledge}>Acknowledge Selected ({selectedCount})</DropdownMenuItem>}
+                  {selectedCount > 0 && !showAssign && <DropdownMenuItem disabled={settings.maintenanceMode} onSelect={() => setAssignOpen(true)}>Assign Selected ({selectedCount})</DropdownMenuItem>}
+                  {selectedCount > 0 && <DropdownMenuItem onSelect={clearSelection}>Clear Selection</DropdownMenuItem>}
                   {!showExport && <DropdownMenuItem onSelect={handleExport}>Export</DropdownMenuItem>}
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -497,7 +499,7 @@ export const AlarmManagement: React.FC = () => {
                       />
                       <button
                         disabled={assignSaving || !assignSelection[0] || settings.maintenanceMode}
-                        onClick={() => handleAssignApply()}
+                        onClick={() => selectedAlarm && handleAssignApply([selectedAlarm.id])}
                         className="h-8 rounded border border-border px-2 text-xs disabled:opacity-40"
                       >
                         {assignSaving ? "Applying..." : "Apply Assign"}
@@ -545,7 +547,7 @@ export const AlarmManagement: React.FC = () => {
             </div>
             <div className="mt-3 flex justify-end gap-2">
               <button onClick={() => setAssignOpen(false)} className="rounded border border-border px-3 py-1 text-xs">Cancel</button>
-              <button disabled={settings.maintenanceMode || assignSaving || !assignSelection[0]} onClick={handleAssignApply} className="rounded bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground disabled:opacity-40">{assignSaving ? "Applying..." : "Apply"}</button>
+              <button disabled={settings.maintenanceMode || assignSaving || !assignSelection[0] || bulkTargetIds.length === 0} onClick={() => handleAssignApply(bulkTargetIds)} className="rounded bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground disabled:opacity-40">{assignSaving ? "Applying..." : "Apply"}</button>
             </div>
           </div>
         </div>
