@@ -40,6 +40,7 @@ export default function SearchableDropdown({
   const isOpen = isControlled ? open : internalOpen;
 
   const setOpen = (nextOpen: boolean) => {
+    if (nextOpen === isOpen) return;
     if (!isControlled) {
       setInternalOpen(nextOpen);
     }
@@ -61,6 +62,8 @@ export default function SearchableDropdown({
   );
 
   useEffect(() => {
+    if (!isOpen) return;
+
     function handleClickOutside(event: MouseEvent) {
       const target = event.target as Node;
       const clickedTrigger = dropdownRef.current?.contains(target);
