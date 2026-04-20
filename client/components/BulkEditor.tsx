@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { AlertCircle } from 'lucide-react';
 import SearchableDropdown from './SearchableDropdown';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface BulkEditorProps {
   selectedTarget: any;
@@ -16,6 +17,8 @@ interface BulkChange {
   error?: string;
 }
 
+type ExecutionStatusFilter = 'all' | 'validated' | 'pending' | 'failed';
+
 const MOCK_BULK_CHANGES: BulkChange[] = [
   { site: 'Cairo-Site-1', parameter: 'TX Power', oldValue: '43', newValue: '40', status: 'validated' },
   { site: 'Cairo-Site-2', parameter: 'TX Power', oldValue: '43', newValue: '40', status: 'validated' },
@@ -28,15 +31,20 @@ export const BulkEditor: React.FC<BulkEditorProps> = () => {
   const [selectedVendor, setSelectedVendor] = useState<string[]>([]);
   const [selectedTechnology, setSelectedTechnology] = useState<string[]>([]);
   const [changes, setChanges] = useState<BulkChange[]>(MOCK_BULK_CHANGES);
+  const [executionStatusFilter, setExecutionStatusFilter] = useState<ExecutionStatusFilter>('all');
 
   const vendors = ['Huawei', 'Ericsson', 'Nokia', 'ZTE', 'ORAN'];
   const technologies = ['2G', '3G', '4G', '5G', 'O-RAN'];
 
-  const filteredChanges = changes.filter(change => {
+  const contextFilteredChanges = changes.filter(change => {
     const vendorMatch = !selectedVendor.length || change.site.toLowerCase().includes(selectedVendor[0].toLowerCase());
     const techMatch = !selectedTechnology.length || change.parameter.toLowerCase().includes(selectedTechnology[0].toLowerCase());
     return vendorMatch && techMatch;
   });
+
+  const filteredChanges = contextFilteredChanges.filter((change) => (
+    executionStatusFilter === 'all' || change.status === executionStatusFilter
+  ));
 
   const validateChanges = () => {
     setChanges(changes.map(c => ({ ...c, status: 'validated' })));
@@ -65,6 +73,9 @@ export const BulkEditor: React.FC<BulkEditorProps> = () => {
   const successCount = filteredChanges.filter(c => c.status === 'success').length;
   const failedCount = filteredChanges.filter(c => c.status === 'failed').length;
   const validatedCount = filteredChanges.filter(c => c.status === 'validated').length;
+  const pendingCount = contextFilteredChanges.filter(c => c.status === 'pending').length;
+  const validatedTotalCount = contextFilteredChanges.filter(c => c.status === 'validated').length;
+  const failedTotalCount = contextFilteredChanges.filter(c => c.status === 'failed').length;
 
   return (
     <div className="flex flex-col h-full gap-4 p-4">
@@ -152,7 +163,22 @@ export const BulkEditor: React.FC<BulkEditorProps> = () => {
       {/* Execution Table */}
       <div className="border border-border rounded-lg overflow-hidden">
         <div className="bg-muted px-4 py-2 font-semibold text-sm flex items-center justify-between">
-          <span>Execution Status</span>
+          <div className="flex items-center gap-3">
+            <span>Execution Status</span>
+            <div className="w-[220px]">
+              <Select value={executionStatusFilter} onValueChange={(value) => setExecutionStatusFilter(value as ExecutionStatusFilter)}>
+                <SelectTrigger className="h-8 text-xs bg-background">
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses ({contextFilteredChanges.length})</SelectItem>
+                  <SelectItem value="validated">Validated ({validatedTotalCount})</SelectItem>
+                  <SelectItem value="pending">Pending ({pendingCount})</SelectItem>
+                  <SelectItem value="failed">Failed ({failedTotalCount})</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
           <div className="flex gap-4 text-xs font-semibold">
             <span className="text-green-600 dark:text-green-400">✓ {successCount}</span>
             <span className="text-red-600 dark:text-red-400">✗ {failedCount}</span>
@@ -173,32 +199,40 @@ export const BulkEditor: React.FC<BulkEditorProps> = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredChanges.map((change, i) => (
-                <tr key={i} className="border-b border-border hover:bg-muted/30">
-                  <td className="px-4 py-2 font-mono">{change.site}</td>
-                  <td className="px-4 py-2">{change.parameter}</td>
-                  <td className="px-4 py-2 font-mono text-red-600 dark:text-red-400">{change.oldValue}</td>
-                  <td className="px-4 py-2 font-mono text-green-600 dark:text-green-400 font-bold">{change.newValue}</td>
-                  <td className="px-4 py-2">
-                    <span className={`px-2 py-0.5 rounded font-semibold ${
-                      change.status === 'success' ? 'bg-green-100 dark:bg-green-950 text-green-800 dark:text-green-300' :
-                      change.status === 'failed' ? 'bg-red-100 dark:bg-red-950 text-red-800 dark:text-red-300' :
-                      change.status === 'validated' ? 'bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300' :
-                      'bg-yellow-100 dark:bg-yellow-950 text-yellow-800 dark:text-yellow-300'
-                    }`}>
-                      {change.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-2 text-red-600 dark:text-red-400">
-                    {change.error && (
-                      <div className="flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3" />
-                        {change.error}
-                      </div>
-                    )}
+              {filteredChanges.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-4 py-6 text-center text-xs text-muted-foreground">
+                    No execution rows match the selected status filter.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredChanges.map((change, i) => (
+                  <tr key={i} className="border-b border-border hover:bg-muted/30">
+                    <td className="px-4 py-2 font-mono">{change.site}</td>
+                    <td className="px-4 py-2">{change.parameter}</td>
+                    <td className="px-4 py-2 font-mono text-red-600 dark:text-red-400">{change.oldValue}</td>
+                    <td className="px-4 py-2 font-mono text-green-600 dark:text-green-400 font-bold">{change.newValue}</td>
+                    <td className="px-4 py-2">
+                      <span className={`px-2 py-0.5 rounded font-semibold ${
+                        change.status === 'success' ? 'bg-green-100 dark:bg-green-950 text-green-800 dark:text-green-300' :
+                        change.status === 'failed' ? 'bg-red-100 dark:bg-red-950 text-red-800 dark:text-red-300' :
+                        change.status === 'validated' ? 'bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300' :
+                        'bg-yellow-100 dark:bg-yellow-950 text-yellow-800 dark:text-yellow-300'
+                      }`}>
+                        {change.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2 text-red-600 dark:text-red-400">
+                      {change.error && (
+                        <div className="flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" />
+                          {change.error}
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
