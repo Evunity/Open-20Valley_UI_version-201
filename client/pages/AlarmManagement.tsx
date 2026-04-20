@@ -10,8 +10,6 @@ import { SearchBar } from "@/components/ui/search-bar";
 import SearchableDropdown from "@/components/SearchableDropdown";
 import * as XLSX from "xlsx";
 
-type Mode = "Live" | "Snapshot" | "Historical";
-
 interface AlarmRow {
   id: string;
   severity: "Critical" | "Major" | "Minor";
@@ -94,7 +92,7 @@ const INITIAL_ROWS: AlarmRow[] = [
 export const AlarmManagement: React.FC = () => {
   const { toast } = useToast();
   const { settings } = usePlatformSettings();
-  const [mode, setMode] = useState<Mode>("Live");
+  const [liveRefreshEnabled, setLiveRefreshEnabled] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(() => formatPlatformDateTime(new Date(), settings.timezone, settings.dateTimeFormat));
   const [search, setSearch] = useState("");
   const [vendor, setVendor] = useState("All Vendors");
@@ -134,9 +132,21 @@ export const AlarmManagement: React.FC = () => {
     return out;
   }, [rows, search, vendor, severity, sortBy, sortDir]);
 
-  useEffect(() => {
+  const refreshTimestamp = () => {
     setLastUpdated(formatPlatformDateTime(new Date(), settings.timezone, settings.dateTimeFormat));
+  };
+
+  useEffect(() => {
+    refreshTimestamp();
   }, [settings.timezone, settings.dateTimeFormat]);
+
+  useEffect(() => {
+    if (!liveRefreshEnabled) return;
+    const interval = setInterval(() => {
+      refreshTimestamp();
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [liveRefreshEnabled, settings.timezone, settings.dateTimeFormat]);
 
   useEffect(() => {
     if (!selectedAlarmId) return;
@@ -333,14 +343,22 @@ export const AlarmManagement: React.FC = () => {
 
   return (
     <section className="space-y-3">
-      {/* Top mode controls */}
+      {/* Top live controls */}
       <div className="flex items-center justify-between rounded-xl border border-border bg-card px-3 py-2">
-        <div className="inline-flex rounded-lg border border-border bg-muted/20 p-1">
-          {(["Live", "Snapshot", "Historical"] as Mode[]).map((m) => (
-            <button key={m} onClick={() => setMode(m)} className={cn("rounded-md px-3 py-1 text-xs font-semibold transition-colors", mode === m ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>{m}</button>
-          ))}
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
+            Live
+          </span>
+          <button
+            onClick={() => setLiveRefreshEnabled((prev) => !prev)}
+            className="rounded-lg border border-border px-2.5 py-1 text-xs"
+          >
+            {liveRefreshEnabled ? "Pause Refresh" : "Resume Refresh"}
+          </button>
         </div>
-        <button onClick={() => { setLastUpdated(formatPlatformDateTime(new Date(), settings.timezone, settings.dateTimeFormat)); toast({ title: "Refreshed", description: "Alarm table refreshed; details panel preserved." }); }} className="rounded-lg border border-border px-2.5 py-1 text-xs">Refresh · {lastUpdated}</button>
+        <p className="text-xs text-muted-foreground">
+          {liveRefreshEnabled ? "Refresh" : "Last Refresh"}: {lastUpdated}
+        </p>
       </div>
 
       {/* Toolbar */}
