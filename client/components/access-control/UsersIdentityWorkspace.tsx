@@ -23,7 +23,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -43,17 +42,23 @@ type UserDraft = {
   firstName: string;
   lastName: string;
   email: string;
+  tenantId: string;
   tenantName: string;
   primaryRoleName: string;
   status: UserStatus;
-  sendInvitation: boolean;
   changePassword: boolean;
   newPassword: string;
   confirmPassword: string;
 };
 
 const ROLES = ["Platform Admin", "RF Engineer", "NOC Operator", "Viewer", "Group Executive"];
-const TENANTS = ["Egypt Operator", "Saudi Operator", "Managed Svcs", "Enterprise Networks"];
+const TENANT_OPTIONS = [
+  { id: "egypt", name: "Egypt Operator" },
+  { id: "ksa", name: "Saudi Operator" },
+  { id: "managed", name: "Managed Svcs" },
+  { id: "enterprise", name: "Enterprise Networks" },
+];
+const TENANTS = TENANT_OPTIONS.map((tenant) => tenant.name);
 
 const statusStyle: Record<UserStatus, string> = {
   Active: "bg-green-500/15 text-green-700",
@@ -88,10 +93,10 @@ export default function UsersIdentityWorkspace() {
     firstName: "",
     lastName: "",
     email: "",
+    tenantId: "",
     tenantName: "",
     primaryRoleName: "",
     status: "Pending",
-    sendInvitation: true,
     changePassword: false,
     newPassword: "",
     confirmPassword: "",
@@ -130,10 +135,10 @@ export default function UsersIdentityWorkspace() {
       firstName: "",
       lastName: "",
       email: "",
+      tenantId: "",
       tenantName: "",
       primaryRoleName: "",
       status: "Pending",
-      sendInvitation: true,
       changePassword: false,
       newPassword: "",
       confirmPassword: "",
@@ -148,10 +153,10 @@ export default function UsersIdentityWorkspace() {
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
+      tenantId: user.tenantIds[0] ?? "",
       tenantName: user.tenantNames[0] ?? "",
       primaryRoleName: user.primaryRoleName,
       status: user.status,
-      sendInvitation: false,
       changePassword: false,
       newPassword: "",
       confirmPassword: "",
@@ -172,7 +177,7 @@ export default function UsersIdentityWorkspace() {
 
   const submitAdd = async () => {
     setFormError(null);
-    if (!draft.firstName.trim() || !draft.lastName.trim() || !draft.email.trim() || !draft.tenantName || !draft.primaryRoleName) {
+    if (!draft.firstName.trim() || !draft.lastName.trim() || !draft.email.trim() || !draft.tenantName || !draft.tenantId || !draft.primaryRoleName) {
       setFormError("All required fields must be completed.");
       return;
     }
@@ -182,7 +187,7 @@ export default function UsersIdentityWorkspace() {
         firstName: draft.firstName.trim(),
         lastName: draft.lastName.trim(),
         email: draft.email.trim(),
-        tenantIds: [draft.tenantName.toLowerCase().replace(/\s+/g, "-")],
+        tenantIds: [draft.tenantId || draft.tenantName.toLowerCase().replace(/\s+/g, "-")],
         tenantNames: [draft.tenantName],
         primaryRoleId: draft.primaryRoleName.toLowerCase().replace(/\s+/g, "-"),
         primaryRoleName: draft.primaryRoleName,
@@ -190,9 +195,6 @@ export default function UsersIdentityWorkspace() {
         lastLoginAt: null,
       });
 
-      if (draft.sendInvitation) {
-        toast({ title: "Invitation queued", description: `Invite sent to ${draft.email}.` });
-      }
       setAddOpen(false);
       setFilters((prev) => ({ ...prev, page: 1 }));
       loadUsers();
@@ -204,7 +206,7 @@ export default function UsersIdentityWorkspace() {
   const submitEdit = async () => {
     if (!activeUser) return;
     setFormError(null);
-    if (!draft.firstName.trim() || !draft.lastName.trim() || !draft.email.trim() || !draft.tenantName || !draft.primaryRoleName) {
+    if (!draft.firstName.trim() || !draft.lastName.trim() || !draft.email.trim() || !draft.tenantName || !draft.tenantId || !draft.primaryRoleName) {
       setFormError("All required fields must be completed.");
       return;
     }
@@ -229,8 +231,8 @@ export default function UsersIdentityWorkspace() {
         firstName: draft.firstName.trim(),
         lastName: draft.lastName.trim(),
         email: draft.email.trim(),
-        tenantIds: [draft.tenantName.toLowerCase().replace(/\s+/g, "-")],
-        tenantNames: [draft.tenantName],
+        tenantId: draft.tenantId,
+        tenantName: draft.tenantName,
         primaryRoleId: draft.primaryRoleName.toLowerCase().replace(/\s+/g, "-"),
         primaryRoleName: draft.primaryRoleName,
         status: draft.status,
@@ -431,11 +433,21 @@ function UserForm({ draft, setDraft, mode }: { draft: UserDraft; setDraft: Dispa
       </div>
       <Field label="Email *"><Input value={draft.email} onChange={(e) => setDraft((p) => ({ ...p, email: e.target.value }))} className="h-9" /></Field>
       <Field label="Tenant Assignment *">
-        <Select value={draft.tenantName || "none"} onValueChange={(value) => setDraft((p) => ({ ...p, tenantName: value === "none" ? "" : value }))}>
+        <Select
+          value={draft.tenantId || "none"}
+          onValueChange={(value) => {
+            if (value === "none") {
+              setDraft((p) => ({ ...p, tenantId: "", tenantName: "" }));
+              return;
+            }
+            const selected = TENANT_OPTIONS.find((tenant) => tenant.id === value);
+            setDraft((p) => ({ ...p, tenantId: value, tenantName: selected?.name ?? "" }));
+          }}
+        >
           <SelectTrigger><SelectValue placeholder="Select tenant" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="none">Select tenant</SelectItem>
-            {TENANTS.map((tenant) => <SelectItem key={tenant} value={tenant}>{tenant}</SelectItem>)}
+            {TENANT_OPTIONS.map((tenant) => <SelectItem key={tenant.id} value={tenant.id}>{tenant.name}</SelectItem>)}
           </SelectContent>
         </Select>
       </Field>
@@ -498,12 +510,7 @@ function UserForm({ draft, setDraft, mode }: { draft: UserDraft; setDraft: Dispa
             <p className="text-xs text-muted-foreground">Use “Set New Password” to reset this user password.</p>
           )}
         </div>
-      ) : (
-        <div className="flex items-center justify-between rounded-md border border-border px-3 py-2">
-          <span className="text-xs text-muted-foreground">Send invitation email</span>
-          <Switch checked={draft.sendInvitation} onCheckedChange={(checked) => setDraft((p) => ({ ...p, sendInvitation: checked }))} />
-        </div>
-      )}
+      ) : null}
     </div>
   );
 }

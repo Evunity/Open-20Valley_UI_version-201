@@ -217,15 +217,19 @@ export async function createUser(payload: Omit<UserIdentityRecord, "id" | "fullN
 
 export async function patchUser(
   userId: string,
-  updates: Partial<UserIdentityRecord> & { password?: string },
+  updates: Partial<UserIdentityRecord> & { password?: string; tenantId?: string; tenantName?: string },
 ): Promise<UserIdentityRecord> {
   await delay();
   const store = loadStore();
   const index = store.users.findIndex((user) => user.id === userId);
   if (index < 0) throw new Error("User not found.");
 
-  const { password: _password, ...safeUpdates } = updates;
+  const { password: _password, tenantId, tenantName, ...safeUpdates } = updates;
   const next = { ...store.users[index], ...safeUpdates };
+  if (tenantId && tenantName) {
+    next.tenantIds = [tenantId];
+    next.tenantNames = [tenantName];
+  }
   next.fullName = `${next.firstName} ${next.lastName}`.trim();
   store.users[index] = next;
   saveStore(store);
