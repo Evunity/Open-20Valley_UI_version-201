@@ -185,6 +185,19 @@ export const WorkflowBuilder: React.FC<{
   const [resizePanel, setResizePanel] = useState<'left' | 'right' | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [edgeGeometry, setEdgeGeometry] = useState<Record<string, { x1: number; y1: number; x2: number; y2: number }>>({});
+  const panRef = useRef(pan);
+  const zoomRef = useRef(zoom);
+  const panStartRef = useRef(panStart);
+  const draggingNodeRef = useRef(draggingNode);
+  const draggingEdgeRef = useRef(draggingEdge);
+  const isPanningRef = useRef(isPanning);
+
+  useEffect(() => { panRef.current = pan; }, [pan]);
+  useEffect(() => { zoomRef.current = zoom; }, [zoom]);
+  useEffect(() => { panStartRef.current = panStart; }, [panStart]);
+  useEffect(() => { draggingNodeRef.current = draggingNode; }, [draggingNode]);
+  useEffect(() => { draggingEdgeRef.current = draggingEdge; }, [draggingEdge]);
+  useEffect(() => { isPanningRef.current = isPanning; }, [isPanning]);
 
   useEffect(() => {
     if (initialWorkflow) {
@@ -359,41 +372,44 @@ export const WorkflowBuilder: React.FC<{
     setDraggingNode(nodeId);
   };
 
-  const handleCanvasMouseMove = (e: React.MouseEvent) => {
-    if (isPanning) {
+  const applyPointerMove = useCallback((clientX: number, clientY: number) => {
+    if (isPanningRef.current) {
       setPan({
-        x: e.clientX - panStart.x,
-        y: e.clientY - panStart.y
+        x: clientX - panStartRef.current.x,
+        y: clientY - panStartRef.current.y
       });
     }
 
-    if (canvasRef.current && draggingNode) {
+    if (canvasRef.current && draggingNodeRef.current) {
       const rect = canvasRef.current.getBoundingClientRect();
-      const x = (e.clientX - rect.left - pan.x) / zoom;
-      const y = (e.clientY - rect.top - pan.y) / zoom;
+      const x = (clientX - rect.left - panRef.current.x) / zoomRef.current;
+      const y = (clientY - rect.top - panRef.current.y) / zoomRef.current;
 
       setWorkflow(prev => ({
         ...prev,
         nodes: prev.nodes.map(n =>
-          n.id === draggingNode ? { ...n, x: x - 80, y: y - 32 } : n
+          n.id === draggingNodeRef.current ? { ...n, x: x - 80, y: y - 32 } : n
         ),
         updatedAt: new Date().toLocaleString()
       }));
     }
 
-    if (draggingEdge) {
+    if (draggingEdgeRef.current) {
       const rect = canvasRef.current?.getBoundingClientRect();
       if (rect) {
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+        const x = clientX - rect.left;
+        const y = clientY - rect.top;
         setDraggingEdge(prev => prev ? { ...prev, x, y } : null);
       }
     }
+  }, []);
+
+  const handleCanvasMouseMove = (e: React.MouseEvent) => {
+    applyPointerMove(e.clientX, e.clientY);
   };
 
   const handleCanvasMouseDown = (e: React.MouseEvent) => {
     if (e.button !== 0) return;
-    if (e.target !== canvasRef.current) return;
     setSelectedNodeId('');
     setIsPanning(true);
     setPanStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
@@ -410,6 +426,27 @@ export const WorkflowBuilder: React.FC<{
     setDraggingNode(null);
     setDraggingEdge(null);
   };
+
+  useEffect(() => {
+    const handleWindowMouseMove = (event: MouseEvent) => {
+      if (!isPanningRef.current && !draggingNodeRef.current && !draggingEdgeRef.current) return;
+      applyPointerMove(event.clientX, event.clientY);
+    };
+
+    const handleWindowMouseUp = () => {
+      if (!isPanningRef.current && !draggingNodeRef.current && !draggingEdgeRef.current) return;
+      setIsPanning(false);
+      setDraggingNode(null);
+      setDraggingEdge(null);
+    };
+
+    window.addEventListener('mousemove', handleWindowMouseMove);
+    window.addEventListener('mouseup', handleWindowMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleWindowMouseMove);
+      window.removeEventListener('mouseup', handleWindowMouseUp);
+    };
+  }, [applyPointerMove]);
 
   const handleOutputHandleMouseDown = (nodeId: string, handleId: string, e: React.MouseEvent) => {
     e.stopPropagation();
