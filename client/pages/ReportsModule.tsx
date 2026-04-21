@@ -2,9 +2,6 @@ import { useMemo } from "react";
 import { useParams } from "react-router-dom";
 import ReportLibraryModule from "@/components/reports/ReportLibraryModule";
 import ReportCreationWorkspace from "@/components/reports/ReportCreationWorkspace";
-import InsightAuthoringLayer from "@/components/reports/InsightAuthoringLayer";
-import ReliabilityCenter from "@/components/reports/ReliabilityCenter";
-import RegulatoryIntelligenceHub from "@/components/reports/RegulatoryIntelligenceHub";
 import DatasetManager from "@/components/reports/DatasetManager";
 import ReportHistoryRegistry from "@/components/reports/ReportHistoryRegistry";
 import SchedulingOrchestrator from "@/components/reports/SchedulingOrchestrator";
@@ -22,12 +19,6 @@ export default function ReportsModule() {
         return <ReportLibraryModule />;
       case "report-creation":
         return <ReportCreationWorkspace />;
-      case "insights-impact":
-        return <InsightAuthoringLayer />;
-      case "reliability-consumption":
-        return <ReliabilityCenter />;
-      case "regulatory-intelligence-hub":
-        return <RegulatoryIntelligenceHub />;
       case "dataset-manager":
         return <DatasetManager />;
       case "report-history":

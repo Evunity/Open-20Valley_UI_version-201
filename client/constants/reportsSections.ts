@@ -31,24 +31,6 @@ export const REPORTS_SECTIONS: ReportsSection[] = [
     description: "Publish cadence, subscriptions, and channel routing.",
   },
   {
-    id: "insights-impact",
-    label: "Insights & Impact",
-    path: "/reports-module/insights-impact",
-    description: "Narratives and downstream decision influence.",
-  },
-  {
-    id: "reliability-consumption",
-    label: "Reliability & Consumption",
-    path: "/reports-module/reliability-consumption",
-    description: "Freshness, SLA health, and readership telemetry.",
-  },
-  {
-    id: "regulatory-intelligence-hub",
-    label: "Regulatory Intelligence Hub",
-    path: "/reports-module/regulatory-intelligence-hub",
-    description: "Compliance-aligned reporting and audit traces.",
-  },
-  {
     id: "dataset-manager",
     label: "Dataset Manager",
     path: "/reports-module/dataset-manager",
