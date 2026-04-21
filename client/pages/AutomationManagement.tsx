@@ -1,17 +1,12 @@
 import React, { useState } from 'react';
 import { Eye, Hammer, Lock, Plus, Settings, Brain, Lightbulb, Shield, Map, TrendingUp, Play, Pause, Calendar, Pencil, Trash2, Copy, Cpu, SlidersHorizontal } from 'lucide-react';
 import { AutomationCommandCenter } from '../components/AutomationCommandCenter';
-import { AutomationBuilder } from '../components/AutomationBuilder';
 import { WorkflowBuilder } from '../components/WorkflowBuilder';
-import { RunbookDesigner } from '../components/RunbookDesigner';
 import { TriggerEngine } from '../components/TriggerEngine';
 import { PreExecutionSimulation } from '../components/PreExecutionSimulation';
 import { ExecutionOrchestrator } from '../components/ExecutionOrchestrator';
 import { AIDecisionHub } from '../components/AIDecisionHub';
 import { ModelGovernance } from '../components/ModelGovernance';
-import { ClosedLoopValidation } from '../components/ClosedLoopValidation';
-import { LearningEngine } from '../components/LearningEngine';
-import { TrustScoring } from '../components/TrustScoring';
 import { HumanInLoopDialog } from '../components/HumanInLoopDialog';
 import { AutonomyHeatmap } from '../components/AutonomyHeatmap';
 import { generateMockPolicies } from '../utils/automationData';
@@ -21,13 +16,9 @@ type SuperDomain = 'awareness' | 'design' | 'execution';
 type WorkspaceType =
   | 'command_center'
   | 'ai_hub'
-  | 'impact_engine'
-  | 'learning_engine'
-  | 'trust_scoring'
   | 'builder'
   | 'workflow_library'
   | 'ai_models'
-  | 'runbook'
   | 'policy'
   | 'orchestrator'
   | 'governance'
@@ -43,14 +34,10 @@ const WORKSPACES: WorkspaceTab[] = [
   // Awareness Layer
   { id: 'command_center', label: 'Command Center', domain: 'awareness' },
   { id: 'ai_hub', label: 'AI Decision Hub', domain: 'awareness' },
-  { id: 'impact_engine', label: 'Impact & Learning', domain: 'awareness' },
-  { id: 'learning_engine', label: 'Learning Engine', domain: 'awareness' },
-  { id: 'trust_scoring', label: 'Trust Score', domain: 'awareness' },
   // Design Layer
-  { id: 'builder', label: 'Builder', domain: 'design' },
+  { id: 'builder', label: 'Automation Workflow', domain: 'design' },
   { id: 'workflow_library', label: 'Saved Workflows', domain: 'design' },
   { id: 'ai_models', label: 'AI Models', domain: 'design' },
-  { id: 'runbook', label: 'Runbook Designer', domain: 'design' },
   { id: 'policy', label: 'Policy & Guardrails', domain: 'design' },
   // Execution Layer
   { id: 'orchestrator', label: 'Orchestrator', domain: 'execution' },
@@ -71,11 +58,15 @@ interface PolicyForm {
   constraints: string[];
 }
 
-interface SavedRunbook {
-  id: string;
-  name: string;
-  description: string;
-  createdAt: string;
+interface AutomationRunbook {
+  overview: string;
+  purpose: string;
+  prerequisites: string;
+  executionNotes: string;
+  rollbackPlan: string;
+  escalationPath: string;
+  safetyNotes: string;
+  approvals: string;
 }
 
 type WorkflowStatus = 'draft' | 'active' | 'inactive';
@@ -131,12 +122,28 @@ interface ConfiguredModelRecord {
 export const AutomationManagement: React.FC = () => {
   const [activeDomain, setActiveDomain] = useState<SuperDomain>('awareness');
   const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceType>('command_center');
-  const [showBuilder, setShowBuilder] = useState(false);
-  const [showRunbook, setShowRunbook] = useState(false);
+  const [automationTab, setAutomationTab] = useState<'design' | 'runbook'>('design');
+  const [automationDraft, setAutomationDraft] = useState({
+    id: `automation_${Date.now()}`,
+    name: 'New Automation',
+    status: 'draft' as WorkflowStatus,
+    owner: 'Automation Operator',
+    version: 1,
+    graphDefinition: undefined as any,
+    runbook: {
+      overview: '',
+      purpose: '',
+      prerequisites: '',
+      executionNotes: '',
+      rollbackPlan: '',
+      escalationPath: '',
+      safetyNotes: '',
+      approvals: ''
+    } as AutomationRunbook
+  });
   const [showApprovalDialog, setShowApprovalDialog] = useState(false);
   const [showPolicyDialog, setShowPolicyDialog] = useState(false);
   const [policies, setPolicies] = useState(generateMockPolicies());
-  const [runbooks, setRunbooks] = useState<SavedRunbook[]>([]);
   const [savedWorkflows, setSavedWorkflows] = useState<SavedWorkflowRecord[]>([]);
   const [workflowSearch, setWorkflowSearch] = useState('');
   const [workflowStatusFilter, setWorkflowStatusFilter] = useState<'all' | WorkflowStatus>('all');
@@ -321,129 +328,114 @@ export const AutomationManagement: React.FC = () => {
   const renderWorkspaceContent = () => {
     switch (activeWorkspace) {
       case 'command_center':
-        return <AutomationCommandCenter onActivitySelect={(a) => console.log(a)} />;
+        return <AutomationCommandCenter />;
 
       case 'ai_hub':
         return <AIDecisionHub onDecisionApprove={(d) => console.log(d)} onDecisionReject={(d) => console.log(d)} />;
 
-      case 'impact_engine':
-        return <ClosedLoopValidation />;
-
       case 'builder':
-        return showBuilder ? (
-          <WorkflowBuilder
-            initialWorkflow={workflowBeingEdited?.definition}
-            onSave={(workflow) => {
-              const triggerNode = workflow.nodes.find((node: any) => node.type === 'trigger');
-              const now = new Date().toISOString();
-              setSavedWorkflows((previous) => {
-                const existing = previous.find((item) => item.id === workflow.id);
-                const baseRecord: SavedWorkflowRecord = {
-                  id: workflow.id,
-                  name: workflow.name,
-                  description: workflow.description || 'No description provided',
-                  status: workflow.active ? 'active' : existing?.status || 'draft',
-                  createdAt: existing?.createdAt || now,
-                  updatedAt: now,
-                  triggerType: triggerNode?.label || triggerNode?.type || 'Manual Trigger',
-                  nodeCount: workflow.nodes.length,
-                  schedule: existing?.schedule || defaultSchedule,
-                  owner: existing?.owner || 'Automation Operator',
-                  lastRun: existing?.lastRun,
-                  nextRun: existing?.nextRun,
-                  definition: workflow,
-                };
-
-                if (existing) {
-                  return previous.map((item) => (item.id === workflow.id ? baseRecord : item));
-                }
-                return [baseRecord, ...previous];
-              });
-              setShowBuilder(false);
-              setEditingWorkflowId(null);
-              setActiveWorkspace('workflow_library');
-            }}
-            onCancel={() => {
-              setShowBuilder(false);
-              setEditingWorkflowId(null);
-            }}
-          />
-        ) : (
-          <div className="flex-1 flex flex-col items-center justify-center p-4 bg-background">
-            <div className="text-center max-w-md">
-              <div className="text-5xl mb-4">🔧</div>
-              <h2 className="text-lg font-bold text-foreground mb-2">Workflow Builder</h2>
-              <p className="text-sm text-muted-foreground mb-6">
-                Create visual automation workflows with drag-and-drop nodes, connections, and configurations.
-              </p>
-              <button
-                onClick={() => setShowBuilder(true)}
-                className="px-6 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:bg-primary/90 transition flex items-center gap-2 mx-auto"
-              >
-                <Plus className="w-4 h-4" />
-                Create Workflow
-              </button>
-            </div>
-          </div>
-        );
-
-      case 'runbook':
-        return showRunbook ? (
-          <RunbookDesigner
-            onSave={(runbook) => {
-              setRunbooks(prev => [...prev, {
-                id: runbook.id,
-                name: runbook.name,
-                description: runbook.description,
-                createdAt: runbook.createdAt
-              }]);
-              setShowRunbook(false);
-              alert('✓ Runbook saved successfully!');
-            }}
-            onCancel={() => setShowRunbook(false)}
-          />
-        ) : (
-          <div className="flex-1 overflow-y-auto p-4 bg-background dark:bg-background">
-            <div className="max-w-5xl mx-auto">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-bold text-foreground">Runbook Designer</h2>
-                <button
-                  onClick={() => setShowRunbook(true)}
-                  className="px-6 py-2.5 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-700 transition flex items-center gap-2"
+        return (
+          <div className="flex-1 flex flex-col bg-background overflow-hidden">
+            <div className="border-b border-border bg-card px-4 py-3 flex flex-wrap items-center gap-3 justify-between">
+              <div className="flex items-center gap-2">
+                <input
+                  value={automationDraft.name}
+                  onChange={(e) => setAutomationDraft((prev) => ({ ...prev, name: e.target.value }))}
+                  className="px-3 py-1.5 rounded border border-border bg-background text-sm font-semibold"
+                />
+                <select
+                  value={automationDraft.status}
+                  onChange={(e) => setAutomationDraft((prev) => ({ ...prev, status: e.target.value as WorkflowStatus }))}
+                  className="px-2 py-1.5 rounded border border-border bg-background text-xs"
                 >
-                  <Plus className="w-4 h-4" />
-                  New Runbook
+                  <option value="draft">Draft</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+                <input
+                  value={automationDraft.owner}
+                  onChange={(e) => setAutomationDraft((prev) => ({ ...prev, owner: e.target.value }))}
+                  className="px-3 py-1.5 rounded border border-border bg-background text-xs"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    if (!automationDraft.graphDefinition) {
+                      alert('Please save the design graph first from the Design tab.');
+                      return;
+                    }
+                    const now = new Date().toISOString();
+                    const graph = automationDraft.graphDefinition;
+                    const triggerNode = graph.nodes.find((n: any) => n.handles?.every((h: any) => h.type !== 'input'));
+                    setSavedWorkflows((prev) => {
+                      const record: SavedWorkflowRecord = {
+                        id: automationDraft.id,
+                        name: automationDraft.name,
+                        description: automationDraft.runbook.overview || 'Unified automation workflow',
+                        status: automationDraft.status,
+                        createdAt: prev.find((x) => x.id === automationDraft.id)?.createdAt || now,
+                        updatedAt: now,
+                        triggerType: triggerNode?.label || 'Manual Trigger',
+                        nodeCount: graph.nodes.length,
+                        schedule: prev.find((x) => x.id === automationDraft.id)?.schedule || defaultSchedule,
+                        owner: automationDraft.owner,
+                        definition: { ...graph, runbook: automationDraft.runbook, version: automationDraft.version }
+                      };
+                      const existing = prev.some((x) => x.id === record.id);
+                      return existing ? prev.map((x) => (x.id === record.id ? record : x)) : [record, ...prev];
+                    });
+                  }}
+                  className="px-3 py-2 rounded-lg border border-border text-xs font-semibold hover:bg-muted"
+                >
+                  Save Automation
+                </button>
+                <button
+                  onClick={() => setAutomationDraft((prev) => ({ ...prev, status: 'active', version: prev.version + 1 }))}
+                  className="px-3 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90"
+                >
+                  Publish
                 </button>
               </div>
+            </div>
+            <div className="border-b border-border bg-card px-4 py-2 flex items-center gap-2">
+              <button onClick={() => setAutomationTab('design')} className={`px-3 py-1.5 text-xs rounded ${automationTab === 'design' ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground'}`}>Design</button>
+              <button onClick={() => setAutomationTab('runbook')} className={`px-3 py-1.5 text-xs rounded ${automationTab === 'runbook' ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground'}`}>Runbook</button>
+              <span className="text-xs text-muted-foreground ml-auto">Version {automationDraft.version}</span>
+            </div>
 
-              {runbooks.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center max-w-md mx-auto">
-                  <Settings className="w-16 h-16 text-purple-400 dark:text-purple-600 mx-auto mb-4 opacity-50" />
-                  <p className="text-sm text-muted-foreground">
-                    Build complex workflows with parallel branches, conditionals, and retries
-                  </p>
-                </div>
-              ) : (
-                <div className="grid gap-3">
-                  {runbooks.map(runbook => (
-                    <div
-                      key={runbook.id}
-                      className="bg-card rounded-lg border border-border p-4 hover:border-gray-300 dark:hover:border-gray-600 transition"
-                    >
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <h3 className="text-sm font-bold text-foreground">{runbook.name}</h3>
-                          <p className="text-xs text-muted-foreground mt-1">{runbook.description}</p>
-                        </div>
-                        <span className="text-xs text-muted-foreground whitespace-nowrap ml-4">
-                          {new Date(runbook.createdAt).toLocaleDateString()}
-                        </span>
-                      </div>
+            {automationTab === 'design' ? (
+              <WorkflowBuilder
+                initialWorkflow={automationDraft.graphDefinition || workflowBeingEdited?.definition}
+                onSave={(workflow) => setAutomationDraft((prev) => ({ ...prev, graphDefinition: workflow }))}
+                onCancel={() => {}}
+              />
+            ) : (
+              <div className="flex-1 overflow-y-auto p-4">
+                <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {[
+                    ['overview', 'Automation Overview'],
+                    ['purpose', 'Purpose'],
+                    ['prerequisites', 'Prerequisites'],
+                    ['executionNotes', 'Execution Notes'],
+                    ['rollbackPlan', 'Rollback Plan'],
+                    ['escalationPath', 'Escalation Path'],
+                    ['safetyNotes', 'Safety Notes'],
+                    ['approvals', 'Approvals / Operational Guidance'],
+                  ].map(([key, label]) => (
+                    <div key={key} className="bg-card border border-border rounded-lg p-3">
+                      <label className="text-xs font-bold text-foreground block mb-1">{label}</label>
+                      <textarea
+                        value={(automationDraft.runbook as any)[key]}
+                        onChange={(e) => setAutomationDraft((prev) => ({ ...prev, runbook: { ...prev.runbook, [key]: e.target.value } }))}
+                        rows={4}
+                        className="w-full px-2 py-1.5 text-xs rounded border border-border bg-background"
+                      />
                     </div>
                   ))}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         );
 
@@ -459,8 +451,8 @@ export const AutomationManagement: React.FC = () => {
                 <button
                   onClick={() => {
                     setEditingWorkflowId(null);
-                    setShowBuilder(true);
                     setActiveWorkspace('builder');
+                    setAutomationTab('design');
                   }}
                   className="px-3 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:bg-primary/90 transition flex items-center gap-2"
                 >
@@ -528,8 +520,17 @@ export const AutomationManagement: React.FC = () => {
                         <button
                           onClick={() => {
                             setEditingWorkflowId(workflow.id);
-                            setShowBuilder(true);
                             setActiveWorkspace('builder');
+                            setAutomationTab('design');
+                            setAutomationDraft((prev) => ({
+                              ...prev,
+                              id: workflow.id,
+                              name: workflow.name,
+                              status: workflow.status,
+                              owner: workflow.owner,
+                              graphDefinition: workflow.definition,
+                              runbook: workflow.definition?.runbook || prev.runbook
+                            }));
                           }}
                           className="p-1.5 rounded border border-border hover:bg-muted"
                           title="Open/Edit"
@@ -878,16 +879,19 @@ export const AutomationManagement: React.FC = () => {
         );
 
       case 'orchestrator':
-        return <ExecutionOrchestrator />;
+        return (
+          <ExecutionOrchestrator
+            onEditAutomation={(automationId) => {
+              setActiveDomain('design');
+              setActiveWorkspace('builder');
+              setAutomationTab('design');
+              setAutomationDraft((prev) => ({ ...prev, id: automationId }));
+            }}
+          />
+        );
 
       case 'governance':
         return <ModelGovernance />;
-
-      case 'learning_engine':
-        return <LearningEngine onRecommendationApply={(id, rec) => console.log(id, rec)} />;
-
-      case 'trust_scoring':
-        return <TrustScoring />;
 
       case 'heatmap':
         return <AutonomyHeatmap />;
@@ -900,7 +904,7 @@ export const AutomationManagement: React.FC = () => {
   return (
     <div className="automation-theme flex flex-col h-screen bg-background">
       {/* Primary Section Navigation */}
-      <div className="bg-card border-b border-border rounded-lg p-4 mx-2 mt-2">
+      <div className="bg-card border-b border-border rounded-lg p-1 mx-2 mt-2">
         <div className="grid grid-cols-1 gap-2 auto-rows-max md:grid-cols-3">
           {DOMAINS.map(domain => {
             const Icon = domain.icon;
@@ -911,28 +915,31 @@ export const AutomationManagement: React.FC = () => {
                   setActiveDomain(domain.id as SuperDomain);
                   setActiveWorkspace(WORKSPACES.find(w => w.domain === domain.id)?.id || 'command_center');
                 }}
-                className={`flex flex-col items-center justify-center gap-2 p-4 rounded-lg border-2 transition min-h-[180px] ${
+                className={`h-10 px-3 py-1 flex items-center justify-center gap-2 rounded-lg border transition text-[13px] ${
                   activeDomain === domain.id
                     ? 'border-blue-600 bg-blue-50 dark:bg-blue-950'
                     : 'border-border hover:border-primary/40 bg-card'
                 }`}
                 title={domain.label}
               >
-                <Icon className={`w-6 h-6 flex-shrink-0 ${activeDomain === domain.id ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
-                <span className="text-xs font-semibold text-center text-foreground line-clamp-2 leading-tight">{domain.label}</span>
+                <Icon className={`w-4 h-4 flex-shrink-0 ${activeDomain === domain.id ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
+                <span className="text-[13px] font-semibold text-center text-foreground leading-tight">{domain.label}</span>
               </button>
             );
           })}
         </div>
       </div>
 
-      <div className="bg-card/40 border-b border-border rounded-lg p-3 mx-2 mt-2">
-        <div className="grid grid-cols-1 gap-2 md:grid-cols-3 xl:grid-cols-5">
+      <div className="bg-card/40 border-b border-border rounded-lg p-1.5 mx-2 mt-2">
+        <div
+          className="grid w-full items-stretch"
+          style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '6px' }}
+        >
           {domainWorkspaces.map((workspace) => (
             <button
               key={workspace.id}
               onClick={() => setActiveWorkspace(workspace.id)}
-              className={`flex items-center justify-center rounded-lg border px-3 py-2 text-xs font-semibold transition ${
+              className={`w-full h-9 flex items-center justify-center text-center rounded-lg border px-2.5 py-1 text-[12px] font-semibold transition ${
                 activeWorkspace === workspace.id
                   ? 'border-primary/40 bg-primary/10 text-primary'
                   : 'border-border bg-card hover:border-primary/30 text-muted-foreground hover:text-foreground'

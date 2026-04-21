@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Activity, TrendingUp, AlertCircle, CheckCircle, Calendar, BarChart3 } from 'lucide-react';
+import { Activity, TrendingUp, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface RegionData {
@@ -347,16 +347,6 @@ export const AutonomyHeatmap: React.FC = () => {
           </div>
         </div>
       )}
-
-      {/* Info Box */}
-      <div className="bg-primary/10 border border-primary/30 rounded-lg p-3 mt-auto">
-        <p className="text-xs font-semibold text-foreground mb-1">📊 How to Use This View</p>
-        <p className="text-xs text-muted-foreground">
-          <strong>Geographic View:</strong> See success rates and activity by region, identify problem areas.
-          <br />
-          <strong>Timeline View:</strong> Identify peak activity times and performance patterns throughout the day.
-        </p>
-      </div>
     </div>
   );
 };
