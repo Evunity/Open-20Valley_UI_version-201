@@ -7,22 +7,58 @@ export interface ReportsSection {
 
 export const REPORTS_SECTIONS: ReportsSection[] = [
   {
-    id: "create-report",
-    label: "Create Report",
-    path: "/reports-module/create-report",
-    description: "Build a report with scope, filters, columns, schedule, and delivery.",
+    id: "report-viz-builder",
+    label: "Report & Viz Builder",
+    path: "/reports-module/report-viz-builder",
+    description: "Compose reports, charts, and narrative blocks.",
   },
   {
-    id: "reports-list",
-    label: "Reports List",
-    path: "/reports-module/reports-list",
-    description: "Manage saved reports and operational actions.",
+    id: "report-library",
+    label: "Report Library",
+    path: "/reports-module/report-library",
+    description: "Catalog of published and draft reporting assets.",
   },
   {
-    id: "run-history",
-    label: "Run History",
-    path: "/reports-module/run-history",
-    description: "Track execution history, outputs, and failures.",
+    id: "report-creation",
+    label: "Report Creation",
+    path: "/reports-module/report-creation",
+    description: "Guided report setup and template-driven assembly.",
+  },
+  {
+    id: "insights-impact",
+    label: "Insights & Impact",
+    path: "/reports-module/insights-impact",
+    description: "Narratives and downstream decision influence.",
+  },
+  {
+    id: "reliability-consumption",
+    label: "Reliability & Consumption",
+    path: "/reports-module/reliability-consumption",
+    description: "Freshness, SLA health, and readership telemetry.",
+  },
+  {
+    id: "regulatory-intelligence-hub",
+    label: "Regulatory Intelligence Hub",
+    path: "/reports-module/regulatory-intelligence-hub",
+    description: "Compliance-aligned reporting and audit traces.",
+  },
+  {
+    id: "dataset-manager",
+    label: "Dataset Manager",
+    path: "/reports-module/dataset-manager",
+    description: "Data source governance and lineage controls.",
+  },
+  {
+    id: "report-history",
+    label: "Report History",
+    path: "/reports-module/report-history",
+    description: "Execution logs, retry history, and run outcomes.",
+  },
+  {
+    id: "scheduling-distribution",
+    label: "Scheduling & Distribution",
+    path: "/reports-module/scheduling-distribution",
+    description: "Publish cadence, subscriptions, and channel routing.",
   },
 ];
 
