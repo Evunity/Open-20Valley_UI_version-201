@@ -7,9 +7,6 @@ import { PreExecutionSimulation } from '../components/PreExecutionSimulation';
 import { ExecutionOrchestrator } from '../components/ExecutionOrchestrator';
 import { AIDecisionHub } from '../components/AIDecisionHub';
 import { ModelGovernance } from '../components/ModelGovernance';
-import { ClosedLoopValidation } from '../components/ClosedLoopValidation';
-import { LearningEngine } from '../components/LearningEngine';
-import { TrustScoring } from '../components/TrustScoring';
 import { HumanInLoopDialog } from '../components/HumanInLoopDialog';
 import { AutonomyHeatmap } from '../components/AutonomyHeatmap';
 import { generateMockPolicies } from '../utils/automationData';
@@ -19,9 +16,6 @@ type SuperDomain = 'awareness' | 'design' | 'execution';
 type WorkspaceType =
   | 'command_center'
   | 'ai_hub'
-  | 'impact_engine'
-  | 'learning_engine'
-  | 'trust_scoring'
   | 'builder'
   | 'workflow_library'
   | 'ai_models'
@@ -40,9 +34,6 @@ const WORKSPACES: WorkspaceTab[] = [
   // Awareness Layer
   { id: 'command_center', label: 'Command Center', domain: 'awareness' },
   { id: 'ai_hub', label: 'AI Decision Hub', domain: 'awareness' },
-  { id: 'impact_engine', label: 'Impact & Learning', domain: 'awareness' },
-  { id: 'learning_engine', label: 'Learning Engine', domain: 'awareness' },
-  { id: 'trust_scoring', label: 'Trust Score', domain: 'awareness' },
   // Design Layer
   { id: 'builder', label: 'Automation Workflow', domain: 'design' },
   { id: 'workflow_library', label: 'Saved Workflows', domain: 'design' },
@@ -337,13 +328,10 @@ export const AutomationManagement: React.FC = () => {
   const renderWorkspaceContent = () => {
     switch (activeWorkspace) {
       case 'command_center':
-        return <AutomationCommandCenter onActivitySelect={(a) => console.log(a)} />;
+        return <AutomationCommandCenter />;
 
       case 'ai_hub':
         return <AIDecisionHub onDecisionApprove={(d) => console.log(d)} onDecisionReject={(d) => console.log(d)} />;
-
-      case 'impact_engine':
-        return <ClosedLoopValidation />;
 
       case 'builder':
         return (
@@ -895,12 +883,6 @@ export const AutomationManagement: React.FC = () => {
 
       case 'governance':
         return <ModelGovernance />;
-
-      case 'learning_engine':
-        return <LearningEngine onRecommendationApply={(id, rec) => console.log(id, rec)} />;
-
-      case 'trust_scoring':
-        return <TrustScoring />;
 
       case 'heatmap':
         return <AutonomyHeatmap />;
