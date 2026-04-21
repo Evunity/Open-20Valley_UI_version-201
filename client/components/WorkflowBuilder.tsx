@@ -438,6 +438,14 @@ export const WorkflowBuilder: React.FC<{
     setPanStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
   };
 
+  const handleCanvasMouseDown = (e: React.MouseEvent) => {
+    if (e.button !== 0) return;
+    if (e.target !== canvasRef.current) return;
+    setSelectedNodeId('');
+    setIsPanning(true);
+    setPanStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
+  };
+
   const handleCanvasMouseUp = (e: React.MouseEvent) => {
     if (isPanning) {
       setIsPanning(false);
