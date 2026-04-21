@@ -147,6 +147,7 @@ export const WorkflowBuilder: React.FC<{
   const canvasWorkspaceRef = useRef<HTMLDivElement>(null);
   const inputHandleRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const outputHandleRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const dragOffsetRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const [workflow, setWorkflow] = useState<Workflow>(() => initialWorkflow || ({
     id: `workflow_${Date.now()}`,
     name: 'New Workflow',
@@ -356,6 +357,18 @@ export const WorkflowBuilder: React.FC<{
     if (e.button !== 0) return;
     e.stopPropagation();
     setIsPanning(false);
+    setSelectedNodeId(nodeId);
+    setSelectedEdgeId(null);
+    setShowRightPanel(true);
+    const node = workflow.nodes.find((n) => n.id === nodeId);
+    if (node && canvasRef.current) {
+      const rect = canvasRef.current.getBoundingClientRect();
+      const pointerX = (e.clientX - rect.left - pan.x) / zoom;
+      const pointerY = (e.clientY - rect.top - pan.y) / zoom;
+      dragOffsetRef.current = { x: pointerX - node.x, y: pointerY - node.y };
+    } else {
+      dragOffsetRef.current = { x: 0, y: 0 };
+    }
     setDraggingNode(nodeId);
   };
 
@@ -371,11 +384,12 @@ export const WorkflowBuilder: React.FC<{
       const rect = canvasRef.current.getBoundingClientRect();
       const x = (e.clientX - rect.left - pan.x) / zoom;
       const y = (e.clientY - rect.top - pan.y) / zoom;
+      const { x: offsetX, y: offsetY } = dragOffsetRef.current;
 
       setWorkflow(prev => ({
         ...prev,
         nodes: prev.nodes.map(n =>
-          n.id === draggingNode ? { ...n, x: x - 80, y: y - 32 } : n
+          n.id === draggingNode ? { ...n, x: x - offsetX, y: y - offsetY } : n
         ),
         updatedAt: new Date().toLocaleString()
       }));
@@ -392,8 +406,11 @@ export const WorkflowBuilder: React.FC<{
   };
 
   const handleCanvasMouseDown = (e: React.MouseEvent) => {
-    if (e.button !== 0) return;
-    if (e.target !== canvasRef.current) return;
+    const isLeftClick = e.button === 0;
+    const isMiddleClick = e.button === 1;
+    const shouldPan = isMiddleClick || (isLeftClick && !(e.target as HTMLElement).closest('[data-node-interactive="true"]'));
+    if (!shouldPan) return;
+    e.preventDefault();
     setSelectedNodeId('');
     setIsPanning(true);
     setPanStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
@@ -408,7 +425,27 @@ export const WorkflowBuilder: React.FC<{
       setSelectedEdgeId(null);
     }
     setDraggingNode(null);
+    dragOffsetRef.current = { x: 0, y: 0 };
     setDraggingEdge(null);
+  };
+
+  const handleCanvasWheel = (e: React.WheelEvent) => {
+    if (!canvasRef.current) return;
+    e.preventDefault();
+    const rect = canvasRef.current.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    const zoomStep = e.deltaY < 0 ? 1.1 : 0.9;
+    const nextZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoom * zoomStep));
+    if (nextZoom === zoom) return;
+
+    const worldX = (mouseX - pan.x) / zoom;
+    const worldY = (mouseY - pan.y) / zoom;
+    setZoom(nextZoom);
+    setPan({
+      x: mouseX - worldX * nextZoom,
+      y: mouseY - worldY * nextZoom
+    });
   };
 
   const handleOutputHandleMouseDown = (nodeId: string, handleId: string, e: React.MouseEvent) => {
@@ -437,6 +474,7 @@ export const WorkflowBuilder: React.FC<{
   const handleNodeClick = (nodeId: string) => {
     setSelectedNodeId(nodeId);
     setSelectedEdgeId(null);
+    setShowRightPanel(true);
   };
 
   const handleDeleteEdge = (edgeId: string) => {
@@ -796,6 +834,7 @@ export const WorkflowBuilder: React.FC<{
             onMouseMove={handleCanvasMouseMove}
             onMouseUp={handleCanvasMouseUp}
             onMouseLeave={handleCanvasMouseUp}
+            onWheel={handleCanvasWheel}
             style={{
               backgroundImage: `
                 linear-gradient(rgba(128, 128, 128, 0.05) 1px, transparent 1px),
@@ -981,6 +1020,7 @@ export const WorkflowBuilder: React.FC<{
                             inputHandleRefs.current[`${node.id}:${handle.id}`] = el;
                           }}
                           className="absolute rounded-full bg-blue-500 hover:bg-blue-400 border-3 border-white hover:border-blue-200 shadow-lg transition hover:scale-150 cursor-crosshair"
+                          data-node-interactive="true"
                           style={{
                             width: '12px',
                             height: '12px',
@@ -997,6 +1037,7 @@ export const WorkflowBuilder: React.FC<{
                     <div
                       onClick={() => handleNodeClick(node.id)}
                       onMouseDown={(e) => handleNodeMouseDown(e, node.id)}
+                      data-node-interactive="true"
                       className={cn(
                         'w-full h-full rounded-lg border-2 flex flex-col items-center justify-center cursor-move transition relative',
                         `${typeConfig.bgLight} border-2`,
@@ -1022,6 +1063,7 @@ export const WorkflowBuilder: React.FC<{
                             outputHandleRefs.current[`${node.id}:${handle.id}`] = el;
                           }}
                           className="absolute rounded-full bg-green-500 hover:bg-green-400 border-3 border-white hover:border-green-200 shadow-lg transition hover:scale-150 cursor-crosshair"
+                          data-node-interactive="true"
                           style={{
                             width: '12px',
                             height: '12px',

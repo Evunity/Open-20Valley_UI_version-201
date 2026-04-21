@@ -59,6 +59,7 @@ function parseStoredSettings(raw: string | null): PlatformSettings {
     return {
       ...DEFAULT_SETTINGS,
       ...parsed,
+      language: "en",
       themeColor: normalizedThemeColor,
       updatedAt: parsed.updatedAt ?? DEFAULT_SETTINGS.updatedAt,
     };
@@ -110,12 +111,12 @@ export function PlatformSettingsProvider({ children }: { children: React.ReactNo
   const value = useMemo<PlatformSettingsContextValue>(() => ({
     settings,
     saveSettings: (next) => {
-      switchAppLanguage(next.language);
-      const merged: PlatformSettings = { ...next, updatedAt: new Date().toISOString() };
+      switchAppLanguage("en");
+      const merged: PlatformSettings = { ...next, language: "en", updatedAt: new Date().toISOString() };
       setSettings(merged);
       return merged;
     },
-    t: (key) => DICTIONARY[settings.language]?.[key] ?? DICTIONARY.en[key] ?? key,
+    t: (key) => DICTIONARY.en[key] ?? key,
   }), [settings]);
 
   return <PlatformSettingsContext.Provider value={value}>{children}</PlatformSettingsContext.Provider>;

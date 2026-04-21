@@ -35,17 +35,14 @@ export default function Settings() {
   const [systemName, setSystemName] = useState('OSS Platform');
   const [timezone, setTimezone] = useState('UTC');
   const [dateFormat, setDateFormat] = useState('YYYY-MM-DD HH:mm:ss');
-  const [language, setLanguage] = useState('English');
 
   const handleSave = () => {
     localStorage.setItem('legacySystemConfig', JSON.stringify({
       systemName,
       timezone,
       dateFormat,
-      language,
       maintenanceMode
     }));
-    document.documentElement.lang = language.toLowerCase();
     document.documentElement.setAttribute('data-timezone', timezone);
     setSavedStatus('Settings saved successfully');
     setTimeout(() => setSavedStatus(null), 3000);
@@ -60,7 +57,6 @@ export default function Settings() {
       if (parsedConfig.systemName) setSystemName(parsedConfig.systemName);
       if (parsedConfig.timezone) setTimezone(parsedConfig.timezone);
       if (parsedConfig.dateFormat) setDateFormat(parsedConfig.dateFormat);
-      if (parsedConfig.language) setLanguage(parsedConfig.language);
       if (typeof parsedConfig.maintenanceMode === 'boolean') {
         setMaintenanceMode(parsedConfig.maintenanceMode);
       }
@@ -161,19 +157,6 @@ export default function Settings() {
                       <option>YYYY-MM-DD HH:mm:ss</option>
                       <option>DD/MM/YYYY HH:mm:ss</option>
                       <option>MM/DD/YYYY HH:mm:ss</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Language</label>
-                    <select
-                      value={language}
-                      onChange={(e) => setLanguage(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-foreground"
-                    >
-                      <option>English</option>
-                      <option>Spanish</option>
-                      <option>French</option>
-                      <option>German</option>
                     </select>
                   </div>
                 </div>
