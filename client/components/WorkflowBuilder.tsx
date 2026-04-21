@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useLayoutEffect, useEffect } from 'react';
 import {
-  Plus, Trash2, Save, ZoomIn, ZoomOut, Code, PanelLeftOpen, PanelLeftClose, PanelRightClose, PanelRightOpen, Maximize2, Minimize2, ScanLine
+  Plus, Trash2, Save, ZoomIn, ZoomOut, Code, PanelLeftOpen, PanelLeftClose, PanelRightClose, PanelRightOpen, Maximize2, Minimize2, ScanLine, Map
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -101,6 +101,7 @@ export const WorkflowBuilder: React.FC<{
 }) => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const workspaceRef = useRef<HTMLDivElement>(null);
+  const canvasWorkspaceRef = useRef<HTMLDivElement>(null);
   const inputHandleRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const outputHandleRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const [workflow, setWorkflow] = useState<Workflow>(() => initialWorkflow || ({
@@ -139,6 +140,7 @@ export const WorkflowBuilder: React.FC<{
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [resizePanel, setResizePanel] = useState<'left' | 'right' | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [isMiniMapDragging, setIsMiniMapDragging] = useState(false);
   const [edgeGeometry, setEdgeGeometry] = useState<Record<string, { x1: number; y1: number; x2: number; y2: number }>>({});
 
   useEffect(() => {
@@ -159,7 +161,7 @@ export const WorkflowBuilder: React.FC<{
 
   useEffect(() => {
     const handleFullscreenChange = () => {
-      setIsFullscreen(document.fullscreenElement === workspaceRef.current);
+      setIsFullscreen(document.fullscreenElement === canvasWorkspaceRef.current);
     };
 
     document.addEventListener('fullscreenchange', handleFullscreenChange);
@@ -192,7 +194,22 @@ export const WorkflowBuilder: React.FC<{
     };
   }, [resizePanel]);
 
+
   const selectedNode = workflow.nodes.find(n => n.id === selectedNodeId);
+  const MIN_ZOOM = 0.2;
+  const MAX_ZOOM = 3;
+
+  const getNodeBounds = useCallback(() => {
+    if (workflow.nodes.length === 0) {
+      return { minX: -500, minY: -500, maxX: 500, maxY: 500 };
+    }
+
+    const minX = Math.min(...workflow.nodes.map((n) => n.x)) - 200;
+    const maxX = Math.max(...workflow.nodes.map((n) => n.x + 160)) + 200;
+    const minY = Math.min(...workflow.nodes.map((n) => n.y)) - 200;
+    const maxY = Math.max(...workflow.nodes.map((n) => n.y + 64)) + 200;
+    return { minX, minY, maxX, maxY };
+  }, [workflow.nodes]);
 
   const getSmoothEdgePath = (x1: number, y1: number, x2: number, y2: number) => {
     const delta = Math.abs(x2 - x1);
@@ -310,7 +327,7 @@ export const WorkflowBuilder: React.FC<{
       setWorkflow(prev => ({
         ...prev,
         nodes: prev.nodes.map(n =>
-          n.id === draggingNode ? { ...n, x: Math.max(0, x - 80), y: Math.max(0, y - 32) } : n
+          n.id === draggingNode ? { ...n, x: x - 80, y: y - 32 } : n
         ),
         updatedAt: new Date().toLocaleString()
       }));
@@ -433,12 +450,12 @@ export const WorkflowBuilder: React.FC<{
   }, [recalculateEdgeGeometry]);
 
   const handleToggleFullscreen = async () => {
-    if (!workspaceRef.current) return;
-    if (document.fullscreenElement === workspaceRef.current) {
+    if (!canvasWorkspaceRef.current) return;
+    if (document.fullscreenElement === canvasWorkspaceRef.current) {
       await document.exitFullscreen();
       return;
     }
-    await workspaceRef.current.requestFullscreen();
+    await canvasWorkspaceRef.current.requestFullscreen();
   };
 
   const handleResetView = () => {
@@ -446,14 +463,11 @@ export const WorkflowBuilder: React.FC<{
     setPan({ x: 0, y: 0 });
   };
 
-  const handleFitToScreen = () => {
+  const handleFitToScreen = useCallback(() => {
     if (!canvasRef.current || workflow.nodes.length === 0) return;
 
     const padding = 80;
-    const minX = Math.min(...workflow.nodes.map((n) => n.x));
-    const maxX = Math.max(...workflow.nodes.map((n) => n.x + 160));
-    const minY = Math.min(...workflow.nodes.map((n) => n.y));
-    const maxY = Math.max(...workflow.nodes.map((n) => n.y + 64));
+    const { minX, minY, maxX, maxY } = getNodeBounds();
 
     const boundsWidth = maxX - minX;
     const boundsHeight = maxY - minY;
@@ -461,14 +475,54 @@ export const WorkflowBuilder: React.FC<{
     const rect = canvasRef.current.getBoundingClientRect();
     const scaleX = (rect.width - padding * 2) / Math.max(boundsWidth, 1);
     const scaleY = (rect.height - padding * 2) / Math.max(boundsHeight, 1);
-    const nextZoom = Math.max(0.5, Math.min(2, Math.min(scaleX, scaleY)));
+    const nextZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, Math.min(scaleX, scaleY)));
 
     setZoom(nextZoom);
     setPan({
       x: rect.width / 2 - (minX + boundsWidth / 2) * nextZoom,
       y: rect.height / 2 - (minY + boundsHeight / 2) * nextZoom
     });
-  };
+  }, [getNodeBounds, workflow.nodes.length]);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      const tag = target?.tagName?.toLowerCase();
+      const isEditing = tag === 'input' || tag === 'textarea' || target?.isContentEditable;
+      if (isEditing) return;
+
+      if ((event.key === '+' || event.key === '=') && !event.metaKey && !event.ctrlKey) {
+        event.preventDefault();
+        setZoom((z) => Math.min(z + 0.1, MAX_ZOOM));
+      } else if (event.key === '-' && !event.metaKey && !event.ctrlKey) {
+        event.preventDefault();
+        setZoom((z) => Math.max(z - 0.1, MIN_ZOOM));
+      } else if (event.key === '0') {
+        event.preventDefault();
+        setZoom(1);
+        setPan({ x: 0, y: 0 });
+      } else if (event.key.toLowerCase() === 'f') {
+        event.preventDefault();
+        handleFitToScreen();
+      } else if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        setPan((prev) => ({ ...prev, y: prev.y + 40 }));
+      } else if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        setPan((prev) => ({ ...prev, y: prev.y - 40 }));
+      } else if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        setPan((prev) => ({ ...prev, x: prev.x + 40 }));
+      } else if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        setPan((prev) => ({ ...prev, x: prev.x - 40 }));
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [handleFitToScreen]);
+
 
   const isValidWorkflow = (() => {
     if (!workflow.name.trim()) return false;
@@ -499,6 +553,39 @@ export const WorkflowBuilder: React.FC<{
     return true;
   })();
 
+  const miniMapWidth = 220;
+  const miniMapHeight = 140;
+  const { minX, minY, maxX, maxY } = getNodeBounds();
+  const mapWorldWidth = Math.max(1, maxX - minX);
+  const mapWorldHeight = Math.max(1, maxY - minY);
+  const miniMapScale = Math.min(miniMapWidth / mapWorldWidth, miniMapHeight / mapWorldHeight);
+  const miniMapContentWidth = mapWorldWidth * miniMapScale;
+  const miniMapContentHeight = mapWorldHeight * miniMapScale;
+  const miniMapOffsetX = (miniMapWidth - miniMapContentWidth) / 2;
+  const miniMapOffsetY = (miniMapHeight - miniMapContentHeight) / 2;
+  const canvasRect = canvasRef.current?.getBoundingClientRect();
+  const viewportWorldX = (-pan.x) / zoom;
+  const viewportWorldY = (-pan.y) / zoom;
+  const viewportWorldWidth = (canvasRect?.width || 1) / zoom;
+  const viewportWorldHeight = (canvasRect?.height || 1) / zoom;
+
+  const setPanFromMiniMapPoint = (clientX: number, clientY: number) => {
+    if (!canvasRef.current) return;
+    const miniMapRect = canvasRef.current.querySelector('[data-minimap="true"]')?.getBoundingClientRect();
+    if (!miniMapRect) return;
+
+    const localX = Math.max(0, Math.min(miniMapWidth, clientX - miniMapRect.left));
+    const localY = Math.max(0, Math.min(miniMapHeight, clientY - miniMapRect.top));
+    const worldX = (localX - miniMapOffsetX) / miniMapScale + minX;
+    const worldY = (localY - miniMapOffsetY) / miniMapScale + minY;
+
+    const canvasViewRect = canvasRef.current.getBoundingClientRect();
+    setPan({
+      x: canvasViewRect.width / 2 - worldX * zoom,
+      y: canvasViewRect.height / 2 - worldY * zoom
+    });
+  };
+
   return (
     <div ref={workspaceRef} className="w-full h-full flex flex-col bg-background overflow-hidden">
       {/* Header */}
@@ -518,14 +605,14 @@ export const WorkflowBuilder: React.FC<{
 
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setZoom(z => Math.min(z + 0.1, 2))}
+            onClick={() => setZoom(z => Math.min(z + 0.1, MAX_ZOOM))}
             className="p-2 hover:bg-muted rounded-lg transition"
             title="Zoom in"
           >
             <ZoomIn className="w-4 h-4 text-muted-foreground" />
           </button>
           <button
-            onClick={() => setZoom(z => Math.max(z - 0.1, 0.5))}
+            onClick={() => setZoom(z => Math.max(z - 0.1, MIN_ZOOM))}
             className="p-2 hover:bg-muted rounded-lg transition"
             title="Zoom out"
           >
@@ -564,7 +651,7 @@ export const WorkflowBuilder: React.FC<{
       </div>
 
       {/* Main Canvas Area */}
-      <div className="flex flex-1 overflow-hidden p-4 gap-2">
+      <div ref={canvasWorkspaceRef} className={cn("flex flex-1 overflow-hidden p-2 gap-2", isFullscreen && "bg-background")}>
         {/* Left Sidebar - Node Palette */}
         {showNodePalette ? (
           <>
@@ -628,7 +715,7 @@ export const WorkflowBuilder: React.FC<{
               </button>
             )}
             <div className="text-xs text-muted-foreground px-2 py-1.5">
-              Drag node to move • Drag canvas background to pan • Drag from output handle to input handle to connect
+              Drag node to move • Drag canvas background to pan • +/- zoom • 0 reset • F fit • Arrow keys pan
             </div>
           </div>
 
@@ -860,6 +947,70 @@ export const WorkflowBuilder: React.FC<{
                 );
               })}
             </div>
+
+            <div
+              data-minimap="true"
+              className="absolute bottom-4 right-4 w-[220px] h-[140px] bg-card/95 border border-border rounded-md shadow-lg overflow-hidden"
+              onMouseDown={(event) => {
+                setIsMiniMapDragging(true);
+                setPanFromMiniMapPoint(event.clientX, event.clientY);
+              }}
+              onMouseMove={(event) => {
+                if (!isMiniMapDragging) return;
+                setPanFromMiniMapPoint(event.clientX, event.clientY);
+              }}
+              onMouseUp={() => setIsMiniMapDragging(false)}
+              onMouseLeave={() => setIsMiniMapDragging(false)}
+              title="Mini map navigator"
+            >
+              <div className="flex items-center gap-1 px-2 py-1 border-b border-border text-[10px] text-muted-foreground">
+                <Map className="w-3 h-3" /> Navigator
+              </div>
+              <svg width={miniMapWidth} height={miniMapHeight - 24} className="block">
+                {workflow.edges.map((edge) => {
+                  const sourceNode = workflow.nodes.find((n) => n.id === edge.sourceNodeId);
+                  const targetNode = workflow.nodes.find((n) => n.id === edge.targetNodeId);
+                  if (!sourceNode || !targetNode) return null;
+
+                  const x1 = miniMapOffsetX + (sourceNode.x + 80 - minX) * miniMapScale;
+                  const y1 = miniMapOffsetY + (sourceNode.y + 32 - minY) * miniMapScale - 24;
+                  const x2 = miniMapOffsetX + (targetNode.x + 80 - minX) * miniMapScale;
+                  const y2 = miniMapOffsetY + (targetNode.y + 32 - minY) * miniMapScale - 24;
+
+                  return <line key={edge.id} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#64748B" strokeWidth="1" />;
+                })}
+
+                {workflow.nodes.map((node) => {
+                  const x = miniMapOffsetX + (node.x - minX) * miniMapScale;
+                  const y = miniMapOffsetY + (node.y - minY) * miniMapScale - 24;
+                  const width = Math.max(4, 160 * miniMapScale);
+                  const height = Math.max(3, 64 * miniMapScale);
+
+                  return (
+                    <rect
+                      key={node.id}
+                      x={x}
+                      y={y}
+                      width={width}
+                      height={height}
+                      fill={selectedNodeId === node.id ? '#2563EB' : '#94A3B8'}
+                      opacity={0.85}
+                      rx="2"
+                    />
+                  );
+                })}
+
+                <rect
+                  x={miniMapOffsetX + (viewportWorldX - minX) * miniMapScale}
+                  y={miniMapOffsetY + (viewportWorldY - minY) * miniMapScale - 24}
+                  width={Math.max(10, viewportWorldWidth * miniMapScale)}
+                  height={Math.max(10, viewportWorldHeight * miniMapScale)}
+                  fill="transparent"
+                  stroke="#F97316"
+                  strokeWidth="1.5"
+                />
+              </svg>
+            </div>
           </div>
         </div>
 
@@ -871,7 +1022,7 @@ export const WorkflowBuilder: React.FC<{
             onMouseDown={() => setResizePanel('right')}
             title="Resize properties panel"
           />
-          <div className="bg-card border border-border rounded-lg p-4 flex flex-col gap-4 overflow-y-auto max-h-[calc(100vh-200px)] shrink-0" style={{ width: rightPanelWidth }}>
+          <div className="bg-card border border-border rounded-lg p-4 flex flex-col gap-4 overflow-y-auto h-full shrink-0" style={{ width: rightPanelWidth }}>
             <div>
               <div className="flex items-center justify-between mb-3">
                 <p className="text-sm font-bold text-foreground flex items-center gap-2">
