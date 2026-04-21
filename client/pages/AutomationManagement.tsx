@@ -879,7 +879,16 @@ export const AutomationManagement: React.FC = () => {
         );
 
       case 'orchestrator':
-        return <ExecutionOrchestrator />;
+        return (
+          <ExecutionOrchestrator
+            onEditAutomation={(automationId) => {
+              setActiveDomain('design');
+              setActiveWorkspace('builder');
+              setAutomationTab('design');
+              setAutomationDraft((prev) => ({ ...prev, id: automationId }));
+            }}
+          />
+        );
 
       case 'governance':
         return <ModelGovernance />;
