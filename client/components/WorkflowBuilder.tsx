@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useLayoutEffect, useEffect } from 'react';
 import {
-  Plus, Trash2, Save, ZoomIn, ZoomOut, X, Code
+  Plus, Trash2, Save, ZoomIn, ZoomOut, Code, PanelLeftOpen, PanelLeftClose, PanelRightClose, PanelRightOpen, Maximize2, Minimize2, ScanLine
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -100,6 +100,7 @@ export const WorkflowBuilder: React.FC<{
   initialWorkflow
 }) => {
   const canvasRef = useRef<HTMLDivElement>(null);
+  const workspaceRef = useRef<HTMLDivElement>(null);
   const inputHandleRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const outputHandleRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const [workflow, setWorkflow] = useState<Workflow>(() => initialWorkflow || ({
@@ -128,8 +129,15 @@ export const WorkflowBuilder: React.FC<{
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [draggingNode, setDraggingNode] = useState<string | null>(null);
+  const [isPanning, setIsPanning] = useState(false);
+  const [panStart, setPanStart] = useState({ x: 0, y: 0 });
   const [draggingEdge, setDraggingEdge] = useState<{ fromNodeId: string; fromHandleId: string; x: number; y: number } | null>(null);
   const [showNodePalette, setShowNodePalette] = useState(true);
+  const [leftPanelWidth, setLeftPanelWidth] = useState(260);
+  const [rightPanelWidth, setRightPanelWidth] = useState(340);
+  const [showRightPanel, setShowRightPanel] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [resizePanel, setResizePanel] = useState<'left' | 'right' | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [edgeGeometry, setEdgeGeometry] = useState<Record<string, { x1: number; y1: number; x2: number; y2: number }>>({});
 
@@ -140,6 +148,49 @@ export const WorkflowBuilder: React.FC<{
       setSelectedEdgeId(null);
     }
   }, [initialWorkflow]);
+
+  useEffect(() => {
+    if (selectedNodeId) {
+      setShowRightPanel(true);
+    } else {
+      setShowRightPanel(false);
+    }
+  }, [selectedNodeId]);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(document.fullscreenElement === workspaceRef.current);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  useEffect(() => {
+    if (!resizePanel) return;
+
+    const handleMouseMove = (event: MouseEvent) => {
+      if (!workspaceRef.current) return;
+      const rect = workspaceRef.current.getBoundingClientRect();
+
+      if (resizePanel === 'left') {
+        const next = Math.min(420, Math.max(220, event.clientX - rect.left));
+        setLeftPanelWidth(next);
+      } else {
+        const next = Math.min(480, Math.max(280, rect.right - event.clientX));
+        setRightPanelWidth(next);
+      }
+    };
+
+    const handleMouseUp = () => setResizePanel(null);
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [resizePanel]);
 
   const selectedNode = workflow.nodes.find(n => n.id === selectedNodeId);
 
@@ -239,10 +290,18 @@ export const WorkflowBuilder: React.FC<{
   const handleNodeMouseDown = (e: React.MouseEvent, nodeId: string) => {
     if (e.button !== 0) return;
     e.stopPropagation();
+    setIsPanning(false);
     setDraggingNode(nodeId);
   };
 
   const handleCanvasMouseMove = (e: React.MouseEvent) => {
+    if (isPanning) {
+      setPan({
+        x: e.clientX - panStart.x,
+        y: e.clientY - panStart.y
+      });
+    }
+
     if (canvasRef.current && draggingNode) {
       const rect = canvasRef.current.getBoundingClientRect();
       const x = (e.clientX - rect.left - pan.x) / zoom;
@@ -267,8 +326,19 @@ export const WorkflowBuilder: React.FC<{
     }
   };
 
+  const handleCanvasMouseDown = (e: React.MouseEvent) => {
+    if (e.button !== 0) return;
+    if (e.target !== canvasRef.current) return;
+    setSelectedNodeId('');
+    setIsPanning(true);
+    setPanStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
+  };
+
   const handleCanvasMouseUp = (e: React.MouseEvent) => {
-    // Only deselect if clicking on the canvas background (not on edges or nodes)
+    if (isPanning) {
+      setIsPanning(false);
+    }
+
     if (e.target === canvasRef.current) {
       setSelectedEdgeId(null);
     }
@@ -362,6 +432,44 @@ export const WorkflowBuilder: React.FC<{
     };
   }, [recalculateEdgeGeometry]);
 
+  const handleToggleFullscreen = async () => {
+    if (!workspaceRef.current) return;
+    if (document.fullscreenElement === workspaceRef.current) {
+      await document.exitFullscreen();
+      return;
+    }
+    await workspaceRef.current.requestFullscreen();
+  };
+
+  const handleResetView = () => {
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+  };
+
+  const handleFitToScreen = () => {
+    if (!canvasRef.current || workflow.nodes.length === 0) return;
+
+    const padding = 80;
+    const minX = Math.min(...workflow.nodes.map((n) => n.x));
+    const maxX = Math.max(...workflow.nodes.map((n) => n.x + 160));
+    const minY = Math.min(...workflow.nodes.map((n) => n.y));
+    const maxY = Math.max(...workflow.nodes.map((n) => n.y + 64));
+
+    const boundsWidth = maxX - minX;
+    const boundsHeight = maxY - minY;
+
+    const rect = canvasRef.current.getBoundingClientRect();
+    const scaleX = (rect.width - padding * 2) / Math.max(boundsWidth, 1);
+    const scaleY = (rect.height - padding * 2) / Math.max(boundsHeight, 1);
+    const nextZoom = Math.max(0.5, Math.min(2, Math.min(scaleX, scaleY)));
+
+    setZoom(nextZoom);
+    setPan({
+      x: rect.width / 2 - (minX + boundsWidth / 2) * nextZoom,
+      y: rect.height / 2 - (minY + boundsHeight / 2) * nextZoom
+    });
+  };
+
   const isValidWorkflow = (() => {
     if (!workflow.name.trim()) return false;
     if (workflow.nodes.length === 0) return false;
@@ -392,7 +500,7 @@ export const WorkflowBuilder: React.FC<{
   })();
 
   return (
-    <div className="w-full h-full flex flex-col bg-background overflow-hidden">
+    <div ref={workspaceRef} className="w-full h-full flex flex-col bg-background overflow-hidden">
       {/* Header */}
       <div className="border-b border-border bg-card px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-4 flex-1">
@@ -423,7 +531,28 @@ export const WorkflowBuilder: React.FC<{
           >
             <ZoomOut className="w-4 h-4 text-muted-foreground" />
           </button>
+          <button
+            onClick={handleFitToScreen}
+            className="px-2 py-1.5 text-xs hover:bg-muted rounded-lg transition"
+            title="Fit to screen"
+          >
+            <ScanLine className="w-4 h-4 text-muted-foreground" />
+          </button>
+          <button
+            onClick={handleResetView}
+            className="px-2 py-1.5 text-xs font-semibold hover:bg-muted rounded-lg transition text-muted-foreground"
+            title="Reset to 100%"
+          >
+            100%
+          </button>
           <div className="text-xs text-muted-foreground px-2">{Math.round(zoom * 100)}%</div>
+          <button
+            onClick={handleToggleFullscreen}
+            className="p-2 hover:bg-muted rounded-lg transition"
+            title={isFullscreen ? 'Exit fullscreen' : 'Maximize canvas'}
+          >
+            {isFullscreen ? <Minimize2 className="w-4 h-4 text-muted-foreground" /> : <Maximize2 className="w-4 h-4 text-muted-foreground" />}
+          </button>
           <button
             onClick={() => setShowPreview(!showPreview)}
             className="p-2 hover:bg-muted rounded-lg transition"
@@ -435,60 +564,85 @@ export const WorkflowBuilder: React.FC<{
       </div>
 
       {/* Main Canvas Area */}
-      <div className="flex flex-1 gap-4 overflow-hidden p-4">
+      <div className="flex flex-1 overflow-hidden p-4 gap-2">
         {/* Left Sidebar - Node Palette */}
-        <div className={cn(
-          'transition-all duration-300 border border-border rounded-lg bg-card flex flex-col overflow-hidden',
-          showNodePalette ? 'w-56' : 'w-0'
-        )}>
-          <div className="p-4 border-b border-border">
-            <p className="text-sm font-bold text-foreground mb-3">Add Node</p>
-            <button
-              onClick={() => setShowNodePalette(false)}
-              className="w-full px-3 py-2 text-xs font-bold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition flex items-center justify-center gap-2"
+        {showNodePalette ? (
+          <>
+            <div
+              className="border border-border rounded-lg bg-card flex flex-col overflow-hidden shrink-0"
+              style={{ width: leftPanelWidth }}
             >
-              <X className="w-3 h-3" /> Close
-            </button>
-          </div>
+              <div className="p-4 border-b border-border flex items-center justify-between gap-2">
+                <p className="text-sm font-bold text-foreground">Add Node</p>
+                <button
+                  onClick={() => setShowNodePalette(false)}
+                  className="p-1.5 rounded hover:bg-muted"
+                  title="Collapse add node panel"
+                >
+                  <PanelLeftClose className="w-4 h-4 text-muted-foreground" />
+                </button>
+              </div>
 
-          <div className="flex-1 overflow-y-auto p-3 space-y-2">
-            {Object.entries(NODE_TYPES).map(([type, config]) => (
-              <button
-                key={type}
-                onClick={() => handleAddNode(type as any)}
-                className={cn(
-                  'w-full p-3 rounded-lg border-2 border-border transition text-left hover:shadow-md',
-                  config.bgLight
-                )}
-              >
-                <div className="text-lg mb-1">{config.icon}</div>
-                <p className="text-xs font-bold text-foreground">{config.label}</p>
-              </button>
-            ))}
-          </div>
-        </div>
+              <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                {Object.entries(NODE_TYPES).map(([type, config]) => (
+                  <button
+                    key={type}
+                    onClick={() => handleAddNode(type as any)}
+                    className={cn(
+                      'w-full p-3 rounded-lg border-2 border-border transition text-left hover:shadow-md',
+                      config.bgLight
+                    )}
+                  >
+                    <div className="text-lg mb-1">{config.icon}</div>
+                    <p className="text-xs font-bold text-foreground">{config.label}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div
+              className="w-1.5 rounded bg-border/70 hover:bg-primary/50 cursor-col-resize"
+              onMouseDown={() => setResizePanel('left')}
+              title="Resize add node panel"
+            />
+          </>
+        ) : (
+          <button
+            onClick={() => setShowNodePalette(true)}
+            className="self-start mt-2 p-2 border border-border rounded-lg bg-card hover:bg-muted transition"
+            title="Expand add node panel"
+          >
+            <PanelLeftOpen className="w-4 h-4 text-muted-foreground" />
+          </button>
+        )}
 
         {/* Canvas */}
-        <div className="flex-1 flex flex-col border border-border rounded-lg bg-background overflow-hidden relative">
+        <div className="flex-1 min-w-0 flex flex-col border border-border rounded-lg bg-background overflow-hidden relative">
           {/* Canvas Toolbar */}
           <div className="bg-card border-b border-border px-4 py-2 flex gap-2">
-            <button
-              onClick={() => setShowNodePalette(!showNodePalette)}
-              className="px-3 py-1.5 text-xs font-bold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition flex items-center gap-1"
-            >
-              <Plus className="w-3 h-3" /> Add Node
-            </button>
+            {!showNodePalette && (
+              <button
+                onClick={() => setShowNodePalette(true)}
+                className="px-3 py-1.5 text-xs font-bold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition flex items-center gap-1"
+              >
+                <Plus className="w-3 h-3" /> Add Node
+              </button>
+            )}
             <div className="text-xs text-muted-foreground px-2 py-1.5">
-              💡 Drag to move • Drag from output handle to input handle to connect
+              Drag node to move • Drag canvas background to pan • Drag from output handle to input handle to connect
             </div>
           </div>
 
           {/* Canvas */}
           <div
             ref={canvasRef}
-            className="flex-1 overflow-hidden relative cursor-grab active:cursor-grabbing select-none"
+            className={cn(
+              'flex-1 overflow-hidden relative select-none',
+              isPanning ? 'cursor-grabbing' : 'cursor-grab'
+            )}
+            onMouseDown={handleCanvasMouseDown}
             onMouseMove={handleCanvasMouseMove}
             onMouseUp={handleCanvasMouseUp}
+            onMouseLeave={handleCanvasMouseUp}
             style={{
               backgroundImage: `
                 linear-gradient(rgba(128, 128, 128, 0.05) 1px, transparent 1px),
@@ -710,13 +864,28 @@ export const WorkflowBuilder: React.FC<{
         </div>
 
         {/* Right Panel - Node Config */}
-        {selectedNode && (
-          <div className="w-80 bg-card border border-border rounded-lg p-4 flex flex-col gap-4 overflow-y-auto max-h-[calc(100vh-200px)]">
+        {selectedNode && showRightPanel && (
+          <>
+          <div
+            className="w-1.5 rounded bg-border/70 hover:bg-primary/50 cursor-col-resize"
+            onMouseDown={() => setResizePanel('right')}
+            title="Resize properties panel"
+          />
+          <div className="bg-card border border-border rounded-lg p-4 flex flex-col gap-4 overflow-y-auto max-h-[calc(100vh-200px)] shrink-0" style={{ width: rightPanelWidth }}>
             <div>
-              <p className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
-                <span className="text-2xl">{NODE_TYPES[selectedNode.type].icon}</span>
-                {selectedNode.label}
-              </p>
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-sm font-bold text-foreground flex items-center gap-2">
+                  <span className="text-2xl">{NODE_TYPES[selectedNode.type].icon}</span>
+                  {selectedNode.label}
+                </p>
+                <button
+                  onClick={() => setShowRightPanel(false)}
+                  className="p-1.5 rounded hover:bg-muted"
+                  title="Collapse properties panel"
+                >
+                  <PanelRightClose className="w-4 h-4 text-muted-foreground" />
+                </button>
+              </div>
 
               {/* Node Properties */}
               <div className="space-y-3">
@@ -819,53 +988,17 @@ export const WorkflowBuilder: React.FC<{
               </button>
             </div>
           </div>
+          </>
         )}
 
-        {/* Right Panel - Edge Config */}
-        {selectedEdgeId && !selectedNode && (
-          <div className="w-80 bg-card border border-border rounded-lg p-4 flex flex-col gap-4 overflow-y-auto max-h-[calc(100vh-200px)]">
-            <div>
-              <p className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
-                🔗 Connection
-              </p>
-
-              {(() => {
-                const edge = workflow.edges.find(e => e.id === selectedEdgeId);
-                if (!edge) return null;
-
-                const sourceNode = workflow.nodes.find(n => n.id === edge.sourceNodeId);
-                const targetNode = workflow.nodes.find(n => n.id === edge.targetNodeId);
-                const sourceHandle = sourceNode?.handles.find(h => h.id === edge.sourceHandleId);
-                const targetHandle = targetNode?.handles.find(h => h.id === edge.targetHandleId);
-
-                return (
-                  <div className="space-y-3">
-                    <div className="bg-muted/50 p-3 rounded-lg">
-                      <p className="text-xs font-bold text-foreground mb-2">Source Node</p>
-                      <p className="text-xs text-muted-foreground">{sourceNode?.label}</p>
-                      <p className="text-xs text-muted-foreground">Output: {sourceHandle?.label}</p>
-                    </div>
-
-                    <div className="text-center text-muted-foreground">↓</div>
-
-                    <div className="bg-muted/50 p-3 rounded-lg">
-                      <p className="text-xs font-bold text-foreground mb-2">Target Node</p>
-                      <p className="text-xs text-muted-foreground">{targetNode?.label}</p>
-                      <p className="text-xs text-muted-foreground">Input: {targetHandle?.label}</p>
-                    </div>
-
-                    {/* Delete Button */}
-                    <button
-                      onClick={() => handleDeleteEdge(selectedEdgeId)}
-                      className="w-full mt-4 px-3 py-2 text-xs font-bold rounded-lg bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900 transition flex items-center justify-center gap-1"
-                    >
-                      <Trash2 className="w-3 h-3" /> Delete Connection
-                    </button>
-                  </div>
-                );
-              })()}
-            </div>
-          </div>
+        {selectedNode && !showRightPanel && (
+          <button
+            onClick={() => setShowRightPanel(true)}
+            className="self-start mt-2 p-2 border border-border rounded-lg bg-card hover:bg-muted transition"
+            title="Expand properties panel"
+          >
+            <PanelRightOpen className="w-4 h-4 text-muted-foreground" />
+          </button>
         )}
       </div>
 
