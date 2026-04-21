@@ -365,10 +365,17 @@ export const WorkflowBuilder: React.FC<{
     if (selectedNodeId === id) setSelectedNodeId(workflow.nodes[0]?.id || '');
   };
 
+  const handleSelectNode = useCallback((nodeId: string) => {
+    setSelectedNodeId(nodeId);
+    setSelectedEdgeId(null);
+    setShowRightPanel(true);
+  }, []);
+
   const handleNodeMouseDown = (e: React.MouseEvent, nodeId: string) => {
     if (e.button !== 0) return;
     e.stopPropagation();
     setIsPanning(false);
+    handleSelectNode(nodeId);
     setDraggingNode(nodeId);
   };
 
@@ -472,8 +479,7 @@ export const WorkflowBuilder: React.FC<{
   };
 
   const handleNodeClick = (nodeId: string) => {
-    setSelectedNodeId(nodeId);
-    setSelectedEdgeId(null);
+    handleSelectNode(nodeId);
   };
 
   const handleDeleteEdge = (edgeId: string) => {
