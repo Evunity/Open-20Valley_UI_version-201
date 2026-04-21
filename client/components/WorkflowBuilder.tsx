@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useLayoutEffect, useEffect } from 'react';
 import {
-  Plus, Trash2, Save, ZoomIn, ZoomOut, Code, PanelLeftOpen, PanelLeftClose, PanelRightClose, PanelRightOpen, Maximize2, Minimize2, ScanLine, Map
+  Plus, Trash2, Save, ZoomIn, ZoomOut, Code, PanelLeftOpen, PanelLeftClose, PanelRightClose, PanelRightOpen, Maximize2, Minimize2, ScanLine
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -134,13 +134,12 @@ export const WorkflowBuilder: React.FC<{
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
   const [draggingEdge, setDraggingEdge] = useState<{ fromNodeId: string; fromHandleId: string; x: number; y: number } | null>(null);
   const [showNodePalette, setShowNodePalette] = useState(true);
-  const [leftPanelWidth, setLeftPanelWidth] = useState(260);
+  const [leftPanelWidth, setLeftPanelWidth] = useState(200);
   const [rightPanelWidth, setRightPanelWidth] = useState(340);
   const [showRightPanel, setShowRightPanel] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [resizePanel, setResizePanel] = useState<'left' | 'right' | null>(null);
   const [showPreview, setShowPreview] = useState(false);
-  const [isMiniMapDragging, setIsMiniMapDragging] = useState(false);
   const [edgeGeometry, setEdgeGeometry] = useState<Record<string, { x1: number; y1: number; x2: number; y2: number }>>({});
 
   useEffect(() => {
@@ -152,9 +151,7 @@ export const WorkflowBuilder: React.FC<{
   }, [initialWorkflow]);
 
   useEffect(() => {
-    if (selectedNodeId) {
-      setShowRightPanel(true);
-    } else {
+    if (!selectedNodeId) {
       setShowRightPanel(false);
     }
   }, [selectedNodeId]);
@@ -176,7 +173,7 @@ export const WorkflowBuilder: React.FC<{
       const rect = workspaceRef.current.getBoundingClientRect();
 
       if (resizePanel === 'left') {
-        const next = Math.min(420, Math.max(220, event.clientX - rect.left));
+        const next = Math.min(320, Math.max(160, event.clientX - rect.left));
         setLeftPanelWidth(next);
       } else {
         const next = Math.min(480, Math.max(280, rect.right - event.clientX));
@@ -553,43 +550,10 @@ export const WorkflowBuilder: React.FC<{
     return true;
   })();
 
-  const miniMapWidth = 220;
-  const miniMapHeight = 140;
-  const { minX, minY, maxX, maxY } = getNodeBounds();
-  const mapWorldWidth = Math.max(1, maxX - minX);
-  const mapWorldHeight = Math.max(1, maxY - minY);
-  const miniMapScale = Math.min(miniMapWidth / mapWorldWidth, miniMapHeight / mapWorldHeight);
-  const miniMapContentWidth = mapWorldWidth * miniMapScale;
-  const miniMapContentHeight = mapWorldHeight * miniMapScale;
-  const miniMapOffsetX = (miniMapWidth - miniMapContentWidth) / 2;
-  const miniMapOffsetY = (miniMapHeight - miniMapContentHeight) / 2;
-  const canvasRect = canvasRef.current?.getBoundingClientRect();
-  const viewportWorldX = (-pan.x) / zoom;
-  const viewportWorldY = (-pan.y) / zoom;
-  const viewportWorldWidth = (canvasRect?.width || 1) / zoom;
-  const viewportWorldHeight = (canvasRect?.height || 1) / zoom;
-
-  const setPanFromMiniMapPoint = (clientX: number, clientY: number) => {
-    if (!canvasRef.current) return;
-    const miniMapRect = canvasRef.current.querySelector('[data-minimap="true"]')?.getBoundingClientRect();
-    if (!miniMapRect) return;
-
-    const localX = Math.max(0, Math.min(miniMapWidth, clientX - miniMapRect.left));
-    const localY = Math.max(0, Math.min(miniMapHeight, clientY - miniMapRect.top));
-    const worldX = (localX - miniMapOffsetX) / miniMapScale + minX;
-    const worldY = (localY - miniMapOffsetY) / miniMapScale + minY;
-
-    const canvasViewRect = canvasRef.current.getBoundingClientRect();
-    setPan({
-      x: canvasViewRect.width / 2 - worldX * zoom,
-      y: canvasViewRect.height / 2 - worldY * zoom
-    });
-  };
-
   return (
     <div ref={workspaceRef} className="w-full h-full flex flex-col bg-background overflow-hidden">
       {/* Header */}
-      <div className="border-b border-border bg-card px-6 py-4 flex items-center justify-between">
+      <div className="border-b border-border bg-card px-4 py-2 flex items-center justify-between">
         <div className="flex items-center gap-4 flex-1">
           <div>
             <input
@@ -651,16 +615,16 @@ export const WorkflowBuilder: React.FC<{
       </div>
 
       {/* Main Canvas Area */}
-      <div ref={canvasWorkspaceRef} className={cn("flex flex-1 overflow-hidden p-2 gap-2", isFullscreen && "bg-background")}>
+      <div ref={canvasWorkspaceRef} className={cn("flex flex-1 overflow-hidden p-1 gap-1 relative", isFullscreen && "p-0 gap-0 bg-background")}>
         {/* Left Sidebar - Node Palette */}
-        {showNodePalette ? (
+        {!isFullscreen && showNodePalette && (
           <>
             <div
               className="border border-border rounded-lg bg-card flex flex-col overflow-hidden shrink-0"
               style={{ width: leftPanelWidth }}
             >
-              <div className="p-4 border-b border-border flex items-center justify-between gap-2">
-                <p className="text-sm font-bold text-foreground">Add Node</p>
+              <div className="p-2 border-b border-border flex items-center justify-between gap-2">
+                <p className="text-xs font-bold text-foreground">Add Node</p>
                 <button
                   onClick={() => setShowNodePalette(false)}
                   className="p-1.5 rounded hover:bg-muted"
@@ -670,32 +634,34 @@ export const WorkflowBuilder: React.FC<{
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-3 space-y-2">
+              <div className="flex-1 overflow-y-auto p-2 space-y-2">
                 {Object.entries(NODE_TYPES).map(([type, config]) => (
                   <button
                     key={type}
                     onClick={() => handleAddNode(type as any)}
                     className={cn(
-                      'w-full p-3 rounded-lg border-2 border-border transition text-left hover:shadow-md',
+                      'w-full p-2 rounded border border-border transition text-left hover:shadow-sm',
                       config.bgLight
                     )}
                   >
-                    <div className="text-lg mb-1">{config.icon}</div>
-                    <p className="text-xs font-bold text-foreground">{config.label}</p>
+                    <div className="text-base">{config.icon}</div>
+                    <p className="text-[11px] font-bold text-foreground">{config.label}</p>
                   </button>
                 ))}
               </div>
             </div>
             <div
-              className="w-1.5 rounded bg-border/70 hover:bg-primary/50 cursor-col-resize"
+              className="w-1 rounded bg-border/70 hover:bg-primary/50 cursor-col-resize"
               onMouseDown={() => setResizePanel('left')}
               title="Resize add node panel"
             />
           </>
-        ) : (
+        )}
+
+        {!isFullscreen && !showNodePalette && (
           <button
             onClick={() => setShowNodePalette(true)}
-            className="self-start mt-2 p-2 border border-border rounded-lg bg-card hover:bg-muted transition"
+            className="self-start mt-1 w-9 h-9 border border-border rounded-md bg-card hover:bg-muted transition shrink-0 flex items-center justify-center"
             title="Expand add node panel"
           >
             <PanelLeftOpen className="w-4 h-4 text-muted-foreground" />
@@ -703,23 +669,7 @@ export const WorkflowBuilder: React.FC<{
         )}
 
         {/* Canvas */}
-        <div className="flex-1 min-w-0 flex flex-col border border-border rounded-lg bg-background overflow-hidden relative">
-          {/* Canvas Toolbar */}
-          <div className="bg-card border-b border-border px-4 py-2 flex gap-2">
-            {!showNodePalette && (
-              <button
-                onClick={() => setShowNodePalette(true)}
-                className="px-3 py-1.5 text-xs font-bold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition flex items-center gap-1"
-              >
-                <Plus className="w-3 h-3" /> Add Node
-              </button>
-            )}
-            <div className="text-xs text-muted-foreground px-2 py-1.5">
-              Drag node to move • Drag canvas background to pan • +/- zoom • 0 reset • F fit • Arrow keys pan
-            </div>
-          </div>
-
-          {/* Canvas */}
+        <div className="flex-1 min-w-0 flex flex-col bg-background overflow-hidden relative rounded-sm">
           <div
             ref={canvasRef}
             className={cn(
@@ -739,6 +689,26 @@ export const WorkflowBuilder: React.FC<{
               backgroundPosition: `${pan.x}px ${pan.y}px`
             }}
           >
+            {!showNodePalette && (
+              <button
+                onClick={() => setShowNodePalette(true)}
+                className="absolute top-2 left-2 z-30 w-8 h-8 rounded bg-card/90 border border-border hover:bg-muted flex items-center justify-center"
+                title="Open add node panel"
+              >
+                <Plus className="w-4 h-4 text-foreground" />
+              </button>
+            )}
+
+            {selectedNode && !showRightPanel && (
+              <button
+                onClick={() => setShowRightPanel(true)}
+                className="absolute top-2 right-2 z-30 w-8 h-8 rounded bg-card/90 border border-border hover:bg-muted flex items-center justify-center"
+                title="Open properties panel"
+              >
+                <PanelRightOpen className="w-4 h-4 text-foreground" />
+              </button>
+            )}
+
             {/* SVG Connections */}
             <svg
               className="absolute inset-0 w-full h-full"
@@ -948,74 +918,33 @@ export const WorkflowBuilder: React.FC<{
               })}
             </div>
 
-            <div
-              data-minimap="true"
-              className="absolute bottom-4 right-4 w-[220px] h-[140px] bg-card/95 border border-border rounded-md shadow-lg overflow-hidden"
-              onMouseDown={(event) => {
-                setIsMiniMapDragging(true);
-                setPanFromMiniMapPoint(event.clientX, event.clientY);
-              }}
-              onMouseMove={(event) => {
-                if (!isMiniMapDragging) return;
-                setPanFromMiniMapPoint(event.clientX, event.clientY);
-              }}
-              onMouseUp={() => setIsMiniMapDragging(false)}
-              onMouseLeave={() => setIsMiniMapDragging(false)}
-              title="Mini map navigator"
-            >
-              <div className="flex items-center gap-1 px-2 py-1 border-b border-border text-[10px] text-muted-foreground">
-                <Map className="w-3 h-3" /> Navigator
+            {isFullscreen && showNodePalette && (
+              <div className="absolute left-2 top-2 bottom-2 z-40 border border-border rounded-md bg-card/95 backdrop-blur-sm overflow-hidden" style={{ width: leftPanelWidth }}>
+                <div className="p-2 border-b border-border flex items-center justify-between gap-2">
+                  <p className="text-xs font-bold text-foreground">Add Node</p>
+                  <button onClick={() => setShowNodePalette(false)} className="p-1 rounded hover:bg-muted" title="Collapse add node panel">
+                    <PanelLeftClose className="w-4 h-4 text-muted-foreground" />
+                  </button>
+                </div>
+                <div className="flex-1 overflow-y-auto p-2 space-y-2">
+                  {Object.entries(NODE_TYPES).map(([type, config]) => (
+                    <button
+                      key={type}
+                      onClick={() => handleAddNode(type as any)}
+                      className={cn('w-full p-2 rounded border border-border transition text-left hover:shadow-sm', config.bgLight)}
+                    >
+                      <div className="text-base">{config.icon}</div>
+                      <p className="text-[11px] font-bold text-foreground">{config.label}</p>
+                    </button>
+                  ))}
+                </div>
               </div>
-              <svg width={miniMapWidth} height={miniMapHeight - 24} className="block">
-                {workflow.edges.map((edge) => {
-                  const sourceNode = workflow.nodes.find((n) => n.id === edge.sourceNodeId);
-                  const targetNode = workflow.nodes.find((n) => n.id === edge.targetNodeId);
-                  if (!sourceNode || !targetNode) return null;
-
-                  const x1 = miniMapOffsetX + (sourceNode.x + 80 - minX) * miniMapScale;
-                  const y1 = miniMapOffsetY + (sourceNode.y + 32 - minY) * miniMapScale - 24;
-                  const x2 = miniMapOffsetX + (targetNode.x + 80 - minX) * miniMapScale;
-                  const y2 = miniMapOffsetY + (targetNode.y + 32 - minY) * miniMapScale - 24;
-
-                  return <line key={edge.id} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#64748B" strokeWidth="1" />;
-                })}
-
-                {workflow.nodes.map((node) => {
-                  const x = miniMapOffsetX + (node.x - minX) * miniMapScale;
-                  const y = miniMapOffsetY + (node.y - minY) * miniMapScale - 24;
-                  const width = Math.max(4, 160 * miniMapScale);
-                  const height = Math.max(3, 64 * miniMapScale);
-
-                  return (
-                    <rect
-                      key={node.id}
-                      x={x}
-                      y={y}
-                      width={width}
-                      height={height}
-                      fill={selectedNodeId === node.id ? '#2563EB' : '#94A3B8'}
-                      opacity={0.85}
-                      rx="2"
-                    />
-                  );
-                })}
-
-                <rect
-                  x={miniMapOffsetX + (viewportWorldX - minX) * miniMapScale}
-                  y={miniMapOffsetY + (viewportWorldY - minY) * miniMapScale - 24}
-                  width={Math.max(10, viewportWorldWidth * miniMapScale)}
-                  height={Math.max(10, viewportWorldHeight * miniMapScale)}
-                  fill="transparent"
-                  stroke="#F97316"
-                  strokeWidth="1.5"
-                />
-              </svg>
-            </div>
+            )}
           </div>
         </div>
 
         {/* Right Panel - Node Config */}
-        {selectedNode && showRightPanel && (
+        {selectedNode && showRightPanel && !isFullscreen && (
           <>
           <div
             className="w-1.5 rounded bg-border/70 hover:bg-primary/50 cursor-col-resize"
@@ -1142,15 +1071,75 @@ export const WorkflowBuilder: React.FC<{
           </>
         )}
 
-        {selectedNode && !showRightPanel && (
-          <button
-            onClick={() => setShowRightPanel(true)}
-            className="self-start mt-2 p-2 border border-border rounded-lg bg-card hover:bg-muted transition"
-            title="Expand properties panel"
-          >
-            <PanelRightOpen className="w-4 h-4 text-muted-foreground" />
-          </button>
+        {selectedNode && showRightPanel && isFullscreen && (
+          <div className="absolute right-2 top-2 bottom-2 z-40 bg-card/95 border border-border rounded-md p-3 overflow-y-auto" style={{ width: rightPanelWidth }}>
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-sm font-bold text-foreground flex items-center gap-2">
+                <span className="text-2xl">{NODE_TYPES[selectedNode.type].icon}</span>
+                {selectedNode.label}
+              </p>
+              <button
+                onClick={() => setShowRightPanel(false)}
+                className="p-1.5 rounded hover:bg-muted"
+                title="Collapse properties panel"
+              >
+                <PanelRightClose className="w-4 h-4 text-muted-foreground" />
+              </button>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-bold text-foreground block mb-1">Label</label>
+                <input
+                  type="text"
+                  value={selectedNode.label}
+                  onChange={(e) => {
+                    setWorkflow(prev => ({
+                      ...prev,
+                      nodes: prev.nodes.map(n =>
+                        n.id === selectedNodeId ? { ...n, label: e.target.value } : n
+                      )
+                    }));
+                  }}
+                  className="w-full px-2 py-1.5 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-foreground block mb-1">Type</label>
+                <select
+                  value={selectedNode.type}
+                  onChange={(e) => {
+                    const newType = e.target.value as WorkflowNode['type'];
+                    setWorkflow(prev => ({
+                      ...prev,
+                      nodes: prev.nodes.map(n =>
+                        n.id === selectedNodeId
+                          ? { ...n, type: newType, handles: getNodeHandles(newType) }
+                          : n
+                      )
+                    }));
+                  }}
+                  className="w-full px-2 py-1.5 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                >
+                  {Object.keys(NODE_TYPES).map(type => (
+                    <option key={type} value={type}>
+                      {type.toUpperCase().replace('-', ' ')}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="pt-3 border-t border-border">
+                <p className="text-xs text-muted-foreground">X: {Math.round(selectedNode.x)} • Y: {Math.round(selectedNode.y)}</p>
+              </div>
+              <button
+                onClick={() => handleDeleteNode(selectedNodeId)}
+                className="w-full mt-2 px-3 py-2 text-xs font-bold rounded-lg bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900 transition flex items-center justify-center gap-1"
+              >
+                <Trash2 className="w-3 h-3" /> Delete Node
+              </button>
+            </div>
+          </div>
         )}
+
       </div>
 
       {/* JSON Preview */}
@@ -1164,7 +1153,7 @@ export const WorkflowBuilder: React.FC<{
       )}
 
       {/* Footer */}
-      <div className="border-t border-border bg-card px-6 py-3 flex items-center justify-between">
+      <div className="border-t border-border bg-card px-4 py-2 flex items-center justify-between">
         <div className="flex gap-2">
           <button
             onClick={onCancel}
