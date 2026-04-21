@@ -895,7 +895,7 @@ export const AutomationManagement: React.FC = () => {
   return (
     <div className="automation-theme flex flex-col h-screen bg-background">
       {/* Primary Section Navigation */}
-      <div className="bg-card border-b border-border rounded-lg p-4 mx-2 mt-2">
+      <div className="bg-card border-b border-border rounded-lg p-1 mx-2 mt-2">
         <div className="grid grid-cols-1 gap-2 auto-rows-max md:grid-cols-3">
           {DOMAINS.map(domain => {
             const Icon = domain.icon;
@@ -906,31 +906,31 @@ export const AutomationManagement: React.FC = () => {
                   setActiveDomain(domain.id as SuperDomain);
                   setActiveWorkspace(WORKSPACES.find(w => w.domain === domain.id)?.id || 'command_center');
                 }}
-                className={`flex flex-col items-center justify-center gap-2 p-4 rounded-lg border-2 transition min-h-[180px] ${
+                className={`h-10 px-3 py-1 flex items-center justify-center gap-2 rounded-lg border transition text-[13px] ${
                   activeDomain === domain.id
                     ? 'border-blue-600 bg-blue-50 dark:bg-blue-950'
                     : 'border-border hover:border-primary/40 bg-card'
                 }`}
                 title={domain.label}
               >
-                <Icon className={`w-6 h-6 flex-shrink-0 ${activeDomain === domain.id ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
-                <span className="text-xs font-semibold text-center text-foreground line-clamp-2 leading-tight">{domain.label}</span>
+                <Icon className={`w-4 h-4 flex-shrink-0 ${activeDomain === domain.id ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
+                <span className="text-[13px] font-semibold text-center text-foreground leading-tight">{domain.label}</span>
               </button>
             );
           })}
         </div>
       </div>
 
-      <div className="bg-card/40 border-b border-border rounded-lg p-3 mx-2 mt-2">
+      <div className="bg-card/40 border-b border-border rounded-lg p-1.5 mx-2 mt-2">
         <div
           className="grid w-full items-stretch"
-          style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}
+          style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '6px' }}
         >
           {domainWorkspaces.map((workspace) => (
             <button
               key={workspace.id}
               onClick={() => setActiveWorkspace(workspace.id)}
-              className={`w-full h-full flex items-center justify-center text-center rounded-lg border px-3 py-2 text-xs font-semibold transition ${
+              className={`w-full h-9 flex items-center justify-center text-center rounded-lg border px-2.5 py-1 text-[12px] font-semibold transition ${
                 activeWorkspace === workspace.id
                   ? 'border-primary/40 bg-primary/10 text-primary'
                   : 'border-border bg-card hover:border-primary/30 text-muted-foreground hover:text-foreground'

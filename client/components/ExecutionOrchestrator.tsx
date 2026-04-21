@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
-  Plus, Trash2, Clock, Power, PlayCircle, PauseCircle, Calendar,
-  Edit2, AlertCircle, CheckCircle, Zap, Repeat, MoreVertical, Edit3
+  Trash2, Power
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -170,35 +169,32 @@ export const ExecutionOrchestrator: React.FC = () => {
   const runningModels = models.filter(m => m.status === 'running').length;
 
   return (
-    <div className="w-full flex flex-col h-full gap-4 p-4 bg-background overflow-y-auto">
+    <div className="w-full flex flex-col h-full gap-2 p-3 bg-background overflow-y-auto">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground">Execution Orchestrator</h2>
-          <p className="text-sm text-muted-foreground mt-1">Schedule and manage automations and AI models</p>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="text-right">
-            <p className="text-3xl font-bold text-primary">{activeAutomations}</p>
-            <p className="text-xs text-muted-foreground">Active Automations</p>
+      <div className="flex items-center justify-between border border-border rounded-lg bg-card px-3 py-2">
+        <h2 className="text-sm font-bold text-foreground">Execution Orchestrator</h2>
+        <div className="flex items-center gap-3">
+          <div className="text-right leading-tight">
+            <p className="text-base font-bold text-primary">{activeAutomations}</p>
+            <p className="text-[11px] text-muted-foreground">Active Automations</p>
           </div>
-          <div className="w-px h-12 bg-border" />
-          <div className="text-right">
-            <p className="text-3xl font-bold text-primary">{runningModels}</p>
-            <p className="text-xs text-muted-foreground">Running Models</p>
+          <div className="w-px h-8 bg-border" />
+          <div className="text-right leading-tight">
+            <p className="text-base font-bold text-primary">{runningModels}</p>
+            <p className="text-[11px] text-muted-foreground">Running Models</p>
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-border">
+      <div className="flex gap-1.5 border-b border-border pb-1">
         <button
           onClick={() => setActiveTab('automations')}
           className={cn(
-            'px-4 py-2 text-sm font-bold border-b-2 transition',
+            'h-9 px-2.5 py-1 text-[12px] font-bold rounded-lg border transition',
             activeTab === 'automations'
-              ? 'text-primary border-b-primary'
-              : 'text-muted-foreground border-b-transparent hover:text-foreground'
+              ? 'text-primary border-primary bg-primary/10'
+              : 'text-muted-foreground border-border hover:text-foreground'
           )}
         >
           Automations ({automations.length})
@@ -206,10 +202,10 @@ export const ExecutionOrchestrator: React.FC = () => {
         <button
           onClick={() => setActiveTab('models')}
           className={cn(
-            'px-4 py-2 text-sm font-bold border-b-2 transition',
+            'h-9 px-2.5 py-1 text-[12px] font-bold rounded-lg border transition',
             activeTab === 'models'
-              ? 'text-primary border-b-primary'
-              : 'text-muted-foreground border-b-transparent hover:text-foreground'
+              ? 'text-primary border-primary bg-primary/10'
+              : 'text-muted-foreground border-border hover:text-foreground'
           )}
         >
           AI Models ({models.length})
@@ -218,24 +214,26 @@ export const ExecutionOrchestrator: React.FC = () => {
 
       {/* Automations Tab */}
       {activeTab === 'automations' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1 overflow-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 flex-1 overflow-hidden">
           {/* List */}
-          <div className="lg:col-span-2 space-y-3 overflow-y-auto">
+          <div className="lg:col-span-2 space-y-2 overflow-y-auto">
             {automations.map(automation => (
               <div
                 key={automation.id}
                 onClick={() => setSelectedAutomation(automation.id)}
                 className={cn(
-                  'p-4 rounded-lg border-2 transition cursor-pointer hover:shadow-sm',
+                  'px-3.5 py-2.5 min-h-[72px] rounded-lg border transition cursor-pointer hover:shadow-sm',
                   selectedAutomation === automation.id
                     ? 'border-primary bg-primary/10'
                     : 'border-border bg-card hover:border-border/80'
                 )}
               >
-                <div className="flex items-start justify-between gap-3 mb-3">
+                <div className="flex items-start justify-between gap-3">
                   <div className="flex-1">
                     <h3 className="text-sm font-bold text-foreground">{automation.name}</h3>
-                    <p className="text-xs text-muted-foreground mt-0.5">{automation.description}</p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
+                      {automation.schedule} • Next: {automation.nextRun} • Tasks: {automation.automationsCount} • {automation.enabled ? 'Active' : 'Inactive'}
+                    </p>
                   </div>
                   <span className={cn('px-2 py-1 text-xs font-bold rounded-full whitespace-nowrap', getStatusColor(automation.lastStatus))}>
                     {automation.lastStatus === 'success' && '✓'}
@@ -244,24 +242,8 @@ export const ExecutionOrchestrator: React.FC = () => {
                   </span>
                 </div>
 
-                {/* Schedule Info */}
-                <div className="grid grid-cols-3 gap-3 mb-3 text-xs">
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-3 h-3 text-muted-foreground" />
-                    <span className="text-muted-foreground">{automation.schedule}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Zap className="w-3 h-3 text-muted-foreground" />
-                    <span className="text-muted-foreground">Next: {automation.nextRun}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-3 h-3 text-muted-foreground" />
-                    <span className="text-muted-foreground">{automation.automationsCount} tasks</span>
-                  </div>
-                </div>
-
                 {/* Status Toggle */}
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mt-2">
                   <span className="text-xs text-muted-foreground">
                     Last run: <strong>{automation.lastRun || 'Never'}</strong>
                   </span>
@@ -396,13 +378,6 @@ export const ExecutionOrchestrator: React.FC = () => {
         </div>
       )}
 
-      {/* Info Box */}
-      <div className="bg-primary/10 border border-primary/30 rounded-lg p-3 mt-auto">
-        <p className="text-xs font-semibold text-foreground mb-1">⚙️ How Orchestration Works</p>
-        <p className="text-xs text-muted-foreground">
-          Use this interface to schedule when automations run and control which AI models are active. Toggle models on/off to enable or disable them system-wide.
-        </p>
-      </div>
     </div>
   );
 };
