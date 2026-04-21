@@ -173,6 +173,7 @@ export const WorkflowBuilder: React.FC<{
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [draggingNode, setDraggingNode] = useState<string | null>(null);
+  const [dragOffset, setDragOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
   const [draggingEdge, setDraggingEdge] = useState<{ fromNodeId: string; fromHandleId: string; x: number; y: number } | null>(null);
@@ -189,6 +190,7 @@ export const WorkflowBuilder: React.FC<{
   const zoomRef = useRef(zoom);
   const panStartRef = useRef(panStart);
   const draggingNodeRef = useRef(draggingNode);
+  const dragOffsetRef = useRef(dragOffset);
   const draggingEdgeRef = useRef(draggingEdge);
   const isPanningRef = useRef(isPanning);
 
@@ -196,6 +198,7 @@ export const WorkflowBuilder: React.FC<{
   useEffect(() => { zoomRef.current = zoom; }, [zoom]);
   useEffect(() => { panStartRef.current = panStart; }, [panStart]);
   useEffect(() => { draggingNodeRef.current = draggingNode; }, [draggingNode]);
+  useEffect(() => { dragOffsetRef.current = dragOffset; }, [dragOffset]);
   useEffect(() => { draggingEdgeRef.current = draggingEdge; }, [draggingEdge]);
   useEffect(() => { isPanningRef.current = isPanning; }, [isPanning]);
 
@@ -376,6 +379,18 @@ export const WorkflowBuilder: React.FC<{
     e.stopPropagation();
     setIsPanning(false);
     handleSelectNode(nodeId);
+    if (canvasRef.current) {
+      const rect = canvasRef.current.getBoundingClientRect();
+      const node = workflow.nodes.find((n) => n.id === nodeId);
+      if (node) {
+        const pointerX = (e.clientX - rect.left - panRef.current.x) / zoomRef.current;
+        const pointerY = (e.clientY - rect.top - panRef.current.y) / zoomRef.current;
+        setDragOffset({
+          x: pointerX - node.x,
+          y: pointerY - node.y
+        });
+      }
+    }
     setDraggingNode(nodeId);
   };
 
@@ -391,11 +406,12 @@ export const WorkflowBuilder: React.FC<{
       const rect = canvasRef.current.getBoundingClientRect();
       const x = (clientX - rect.left - panRef.current.x) / zoomRef.current;
       const y = (clientY - rect.top - panRef.current.y) / zoomRef.current;
+      const { x: offsetX, y: offsetY } = dragOffsetRef.current;
 
       setWorkflow(prev => ({
         ...prev,
         nodes: prev.nodes.map(n =>
-          n.id === draggingNodeRef.current ? { ...n, x: x - 80, y: y - 32 } : n
+          n.id === draggingNodeRef.current ? { ...n, x: x - offsetX, y: y - offsetY } : n
         ),
         updatedAt: new Date().toLocaleString()
       }));
@@ -431,6 +447,7 @@ export const WorkflowBuilder: React.FC<{
       setSelectedEdgeId(null);
     }
     setDraggingNode(null);
+    setDragOffset({ x: 0, y: 0 });
     setDraggingEdge(null);
   };
 
@@ -444,6 +461,7 @@ export const WorkflowBuilder: React.FC<{
       if (!isPanningRef.current && !draggingNodeRef.current && !draggingEdgeRef.current) return;
       setIsPanning(false);
       setDraggingNode(null);
+      setDragOffset({ x: 0, y: 0 });
       setDraggingEdge(null);
     };
 
