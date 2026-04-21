@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import SearchableDropdown from "@/components/SearchableDropdown";
 import { cn } from "@/lib/utils";
 import { SearchBar } from "@/components/ui/search-bar";
+import * as XLSX from "xlsx";
 
 interface HistoryRow {
   id: string;
@@ -26,6 +27,39 @@ const ROWS: HistoryRow[] = [
   { id: "h7", reportName: "NOC Daily — 2025-12-20", type: "NOC Daily", dateGenerated: "2025-12-20", period: "Daily", owner: "NOC Ops", format: "HTML", status: "Archived" },
   { id: "h8", reportName: "Evidence Pack — Incident #4821", type: "Evidence", dateGenerated: "2026-04-09", period: "Incident Window", owner: "Audit Team", format: "ZIP", status: "Delivered" },
 ];
+
+const RUN_OUTPUTS: Record<string, Array<Record<string, string | number>>> = {
+  h1: [
+    { Region: "Cairo", "SLA Compliance %": 97.1, "Total Sites": 128, "Breached Sites": 6 },
+    { Region: "Alexandria", "SLA Compliance %": 95.8, "Total Sites": 94, "Breached Sites": 9 },
+  ],
+  h2: [
+    { "KPI Name": "Availability", Value: 99.24, Trend: "+0.31%" },
+    { "KPI Name": "CSSR", Value: 98.41, Trend: "+0.12%" },
+  ],
+  h3: [
+    { Vendor: "Ericsson", "Drop Rate %": 1.18, "Throughput DL Mbps": 82.4, "Alarm Count": 42 },
+    { Vendor: "Ericsson", "Drop Rate %": 1.01, "Throughput DL Mbps": 84.1, "Alarm Count": 37 },
+  ],
+  h4: [
+    { "Transport Link": "Cairo-R1", "Latency ms": 14.8, "Packet Loss %": 0.21 },
+    { "Transport Link": "Giza-R2", "Latency ms": 17.6, "Packet Loss %": 0.27 },
+  ],
+  h5: [
+    { Quarter: "Q4 2025", Revenue: 12450000, "Automation Savings": 852000, "SLA Breaches": 14 },
+    { Quarter: "Q3 2025", Revenue: 12130000, "Automation Savings": 799000, "SLA Breaches": 17 },
+  ],
+  h6: [
+    { Day: "2026-04-01", Critical: 14, Major: 31, Minor: 54 },
+    { Day: "2026-04-02", Critical: 11, Major: 28, Minor: 49 },
+  ],
+  h7: [
+    { Date: "2025-12-20", "Automation Success %": 97.5, "Open Alarms": 83, "AI Actions": 112 },
+  ],
+  h8: [
+    { "Incident ID": 4821, "MTTR min": 37, "Root Cause": "Transport Congestion", "Tickets Raised": 3 },
+  ],
+};
 
 function Modal({ title, children, onClose }: { title: string; children: React.ReactNode; onClose: () => void }) {
   return (
@@ -50,6 +84,8 @@ export default function ReportHistoryRegistry() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [page, setPage] = useState(1);
   const [detailRow, setDetailRow] = useState<HistoryRow | null>(null);
+  const [bulkExporting, setBulkExporting] = useState(false);
+  const [downloadingIds, setDownloadingIds] = useState<string[]>([]);
   const PAGE_SIZE = 8;
 
   const filtered = useMemo(() => {
@@ -72,10 +108,77 @@ export default function ReportHistoryRegistry() {
     else setSelectedIds(visible.map((v) => v.id));
   };
 
+  const sanitizeSheetName = (name: string) => name.replace(/[\\/*?:[\]]/g, "").slice(0, 31) || "Report";
+
+  const generateFileName = (row: HistoryRow) => {
+    const date = row.dateGenerated;
+    const time = "00-00";
+    return `${row.reportName.replace(/[^\w\d]+/g, "_")}_${date}_${time}.xlsx`;
+  };
+
+  const downloadWorkbook = (rows: HistoryRow[], filename: string) => {
+    const workbook = XLSX.utils.book_new();
+
+    rows.forEach((row) => {
+      const outputRows = RUN_OUTPUTS[row.id] ?? [];
+      const worksheet = XLSX.utils.json_to_sheet(outputRows);
+      XLSX.utils.book_append_sheet(workbook, worksheet, sanitizeSheetName(row.reportName));
+    });
+
+    const workbookArray = XLSX.write(workbook, { type: "array", bookType: "xlsx" });
+    const blob = new Blob([workbookArray], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleRowDownload = (row: HistoryRow) => {
+    if (downloadingIds.includes(row.id)) return;
+    setDownloadingIds((prev) => [...prev, row.id]);
+    try {
+      downloadWorkbook([row], generateFileName(row));
+      toast({ title: "Download complete", description: `${row.reportName} exported as .xlsx` });
+    } catch {
+      toast({ title: "Download failed", description: "Failed generating Excel file for this run." });
+    } finally {
+      setDownloadingIds((prev) => prev.filter((id) => id !== row.id));
+    }
+  };
+
+  const handleBulkExport = () => {
+    if (bulkExporting) return;
+    const exportRows = ROWS.filter((row) => (selectedIds.length ? selectedIds.includes(row.id) : visible.map((v) => v.id).includes(row.id)));
+    if (exportRows.length === 0) {
+      toast({ title: "No rows selected", description: "Select report runs before export." });
+      return;
+    }
+    setBulkExporting(true);
+    try {
+      const fileName = `ReportHistory_Export_${new Date().toISOString().slice(0, 16).replace("T", "_").replace(":", "-")}.xlsx`;
+      downloadWorkbook(exportRows, fileName);
+      toast({ title: "Export complete", description: `${exportRows.length} report runs exported as .xlsx` });
+    } catch {
+      toast({ title: "Export failed", description: "Failed generating bulk Excel export." });
+    } finally {
+      setBulkExporting(false);
+    }
+  };
+
   return (
     <section className="space-y-3">
       <div className="flex items-center justify-end">
-        <button onClick={() => toast({ title: "Bulk export started", description: `${selectedIds.length || visible.length} reports queued for export.` })} className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground">Bulk Export</button>
+        <button
+          onClick={handleBulkExport}
+          disabled={bulkExporting}
+          className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {bulkExporting ? "Exporting..." : "Bulk Export (.xlsx)"}
+        </button>
       </div>
 
       <div className="grid grid-cols-1 gap-2 rounded-xl border border-border bg-card p-3 md:grid-cols-[1.8fr_1fr_1fr_1fr]">
@@ -112,8 +215,15 @@ export default function ReportHistoryRegistry() {
                   <td className="px-3 py-2.5" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center gap-1">
                       <button onClick={() => setDetailRow(row)} className="rounded border border-border p-1.5 hover:bg-muted/30" title="View"><Eye className="h-3.5 w-3.5" /></button>
-                      <button onClick={() => toast({ title: "Download started", description: `${row.reportName} (${row.format})` })} className="rounded border border-border p-1.5 hover:bg-muted/30" title="Download"><Download className="h-3.5 w-3.5" /></button>
-                      <button onClick={() => toast({ title: "More actions", description: `${row.reportName} actions opened.` })} className="rounded border border-border p-1.5 hover:bg-muted/30" title="More"><MoreHorizontal className="h-3.5 w-3.5" /></button>
+                      <button
+                        onClick={() => handleRowDownload(row)}
+                        disabled={downloadingIds.includes(row.id)}
+                        className="rounded border border-border p-1.5 hover:bg-muted/30 disabled:cursor-not-allowed disabled:opacity-60"
+                        title="Download .xlsx"
+                      >
+                        <Download className="h-3.5 w-3.5" />
+                      </button>
+                      <button onClick={() => handleBulkExport()} className="rounded border border-border p-1.5 hover:bg-muted/30" title="Export .xlsx"><MoreHorizontal className="h-3.5 w-3.5" /></button>
                     </div>
                   </td>
                 </tr>
