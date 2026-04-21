@@ -940,12 +940,15 @@ export const AutomationManagement: React.FC = () => {
       </div>
 
       <div className="bg-card/40 border-b border-border rounded-lg p-3 mx-2 mt-2">
-        <div className="grid grid-cols-1 gap-2 md:grid-cols-3 xl:grid-cols-5">
+        <div
+          className="grid w-full items-stretch"
+          style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}
+        >
           {domainWorkspaces.map((workspace) => (
             <button
               key={workspace.id}
               onClick={() => setActiveWorkspace(workspace.id)}
-              className={`flex items-center justify-center rounded-lg border px-3 py-2 text-xs font-semibold transition ${
+              className={`w-full h-full flex items-center justify-center text-center rounded-lg border px-3 py-2 text-xs font-semibold transition ${
                 activeWorkspace === workspace.id
                   ? 'border-primary/40 bg-primary/10 text-primary'
                   : 'border-border bg-card hover:border-primary/30 text-muted-foreground hover:text-foreground'
