@@ -1,8 +1,11 @@
-import { useState } from "react";
-import { Copy, Pencil, Plus, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Copy, Pencil, Plus, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import AdvancedReportBuilder from "@/components/reports/AdvancedReportBuilder";
+
+type CreationMode = "guided" | "visual";
 
 interface Recipient {
   id: string;
@@ -23,6 +26,20 @@ interface PreviewRow {
   owner?: string;
 }
 
+interface ReportDraft {
+  mode: CreationMode;
+  name: string;
+  type: string;
+  description: string;
+  dataSource: string;
+  scope: string;
+  filters: string[];
+  timeDefinition: string;
+  format: "Excel" | "CSV";
+  schedule: string;
+  deliveryChannel: string;
+}
+
 function Modal({ title, children, onClose }: { title: string; children: React.ReactNode; onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
@@ -34,17 +51,38 @@ function Modal({ title, children, onClose }: { title: string; children: React.Re
   );
 }
 
-export default function ReportCreationWorkspace() {
+interface ReportCreationWorkspaceProps {
+  initialMode?: CreationMode;
+}
+
+export default function ReportCreationWorkspace({ initialMode = "guided" }: ReportCreationWorkspaceProps) {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [format, setFormat] = useState<"Excel" | "CSV">("Excel");
-  const [filters, setFilters] = useState<string[]>(["Reliability > 90%"]);
-  const [channel, setChannel] = useState("Email (SMTP)");
+
+  const [draft, setDraft] = useState<ReportDraft>({
+    mode: initialMode,
+    name: "",
+    type: "KPI Report",
+    description: "",
+    dataSource: "Unified KPI Mart",
+    scope: "Tenant A / Region Cairo / LTE",
+    filters: ["Reliability > 90%"],
+    timeDefinition: "Last 30 days · Daily",
+    format: "Excel",
+    schedule: "Weekly · Fri 09:00",
+    deliveryChannel: "Email (SMTP)",
+  });
+
+  useEffect(() => {
+    setDraft((prev) => ({ ...prev, mode: initialMode }));
+  }, [initialMode]);
+
   const [recipients, setRecipients] = useState<Recipient[]>([
     { id: "r1", email: "ops-team@telco.com", role: "Admin" },
     { id: "r2", email: "cto@telco.com", role: "Exec" },
     { id: "r3", email: "vendor-bo@partner.net", role: "External" },
   ]);
+
   const [selectedRow, setSelectedRow] = useState<string | null>(null);
   const [activeCell, setActiveCell] = useState<{ rowId: string; column: string } | null>(null);
   const [editingCell, setEditingCell] = useState<{ rowId: string; column: string } | null>(null);
@@ -67,7 +105,7 @@ export default function ReportCreationWorkspace() {
   const OPTIONAL_COLUMNS = ["Owner", "Dataset", "Format", "Schedule", "Status"];
 
   const visibleRows = rows.filter((row) => {
-    return filters.every((filter) => {
+    return draft.filters.every((filter) => {
       const normalized = filter.toLowerCase();
       const parseThreshold = (text: string) => Number(text.replace(/[^\d.]/g, ""));
       if (normalized.includes("reliability") && normalized.includes(">")) return parseFloat(row.reliability) > parseThreshold(filter);
@@ -83,111 +121,170 @@ export default function ReportCreationWorkspace() {
 
   return (
     <section className="space-y-3">
-      <div className="flex items-center justify-end gap-1.5">
-        <button onClick={() => setScheduleOpen(true)} className="rounded-lg border border-border px-3 py-1.5 text-xs">Schedule Report</button>
-        <button onClick={() => navigate("/reports-module/report-history")} className="rounded-lg border border-border px-3 py-1.5 text-xs">Report History</button>
+      <div className="rounded-xl border border-border bg-card p-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h3 className="text-sm font-semibold">Report Creation</h3>
+            <p className="text-xs text-muted-foreground">One module with two creation styles using the same report model.</p>
+          </div>
+          <div className="flex items-center gap-1 rounded-lg border border-border bg-muted/20 p-1">
+            <button
+              onClick={() => setDraft((prev) => ({ ...prev, mode: "guided" }))}
+              className={cn("rounded-md px-3 py-1.5 text-xs font-medium", draft.mode === "guided" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground")}
+            >
+              Guided Mode
+            </button>
+            <button
+              onClick={() => setDraft((prev) => ({ ...prev, mode: "visual" }))}
+              className={cn("rounded-md px-3 py-1.5 text-xs font-medium", draft.mode === "visual" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground")}
+            >
+              Visual Mode
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 xl:grid-cols-[300px_minmax(0,1fr)]">
-        <aside className="space-y-3 rounded-xl border border-border bg-card p-3">
-          <section className="rounded-lg border border-border bg-background p-3">
-            <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Report Format</p>
-            <div className="space-y-1.5">
-              {(["Excel", "CSV"] as const).map((item) => <button key={item} onClick={() => setFormat(item)} className={cn("w-full rounded-lg border px-2.5 py-1.5 text-left text-sm", format === item ? "border-primary bg-primary/10 text-primary" : "border-border hover:bg-muted/30")}>{item}</button>)}
-            </div>
-          </section>
+      {draft.mode === "visual" ? (
+        <div className="space-y-2">
+          <div className="rounded-lg border border-border bg-card p-2 text-xs text-muted-foreground">
+            Visual Mode is used for visual/legacy Report &amp; Viz Builder definitions. Saving keeps this report in <strong className="text-foreground">mode=visual</strong>.
+          </div>
+          <AdvancedReportBuilder />
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <section className="rounded-lg border border-border bg-card p-3">
+              <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Report Basics</p>
+              <div className="space-y-2 text-xs">
+                <input value={draft.name} onChange={(e) => setDraft((p) => ({ ...p, name: e.target.value }))} placeholder="Report Name" className="h-8 w-full rounded border border-border px-2" />
+                <select value={draft.type} onChange={(e) => setDraft((p) => ({ ...p, type: e.target.value }))} className="h-8 w-full rounded border border-border bg-background px-2">
+                  {["KPI Report", "Alarm Report", "Site Summary Report", "Activity / Audit Report"].map((item) => <option key={item}>{item}</option>)}
+                </select>
+                <input value={draft.description} onChange={(e) => setDraft((p) => ({ ...p, description: e.target.value }))} placeholder="Description" className="h-8 w-full rounded border border-border px-2" />
+              </div>
+            </section>
+            <section className="rounded-lg border border-border bg-card p-3">
+              <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Data Sources</p>
+              <select value={draft.dataSource} onChange={(e) => setDraft((p) => ({ ...p, dataSource: e.target.value }))} className="h-8 w-full rounded border border-border bg-background px-2 text-xs">
+                {["Unified KPI Mart", "Alarm Event Store", "Automation Outcome Cube", "AI Decision Outcomes"].map((item) => <option key={item}>{item}</option>)}
+              </select>
+            </section>
+            <section className="rounded-lg border border-border bg-card p-3">
+              <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Scope</p>
+              <input value={draft.scope} onChange={(e) => setDraft((p) => ({ ...p, scope: e.target.value }))} className="h-8 w-full rounded border border-border px-2 text-xs" />
+            </section>
+            <section className="rounded-lg border border-border bg-card p-3">
+              <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Time Definition</p>
+              <input value={draft.timeDefinition} onChange={(e) => setDraft((p) => ({ ...p, timeDefinition: e.target.value }))} className="h-8 w-full rounded border border-border px-2 text-xs" />
+            </section>
+          </div>
 
-          <section className="rounded-lg border border-border bg-background p-3">
-            <div className="mb-2 flex items-center justify-between"><p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Row Filters</p><span className="text-[10px] text-muted-foreground">{filters.length} active</span></div>
-            <div className="space-y-1.5">
-              {filters.map((f) => (
-                <div key={f} className="flex items-center justify-between rounded-full border border-primary/30 bg-primary/10 px-2 py-1 text-[11px] text-primary">
-                  <span>{f}</span>
-                  <button onClick={() => setFilters((prev) => prev.filter((x) => x !== f))}>×</button>
+          <div className="flex items-center justify-end gap-1.5">
+            <button onClick={() => setScheduleOpen(true)} className="rounded-lg border border-border px-3 py-1.5 text-xs">Schedule</button>
+            <button onClick={() => navigate("/reports-module/report-history")} className="rounded-lg border border-border px-3 py-1.5 text-xs">Report History</button>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 xl:grid-cols-[300px_minmax(0,1fr)]">
+            <aside className="space-y-3 rounded-xl border border-border bg-card p-3">
+              <section className="rounded-lg border border-border bg-background p-3">
+                <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Output Format</p>
+                <div className="space-y-1.5">
+                  {(["Excel", "CSV"] as const).map((item) => <button key={item} onClick={() => setDraft((p) => ({ ...p, format: item }))} className={cn("w-full rounded-lg border px-2.5 py-1.5 text-left text-sm", draft.format === item ? "border-primary bg-primary/10 text-primary" : "border-border hover:bg-muted/30")}>{item}</button>)}
                 </div>
-              ))}
-            </div>
-            <button onClick={() => setAddFilterOpen(true)} className="mt-2 text-[11px] text-primary hover:underline">Add filter</button>
-          </section>
+              </section>
 
-          <section className="rounded-lg border border-border bg-background p-3">
-            <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Delivery Channel</p>
-            <div className="space-y-1.5">
-              {["Email (SMTP)", "SFTP Drop", "REST API Webhook", "Cloud Storage (S3/GCS)"].map((item) => <button key={item} onClick={() => setChannel(item)} className={cn("w-full rounded-lg border px-2.5 py-1.5 text-left text-sm", channel === item ? "border-primary bg-primary/10 text-primary" : "border-border hover:bg-muted/30")}>{item}</button>)}
-            </div>
-          </section>
+              <section className="rounded-lg border border-border bg-background p-3">
+                <div className="mb-2 flex items-center justify-between"><p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Filters</p><span className="text-[10px] text-muted-foreground">{draft.filters.length} active</span></div>
+                <div className="space-y-1.5">
+                  {draft.filters.map((f) => (
+                    <div key={f} className="flex items-center justify-between rounded-full border border-primary/30 bg-primary/10 px-2 py-1 text-[11px] text-primary">
+                      <span>{f}</span>
+                      <button onClick={() => setDraft((p) => ({ ...p, filters: p.filters.filter((x) => x !== f) }))}>×</button>
+                    </div>
+                  ))}
+                </div>
+                <button onClick={() => setAddFilterOpen(true)} className="mt-2 text-[11px] text-primary hover:underline">Add filter</button>
+              </section>
 
-          <section className="rounded-lg border border-border bg-background p-3">
-            <div className="mb-2 flex items-center justify-between"><p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Recipients</p><button onClick={() => setManageOpen(true)} className="text-[11px] text-primary hover:underline">Manage →</button></div>
-            <div className="space-y-1">
-              {recipients.map((r) => <div key={r.id} className="rounded-lg border border-border px-2 py-1.5"><p className="text-[12px]">{r.email}</p><p className="text-[10px] text-muted-foreground">{r.role}</p></div>)}
-            </div>
-            <p className="mt-2 text-[10px] text-amber-700">External recipients require DLP review</p>
-          </section>
-        </aside>
+              <section className="rounded-lg border border-border bg-background p-3">
+                <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Delivery</p>
+                <div className="space-y-1.5">
+                  {["Email (SMTP)", "SFTP Drop", "REST API Webhook", "Cloud Storage (S3/GCS)"].map((item) => <button key={item} onClick={() => setDraft((p) => ({ ...p, deliveryChannel: item }))} className={cn("w-full rounded-lg border px-2.5 py-1.5 text-left text-sm", draft.deliveryChannel === item ? "border-primary bg-primary/10 text-primary" : "border-border hover:bg-muted/30")}>{item}</button>)}
+                </div>
+              </section>
 
-        <main className="rounded-xl border border-border bg-card p-3">
-          <div className="mb-2 flex items-center justify-between">
-            <h3 className="text-sm font-semibold">Report Preview</h3>
-            <div className="flex gap-1.5">
-              <button onClick={() => setColumnPickerOpen(true)} className="inline-flex items-center gap-1 rounded-lg border border-border px-2 py-1 text-xs"><Plus className="h-3 w-3" />Add Column</button>
-              <button onClick={() => toast({ title: "Report created", description: `${format} report is ready with ${rows.length} rows.` })} className="rounded-lg bg-primary px-2.5 py-1.5 text-xs font-semibold text-primary-foreground">Create</button>
-            </div>
+              <section className="rounded-lg border border-border bg-background p-3">
+                <div className="mb-2 flex items-center justify-between"><p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Recipients</p><button onClick={() => setManageOpen(true)} className="text-[11px] text-primary hover:underline">Manage →</button></div>
+                <div className="space-y-1">
+                  {recipients.map((r) => <div key={r.id} className="rounded-lg border border-border px-2 py-1.5"><p className="text-[12px]">{r.email}</p><p className="text-[10px] text-muted-foreground">{r.role}</p></div>)}
+                </div>
+              </section>
+            </aside>
+
+            <main className="rounded-xl border border-border bg-card p-3">
+              <div className="mb-2 flex items-center justify-between">
+                <h3 className="text-sm font-semibold">Guided Mode Preview</h3>
+                <div className="flex gap-1.5">
+                  <button onClick={() => setColumnPickerOpen(true)} className="inline-flex items-center gap-1 rounded-lg border border-border px-2 py-1 text-xs"><Plus className="h-3 w-3" />Add Column</button>
+                  <button
+                    onClick={() => toast({ title: "Report created", description: `${draft.name || "Untitled report"} saved in Guided Mode (mode=guided).` })}
+                    className="rounded-lg bg-primary px-2.5 py-1.5 text-xs font-semibold text-primary-foreground"
+                  >
+                    Create
+                  </button>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto rounded-lg border border-border">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="border-b border-border bg-muted/20">{columns.map((c) => <th key={c} className="border-r border-border/80 px-2 py-1.5 text-[10px] font-semibold uppercase tracking-[0.06em] text-muted-foreground last:border-r-0">{c}</th>)}</tr>
+                  </thead>
+                  <tbody>
+                    {visibleRows.map((row, idx) => (
+                      <tr key={row.id} onClick={() => setSelectedRow(row.id)} className={cn("cursor-pointer border-b border-border/80 last:border-b-0", selectedRow === row.id ? "bg-primary/5" : "hover:bg-muted/15")}>
+                        {columns.map((column) => {
+                          const isActive = activeCell?.rowId === row.id && activeCell.column === column;
+                          const baseCellClass = cn("border-r border-border/70 px-2 py-1.5 text-[12px] last:border-r-0", isActive && "ring-1 ring-inset ring-primary");
+                          if (column === "#") return <td key={`${row.id}-${column}`} className={baseCellClass} onClick={() => setActiveCell({ rowId: row.id, column })}>{idx + 1}</td>;
+                          if (column === "Report Name")
+                            return (
+                              <td key={`${row.id}-${column}`} className={baseCellClass} onClick={() => { setActiveCell({ rowId: row.id, column }); setEditingCell({ rowId: row.id, column }); }}>
+                                {editingCell?.rowId === row.id ? (
+                                  <input autoFocus value={row.reportName} onChange={(e) => updateReportName(row.id, e.target.value)} onBlur={() => setEditingCell(null)} className="h-7 w-full rounded border border-border px-1.5 text-[12px]" />
+                                ) : (
+                                  <span className="font-medium">{row.reportName}</span>
+                                )}
+                              </td>
+                            );
+                          if (column === "Reliability") return <td key={`${row.id}-${column}`} className={cn(baseCellClass, parseFloat(row.reliability) >= 95 ? "text-emerald-700" : "text-orange-600")} onClick={() => setActiveCell({ rowId: row.id, column })}>{row.reliability}</td>;
+                          if (column === "SLA Cov.") return <td key={`${row.id}-${column}`} className={cn(baseCellClass, parseFloat(row.sla) >= 95 ? "text-emerald-700" : "text-orange-600")} onClick={() => setActiveCell({ rowId: row.id, column })}>{row.sla}</td>;
+                          if (column === "Delivery Rate") return <td key={`${row.id}-${column}`} className={cn(baseCellClass, parseFloat(row.delivery) >= 95 ? "text-emerald-700" : "text-orange-600")} onClick={() => setActiveCell({ rowId: row.id, column })}>{row.delivery}</td>;
+                          if (column === "Owner") return <td key={`${row.id}-${column}`} className={baseCellClass} onClick={() => setActiveCell({ rowId: row.id, column })}>{row.owner ?? "Ops BI"}</td>;
+                          if (column === "Dataset") return <td key={`${row.id}-${column}`} className={baseCellClass} onClick={() => setActiveCell({ rowId: row.id, column })}>{row.dataset ?? draft.dataSource}</td>;
+                          if (column === "Format") return <td key={`${row.id}-${column}`} className={baseCellClass} onClick={() => setActiveCell({ rowId: row.id, column })}>{row.format ?? draft.format}</td>;
+                          if (column === "Schedule") return <td key={`${row.id}-${column}`} className={baseCellClass} onClick={() => setActiveCell({ rowId: row.id, column })}>{row.schedule ?? draft.schedule}</td>;
+                          if (column === "Status") return <td key={`${row.id}-${column}`} className={baseCellClass} onClick={() => setActiveCell({ rowId: row.id, column })}>{row.status ?? "Ready"}</td>;
+                          return (
+                            <td key={`${row.id}-${column}`} className={baseCellClass} onClick={(e) => e.stopPropagation()}>
+                              <div className="flex items-center justify-end gap-1">
+                                <button onClick={() => setEditingCell({ rowId: row.id, column: "Report Name" })} className="rounded border border-border p-1" title="Edit"><Pencil className="h-3 w-3" /></button>
+                                <button onClick={() => setRows((prev) => [...prev, { ...row, id: `dup-${Date.now()}`, reportName: `${row.reportName} Copy` }])} className="rounded border border-border p-1" title="Duplicate"><Copy className="h-3 w-3" /></button>
+                                <button onClick={() => setRows((prev) => prev.filter((r) => r.id !== row.id))} className="rounded border border-border p-1 text-rose-600" title="Delete"><Trash2 className="h-3 w-3" /></button>
+                              </div>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </main>
           </div>
-
-          <div className="overflow-x-auto rounded-lg border border-border">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b border-border bg-muted/20">{columns.map((c) => <th key={c} className="border-r border-border/80 px-2 py-1.5 text-[10px] font-semibold uppercase tracking-[0.06em] text-muted-foreground last:border-r-0">{c}</th>)}</tr>
-              </thead>
-              <tbody>
-                {visibleRows.map((row, idx) => (
-                  <tr key={row.id} onClick={() => setSelectedRow(row.id)} className={cn("cursor-pointer border-b border-border/80 last:border-b-0", selectedRow === row.id ? "bg-primary/5" : "hover:bg-muted/15")}>
-                    {columns.map((column) => {
-                      const isActive = activeCell?.rowId === row.id && activeCell.column === column;
-                      const baseCellClass = cn("border-r border-border/70 px-2 py-1.5 text-[12px] last:border-r-0", isActive && "ring-1 ring-inset ring-primary");
-                      if (column === "#") return <td key={`${row.id}-${column}`} className={baseCellClass} onClick={() => setActiveCell({ rowId: row.id, column })}>{idx + 1}</td>;
-                      if (column === "Report Name")
-                        return (
-                          <td key={`${row.id}-${column}`} className={baseCellClass} onClick={() => { setActiveCell({ rowId: row.id, column }); setEditingCell({ rowId: row.id, column }); }}>
-                            {editingCell?.rowId === row.id ? (
-                              <input autoFocus value={row.reportName} onChange={(e) => updateReportName(row.id, e.target.value)} onBlur={() => setEditingCell(null)} className="h-7 w-full rounded border border-border px-1.5 text-[12px]" />
-                            ) : (
-                              <span className="font-medium">{row.reportName}</span>
-                            )}
-                          </td>
-                        );
-                      if (column === "Reliability") return <td key={`${row.id}-${column}`} className={cn(baseCellClass, parseFloat(row.reliability) >= 95 ? "text-emerald-700" : "text-orange-600")} onClick={() => setActiveCell({ rowId: row.id, column })}>{row.reliability}</td>;
-                      if (column === "SLA Cov.") return <td key={`${row.id}-${column}`} className={cn(baseCellClass, parseFloat(row.sla) >= 95 ? "text-emerald-700" : "text-orange-600")} onClick={() => setActiveCell({ rowId: row.id, column })}>{row.sla}</td>;
-                      if (column === "Delivery Rate") return <td key={`${row.id}-${column}`} className={cn(baseCellClass, parseFloat(row.delivery) >= 95 ? "text-emerald-700" : "text-orange-600")} onClick={() => setActiveCell({ rowId: row.id, column })}>{row.delivery}</td>;
-                      if (column === "Owner") return <td key={`${row.id}-${column}`} className={baseCellClass} onClick={() => setActiveCell({ rowId: row.id, column })}>{row.owner ?? "Ops BI"}</td>;
-                      if (column === "Dataset") return <td key={`${row.id}-${column}`} className={baseCellClass} onClick={() => setActiveCell({ rowId: row.id, column })}>{row.dataset ?? "Unified KPI Mart"}</td>;
-                      if (column === "Format") return <td key={`${row.id}-${column}`} className={baseCellClass} onClick={() => setActiveCell({ rowId: row.id, column })}>{row.format ?? format}</td>;
-                      if (column === "Schedule") return <td key={`${row.id}-${column}`} className={baseCellClass} onClick={() => setActiveCell({ rowId: row.id, column })}>{row.schedule ?? "Daily"}</td>;
-                      if (column === "Status") return <td key={`${row.id}-${column}`} className={baseCellClass} onClick={() => setActiveCell({ rowId: row.id, column })}>{row.status ?? "Ready"}</td>;
-                      return (
-                        <td key={`${row.id}-${column}`} className={baseCellClass} onClick={(e) => e.stopPropagation()}>
-                          <div className="flex items-center justify-end gap-1">
-                            <button onClick={() => setEditingCell({ rowId: row.id, column: "Report Name" })} className="rounded border border-border p-1" title="Edit"><Pencil className="h-3 w-3" /></button>
-                            <button onClick={() => setRows((prev) => [...prev, { ...row, id: `dup-${Date.now()}`, reportName: `${row.reportName} Copy` }])} className="rounded border border-border p-1" title="Duplicate"><Copy className="h-3 w-3" /></button>
-                            <button onClick={() => setRows((prev) => prev.filter((r) => r.id !== row.id))} className="rounded border border-border p-1 text-rose-600" title="Delete"><Trash2 className="h-3 w-3" /></button>
-                          </div>
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground">
-            <p>{visibleRows.length} rows · {columns.length} columns</p>
-            <p><span className="text-emerald-700">green</span> = &gt;= 95% · <span className="text-orange-600">orange</span> = &lt; 95% threshold</p>
-            <p className="font-semibold text-foreground">Ready to export</p>
-          </div>
-        </main>
-      </div>
+        </>
+      )}
 
       {manageOpen && (
         <Modal title="Manage Recipients" onClose={() => setManageOpen(false)}>
@@ -212,14 +309,17 @@ export default function ReportCreationWorkspace() {
           <input value={newFilter} onChange={(e) => setNewFilter(e.target.value)} className="h-9 w-full rounded-xl border border-border px-3 text-sm" />
           <div className="mt-3 flex justify-end gap-2">
             <button onClick={() => setAddFilterOpen(false)} className="rounded-lg border border-border px-3 py-1.5 text-xs">Cancel</button>
-            <button onClick={() => { setFilters((p) => [...p, newFilter]); setAddFilterOpen(false); }} className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground">Add</button>
+            <button onClick={() => { setDraft((p) => ({ ...p, filters: [...p.filters, newFilter] })); setAddFilterOpen(false); }} className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground">Add</button>
           </div>
         </Modal>
       )}
 
       {scheduleOpen && (
         <Modal title="Schedule Report" onClose={() => setScheduleOpen(false)}>
-          <p className="text-sm">Scheduling request queued for next available wave.</p>
+          <input value={draft.schedule} onChange={(e) => setDraft((p) => ({ ...p, schedule: e.target.value }))} className="h-9 w-full rounded-xl border border-border px-3 text-sm" />
+          <div className="mt-3 flex justify-end">
+            <button onClick={() => { setScheduleOpen(false); toast({ title: "Schedule updated", description: `Report schedule set to ${draft.schedule}.` }); }} className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground">Save</button>
+          </div>
         </Modal>
       )}
 

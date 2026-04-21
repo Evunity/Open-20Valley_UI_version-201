@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { useParams } from "react-router-dom";
-import AdvancedReportBuilder from "@/components/reports/AdvancedReportBuilder";
 import ReportLibraryModule from "@/components/reports/ReportLibraryModule";
 import ReportCreationWorkspace from "@/components/reports/ReportCreationWorkspace";
 import InsightAuthoringLayer from "@/components/reports/InsightAuthoringLayer";
@@ -18,7 +17,7 @@ export default function ReportsModule() {
   const renderedSection = useMemo(() => {
     switch (activeSectionId) {
       case "report-viz-builder":
-        return <AdvancedReportBuilder />;
+        return <ReportCreationWorkspace initialMode="visual" />;
       case "report-library":
         return <ReportLibraryModule />;
       case "report-creation":
@@ -36,7 +35,7 @@ export default function ReportsModule() {
       case "scheduling-distribution":
         return <SchedulingOrchestrator />;
       default:
-        return <AdvancedReportBuilder />;
+        return <ReportCreationWorkspace />;
     }
   }, [activeSectionId]);
 

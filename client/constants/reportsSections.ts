@@ -7,10 +7,10 @@ export interface ReportsSection {
 
 export const REPORTS_SECTIONS: ReportsSection[] = [
   {
-    id: "report-viz-builder",
-    label: "Report & Viz Builder",
-    path: "/reports-module/report-viz-builder",
-    description: "Compose reports, charts, and narrative blocks.",
+    id: "report-creation",
+    label: "Report Creation",
+    path: "/reports-module/report-creation",
+    description: "Unified report authoring with Guided and Visual modes.",
   },
   {
     id: "report-library",
@@ -19,10 +19,16 @@ export const REPORTS_SECTIONS: ReportsSection[] = [
     description: "Catalog of published and draft reporting assets.",
   },
   {
-    id: "report-creation",
-    label: "Report Creation",
-    path: "/reports-module/report-creation",
-    description: "Guided report setup and template-driven assembly.",
+    id: "report-history",
+    label: "Report History",
+    path: "/reports-module/report-history",
+    description: "Execution logs, retry history, and run outcomes.",
+  },
+  {
+    id: "scheduling-distribution",
+    label: "Scheduling & Distribution",
+    path: "/reports-module/scheduling-distribution",
+    description: "Publish cadence, subscriptions, and channel routing.",
   },
   {
     id: "insights-impact",
@@ -47,18 +53,6 @@ export const REPORTS_SECTIONS: ReportsSection[] = [
     label: "Dataset Manager",
     path: "/reports-module/dataset-manager",
     description: "Data source governance and lineage controls.",
-  },
-  {
-    id: "report-history",
-    label: "Report History",
-    path: "/reports-module/report-history",
-    description: "Execution logs, retry history, and run outcomes.",
-  },
-  {
-    id: "scheduling-distribution",
-    label: "Scheduling & Distribution",
-    path: "/reports-module/scheduling-distribution",
-    description: "Publish cadence, subscriptions, and channel routing.",
   },
 ];
 
