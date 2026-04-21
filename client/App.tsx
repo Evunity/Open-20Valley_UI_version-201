@@ -162,7 +162,7 @@ export default function App() {
                 />
                 <Route
                   path="/reports-module"
-                  element={<Navigate to="/reports-module/executive-reporting-overview" replace />}
+                  element={<Navigate to="/reports-module/create-report" replace />}
                 />
                 <Route
                   path="/reports-module/:sectionId"

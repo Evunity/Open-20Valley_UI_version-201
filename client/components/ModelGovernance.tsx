@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { GitBranch, CheckCircle, AlertCircle, RotateCcw, TrendingUp, TrendingDown, Zap, Settings } from 'lucide-react';
+import { GitBranch, RotateCcw, TrendingUp, TrendingDown, Zap, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface ModelMetrics {
@@ -411,17 +411,6 @@ export const ModelGovernance: React.FC<ModelGovernanceProps> = ({
             </div>
           </div>
         )}
-      </div>
-
-      {/* Info */}
-      <div className="bg-primary/10 border border-primary/30 rounded-lg p-3 mt-auto">
-        <p className="text-xs font-semibold text-foreground mb-1">📊 Model Status Legend</p>
-        <div className="text-xs text-muted-foreground space-y-1">
-          <p>• <strong>Active:</strong> Currently in production, serving automations</p>
-          <p>• <strong>Staged:</strong> Ready for deployment, undergoing final validation</p>
-          <p>• <strong>Idle:</strong> Configured but not deployed</p>
-          <p>• <strong>Deprecated:</strong> No longer used, kept for reference</p>
-        </div>
       </div>
     </div>
   );
