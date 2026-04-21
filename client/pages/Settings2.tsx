@@ -39,7 +39,6 @@ export default function Settings2() {
     systemName: settings.systemName,
     timezone: settings.timezone,
     dateFormat: settings.dateTimeFormat,
-    language: settings.language,
     maintenanceMode: settings.maintenanceMode,
     themeColor: settings.themeColor
   });
@@ -66,7 +65,6 @@ export default function Settings2() {
       systemName: settings.systemName,
       timezone: settings.timezone,
       dateFormat: settings.dateTimeFormat,
-      language: settings.language,
       maintenanceMode: settings.maintenanceMode,
       themeColor: settings.themeColor
     });
@@ -83,7 +81,6 @@ export default function Settings2() {
     systemConfig.systemName !== settings.systemName ||
     systemConfig.timezone !== settings.timezone ||
     systemConfig.dateFormat !== settings.dateTimeFormat ||
-    systemConfig.language !== settings.language ||
     systemConfig.maintenanceMode !== settings.maintenanceMode ||
     systemConfig.themeColor !== settings.themeColor
   );
@@ -107,7 +104,6 @@ export default function Settings2() {
         systemName: systemConfig.systemName.trim(),
         timezone: systemConfig.timezone,
         dateTimeFormat: systemConfig.dateFormat as "iso" | "european" | "us",
-        language: systemConfig.language as typeof settings.language,
         maintenanceMode: systemConfig.maintenanceMode,
         themeColor: systemConfig.themeColor,
       });
@@ -126,7 +122,6 @@ export default function Settings2() {
       systemName: settings.systemName,
       timezone: settings.timezone,
       dateFormat: settings.dateTimeFormat,
-      language: settings.language,
       maintenanceMode: settings.maintenanceMode,
       themeColor: settings.themeColor
     });
@@ -371,24 +366,6 @@ export default function Settings2() {
                           {formatPlatformDateTime(new Date(), systemConfig.timezone, systemConfig.dateFormat as "iso" | "european" | "us")}
                         </p>
                       </div>
-                    </div>
-
-                    {/* Default Language */}
-                    <div>
-                      <label className="block text-sm font-semibold text-foreground mb-2">{t("defaultLanguage")}</label>
-                      <select
-                        value={systemConfig.language}
-                        onChange={(e) => handleConfigChange('language', e.target.value)}
-                        className="w-full rounded border border-border px-3 py-2 bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
-                      >
-                        <option value="en">English</option>
-                        <option value="es">Español (Spanish)</option>
-                        <option value="fr">Français (French)</option>
-                        <option value="de">Deutsch (German)</option>
-                        <option value="zh">中文 (Mandarin Chinese)</option>
-                        <option value="ja">日本語 (Japanese)</option>
-                        <option value="ar">العربية (Arabic)</option>
-                      </select>
                     </div>
 
                     {/* System Maintenance Mode */}
