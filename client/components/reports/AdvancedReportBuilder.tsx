@@ -1,109 +1,148 @@
 import { useMemo, useState } from "react";
-import { AlertTriangle, Eye, Plus, Save, Sparkles } from "lucide-react";
+import { AlertTriangle, Eye, Plus, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import SearchableDropdown from "@/components/SearchableDropdown";
 
 type BuilderStatus = "Draft" | "Validated" | "Open";
-type ChartType = "Bar Chart" | "Line Chart" | "Donut";
+type VisualizationType = "Bar Chart" | "Line Chart" | "Donut" | "Table" | "Heatmap";
+type DataCategory = "KPI" | "Alarm" | "Automation" | "AI" | "Scheduler" | "Inventory" | "Performance" | "SLA" | "Risk" | "Capacity";
 
-interface PaletteKPI {
-  name: string;
-  descriptor: string;
+type SourceStatus = "Healthy" | "Delayed" | "Down";
+
+interface BlockScope {
+  tenant: string;
+  region: string;
+  site: string;
+  cluster: string;
+  vendor: string;
+  technology: string;
+  cell: string;
 }
 
-interface CanvasBlock {
+interface DataSourceInfo {
+  sourceName: string;
+  dataFreshness: string;
+  latency: string;
+  status: SourceStatus;
+}
+
+interface BlockDefinition {
   id: string;
   title: string;
+  dataCategory: DataCategory | "";
+  dataSource: DataSourceInfo;
+  metric: string;
+  scope: BlockScope;
+  timeWindow: string;
+  timeGranularity: string;
+  aggregation: string;
+  filters: string;
+  visualization: VisualizationType;
 }
 
-interface ConditionRule {
-  id: string;
-  when: string;
-  action: string;
-}
+const DATA_CATEGORIES: DataCategory[] = ["KPI", "Alarm", "Automation", "AI", "Scheduler", "Inventory", "Performance", "SLA", "Risk", "Capacity"];
+const VISUALIZATIONS: VisualizationType[] = ["Bar Chart", "Line Chart", "Donut", "Table", "Heatmap"];
+const TIME_WINDOWS = ["Last 24 Hours", "Last 7 Days", "Last 30 Days", "Last 90 Days", "Custom"];
+const GRANULARITIES = ["5 Minutes", "15 Minutes", "Hourly", "Daily", "Weekly", "Monthly"];
+const AGGREGATIONS = ["Sum", "Average", "Min", "Max", "P95", "P99", "Count"];
+const SOURCE_STATUSES: SourceStatus[] = ["Healthy", "Delayed", "Down"];
+const PALETTE_ITEMS = ["KPI Card", "Alarm Trend", "SLA Table", "Capacity Heatmap", "Automation Impact"];
 
-const KPI_ITEMS: PaletteKPI[] = [
-  { name: "Call Setup Success Rate", descriptor: "Accessibility · 4G" },
-  { name: "CS/PS Availability", descriptor: "Accessibility · 3G" },
-  { name: "Average Cell Throughput", descriptor: "Throughput · 5G" },
-  { name: "Spectral Efficiency", descriptor: "Throughput · 4G" },
-  { name: "Radio Link Failure Rate", descriptor: "Latency · 4G" },
-  { name: "Handover Success Rate", descriptor: "Latency · 5G" },
-];
-
-const BLOCK_CATEGORIES = [
-  "Chart",
-  "Table",
-  "Heatmap",
-  "SLA Block",
-  "AI Forecast",
-  "Risk Panel",
-  "Automation Impact",
-  "Financial Risk",
-  "Topology Snapshot",
-];
-
-const DEFAULT_PARAMS = {
-  region: "Cairo Region",
-  vendor: "All Vendors",
-  technology: "LTE, 5G NR",
-  timeWindow: "Last 30 Days",
-  tenant: "All Tenants",
+const DEFAULT_SCOPE: BlockScope = {
+  tenant: "",
+  region: "",
+  site: "",
+  cluster: "",
+  vendor: "",
+  technology: "",
+  cell: "",
 };
 
-function Modal({ title, children, onClose }: { title: string; children: React.ReactNode; onClose: () => void }) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-2xl rounded-xl border border-border bg-card shadow-2xl">
-        <div className="flex items-center justify-between border-b border-border px-4 py-3">
-          <h3 className="text-sm font-semibold">{title}</h3>
-          <button onClick={onClose} className="rounded px-2 py-1 text-sm hover:bg-muted">Close</button>
-        </div>
-        <div className="max-h-[76vh] overflow-auto p-4">{children}</div>
-      </div>
-    </div>
-  );
-}
+const EMPTY_BLOCK = (title: string): BlockDefinition => ({
+  id: `blk-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+  title,
+  dataCategory: "",
+  dataSource: {
+    sourceName: "",
+    dataFreshness: "",
+    latency: "",
+    status: "Healthy",
+  },
+  metric: "",
+  scope: { ...DEFAULT_SCOPE },
+  timeWindow: "",
+  timeGranularity: "",
+  aggregation: "",
+  filters: "",
+  visualization: "Bar Chart",
+});
+
+const isScopeDefined = (scope: BlockScope) =>
+  Object.values(scope).every((value) => value.trim().length > 0);
+
+const isTimeDefined = (block: BlockDefinition) =>
+  block.timeWindow.trim().length > 0 &&
+  block.timeGranularity.trim().length > 0 &&
+  block.aggregation.trim().length > 0;
+
+const isRenderable = (block: BlockDefinition) =>
+  block.metric.trim().length > 0 && isScopeDefined(block.scope) && isTimeDefined(block);
+
+const sourceStatusTone = (status: SourceStatus) => {
+  if (status === "Healthy") return "bg-green-100 text-green-700";
+  if (status === "Delayed") return "bg-amber-100 text-amber-700";
+  return "bg-red-100 text-red-700";
+};
+
+const scopeSummary = (scope: BlockScope) =>
+  `${scope.tenant || "-"} · ${scope.region || "-"} · ${scope.site || "-"} · ${scope.cluster || "-"} · ${scope.vendor || "-"} · ${scope.technology || "-"} · ${scope.cell || "-"}`;
 
 export default function AdvancedReportBuilder() {
   const { toast } = useToast();
   const [status, setStatus] = useState<BuilderStatus>("Draft");
-  const [kpiQuery, setKpiQuery] = useState("");
-  const [activePaletteItem, setActivePaletteItem] = useState<string>("KPI Card");
-  const [activeChartType, setActiveChartType] = useState<ChartType>("Bar Chart");
-  const [canvasBlocks, setCanvasBlocks] = useState<CanvasBlock[]>([]);
-  const [selectedCanvasBlock, setSelectedCanvasBlock] = useState<string | null>(null);
+  const [activePaletteItem, setActivePaletteItem] = useState(PALETTE_ITEMS[0]);
+  const [blocks, setBlocks] = useState<BlockDefinition[]>([]);
+  const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
 
-  const [params, setParams] = useState(DEFAULT_PARAMS);
-  const [sourceModal, setSourceModal] = useState<{ title: string; body: string } | null>(null);
-  const [conditionModalOpen, setConditionModalOpen] = useState(false);
-  const [conditionDraft, setConditionDraft] = useState({ when: "If Utilization > 80%", action: "Show Congestion Analysis section" });
-  const [condition, setCondition] = useState<ConditionRule>({
-    id: "cond-1",
-    when: "If Utilization > 80%",
-    action: "Show Congestion Analysis section",
-  });
-  const [selectedCondition, setSelectedCondition] = useState(false);
-  const [previewOpen, setPreviewOpen] = useState(false);
-  const [simulateOpen, setSimulateOpen] = useState(false);
-
-  const filteredKpis = useMemo(
-    () => KPI_ITEMS.filter((item) => item.name.toLowerCase().includes(kpiQuery.toLowerCase())),
-    [kpiQuery],
+  const selectedBlock = useMemo(
+    () => blocks.find((block) => block.id === selectedBlockId) ?? null,
+    [blocks, selectedBlockId],
   );
 
   const addBlockToCanvas = () => {
-    const title = activePaletteItem === "KPI Card" ? "KPI Card Block" : `${activePaletteItem} Block`;
-    const next: CanvasBlock = { id: `blk-${Date.now()}`, title };
-    setCanvasBlocks((prev) => [...prev, next]);
-    setSelectedCanvasBlock(next.id);
-    toast({ title: "Block added", description: `${title} added to report canvas.` });
+    const nextBlock = EMPTY_BLOCK(`${activePaletteItem} Block`);
+    setBlocks((prev) => [nextBlock, ...prev]);
+    setSelectedBlockId(nextBlock.id);
+    toast({ title: "Block added", description: "Configure Data Category, Source, Metric, Scope, Time, Aggregation and Visualization." });
+  };
+
+  const updateBlock = <K extends keyof BlockDefinition>(key: K, value: BlockDefinition[K]) => {
+    if (!selectedBlockId) return;
+    setBlocks((prev) => prev.map((block) => (block.id === selectedBlockId ? { ...block, [key]: value } : block)));
+  };
+
+  const updateScope = (key: keyof BlockScope, value: string) => {
+    if (!selectedBlockId) return;
+    setBlocks((prev) =>
+      prev.map((block) =>
+        block.id === selectedBlockId ? { ...block, scope: { ...block.scope, [key]: value } } : block,
+      ),
+    );
+  };
+
+  const updateSource = <K extends keyof DataSourceInfo>(key: K, value: DataSourceInfo[K]) => {
+    if (!selectedBlockId) return;
+    setBlocks((prev) =>
+      prev.map((block) =>
+        block.id === selectedBlockId
+          ? { ...block, dataSource: { ...block.dataSource, [key]: value } }
+          : block,
+      ),
+    );
   };
 
   return (
-    <section className="grid grid-cols-1 gap-3 xl:grid-cols-[300px_minmax(0,1fr)_340px]">
-      {/* Left palette */}
+    <section className="grid grid-cols-1 gap-3 xl:grid-cols-[260px_minmax(0,1fr)_360px]">
       <aside className="rounded-xl border border-border bg-card p-3">
         <div className="mb-3 grid grid-cols-3 gap-1.5 rounded-xl bg-muted/30 p-1">
           {(["Draft", "Validated", "Open"] as BuilderStatus[]).map((item) => (
@@ -120,43 +159,9 @@ export default function AdvancedReportBuilder() {
           ))}
         </div>
 
-        <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Report Blocks</p>
-        <button
-          onClick={() => setActivePaletteItem("KPI Card")}
-          className={cn(
-            "mb-2 w-full rounded-xl border px-3 py-2 text-left text-sm font-medium",
-            activePaletteItem === "KPI Card" ? "border-primary bg-primary/10 text-primary" : "border-border hover:bg-muted/30",
-          )}
-        >
-          KPI Card
-        </button>
-
-        <label className="relative mb-2 block">
-          <input
-            value={kpiQuery}
-            onChange={(e) => setKpiQuery(e.target.value)}
-            placeholder="Search KPIs..."
-            className="h-9 w-full rounded-xl border border-border bg-background px-3 text-sm"
-          />
-        </label>
-        <div className="mb-3 max-h-48 space-y-1 overflow-auto rounded-xl border border-border/70 p-1.5">
-          {filteredKpis.map((item) => (
-            <button
-              key={item.name}
-              onClick={() => setActivePaletteItem(item.name)}
-              className={cn(
-                "w-full rounded-lg px-2 py-2 text-left",
-                activePaletteItem === item.name ? "bg-primary/10" : "hover:bg-muted/40",
-              )}
-            >
-              <p className="text-[12px] font-medium">{item.name}</p>
-              <p className="text-[10px] text-muted-foreground">{item.descriptor}</p>
-            </button>
-          ))}
-        </div>
-
+        <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Report &amp; Viz Blocks</p>
         <div className="space-y-1">
-          {BLOCK_CATEGORIES.map((item) => (
+          {PALETTE_ITEMS.map((item) => (
             <button
               key={item}
               onClick={() => setActivePaletteItem(item)}
@@ -170,198 +175,160 @@ export default function AdvancedReportBuilder() {
           ))}
         </div>
 
-        <p className="mb-2 mt-4 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Chart Types</p>
-        <div className="space-y-1.5">
-          {(["Bar Chart", "Line Chart", "Donut"] as ChartType[]).map((item) => (
-            <button
-              key={item}
-              onClick={() => setActiveChartType(item)}
-              className={cn(
-                "w-full rounded-lg border px-2.5 py-1.5 text-left text-[12px]",
-                activeChartType === item ? "border-primary bg-primary/10 text-primary" : "border-border hover:bg-muted/30",
-              )}
-            >
-              {item}
-            </button>
-          ))}
-        </div>
-      </aside>
-
-      {/* Canvas */}
-      <main className="rounded-xl border border-border bg-card p-4">
-        <p className="mb-3 text-sm font-semibold">Report: Untitled Report</p>
-
-        <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
-          {[
-            { title: "Fault Index", value: "3.2", sub: "Threshold: 2.5" },
-            { title: "Total Alarms", value: "24,891", sub: "-12% reduction" },
-            { title: "Clear Rate", value: "94.7%", sub: "+2.1% QoQ" },
-          ].map((card) => (
-            <article key={card.title} className="rounded-xl border border-border bg-background p-3">
-              <p className="text-[11px] text-muted-foreground">{card.title}</p>
-              <p className="mt-1 text-xl font-bold">{card.value}</p>
-              <p className="text-[11px] text-muted-foreground">{card.sub}</p>
-            </article>
-          ))}
-        </div>
-
-        <div className="mt-3 rounded-xl border border-emerald-400/40 bg-emerald-500/10 px-3 py-2 text-[12px] text-emerald-700">
-          Temporal Alignment: Auto-normalized — Hourly + Weekly + Monthly
-        </div>
-
-        <section className="mt-3 rounded-xl border border-border bg-background p-3">
-          <div className="mb-2 flex items-center justify-between">
-            <h3 className="text-sm font-semibold">Alarm Trend — Last 30 Days</h3>
-            <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-              <span>42 data points</span>
-              <span className="rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-primary">Multi-Source</span>
-            </div>
-          </div>
-          <div className="relative h-52 rounded-lg border border-border/70 bg-muted/10 p-3">
-            <div className="absolute right-2 top-1/2 z-10 -translate-y-1/2 text-[10px] text-muted-foreground">Threshold: 2500</div>
-            <div className="absolute left-0 right-0 top-1/2 border-t border-dashed border-rose-500/80" />
-            <div className="absolute left-[68%] top-0 bottom-0 border-l border-amber-500/90" />
-            <div className="absolute left-[67%] top-4 rounded-md border border-amber-500/50 bg-amber-500/10 px-2 py-1 text-[10px] text-amber-700">Incident #4821</div>
-            <div className="flex h-full items-end justify-between gap-1">
-              {[1800, 2100, 1950, 2300, 2600, 1700, 2800, 2200, 2400, 2000, 2550, 1900].map((value, idx) => (
-                <div
-                  key={`${value}-${idx}`}
-                  className={cn(
-                    "w-full rounded-t",
-                    idx === 6 ? "bg-red-500" : idx === 8 ? "bg-orange-500" : idx % 3 === 0 ? "bg-indigo-500" : "bg-blue-500",
-                  )}
-                  style={{ height: `${Math.max(20, value / 35)}px` }}
-                />
-              ))}
-            </div>
-          </div>
-        </section>
-
         <button
           onClick={addBlockToCanvas}
-          className="mt-3 block w-full rounded-xl border-2 border-dashed border-border px-4 py-6 text-center hover:border-primary/50 hover:bg-muted/30"
+          className="mt-3 inline-flex w-full items-center justify-center gap-1 rounded-lg bg-primary px-2.5 py-2 text-xs font-semibold text-primary-foreground"
         >
-          <p className="text-sm font-medium">Drag blocks here to add to report</p>
-          <p className="text-[11px] text-muted-foreground">Active palette: {activePaletteItem}</p>
+          <Plus className="h-3.5 w-3.5" /> Add Block
         </button>
-
-        {canvasBlocks.length > 0 && (
-          <div className="mt-3 space-y-2">
-            {canvasBlocks.map((block) => (
-              <button
-                key={block.id}
-                onClick={() => setSelectedCanvasBlock(block.id)}
-                className={cn(
-                  "w-full rounded-xl border px-3 py-2 text-left",
-                  selectedCanvasBlock === block.id ? "border-primary bg-primary/10" : "border-border bg-background",
-                )}
-              >
-                <p className="text-sm font-medium">{block.title}</p>
-                <p className="text-[11px] text-muted-foreground">Mock block added from palette selection</p>
-              </button>
-            ))}
-          </div>
-        )}
-      </main>
-
-      {/* Right config */}
-      <aside className="space-y-3 rounded-xl border border-border bg-card p-3">
-        <div className="flex items-center justify-end gap-1.5">
-          <button onClick={() => setSimulateOpen(true)} className="rounded-lg border border-border px-2.5 py-1.5 text-xs">Simulate</button>
-          <button onClick={() => setPreviewOpen(true)} className="rounded-lg border border-border px-2.5 py-1.5 text-xs">Preview</button>
-          <button onClick={() => toast({ title: "Report saved", description: "Untitled Report saved successfully." })} className="rounded-lg bg-primary px-2.5 py-1.5 text-xs font-semibold text-primary-foreground">Save Report</button>
-        </div>
-
-        <section className="rounded-xl border border-border bg-background p-3">
-          <div className="mb-2 flex items-center justify-between">
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Parameters</h3>
-            <button onClick={() => setParams(DEFAULT_PARAMS)} className="text-[11px] text-primary hover:underline">Reset</button>
-          </div>
-          <div className="space-y-2">
-            <div><p className="mb-1 text-[11px]">Region</p><SearchableDropdown label="" compact multiSelect={false} options={["Cairo Region", "Alexandria Region"]} selected={[params.region]} onChange={(v) => setParams((p) => ({ ...p, region: v[0] ?? p.region }))} dropdownId="builder-param-region" /></div>
-            <div><p className="mb-1 text-[11px]">Vendor</p><SearchableDropdown label="" compact multiSelect={false} options={["All Vendors", "Huawei", "Nokia", "Ericsson"]} selected={[params.vendor]} onChange={(v) => setParams((p) => ({ ...p, vendor: v[0] ?? p.vendor }))} dropdownId="builder-param-vendor" /></div>
-            <div><p className="mb-1 text-[11px]">Technology</p><SearchableDropdown label="" compact multiSelect={false} options={["LTE, 5G NR", "LTE", "5G NR", "3G"]} selected={[params.technology]} onChange={(v) => setParams((p) => ({ ...p, technology: v[0] ?? p.technology }))} dropdownId="builder-param-tech" /></div>
-            <div><p className="mb-1 text-[11px]">Time Window</p><SearchableDropdown label="" compact multiSelect={false} options={["Last 30 Days", "Last 7 Days", "Last 90 Days"]} selected={[params.timeWindow]} onChange={(v) => setParams((p) => ({ ...p, timeWindow: v[0] ?? p.timeWindow }))} dropdownId="builder-param-time" /></div>
-            <div><p className="mb-1 text-[11px]">Tenant</p><SearchableDropdown label="" compact multiSelect={false} options={["All Tenants", "Tenant A", "Tenant B"]} selected={[params.tenant]} onChange={(v) => setParams((p) => ({ ...p, tenant: v[0] ?? p.tenant }))} dropdownId="builder-param-tenant" /></div>
-          </div>
-        </section>
-
-        <section className="rounded-xl border border-border bg-background p-3">
-          <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Data Sources</h3>
-          <div className="space-y-1.5 text-sm">
-            <button onClick={() => setSourceModal({ title: "Alarm KPI Dataset", body: "Primary alarm source. Refreshed every 5 minutes." })} className="w-full rounded-lg border border-border px-2 py-1.5 text-left hover:bg-muted/30">Alarm KPI Dataset</button>
-            <button onClick={() => setSourceModal({ title: "Automation Executions", body: "Execution outcomes and rollback telemetry stream." })} className="w-full rounded-lg border border-border px-2 py-1.5 text-left hover:bg-muted/30">Automation Executions</button>
-            <button onClick={() => setSourceModal({ title: "Transport KPI (delayed)", body: "Warning: latest batch delayed by 27 minutes." })} className="flex w-full items-center justify-between rounded-lg border border-amber-500/40 bg-amber-500/10 px-2 py-1.5 text-left">
-              <span>Transport KPI (delayed)</span>
-              <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
-            </button>
-          </div>
-          <div className="mt-2 rounded-lg border border-emerald-500/40 bg-emerald-500/10 p-2">
-            <p className="text-xs font-semibold text-emerald-700">Multi-Source Fusion Active</p>
-            <p className="text-[11px] text-emerald-700/90">Alarm Reduction + Automation Executions + Automation ROI</p>
-          </div>
-        </section>
-
-        <section className="rounded-xl border border-border bg-background p-3">
-          <h3 className="mb-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Conditional Logic</h3>
-          <p className="mb-2 text-[11px] text-muted-foreground">Show/hide report sections based on thresholds</p>
-          <button
-            onClick={() => {
-              setSelectedCondition(true);
-              setConditionDraft({ when: condition.when, action: condition.action });
-              setConditionModalOpen(true);
-            }}
-            className={cn(
-              "w-full rounded-lg border px-2 py-2 text-left",
-              selectedCondition ? "border-primary bg-primary/10" : "border-border hover:bg-muted/30",
-            )}
-          >
-            <p className="text-sm font-medium">{condition.when}</p>
-            <p className="text-[11px] text-muted-foreground">{condition.action}</p>
-          </button>
-          <button onClick={() => { setSelectedCondition(false); setConditionDraft({ when: "If Utilization > 80%", action: "Show Congestion Analysis section" }); setConditionModalOpen(true); }} className="mt-2 text-xs text-primary hover:underline">Add condition</button>
-        </section>
       </aside>
 
-      {sourceModal && (
-        <Modal title={sourceModal.title} onClose={() => setSourceModal(null)}>
-          <p className="text-sm">{sourceModal.body}</p>
-        </Modal>
-      )}
+      <main className="rounded-xl border border-border bg-card p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <p className="text-sm font-semibold">Report &amp; Viz Builder Canvas</p>
+          <div className="flex items-center gap-1.5">
+            <button onClick={() => toast({ title: "Preview", description: "Preview uses only fully configured blocks." })} className="rounded-lg border border-border px-2.5 py-1.5 text-xs"><Eye className="mr-1 inline h-3.5 w-3.5" />Preview</button>
+            <button onClick={() => toast({ title: "Report saved", description: "Configuration saved." })} className="rounded-lg bg-primary px-2.5 py-1.5 text-xs font-semibold text-primary-foreground"><Save className="mr-1 inline h-3.5 w-3.5" />Save</button>
+          </div>
+        </div>
 
-      {conditionModalOpen && (
-        <Modal title="Condition Builder" onClose={() => setConditionModalOpen(false)}>
+        {blocks.length === 0 && (
+          <div className="rounded-xl border-2 border-dashed border-border px-4 py-10 text-center text-sm text-muted-foreground">
+            Add a block from the left panel. A block only renders after Metric, Scope, and Time are defined.
+          </div>
+        )}
+
+        <div className="space-y-3">
+          {blocks.map((block) => {
+            const valid = isRenderable(block);
+            return (
+              <article
+                key={block.id}
+                onClick={() => setSelectedBlockId(block.id)}
+                className={cn(
+                  "cursor-pointer rounded-xl border bg-background p-3",
+                  selectedBlockId === block.id ? "border-primary" : "border-border",
+                )}
+              >
+                <div className="mb-2 flex items-start justify-between gap-2">
+                  <div>
+                    <p className="text-sm font-semibold">{block.title}</p>
+                    <p className="text-[11px] text-muted-foreground">Data Category: {block.dataCategory || "Not set"} · Visualization: {block.visualization}</p>
+                  </div>
+                  <span className={cn("rounded px-2 py-0.5 text-[11px] font-semibold", valid ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700")}>{valid ? "Renderable" : "Blocked"}</span>
+                </div>
+
+                <div className="grid gap-2 text-[11px] md:grid-cols-2">
+                  <div className="rounded border border-border p-2">
+                    <p className="font-semibold text-muted-foreground">Block Header</p>
+                    <p>Source: {block.dataSource.sourceName || "Not set"}</p>
+                    <p>Scope: {scopeSummary(block.scope)}</p>
+                    <p>Time Window: {block.timeWindow || "Not set"}</p>
+                    <p>Granularity: {block.timeGranularity || "Not set"}</p>
+                    <p>Aggregation: {block.aggregation || "Not set"}</p>
+                  </div>
+                  <div className="rounded border border-border p-2">
+                    <p className="font-semibold text-muted-foreground">Data Source Panel</p>
+                    <p>Source Name: {block.dataSource.sourceName || "Not set"}</p>
+                    <p>Data Freshness: {block.dataSource.dataFreshness || "Not set"}</p>
+                    <p>Latency: {block.dataSource.latency || "Not set"}</p>
+                    <p>
+                      Status: <span className={cn("rounded px-1.5 py-0.5", sourceStatusTone(block.dataSource.status))}>{block.dataSource.status}</span>
+                    </p>
+                  </div>
+                </div>
+
+                {!valid ? (
+                  <div className="mt-2 flex items-center gap-2 rounded border border-amber-400/50 bg-amber-50 px-2 py-1.5 text-[11px] text-amber-800">
+                    <AlertTriangle className="h-3.5 w-3.5" />
+                    Cannot render block: metric, complete scope, and complete time definition are required.
+                  </div>
+                ) : (
+                  <div className="mt-2 rounded border border-green-400/50 bg-green-50 px-2 py-1.5 text-[11px] text-green-800">
+                    Rendering with Metric: {block.metric} · Filters: {block.filters || "None"}
+                  </div>
+                )}
+              </article>
+            );
+          })}
+        </div>
+      </main>
+
+      <aside className="space-y-3 rounded-xl border border-border bg-card p-3">
+        <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Block Configuration (Required)</h3>
+
+        {!selectedBlock && <p className="text-xs text-muted-foreground">Select a block on canvas to configure it.</p>}
+
+        {selectedBlock && (
           <div className="space-y-3">
             <label className="block">
-              <p className="mb-1 text-xs font-semibold text-muted-foreground">Condition</p>
-              <input value={conditionDraft.when} onChange={(e) => setConditionDraft((p) => ({ ...p, when: e.target.value }))} className="h-10 w-full rounded-xl border border-border px-3 text-sm" />
+              <p className="mb-1 text-[11px]">Data Category *</p>
+              <select value={selectedBlock.dataCategory} onChange={(e) => updateBlock("dataCategory", e.target.value as DataCategory)} className="h-9 w-full rounded border border-border bg-background px-2 text-sm">
+                <option value="">Select Data Category</option>
+                {DATA_CATEGORIES.map((item) => <option key={item}>{item}</option>)}
+              </select>
             </label>
+
+            <section className="rounded-lg border border-border bg-background p-2">
+              <p className="mb-2 text-[11px] font-semibold text-muted-foreground">Data Source Panel *</p>
+              <div className="space-y-2">
+                <label className="block"><p className="mb-1 text-[11px]">Source Name</p><input value={selectedBlock.dataSource.sourceName} onChange={(e) => updateSource("sourceName", e.target.value)} className="h-9 w-full rounded border border-border px-2 text-sm" /></label>
+                <label className="block"><p className="mb-1 text-[11px]">Data Freshness</p><input value={selectedBlock.dataSource.dataFreshness} onChange={(e) => updateSource("dataFreshness", e.target.value)} placeholder="e.g. 2m ago" className="h-9 w-full rounded border border-border px-2 text-sm" /></label>
+                <label className="block"><p className="mb-1 text-[11px]">Latency</p><input value={selectedBlock.dataSource.latency} onChange={(e) => updateSource("latency", e.target.value)} placeholder="e.g. 120ms" className="h-9 w-full rounded border border-border px-2 text-sm" /></label>
+                <label className="block"><p className="mb-1 text-[11px]">Status</p><select value={selectedBlock.dataSource.status} onChange={(e) => updateSource("status", e.target.value as SourceStatus)} className="h-9 w-full rounded border border-border bg-background px-2 text-sm">{SOURCE_STATUSES.map((s) => <option key={s}>{s}</option>)}</select></label>
+              </div>
+            </section>
+
             <label className="block">
-              <p className="mb-1 text-xs font-semibold text-muted-foreground">Action</p>
-              <input value={conditionDraft.action} onChange={(e) => setConditionDraft((p) => ({ ...p, action: e.target.value }))} className="h-10 w-full rounded-xl border border-border px-3 text-sm" />
+              <p className="mb-1 text-[11px]">Metric *</p>
+              <input value={selectedBlock.metric} onChange={(e) => updateBlock("metric", e.target.value)} className="h-9 w-full rounded border border-border px-2 text-sm" />
             </label>
-            <div className="flex justify-end gap-2">
-              <button onClick={() => setConditionModalOpen(false)} className="rounded-lg border border-border px-3 py-1.5 text-xs">Cancel</button>
-              <button onClick={() => { setCondition({ id: condition.id, ...conditionDraft }); setConditionModalOpen(false); toast({ title: "Condition saved", description: "Conditional logic updated." }); }} className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground">Save Condition</button>
-            </div>
-          </div>
-        </Modal>
-      )}
 
-      {previewOpen && (
-        <Modal title="Report Preview" onClose={() => setPreviewOpen(false)}>
-          <p className="text-sm text-muted-foreground">Preview mode with current parameters: {params.region} · {params.vendor} · {params.technology} · {params.timeWindow} · {params.tenant}</p>
-        </Modal>
-      )}
+            <section className="rounded-lg border border-border bg-background p-2">
+              <p className="mb-2 text-[11px] font-semibold text-muted-foreground">Scope Panel *</p>
+              <div className="grid grid-cols-2 gap-2">
+                {(
+                  [
+                    ["tenant", "Tenant"],
+                    ["region", "Region"],
+                    ["site", "Site"],
+                    ["cluster", "Cluster"],
+                    ["vendor", "Vendor"],
+                    ["technology", "Technology"],
+                    ["cell", "Cell"],
+                  ] as Array<[keyof BlockScope, string]>
+                ).map(([key, label]) => (
+                  <label key={key} className="block">
+                    <p className="mb-1 text-[11px]">{label}</p>
+                    <input value={selectedBlock.scope[key]} onChange={(e) => updateScope(key, e.target.value)} className="h-8 w-full rounded border border-border px-2 text-xs" />
+                  </label>
+                ))}
+              </div>
+            </section>
 
-      {simulateOpen && (
-        <Modal title="Simulation Result" onClose={() => setSimulateOpen(false)}>
-          <div className="rounded-lg border border-primary/30 bg-primary/10 p-3">
-            <p className="flex items-center gap-1 text-sm font-semibold text-primary"><Sparkles className="h-4 w-4" />Simulation completed</p>
-            <p className="mt-1 text-sm">Forecast indicates 8.4% alarm reduction if selected logic is applied.</p>
+            <section className="rounded-lg border border-border bg-background p-2">
+              <p className="mb-2 text-[11px] font-semibold text-muted-foreground">Time Panel *</p>
+              <div className="space-y-2">
+                <label className="block"><p className="mb-1 text-[11px]">Time Window</p><select value={selectedBlock.timeWindow} onChange={(e) => updateBlock("timeWindow", e.target.value)} className="h-9 w-full rounded border border-border bg-background px-2 text-sm"><option value="">Select</option>{TIME_WINDOWS.map((item) => <option key={item}>{item}</option>)}</select></label>
+                <label className="block"><p className="mb-1 text-[11px]">Time Granularity</p><select value={selectedBlock.timeGranularity} onChange={(e) => updateBlock("timeGranularity", e.target.value)} className="h-9 w-full rounded border border-border bg-background px-2 text-sm"><option value="">Select</option>{GRANULARITIES.map((item) => <option key={item}>{item}</option>)}</select></label>
+                <label className="block"><p className="mb-1 text-[11px]">Aggregation</p><select value={selectedBlock.aggregation} onChange={(e) => updateBlock("aggregation", e.target.value)} className="h-9 w-full rounded border border-border bg-background px-2 text-sm"><option value="">Select</option>{AGGREGATIONS.map((item) => <option key={item}>{item}</option>)}</select></label>
+              </div>
+            </section>
+
+            <label className="block">
+              <p className="mb-1 text-[11px]">Filters</p>
+              <input value={selectedBlock.filters} onChange={(e) => updateBlock("filters", e.target.value)} className="h-9 w-full rounded border border-border px-2 text-sm" />
+            </label>
+
+            <label className="block">
+              <p className="mb-1 text-[11px]">Visualization *</p>
+              <select value={selectedBlock.visualization} onChange={(e) => updateBlock("visualization", e.target.value as VisualizationType)} className="h-9 w-full rounded border border-border bg-background px-2 text-sm">
+                {VISUALIZATIONS.map((item) => <option key={item}>{item}</option>)}
+              </select>
+            </label>
           </div>
-        </Modal>
-      )}
+        )}
+      </aside>
     </section>
   );
 }
