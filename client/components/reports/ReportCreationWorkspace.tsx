@@ -141,7 +141,14 @@ export default function ReportCreationWorkspace({ initialMode = "guided" }: Repo
   const TIME_WINDOWS = ["Last 24 Hours", "Last 7 Days", "Last 30 Days", "Last 90 Days", "Custom Range"];
   const TIME_GRANULARITIES = ["5 Minutes", "15 Minutes", "Hourly", "Daily", "Weekly", "Monthly"];
   const AGGREGATIONS = ["Count", "Sum", "Average", "Min", "Max", "Rate", "Percentage", "Latest Value", "Top N"];
-  const DATA_SOURCES = ["Unified KPI Mart", "Alarm Event Store", "Automation Outcome Cube", "AI Decision Outcomes", "Scheduler Jobs"];
+  const DATA_SOURCES = [
+    "Alarm Management",
+    "Automation",
+    "Topology",
+    "Performance",
+    "AI",
+    "Scheduler",
+  ];
 
   const visibleRows = rows.filter((row) => {
     return draft.filters.every((filter) => {

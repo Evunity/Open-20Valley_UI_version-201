@@ -30,12 +30,6 @@ export const REPORTS_SECTIONS: ReportsSection[] = [
     path: "/reports-module/scheduling-distribution",
     description: "Publish cadence, subscriptions, and channel routing.",
   },
-  {
-    id: "dataset-manager",
-    label: "Dataset Manager",
-    path: "/reports-module/dataset-manager",
-    description: "Data source governance and lineage controls.",
-  },
 ];
 
 export const DEFAULT_REPORTS_SECTION = REPORTS_SECTIONS[0];

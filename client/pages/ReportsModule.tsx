@@ -2,7 +2,6 @@ import { useMemo } from "react";
 import { useParams } from "react-router-dom";
 import ReportLibraryModule from "@/components/reports/ReportLibraryModule";
 import ReportCreationWorkspace from "@/components/reports/ReportCreationWorkspace";
-import DatasetManager from "@/components/reports/DatasetManager";
 import ReportHistoryRegistry from "@/components/reports/ReportHistoryRegistry";
 import SchedulingOrchestrator from "@/components/reports/SchedulingOrchestrator";
 import { DEFAULT_REPORTS_SECTION } from "@/constants/reportsSections";
@@ -19,8 +18,6 @@ export default function ReportsModule() {
         return <ReportLibraryModule />;
       case "report-creation":
         return <ReportCreationWorkspace />;
-      case "dataset-manager":
-        return <DatasetManager />;
       case "report-history":
         return <ReportHistoryRegistry />;
       case "scheduling-distribution":
