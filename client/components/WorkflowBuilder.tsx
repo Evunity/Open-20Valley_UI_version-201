@@ -12,7 +12,7 @@ interface Handle {
 
 interface WorkflowNode {
   id: string;
-  type: 'trigger' | 'action' | 'condition' | 'api-call' | 'notification' | 'loop' | 'delay';
+  type: string;
   label: string;
   x: number;
   y: number;
@@ -39,55 +39,98 @@ interface Workflow {
   active: boolean;
 }
 
-const NODE_TYPES = {
-  trigger: { icon: '🔔', label: 'Trigger', color: 'bg-blue-500', bgLight: 'bg-blue-100 dark:bg-blue-950' },
-  action: { icon: '⚙️', label: 'Action', color: 'bg-purple-500', bgLight: 'bg-purple-100 dark:bg-purple-950' },
-  condition: { icon: '❓', label: 'Condition', color: 'bg-amber-500', bgLight: 'bg-amber-100 dark:bg-amber-950' },
-  'api-call': { icon: '🌐', label: 'API Call', color: 'bg-cyan-500', bgLight: 'bg-cyan-100 dark:bg-cyan-950' },
-  notification: { icon: '📢', label: 'Notify', color: 'bg-pink-500', bgLight: 'bg-pink-100 dark:bg-pink-950' },
-  loop: { icon: '🔄', label: 'Loop', color: 'bg-green-500', bgLight: 'bg-green-100 dark:bg-green-950' },
-  delay: { icon: '⏳', label: 'Delay', color: 'bg-indigo-500', bgLight: 'bg-indigo-100 dark:bg-indigo-950' }
-};
+type FieldType = 'text' | 'textarea' | 'number' | 'select' | 'multiselect' | 'checkbox' | 'time' | 'datetime';
+interface NodeFieldSchema {
+  key: string;
+  label: string;
+  type: FieldType;
+  helper?: string;
+  options?: string[];
+  defaultValue?: any;
+}
+interface NodeLibraryItem {
+  type: string;
+  label: string;
+  category: string;
+  description: string;
+  icon: string;
+  bgLight: string;
+  flow: 'trigger' | 'condition' | 'switch' | 'default' | 'terminal';
+  fields: NodeFieldSchema[];
+}
 
-const getNodeHandles = (nodeType: WorkflowNode['type']): Handle[] => {
-  const baseHandles: Handle[] = [];
-  
-  if (nodeType === 'trigger') {
-    baseHandles.push({
-      id: 'output_main',
-      type: 'output',
-      label: 'Start'
-    });
-  } else if (nodeType === 'condition') {
-    baseHandles.push({
-      id: 'input_main',
-      type: 'input',
-      label: 'Input'
-    });
-    baseHandles.push({
-      id: 'output_true',
-      type: 'output',
-      label: 'True'
-    });
-    baseHandles.push({
-      id: 'output_false',
-      type: 'output',
-      label: 'False'
-    });
-  } else {
-    baseHandles.push({
-      id: 'input_main',
-      type: 'input',
-      label: 'Input'
-    });
-    baseHandles.push({
-      id: 'output_main',
-      type: 'output',
-      label: 'Output'
-    });
+const KPI_OPTIONS = ['Availability', 'CSSR', 'DCR', 'HOSR', 'PRB_DL', 'PRB_UL', 'DL_Throughput', 'UL_Throughput', 'RRC_Users'];
+const COMPARISON_OPTIONS = ['=', '!=', '>', '<', '>=', '<=', 'contains'];
+const SCOPE_OPTIONS = ['site', 'cell', 'link', 'node'];
+const SEVERITY_OPTIONS = ['critical', 'major', 'minor', 'warning', 'info'];
+
+const NODE_LIBRARY: NodeLibraryItem[] = [
+  { type: 'manual-trigger', label: 'Manual Trigger', category: 'Triggers', description: 'Run on-demand by an operator.', icon: '🖐️', bgLight: 'bg-blue-100 dark:bg-blue-950', flow: 'trigger', fields: [{ key: 'input_fields', label: 'Input Fields', type: 'textarea', helper: 'Optional JSON field list.' }, { key: 'allowed_roles', label: 'Allowed Roles', type: 'multiselect', options: ['admin', 'noc', 'engineer', 'viewer'] }] },
+  { type: 'scheduled-trigger', label: 'Scheduled Trigger', category: 'Triggers', description: 'Run by schedule.', icon: '⏱️', bgLight: 'bg-blue-100 dark:bg-blue-950', flow: 'trigger', fields: [{ key: 'schedule_type', label: 'Schedule Type', type: 'select', options: ['once', 'daily', 'weekly', 'monthly'], defaultValue: 'daily' }, { key: 'run_time', label: 'Run Time', type: 'time' }, { key: 'timezone', label: 'Timezone', type: 'text', defaultValue: 'UTC' }, { key: 'days_of_week', label: 'Days of Week', type: 'multiselect', options: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] }, { key: 'day_of_month', label: 'Day of Month', type: 'number' }] },
+  { type: 'kpi-threshold-trigger', label: 'KPI Threshold Trigger', category: 'Triggers', description: 'Trigger on KPI breach.', icon: '📈', bgLight: 'bg-blue-100 dark:bg-blue-950', flow: 'trigger', fields: [{ key: 'scope_type', label: 'Scope Type', type: 'select', options: SCOPE_OPTIONS }, { key: 'scope_ids', label: 'Scope IDs', type: 'textarea' }, { key: 'kpi_name', label: 'KPI Name', type: 'select', options: KPI_OPTIONS }, { key: 'comparison', label: 'Comparison', type: 'select', options: COMPARISON_OPTIONS }, { key: 'threshold_value', label: 'Threshold', type: 'number' }, { key: 'granularity', label: 'Granularity', type: 'select', options: ['5m', '15m', '1h', '1d'] }, { key: 'consecutive_intervals', label: 'Consecutive Intervals', type: 'number', defaultValue: 1 }] },
+  { type: 'alarm-raised-trigger', label: 'Alarm Raised Trigger', category: 'Triggers', description: 'Trigger on alarm raised.', icon: '🚨', bgLight: 'bg-blue-100 dark:bg-blue-950', flow: 'trigger', fields: [{ key: 'scope_type', label: 'Scope Type', type: 'select', options: SCOPE_OPTIONS }, { key: 'scope_ids', label: 'Scope IDs', type: 'textarea' }, { key: 'alarm_codes', label: 'Alarm Codes', type: 'textarea' }, { key: 'severity', label: 'Severity', type: 'multiselect', options: SEVERITY_OPTIONS }, { key: 'source_type', label: 'Source Type', type: 'text' }] },
+  { type: 'alarm-cleared-trigger', label: 'Alarm Cleared Trigger', category: 'Triggers', description: 'Trigger on alarm clear.', icon: '✅', bgLight: 'bg-blue-100 dark:bg-blue-950', flow: 'trigger', fields: [{ key: 'scope_type', label: 'Scope Type', type: 'select', options: SCOPE_OPTIONS }, { key: 'scope_ids', label: 'Scope IDs', type: 'textarea' }, { key: 'alarm_codes', label: 'Alarm Codes', type: 'textarea' }, { key: 'severity', label: 'Severity', type: 'multiselect', options: SEVERITY_OPTIONS }] },
+  { type: 'if-condition', label: 'If Condition', category: 'Logic', description: 'Branch with expression.', icon: '❓', bgLight: 'bg-amber-100 dark:bg-amber-950', flow: 'condition', fields: [{ key: 'left_value', label: 'Left Value', type: 'text' }, { key: 'operator', label: 'Operator', type: 'select', options: COMPARISON_OPTIONS }, { key: 'right_value', label: 'Right Value', type: 'text' }] },
+  { type: 'multi-condition', label: 'Multi Condition', category: 'Logic', description: 'Evaluate multiple conditions.', icon: '🧠', bgLight: 'bg-amber-100 dark:bg-amber-950', flow: 'condition', fields: [{ key: 'conditions', label: 'Conditions JSON', type: 'textarea' }, { key: 'logic_mode', label: 'Logic Mode', type: 'select', options: ['AND', 'OR'] }] },
+  { type: 'switch', label: 'Switch', category: 'Logic', description: 'Route by field value.', icon: '🔀', bgLight: 'bg-amber-100 dark:bg-amber-950', flow: 'switch', fields: [{ key: 'field_name', label: 'Field Name', type: 'text' }, { key: 'cases', label: 'Cases JSON', type: 'textarea' }, { key: 'default_path', label: 'Default Path', type: 'text' }] },
+  { type: 'wait-delay', label: 'Wait / Delay', category: 'Logic', description: 'Pause execution.', icon: '⏳', bgLight: 'bg-amber-100 dark:bg-amber-950', flow: 'default', fields: [{ key: 'wait_type', label: 'Wait Type', type: 'select', options: ['seconds', 'minutes', 'hours', 'until_time'] }, { key: 'duration', label: 'Duration', type: 'number' }, { key: 'until_time', label: 'Until Time', type: 'time' }] },
+  { type: 'loop-over-list', label: 'Loop Over List', category: 'Logic', description: 'Iterate items.', icon: '🔁', bgLight: 'bg-amber-100 dark:bg-amber-950', flow: 'default', fields: [{ key: 'list_variable', label: 'List Variable', type: 'text' }, { key: 'max_parallel', label: 'Max Parallel', type: 'number', defaultValue: 1 }] },
+  { type: 'stop-workflow', label: 'Stop Workflow', category: 'Logic', description: 'Terminate workflow.', icon: '🛑', bgLight: 'bg-amber-100 dark:bg-amber-950', flow: 'terminal', fields: [{ key: 'reason', label: 'Reason', type: 'textarea' }] },
+  { type: 'set-variable', label: 'Set Variable', category: 'Utilities', description: 'Set runtime variable.', icon: '🧩', bgLight: 'bg-gray-100 dark:bg-gray-900', flow: 'default', fields: [{ key: 'variable_name', label: 'Variable Name', type: 'text' }, { key: 'value', label: 'Value', type: 'text' }] },
+  { type: 'open-site', label: 'Open Site', category: 'Site / Object', description: 'Load site context.', icon: '🏗️', bgLight: 'bg-cyan-100 dark:bg-cyan-950', flow: 'default', fields: [{ key: 'site_id', label: 'Site ID', type: 'text' }] },
+  { type: 'open-cell', label: 'Open Cell', category: 'Site / Object', description: 'Load cell context.', icon: '📶', bgLight: 'bg-cyan-100 dark:bg-cyan-950', flow: 'default', fields: [{ key: 'cell_id', label: 'Cell ID', type: 'text' }] },
+  { type: 'get-site-cells', label: 'Get Site Cells', category: 'Site / Object', description: 'Fetch cells in site.', icon: '🗺️', bgLight: 'bg-cyan-100 dark:bg-cyan-950', flow: 'default', fields: [{ key: 'site_id', label: 'Site ID', type: 'text' }, { key: 'technology', label: 'Technology', type: 'select', options: ['2G', '3G', '4G', '5G'] }] },
+  { type: 'get-site-info', label: 'Get Site Info', category: 'Site / Object', description: 'Fetch site details.', icon: 'ℹ️', bgLight: 'bg-cyan-100 dark:bg-cyan-950', flow: 'default', fields: [{ key: 'site_id', label: 'Site ID', type: 'text' }, { key: 'include_location', label: 'Include Location', type: 'checkbox', defaultValue: true }, { key: 'include_vendor', label: 'Include Vendor', type: 'checkbox' }, { key: 'include_technology', label: 'Include Technology', type: 'checkbox' }] },
+  { type: 'get-object-status', label: 'Get Object Status', category: 'Site / Object', description: 'Read object status.', icon: '📍', bgLight: 'bg-cyan-100 dark:bg-cyan-950', flow: 'default', fields: [{ key: 'object_type', label: 'Object Type', type: 'select', options: SCOPE_OPTIONS }, { key: 'object_id', label: 'Object ID', type: 'text' }] },
+  { type: 'check-kpi-reading', label: 'Check KPI Reading', category: 'KPI', description: 'Read KPI current value.', icon: '📊', bgLight: 'bg-green-100 dark:bg-green-950', flow: 'default', fields: [{ key: 'scope_type', label: 'Scope Type', type: 'select', options: ['site', 'cell'] }, { key: 'scope_ids', label: 'Scope IDs', type: 'textarea' }, { key: 'kpi_name', label: 'KPI Name', type: 'select', options: KPI_OPTIONS }, { key: 'granularity', label: 'Granularity', type: 'select', options: ['5m', '15m', '1h'] }] },
+  { type: 'get-kpi-values', label: 'Get KPI Values', category: 'KPI', description: 'Query KPI time series.', icon: '📉', bgLight: 'bg-green-100 dark:bg-green-950', flow: 'default', fields: [{ key: 'scope_type', label: 'Scope Type', type: 'select', options: SCOPE_OPTIONS }, { key: 'scope_ids', label: 'Scope IDs', type: 'textarea' }, { key: 'kpi_names', label: 'KPI Names', type: 'multiselect', options: KPI_OPTIONS }, { key: 'start_time', label: 'Start Time', type: 'datetime' }, { key: 'end_time', label: 'End Time', type: 'datetime' }, { key: 'granularity', label: 'Granularity', type: 'select', options: ['5m', '15m', '1h'] }, { key: 'aggregation', label: 'Aggregation', type: 'select', options: ['avg', 'min', 'max', 'sum'] }] },
+  { type: 'check-kpi-threshold', label: 'Check KPI Threshold', category: 'KPI', description: 'Evaluate KPI against threshold.', icon: '🎯', bgLight: 'bg-green-100 dark:bg-green-950', flow: 'condition', fields: [{ key: 'scope_type', label: 'Scope Type', type: 'select', options: SCOPE_OPTIONS }, { key: 'scope_ids', label: 'Scope IDs', type: 'textarea' }, { key: 'kpi_name', label: 'KPI Name', type: 'select', options: KPI_OPTIONS }, { key: 'comparison', label: 'Comparison', type: 'select', options: COMPARISON_OPTIONS }, { key: 'threshold_value', label: 'Threshold', type: 'number' }, { key: 'granularity', label: 'Granularity', type: 'select', options: ['5m', '15m', '1h'] }] },
+  { type: 'get-top-worst-cells', label: 'Get Top Worst Cells', category: 'KPI', description: 'Find worst performers.', icon: '📛', bgLight: 'bg-green-100 dark:bg-green-950', flow: 'default', fields: [{ key: 'parent_scope_type', label: 'Parent Scope Type', type: 'select', options: ['region', 'cluster', 'site'] }, { key: 'parent_scope_ids', label: 'Parent Scope IDs', type: 'textarea' }, { key: 'kpi_name', label: 'KPI Name', type: 'select', options: KPI_OPTIONS }, { key: 'top_count', label: 'Top Count', type: 'number', defaultValue: 10 }, { key: 'sort_order', label: 'Sort Order', type: 'select', options: ['asc', 'desc'] }, { key: 'time_window', label: 'Time Window', type: 'select', options: ['15m', '1h', '24h'] }] },
+  { type: 'compare-kpi-before-after', label: 'Compare KPI Before / After', category: 'KPI', description: 'Compare KPI windows.', icon: '⚖️', bgLight: 'bg-green-100 dark:bg-green-950', flow: 'default', fields: [{ key: 'scope_type', label: 'Scope Type', type: 'select', options: SCOPE_OPTIONS }, { key: 'scope_ids', label: 'Scope IDs', type: 'textarea' }, { key: 'kpi_name', label: 'KPI Name', type: 'select', options: KPI_OPTIONS }, { key: 'before_window', label: 'Before Window', type: 'text' }, { key: 'after_window', label: 'After Window', type: 'text' }] },
+  { type: 'check-active-alarms', label: 'Check Active Alarms', category: 'Alarms', description: 'Get active alarms.', icon: '🚨', bgLight: 'bg-red-100 dark:bg-red-950', flow: 'default', fields: [{ key: 'scope_type', label: 'Scope Type', type: 'select', options: SCOPE_OPTIONS }, { key: 'scope_ids', label: 'Scope IDs', type: 'textarea' }, { key: 'severity', label: 'Severity', type: 'multiselect', options: SEVERITY_OPTIONS }, { key: 'alarm_codes', label: 'Alarm Codes', type: 'textarea' }, { key: 'source_type', label: 'Source Type', type: 'text' }] },
+  { type: 'check-alarm-count', label: 'Check Alarm Count', category: 'Alarms', description: 'Count alarms.', icon: '🔢', bgLight: 'bg-red-100 dark:bg-red-950', flow: 'default', fields: [{ key: 'scope_type', label: 'Scope Type', type: 'select', options: SCOPE_OPTIONS }, { key: 'scope_ids', label: 'Scope IDs', type: 'textarea' }, { key: 'severity', label: 'Severity', type: 'multiselect', options: SEVERITY_OPTIONS }, { key: 'alarm_codes', label: 'Alarm Codes', type: 'textarea' }] },
+  { type: 'check-alarm-exists', label: 'Check Alarm Exists', category: 'Alarms', description: 'Verify alarm exists.', icon: '🔍', bgLight: 'bg-red-100 dark:bg-red-950', flow: 'condition', fields: [{ key: 'scope_type', label: 'Scope Type', type: 'select', options: SCOPE_OPTIONS }, { key: 'scope_ids', label: 'Scope IDs', type: 'textarea' }, { key: 'alarm_code', label: 'Alarm Code', type: 'text' }, { key: 'severity', label: 'Severity', type: 'select', options: SEVERITY_OPTIONS }] },
+  { type: 'get-alarm-history', label: 'Get Alarm History', category: 'Alarms', description: 'Query alarm history.', icon: '🕘', bgLight: 'bg-red-100 dark:bg-red-950', flow: 'default', fields: [{ key: 'scope_type', label: 'Scope Type', type: 'select', options: SCOPE_OPTIONS }, { key: 'scope_ids', label: 'Scope IDs', type: 'textarea' }, { key: 'start_time', label: 'Start Time', type: 'datetime' }, { key: 'end_time', label: 'End Time', type: 'datetime' }, { key: 'severity', label: 'Severity', type: 'multiselect', options: SEVERITY_OPTIONS }, { key: 'alarm_codes', label: 'Alarm Codes', type: 'textarea' }] },
+  { type: 'acknowledge-alarm', label: 'Acknowledge Alarm', category: 'Alarms', description: 'Ack alarm IDs.', icon: '✍️', bgLight: 'bg-red-100 dark:bg-red-950', flow: 'default', fields: [{ key: 'alarm_ids', label: 'Alarm IDs', type: 'textarea' }, { key: 'comment', label: 'Comment', type: 'textarea' }] },
+  { type: 'clear-alarm', label: 'Clear Alarm', category: 'Alarms', description: 'Clear alarm IDs.', icon: '🧹', bgLight: 'bg-red-100 dark:bg-red-950', flow: 'default', fields: [{ key: 'alarm_ids', label: 'Alarm IDs', type: 'textarea' }, { key: 'comment', label: 'Comment', type: 'textarea' }] },
+  { type: 'execute-command', label: 'Execute Command', category: 'Actions / Command Center', description: 'Execute raw command.', icon: '⚡', bgLight: 'bg-purple-100 dark:bg-purple-950', flow: 'default', fields: [{ key: 'target_type', label: 'Target Type', type: 'select', options: ['site', 'node', 'cell'] }, { key: 'target_ids', label: 'Target IDs', type: 'textarea' }, { key: 'command_text', label: 'Command Text', type: 'textarea', helper: 'Use template node when possible for safety.' }, { key: 'protocol', label: 'Protocol', type: 'select', options: ['SSH', 'Telnet', 'API'] }, { key: 'timeout_seconds', label: 'Timeout (s)', type: 'number', defaultValue: 30 }] },
+  { type: 'execute-command-template', label: 'Execute Command Template', category: 'Actions / Command Center', description: 'Safe templated command execution.', icon: '🧱', bgLight: 'bg-purple-100 dark:bg-purple-950', flow: 'default', fields: [{ key: 'target_type', label: 'Target Type', type: 'select', options: ['site', 'node', 'cell'] }, { key: 'target_ids', label: 'Target IDs', type: 'textarea' }, { key: 'command_template', label: 'Command Template', type: 'text' }, { key: 'template_variables', label: 'Template Variables', type: 'textarea' }, { key: 'timeout_seconds', label: 'Timeout (s)', type: 'number', defaultValue: 60 }] },
+  { type: 'open-site-command-center', label: 'Open Site in Command Center', category: 'Actions / Command Center', description: 'Open site context.', icon: '🖥️', bgLight: 'bg-purple-100 dark:bg-purple-950', flow: 'default', fields: [{ key: 'site_id', label: 'Site ID', type: 'text' }] },
+  { type: 'run-health-check', label: 'Run Health Check', category: 'Actions / Command Center', description: 'Run profile checks.', icon: '🩺', bgLight: 'bg-purple-100 dark:bg-purple-950', flow: 'default', fields: [{ key: 'target_type', label: 'Target Type', type: 'select', options: ['site', 'node', 'cell'] }, { key: 'target_ids', label: 'Target IDs', type: 'textarea' }, { key: 'check_profile', label: 'Check Profile', type: 'text' }] },
+  { type: 'reset-cell', label: 'Reset Cell', category: 'Actions / Command Center', description: 'Reset selected cells.', icon: '🔄', bgLight: 'bg-purple-100 dark:bg-purple-950', flow: 'default', fields: [{ key: 'cell_ids', label: 'Cell IDs', type: 'textarea' }, { key: 'reset_type', label: 'Reset Type', type: 'select', options: ['soft', 'hard'] }] },
+  { type: 'lock-site', label: 'Lock Site', category: 'Actions / Command Center', description: 'Lock site for changes.', icon: '🔒', bgLight: 'bg-purple-100 dark:bg-purple-950', flow: 'default', fields: [{ key: 'site_id', label: 'Site ID', type: 'text' }, { key: 'lock_duration_minutes', label: 'Lock Duration (m)', type: 'number' }] },
+  { type: 'release-site-lock', label: 'Release Site Lock', category: 'Actions / Command Center', description: 'Release lock.', icon: '🔓', bgLight: 'bg-purple-100 dark:bg-purple-950', flow: 'default', fields: [{ key: 'site_id', label: 'Site ID', type: 'text' }] },
+  { type: 'create-report', label: 'Create Report', category: 'Reports', description: 'Create unified report.', icon: '📝', bgLight: 'bg-indigo-100 dark:bg-indigo-950', flow: 'default', fields: [{ key: 'report_name', label: 'Report Name', type: 'text' }, { key: 'scope_type', label: 'Scope Type', type: 'select', options: SCOPE_OPTIONS }, { key: 'scope_ids', label: 'Scope IDs', type: 'textarea' }, { key: 'time_range', label: 'Time Range', type: 'text' }, { key: 'report_type', label: 'Report Type', type: 'select', options: ['KPI', 'Alarm', 'Site Summary'] }, { key: 'format', label: 'Format', type: 'select', options: ['PDF', 'Excel', 'CSV'] }] },
+  { type: 'create-kpi-report', label: 'Create KPI Report', category: 'Reports', description: 'Build KPI report.', icon: '📄', bgLight: 'bg-indigo-100 dark:bg-indigo-950', flow: 'default', fields: [{ key: 'scope_type', label: 'Scope Type', type: 'select', options: SCOPE_OPTIONS }, { key: 'scope_ids', label: 'Scope IDs', type: 'textarea' }, { key: 'kpi_names', label: 'KPI Names', type: 'multiselect', options: KPI_OPTIONS }, { key: 'time_range', label: 'Time Range', type: 'text' }, { key: 'format', label: 'Format', type: 'select', options: ['PDF', 'Excel', 'CSV'] }] },
+  { type: 'create-alarm-report', label: 'Create Alarm Report', category: 'Reports', description: 'Build alarm report.', icon: '📑', bgLight: 'bg-indigo-100 dark:bg-indigo-950', flow: 'default', fields: [{ key: 'scope_type', label: 'Scope Type', type: 'select', options: SCOPE_OPTIONS }, { key: 'scope_ids', label: 'Scope IDs', type: 'textarea' }, { key: 'severity', label: 'Severity', type: 'multiselect', options: SEVERITY_OPTIONS }, { key: 'alarm_codes', label: 'Alarm Codes', type: 'textarea' }, { key: 'time_range', label: 'Time Range', type: 'text' }, { key: 'format', label: 'Format', type: 'select', options: ['PDF', 'Excel', 'CSV'] }] },
+  { type: 'create-site-summary-report', label: 'Create Site Summary Report', category: 'Reports', description: 'Build site summary report.', icon: '📚', bgLight: 'bg-indigo-100 dark:bg-indigo-950', flow: 'default', fields: [{ key: 'site_id', label: 'Site ID', type: 'text' }, { key: 'time_range', label: 'Time Range', type: 'text' }, { key: 'include_kpis', label: 'Include KPIs', type: 'checkbox', defaultValue: true }, { key: 'include_alarms', label: 'Include Alarms', type: 'checkbox', defaultValue: true }, { key: 'format', label: 'Format', type: 'select', options: ['PDF', 'Excel', 'CSV'] }] },
+  { type: 'export-data', label: 'Export Data', category: 'Reports', description: 'Export selected dataset.', icon: '📤', bgLight: 'bg-indigo-100 dark:bg-indigo-950', flow: 'default', fields: [{ key: 'dataset_type', label: 'Dataset Type', type: 'text' }, { key: 'filters', label: 'Filters', type: 'textarea' }, { key: 'columns', label: 'Columns', type: 'textarea' }, { key: 'format', label: 'Format', type: 'select', options: ['PDF', 'Excel', 'CSV'] }] },
+  { type: 'send-email', label: 'Send Email', category: 'Notifications', description: 'Email recipients.', icon: '📧', bgLight: 'bg-pink-100 dark:bg-pink-950', flow: 'default', fields: [{ key: 'recipients', label: 'Recipients', type: 'textarea' }, { key: 'subject', label: 'Subject', type: 'text' }, { key: 'body_template', label: 'Body Template', type: 'textarea' }, { key: 'attachments', label: 'Attachments', type: 'textarea' }] },
+  { type: 'send-sms', label: 'Send SMS', category: 'Notifications', description: 'SMS recipients.', icon: '📱', bgLight: 'bg-pink-100 dark:bg-pink-950', flow: 'default', fields: [{ key: 'recipients', label: 'Recipients', type: 'textarea' }, { key: 'message', label: 'Message', type: 'textarea' }] },
+  { type: 'send-teams-slack-message', label: 'Send Teams / Slack Message', category: 'Notifications', description: 'Post collaboration message.', icon: '💬', bgLight: 'bg-pink-100 dark:bg-pink-950', flow: 'default', fields: [{ key: 'channel_type', label: 'Channel Type', type: 'select', options: ['Teams', 'Slack'] }, { key: 'channel_name', label: 'Channel Name', type: 'text' }, { key: 'message_template', label: 'Message Template', type: 'textarea' }, { key: 'mentions', label: 'Mentions', type: 'textarea' }] },
+  { type: 'create-noc-popup', label: 'Create NOC Popup', category: 'Notifications', description: 'Push popup to NOC.', icon: '🪧', bgLight: 'bg-pink-100 dark:bg-pink-950', flow: 'default', fields: [{ key: 'severity', label: 'Severity', type: 'select', options: SEVERITY_OPTIONS }, { key: 'title', label: 'Title', type: 'text' }, { key: 'message', label: 'Message', type: 'textarea' }, { key: 'require_acknowledgement', label: 'Require Acknowledgement', type: 'checkbox', defaultValue: true }] },
+  { type: 'create-ticket', label: 'Create Ticket', category: 'Tickets', description: 'Create incident ticket.', icon: '🎫', bgLight: 'bg-orange-100 dark:bg-orange-950', flow: 'default', fields: [{ key: 'title', label: 'Title', type: 'text' }, { key: 'description', label: 'Description', type: 'textarea' }, { key: 'ticket_type', label: 'Ticket Type', type: 'text' }, { key: 'category', label: 'Category', type: 'text' }, { key: 'priority', label: 'Priority', type: 'select', options: ['P1', 'P2', 'P3', 'P4'] }, { key: 'impacted_object_type', label: 'Impacted Object Type', type: 'select', options: SCOPE_OPTIONS }, { key: 'impacted_object_ids', label: 'Impacted Object IDs', type: 'textarea' }, { key: 'assignment_group', label: 'Assignment Group', type: 'text' }] },
+  { type: 'update-ticket', label: 'Update Ticket', category: 'Tickets', description: 'Update ticket fields.', icon: '🛠️', bgLight: 'bg-orange-100 dark:bg-orange-950', flow: 'default', fields: [{ key: 'ticket_id', label: 'Ticket ID', type: 'text' }, { key: 'fields_to_update', label: 'Fields To Update', type: 'textarea' }, { key: 'comment', label: 'Comment', type: 'textarea' }] },
+  { type: 'change-ticket-status', label: 'Change Ticket Status', category: 'Tickets', description: 'Move ticket status.', icon: '📌', bgLight: 'bg-orange-100 dark:bg-orange-950', flow: 'default', fields: [{ key: 'ticket_id', label: 'Ticket ID', type: 'text' }, { key: 'new_status', label: 'New Status', type: 'text' }, { key: 'comment', label: 'Comment', type: 'textarea' }] },
+  { type: 'transform-data', label: 'Transform Data', category: 'Utilities', description: 'Transform variable data.', icon: '🧮', bgLight: 'bg-gray-100 dark:bg-gray-900', flow: 'default', fields: [{ key: 'input_variable', label: 'Input Variable', type: 'text' }, { key: 'transform_type', label: 'Transform Type', type: 'select', options: ['filter', 'sort', 'map', 'limit'] }] },
+  { type: 'get-current-time', label: 'Get Current Time', category: 'Utilities', description: 'Get current time.', icon: '🕒', bgLight: 'bg-gray-100 dark:bg-gray-900', flow: 'default', fields: [{ key: 'timezone', label: 'Timezone', type: 'text', defaultValue: 'UTC' }] },
+  { type: 'format-message', label: 'Format Message', category: 'Utilities', description: 'Format template message.', icon: '✉️', bgLight: 'bg-gray-100 dark:bg-gray-900', flow: 'default', fields: [{ key: 'template_text', label: 'Template Text', type: 'textarea' }] }
+];
+
+const NODE_CATEGORIES = ['Triggers', 'Logic', 'Site / Object', 'KPI', 'Alarms', 'Actions / Command Center', 'Reports', 'Notifications', 'Tickets', 'Utilities'];
+const NODE_MAP = Object.fromEntries(NODE_LIBRARY.map((item) => [item.type, item]));
+const getNodeHandles = (nodeType: string): Handle[] => {
+  const flow = NODE_MAP[nodeType]?.flow ?? 'default';
+  if (flow === 'trigger') return [{ id: 'output_main', type: 'output', label: 'Start' }];
+  if (flow === 'condition' || flow === 'switch') {
+    return [
+      { id: 'input_main', type: 'input', label: 'Input' },
+      { id: 'output_true', type: 'output', label: 'True' },
+      { id: 'output_false', type: 'output', label: 'False' }
+    ];
   }
-  
-  return baseHandles;
+  if (flow === 'terminal') return [{ id: 'input_main', type: 'input', label: 'Input' }];
+  return [{ id: 'input_main', type: 'input', label: 'Input' }, { id: 'output_main', type: 'output', label: 'Output' }];
 };
 
 export const WorkflowBuilder: React.FC<{
@@ -111,12 +154,12 @@ export const WorkflowBuilder: React.FC<{
     nodes: [
       {
         id: 'node_1',
-        type: 'trigger',
-        label: 'Trigger',
+        type: 'manual-trigger',
+        label: 'Manual Trigger',
         x: 100,
         y: 100,
         config: {},
-        handles: getNodeHandles('trigger')
+        handles: getNodeHandles('manual-trigger')
       }
     ],
     edges: [],
@@ -134,6 +177,7 @@ export const WorkflowBuilder: React.FC<{
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
   const [draggingEdge, setDraggingEdge] = useState<{ fromNodeId: string; fromHandleId: string; x: number; y: number } | null>(null);
   const [showNodePalette, setShowNodePalette] = useState(true);
+  const [nodeSearch, setNodeSearch] = useState('');
   const [leftPanelWidth, setLeftPanelWidth] = useState(200);
   const [rightPanelWidth, setRightPanelWidth] = useState(340);
   const [showRightPanel, setShowRightPanel] = useState(false);
@@ -235,7 +279,7 @@ export const WorkflowBuilder: React.FC<{
     );
     if (edgeExists) return false;
 
-    if (targetNode.type === 'trigger') return false;
+    if (NODE_MAP[targetNode.type]?.flow === 'trigger') return false;
 
     const checkCycle = (nodeId: string, targetId: string, visited = new Set<string>()): boolean => {
       if (nodeId === targetId) return true;
@@ -272,15 +316,22 @@ export const WorkflowBuilder: React.FC<{
     }));
   };
 
-  const handleAddNode = (type: keyof typeof NODE_TYPES) => {
+  const handleAddNode = (type: string) => {
     const nodeType = type as WorkflowNode['type'];
+    const definition = NODE_MAP[nodeType];
+    const defaultConfig: Record<string, any> = {};
+    (definition?.fields || []).forEach((field) => {
+      if (field.defaultValue !== undefined) {
+        defaultConfig[field.key] = field.defaultValue;
+      }
+    });
     const newNode: WorkflowNode = {
       id: `node_${Date.now()}`,
       type: nodeType,
-      label: NODE_TYPES[type].label,
+      label: definition?.label || nodeType,
       x: 300,
       y: 200,
-      config: {},
+      config: defaultConfig,
       handles: getNodeHandles(nodeType)
     };
     setWorkflow(prev => ({
@@ -525,12 +576,12 @@ export const WorkflowBuilder: React.FC<{
     if (!workflow.name.trim()) return false;
     if (workflow.nodes.length === 0) return false;
     
-    const hasTrigger = workflow.nodes.some(n => n.type === 'trigger');
+    const hasTrigger = workflow.nodes.some(n => NODE_MAP[n.type]?.flow === 'trigger');
     if (!hasTrigger) return false;
     
     if (workflow.nodes.length > 1) {
       const connectedNodes = new Set<string>();
-      connectedNodes.add(workflow.nodes.find(n => n.type === 'trigger')!.id);
+      connectedNodes.add(workflow.nodes.find(n => NODE_MAP[n.type]?.flow === 'trigger')!.id);
       
       const traverse = (nodeId: string) => {
         const outgoing = workflow.edges.filter(e => e.sourceNodeId === nodeId);
@@ -542,13 +593,54 @@ export const WorkflowBuilder: React.FC<{
         });
       };
       
-      traverse(workflow.nodes.find(n => n.type === 'trigger')!.id);
+      traverse(workflow.nodes.find(n => NODE_MAP[n.type]?.flow === 'trigger')!.id);
       
       return workflow.nodes.every(n => connectedNodes.has(n.id));
     }
     
     return true;
   })();
+
+  const renderNodeField = (node: WorkflowNode, field: NodeFieldSchema) => {
+    const value = node.config?.[field.key] ?? '';
+    const setValue = (nextValue: any) => {
+      setWorkflow((prev) => ({
+        ...prev,
+        nodes: prev.nodes.map((n) => (n.id === node.id ? { ...n, config: { ...n.config, [field.key]: nextValue } } : n))
+      }));
+    };
+
+    if (field.type === 'textarea') {
+      return <textarea value={value} onChange={(e) => setValue(e.target.value)} className="w-full px-2 py-1.5 text-xs rounded-lg border border-border bg-background" rows={3} />;
+    }
+    if (field.type === 'number') {
+      return <input type="number" value={value} onChange={(e) => setValue(Number(e.target.value || 0))} className="w-full px-2 py-1.5 text-xs rounded-lg border border-border bg-background" />;
+    }
+    if (field.type === 'select') {
+      return (
+        <select value={value} onChange={(e) => setValue(e.target.value)} className="w-full px-2 py-1.5 text-xs rounded-lg border border-border bg-background">
+          <option value="">Select...</option>
+          {(field.options || []).map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+        </select>
+      );
+    }
+    if (field.type === 'multiselect') {
+      const values = Array.isArray(value) ? value : [];
+      return (
+        <select multiple value={values} onChange={(e) => setValue(Array.from(e.target.selectedOptions).map((o) => o.value))} className="w-full px-2 py-1.5 text-xs rounded-lg border border-border bg-background min-h-20">
+          {(field.options || []).map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+        </select>
+      );
+    }
+    if (field.type === 'checkbox') {
+      return <input type="checkbox" checked={Boolean(value)} onChange={(e) => setValue(e.target.checked)} className="h-4 w-4" />;
+    }
+    if (field.type === 'time' || field.type === 'datetime') {
+      return <input type={field.type === 'time' ? 'time' : 'datetime-local'} value={value} onChange={(e) => setValue(e.target.value)} className="w-full px-2 py-1.5 text-xs rounded-lg border border-border bg-background" />;
+    }
+
+    return <input type="text" value={value} onChange={(e) => setValue(e.target.value)} className="w-full px-2 py-1.5 text-xs rounded-lg border border-border bg-background" />;
+  };
 
   return (
     <div ref={workspaceRef} className="w-full h-full flex flex-col bg-background overflow-hidden">
@@ -634,20 +726,44 @@ export const WorkflowBuilder: React.FC<{
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-2 space-y-2">
-                {Object.entries(NODE_TYPES).map(([type, config]) => (
-                  <button
-                    key={type}
-                    onClick={() => handleAddNode(type as any)}
-                    className={cn(
-                      'w-full p-2 rounded border border-border transition text-left hover:shadow-sm',
-                      config.bgLight
-                    )}
-                  >
-                    <div className="text-base">{config.icon}</div>
-                    <p className="text-[11px] font-bold text-foreground">{config.label}</p>
-                  </button>
-                ))}
+              <div className="px-2 pb-2">
+                <input
+                  value={nodeSearch}
+                  onChange={(e) => setNodeSearch(e.target.value)}
+                  placeholder="Search nodes..."
+                  className="w-full text-xs px-2 py-1.5 rounded border border-border bg-background"
+                />
+              </div>
+              <div className="flex-1 overflow-y-auto px-2 pb-2 space-y-3">
+                {NODE_CATEGORIES.map((category) => {
+                  const items = NODE_LIBRARY.filter((node) =>
+                    node.category === category &&
+                    `${node.label} ${node.description}`.toLowerCase().includes(nodeSearch.toLowerCase())
+                  );
+                  if (items.length === 0) return null;
+                  return (
+                    <div key={category}>
+                      <p className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">{category}</p>
+                      <div className="space-y-1.5">
+                        {items.map((item) => (
+                          <button
+                            key={item.type}
+                            onClick={() => handleAddNode(item.type)}
+                            className={cn('w-full p-2 rounded border border-border transition text-left hover:shadow-sm', item.bgLight)}
+                          >
+                            <div className="flex items-center gap-2">
+                              <span>{item.icon}</span>
+                              <div>
+                                <p className="text-[11px] font-bold text-foreground">{item.label}</p>
+                                <p className="text-[10px] text-muted-foreground">{item.description}</p>
+                              </div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
             <div
@@ -841,7 +957,11 @@ export const WorkflowBuilder: React.FC<{
             {/* Nodes Container */}
             <div style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})` }} className="absolute inset-0">
               {workflow.nodes.map(node => {
-                const typeConfig = NODE_TYPES[node.type];
+                const typeConfig = NODE_MAP[node.type] || {
+                  icon: '🧩',
+                  bgLight: 'bg-muted',
+                  label: node.label
+                };
                 return (
                   <div
                     key={node.id}
@@ -926,17 +1046,44 @@ export const WorkflowBuilder: React.FC<{
                     <PanelLeftClose className="w-4 h-4 text-muted-foreground" />
                   </button>
                 </div>
-                <div className="flex-1 overflow-y-auto p-2 space-y-2">
-                  {Object.entries(NODE_TYPES).map(([type, config]) => (
-                    <button
-                      key={type}
-                      onClick={() => handleAddNode(type as any)}
-                      className={cn('w-full p-2 rounded border border-border transition text-left hover:shadow-sm', config.bgLight)}
-                    >
-                      <div className="text-base">{config.icon}</div>
-                      <p className="text-[11px] font-bold text-foreground">{config.label}</p>
-                    </button>
-                  ))}
+                <div className="px-2 pb-2">
+                  <input
+                    value={nodeSearch}
+                    onChange={(e) => setNodeSearch(e.target.value)}
+                    placeholder="Search nodes..."
+                    className="w-full text-xs px-2 py-1.5 rounded border border-border bg-background"
+                  />
+                </div>
+                <div className="flex-1 overflow-y-auto px-2 pb-2 space-y-3">
+                  {NODE_CATEGORIES.map((category) => {
+                    const items = NODE_LIBRARY.filter((node) =>
+                      node.category === category &&
+                      `${node.label} ${node.description}`.toLowerCase().includes(nodeSearch.toLowerCase())
+                    );
+                    if (items.length === 0) return null;
+                    return (
+                      <div key={category}>
+                        <p className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">{category}</p>
+                        <div className="space-y-1.5">
+                          {items.map((item) => (
+                            <button
+                              key={item.type}
+                              onClick={() => handleAddNode(item.type)}
+                              className={cn('w-full p-2 rounded border border-border transition text-left hover:shadow-sm', item.bgLight)}
+                            >
+                              <div className="flex items-center gap-2">
+                                <span>{item.icon}</span>
+                                <div>
+                                  <p className="text-[11px] font-bold text-foreground">{item.label}</p>
+                                  <p className="text-[10px] text-muted-foreground">{item.description}</p>
+                                </div>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -955,7 +1102,7 @@ export const WorkflowBuilder: React.FC<{
             <div>
               <div className="flex items-center justify-between mb-3">
                 <p className="text-sm font-bold text-foreground flex items-center gap-2">
-                  <span className="text-2xl">{NODE_TYPES[selectedNode.type].icon}</span>
+                  <span className="text-2xl">{NODE_MAP[selectedNode.type]?.icon || '🧩'}</span>
                   {selectedNode.label}
                 </p>
                 <button
@@ -970,85 +1117,21 @@ export const WorkflowBuilder: React.FC<{
               {/* Node Properties */}
               <div className="space-y-3">
                 <div>
-                  <label className="text-xs font-bold text-foreground block mb-1">Label</label>
+                  <label className="text-xs font-bold text-foreground block mb-1">Node Label</label>
                   <input
                     type="text"
                     value={selectedNode.label}
-                    onChange={(e) => {
-                      setWorkflow(prev => ({
-                        ...prev,
-                        nodes: prev.nodes.map(n =>
-                          n.id === selectedNodeId ? { ...n, label: e.target.value } : n
-                        )
-                      }));
-                    }}
-                    className="w-full px-2 py-1.5 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    onChange={(e) => setWorkflow(prev => ({ ...prev, nodes: prev.nodes.map(n => n.id === selectedNodeId ? { ...n, label: e.target.value } : n) }))}
+                    className="w-full px-2 py-1.5 text-xs rounded-lg border border-border bg-background"
                   />
                 </div>
-
-                <div>
-                  <label className="text-xs font-bold text-foreground block mb-1">Type</label>
-                  <select
-                    value={selectedNode.type}
-                    onChange={(e) => {
-                      const newType = e.target.value as WorkflowNode['type'];
-                      setWorkflow(prev => ({
-                        ...prev,
-                        nodes: prev.nodes.map(n =>
-                          n.id === selectedNodeId
-                            ? { ...n, type: newType, handles: getNodeHandles(newType) }
-                            : n
-                        ),
-                        edges: prev.edges.filter(edge => {
-                          if (edge.sourceNodeId === selectedNodeId || edge.targetNodeId === selectedNodeId) {
-                            const sourceNode = prev.nodes.find(n => n.id === edge.sourceNodeId);
-                            const targetNode = prev.nodes.find(n => n.id === edge.targetNodeId);
-                            if (!sourceNode || !targetNode) return false;
-                            
-                            const srcNode = sourceNode.id === selectedNodeId ? { ...sourceNode, type: newType, handles: getNodeHandles(newType) } : sourceNode;
-                            const tgtNode = targetNode.id === selectedNodeId ? { ...targetNode, type: newType, handles: getNodeHandles(newType) } : targetNode;
-                            
-                            const sourceHandle = srcNode.handles.find(h => h.id === edge.sourceHandleId);
-                            const targetHandle = tgtNode.handles.find(h => h.id === edge.targetHandleId);
-                            
-                            return sourceHandle && targetHandle;
-                          }
-                          return true;
-                        })
-                      }));
-                    }}
-                    className="w-full px-2 py-1.5 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  >
-                    {Object.keys(NODE_TYPES).map(type => (
-                      <option key={type} value={type}>
-                        {type.toUpperCase().replace('-', ' ')}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {selectedNode.type === 'condition' && (
-                  <div>
-                    <label className="text-xs font-bold text-foreground block mb-1">Condition</label>
-                    <input
-                      type="text"
-                      placeholder="e.g., status === 'success'"
-                      className="w-full px-2 py-1.5 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                    />
+                {(NODE_MAP[selectedNode.type]?.fields || []).map((field) => (
+                  <div key={field.key}>
+                    <label className="text-xs font-bold text-foreground block mb-1">{field.label}</label>
+                    {renderNodeField(selectedNode, field)}
+                    {field.helper && <p className="text-[10px] text-muted-foreground mt-1">{field.helper}</p>}
                   </div>
-                )}
-
-                {selectedNode.type === 'delay' && (
-                  <div>
-                    <label className="text-xs font-bold text-foreground block mb-1">Delay (ms)</label>
-                    <input
-                      type="number"
-                      placeholder="1000"
-                      defaultValue="1000"
-                      className="w-full px-2 py-1.5 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                    />
-                  </div>
-                )}
+                ))}
               </div>
 
               {/* Info */}
@@ -1075,7 +1158,7 @@ export const WorkflowBuilder: React.FC<{
           <div className="absolute right-2 top-2 bottom-2 z-40 bg-card/95 border border-border rounded-md p-3 overflow-y-auto" style={{ width: rightPanelWidth }}>
             <div className="flex items-center justify-between mb-3">
               <p className="text-sm font-bold text-foreground flex items-center gap-2">
-                <span className="text-2xl">{NODE_TYPES[selectedNode.type].icon}</span>
+                <span className="text-2xl">{NODE_MAP[selectedNode.type]?.icon || '🧩'}</span>
                 {selectedNode.label}
               </p>
               <button
@@ -1088,7 +1171,7 @@ export const WorkflowBuilder: React.FC<{
             </div>
             <div className="space-y-3">
               <div>
-                <label className="text-xs font-bold text-foreground block mb-1">Label</label>
+                <label className="text-xs font-bold text-foreground block mb-1">Node Label</label>
                 <input
                   type="text"
                   value={selectedNode.label}
@@ -1103,30 +1186,13 @@ export const WorkflowBuilder: React.FC<{
                   className="w-full px-2 py-1.5 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
               </div>
-              <div>
-                <label className="text-xs font-bold text-foreground block mb-1">Type</label>
-                <select
-                  value={selectedNode.type}
-                  onChange={(e) => {
-                    const newType = e.target.value as WorkflowNode['type'];
-                    setWorkflow(prev => ({
-                      ...prev,
-                      nodes: prev.nodes.map(n =>
-                        n.id === selectedNodeId
-                          ? { ...n, type: newType, handles: getNodeHandles(newType) }
-                          : n
-                      )
-                    }));
-                  }}
-                  className="w-full px-2 py-1.5 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                >
-                  {Object.keys(NODE_TYPES).map(type => (
-                    <option key={type} value={type}>
-                      {type.toUpperCase().replace('-', ' ')}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {(NODE_MAP[selectedNode.type]?.fields || []).map((field) => (
+                <div key={field.key}>
+                  <label className="text-xs font-bold text-foreground block mb-1">{field.label}</label>
+                  {renderNodeField(selectedNode, field)}
+                  {field.helper && <p className="text-[10px] text-muted-foreground mt-1">{field.helper}</p>}
+                </div>
+              ))}
               <div className="pt-3 border-t border-border">
                 <p className="text-xs text-muted-foreground">X: {Math.round(selectedNode.x)} • Y: {Math.round(selectedNode.y)}</p>
               </div>
@@ -1169,9 +1235,9 @@ export const WorkflowBuilder: React.FC<{
                 const errors = [];
                 if (!workflow.name.trim()) errors.push('• Workflow name is required');
                 if (workflow.nodes.length === 0) errors.push('• Add at least one node');
-                if (!workflow.nodes.some(n => n.type === 'trigger')) errors.push('• Must have a trigger node');
+                if (!workflow.nodes.some(n => NODE_MAP[n.type]?.flow === 'trigger')) errors.push('• Must have a trigger node');
                 if (workflow.nodes.length > 1) {
-                  const triggerNode = workflow.nodes.find(n => n.type === 'trigger');
+                  const triggerNode = workflow.nodes.find(n => NODE_MAP[n.type]?.flow === 'trigger');
                   if (triggerNode) {
                     const connectedNodes = new Set<string>([triggerNode.id]);
                     const traverse = (nodeId: string) => {
