@@ -24,12 +24,6 @@ export const REPORTS_SECTIONS: ReportsSection[] = [
     path: "/reports-module/report-history",
     description: "Execution logs, retry history, and run outcomes.",
   },
-  {
-    id: "scheduling-distribution",
-    label: "Scheduling & Distribution",
-    path: "/reports-module/scheduling-distribution",
-    description: "Publish cadence, subscriptions, and channel routing.",
-  },
 ];
 
 export const DEFAULT_REPORTS_SECTION = REPORTS_SECTIONS[0];

@@ -32,6 +32,13 @@ interface ScheduleConfig {
   format: ReportFormat;
 }
 
+interface ScheduleHistoryEntry {
+  id: string;
+  changedAt: string;
+  action: "created" | "updated" | "paused" | "resumed" | "removed";
+  summary: string;
+}
+
 interface RunRecord {
   id: string;
   startedAt: string;
@@ -57,6 +64,7 @@ interface ReportLibraryItem {
   lastRun: string;
   latestOutput: string | null;
   schedule: ScheduleConfig;
+  scheduleHistory: ScheduleHistoryEntry[];
   runHistory: RunRecord[];
 }
 
@@ -98,6 +106,10 @@ const INITIAL_ROWS: ReportLibraryItem[] = [
       recipients: "noc@ops.local",
       format: "PDF",
     },
+    scheduleHistory: [
+      { id: "sch-1", changedAt: "2026-04-18 09:00", action: "created", summary: "Daily at 06:00 UTC+02:00 via Email" },
+      { id: "sch-2", changedAt: "2026-04-20 08:45", action: "updated", summary: "Recipients updated to noc@ops.local" },
+    ],
     runHistory: [
       {
         id: "run-501",
@@ -132,6 +144,9 @@ const INITIAL_ROWS: ReportLibraryItem[] = [
       recipients: "",
       format: "Excel",
     },
+    scheduleHistory: [
+      { id: "sch-3", changedAt: "2026-04-12 10:10", action: "removed", summary: "Schedule removed by operator" },
+    ],
     runHistory: [],
   },
 ];
@@ -254,6 +269,7 @@ export default function ReportLibraryModule() {
       status: "Draft",
       lastRun: "Never",
       latestOutput: null,
+      scheduleHistory: [],
       runHistory: [],
     };
     setReports((prev) => [clone, ...prev]);
@@ -430,6 +446,17 @@ export default function ReportLibraryModule() {
                 updateReport(scheduleReport.id, () => ({
                   ...scheduleReport,
                   status: scheduleReport.schedule.enabled ? "Active" : "Paused",
+                  scheduleHistory: [
+                    {
+                      id: `sch-${Date.now()}`,
+                      changedAt: new Date().toISOString().slice(0, 16).replace("T", " "),
+                      action: scheduleReport.schedule.enabled ? "updated" : "paused",
+                      summary: scheduleReport.schedule.enabled
+                        ? `${scheduleReport.schedule.frequency} / ${scheduleReport.schedule.nextRun || "No next run set"}`
+                        : "Schedule paused/disabled",
+                    },
+                    ...scheduleReport.scheduleHistory,
+                  ],
                 }));
                 setScheduleReport(null);
                 toast({ title: "Schedule updated", description: "Schedule settings saved." });
@@ -452,6 +479,18 @@ export default function ReportLibraryModule() {
             <p><strong>Columns:</strong> {detailsReport.columns}</p>
             <p><strong>Output:</strong> {detailsReport.output}</p>
             <p><strong>Schedule:</strong> {detailsReport.schedule.enabled ? `${detailsReport.schedule.frequency} / ${detailsReport.schedule.nextRun}` : "Not Scheduled"}</p>
+          </div>
+          <div className="mt-3">
+            <p className="mb-1 text-xs font-semibold text-muted-foreground">Schedule History</p>
+            <div className="space-y-1">
+              {detailsReport.scheduleHistory.length === 0 && <p className="text-xs text-muted-foreground">No schedule history yet.</p>}
+              {detailsReport.scheduleHistory.map((item) => (
+                <div key={item.id} className="rounded border border-border px-2 py-1 text-xs">
+                  <p className="font-medium">{item.action.toUpperCase()} · {item.changedAt}</p>
+                  <p className="text-muted-foreground">{item.summary}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </Modal>
       )}
@@ -505,7 +544,8 @@ export default function ReportLibraryModule() {
           <div className="space-y-2">
             <button onClick={() => { handleDuplicate(menuReport); setMenuReport(null); }} className="w-full rounded border border-border px-3 py-2 text-left text-sm hover:bg-muted/30"><Copy className="mr-2 inline h-3.5 w-3.5" />Duplicate</button>
             <button onClick={() => { setHistoryReport(menuReport); setMenuReport(null); }} className="w-full rounded border border-border px-3 py-2 text-left text-sm hover:bg-muted/30"><Clock3 className="mr-2 inline h-3.5 w-3.5" />View Run History</button>
-            <button onClick={() => { setScheduleReport({ ...menuReport, schedule: { ...menuReport.schedule, enabled: !menuReport.schedule.enabled } }); setMenuReport(null); }} className="w-full rounded border border-border px-3 py-2 text-left text-sm hover:bg-muted/30">{menuReport.schedule.enabled ? "Disable Schedule" : "Enable Schedule"}</button>
+            <button onClick={() => { updateReport(menuReport.id, (report) => ({ ...report, schedule: { ...report.schedule, enabled: !report.schedule.enabled }, status: report.schedule.enabled ? "Paused" : "Active", scheduleHistory: [{ id: `sch-${Date.now()}`, changedAt: new Date().toISOString().slice(0, 16).replace("T", " "), action: report.schedule.enabled ? "paused" : "resumed", summary: report.schedule.enabled ? "Schedule disabled from quick action" : "Schedule resumed from quick action" }, ...report.scheduleHistory] })); toast({ title: menuReport.schedule.enabled ? "Schedule disabled" : "Schedule enabled", description: menuReport.reportName }); setMenuReport(null); }} className="w-full rounded border border-border px-3 py-2 text-left text-sm hover:bg-muted/30">{menuReport.schedule.enabled ? "Disable Schedule" : "Enable Schedule"}</button>
+            <button onClick={() => { setDetailsReport(menuReport); setMenuReport(null); }} className="w-full rounded border border-border px-3 py-2 text-left text-sm hover:bg-muted/30"><Clock3 className="mr-2 inline h-3.5 w-3.5" />View Schedule History</button>
             <button onClick={() => handleDelete(menuReport)} className="w-full rounded border border-rose-300 px-3 py-2 text-left text-sm text-rose-700 hover:bg-rose-50"><Trash2 className="mr-2 inline h-3.5 w-3.5" />Delete</button>
           </div>
         </Modal>

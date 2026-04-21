@@ -3,7 +3,6 @@ import { useParams } from "react-router-dom";
 import ReportLibraryModule from "@/components/reports/ReportLibraryModule";
 import ReportCreationWorkspace from "@/components/reports/ReportCreationWorkspace";
 import ReportHistoryRegistry from "@/components/reports/ReportHistoryRegistry";
-import SchedulingOrchestrator from "@/components/reports/SchedulingOrchestrator";
 import { DEFAULT_REPORTS_SECTION } from "@/constants/reportsSections";
 
 export default function ReportsModule() {
@@ -20,8 +19,6 @@ export default function ReportsModule() {
         return <ReportCreationWorkspace />;
       case "report-history":
         return <ReportHistoryRegistry />;
-      case "scheduling-distribution":
-        return <SchedulingOrchestrator />;
       default:
         return <ReportCreationWorkspace />;
     }
