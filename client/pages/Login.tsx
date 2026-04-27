@@ -1,7 +1,16 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Eye, EyeOff } from 'lucide-react';
+
+// Default Open Valley logo path
+const DEFAULT_LOGO = '/open-valley-logo.svg';
+
+// Fallback logos in order of preference
+const LOGO_SOURCES = [
+  DEFAULT_LOGO,
+  '/logo-mark.svg',
+];
 
 export default function Login() {
   const [username, setUsername] = useState('');
@@ -9,10 +18,24 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [logoError, setLogoError] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { login, isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const from = (location.state as { from?: { pathname?: string } })?.from?.pathname || '/';
+
+  // Determine which logo to display with fallback logic
+  const logoSrc = useMemo(() => {
+    if (logoError) {
+      // If default logo failed, try fallback
+      return LOGO_SOURCES[1];
+    }
+    return DEFAULT_LOGO;
+  }, [logoError]);
+
+  const handleLogoError = () => {
+    setLogoError(true);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,9 +75,10 @@ export default function Login() {
           {/* Logo Section */}
           <div className="flex flex-col items-center mb-8 bg-white/90 dark:bg-slate-800/50 rounded-xl p-6 sm:p-8 md:p-10">
             <img
-              src="/logo-mark.svg"
+              src={logoSrc}
               alt="Open Valley Logo"
               className="w-40 sm:w-48 md:w-64 h-auto"
+              onError={handleLogoError}
             />
           </div>
 

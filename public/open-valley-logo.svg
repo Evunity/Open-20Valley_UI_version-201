@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" fill="none">
+  <!-- Background -->
+  <rect width="400" height="120" fill="transparent"/>
+  
+  <!-- Open Valley Brand Logo -->
+  <g transform="translate(20, 20)">
+    <!-- Valley/Arc Symbol -->
+    <path d="M30 10 L30 60 Q30 80 60 80 Q90 80 90 60 L90 10" 
+          fill="none" 
+          stroke="#8B5CF6" 
+          stroke-width="6" 
+          stroke-linecap="round"/>
+    
+    <!-- Network dots -->
+    <circle cx="30" cy="10" r="6" fill="#8B5CF6"/>
+    <circle cx="60" cy="80" r="6" fill="#8B5CF6"/>
+    <circle cx="90" cy="10" r="6" fill="#8B5CF6"/>
+    
+    <!-- Connection lines -->
+    <line x1="30" y1="16" x2="60" y2="74" stroke="#8B5CF6" stroke-width="2" opacity="0.5"/>
+    <line x1="90" y1="16" x2="60" y2="74" stroke="#8B5CF6" stroke-width="2" opacity="0.5"/>
+  </g>
+  
+  <!-- Text -->
+  <text x="130" y="55" 
+        font-family="system-ui, -apple-system, sans-serif" 
+        font-size="32" 
+        font-weight="700" 
+        fill="#1F2937">
+    Open
+  </text>
+  <text x="230" y="55" 
+        font-family="system-ui, -apple-system, sans-serif" 
+        font-size="32" 
+        font-weight="400" 
+        fill="#4B5563">
+    Valley
+  </text>
+  
+  <!-- Tagline -->
+  <text x="130" y="85" 
+        font-family="system-ui, -apple-system, sans-serif" 
+        font-size="14" 
+        fill="#6B7280">
+    Network Operations Platform
+  </text>
+</svg>
