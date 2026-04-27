@@ -1,14 +1,15 @@
-# Technology Stack
+# Open Valley Technology Stack
 
 ## Frontend
-- React 18
+- React
 - TypeScript
 - Vite
 - Tailwind CSS
-- React Router
+- React Router DOM
+- TanStack React Query
 - Radix UI
 - Recharts
 
-## Runtime and Tooling
+## Runtime and Build
 - Node.js 20+
 - npm

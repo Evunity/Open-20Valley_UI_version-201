@@ -4,6 +4,7 @@ import { Menu, X, LayoutDashboard, Settings, Moon, Sun, Gauge, Bell, Zap, Lock, 
 import { cn } from "@/lib/utils";
 import { DEFAULT_REPORTS_SECTION, REPORTS_SECTIONS } from "@/constants/reportsSections";
 import { usePlatformSettings } from "@/contexts/PlatformSettingsContext";
+import BrandLogo from "@/components/BrandLogo";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -190,6 +191,16 @@ export default function Layout({ children }: LayoutProps) {
     <>
       {/* Header */}
       <div className="p-2 border-b border-sidebar-border flex items-center justify-between gap-1.5 flex-shrink-0">
+        <div className={cn("flex items-center overflow-hidden", sidebarOpen ? "pl-1" : "justify-center w-full")}>
+          <BrandLogo
+            className={cn(
+              "h-auto transition-all",
+              sidebarOpen ? "w-28" : "w-9"
+            )}
+            imageClassName={cn("h-auto transition-all", sidebarOpen ? "w-28" : "w-9")}
+            textClassName={cn("text-sidebar-foreground", sidebarOpen ? "text-sm" : "text-xs")}
+          />
+        </div>
         {isMobile && (
           <button
             onClick={() => setMobileMenuOpen(false)}
