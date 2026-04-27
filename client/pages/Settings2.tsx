@@ -865,7 +865,7 @@ export default function Settings2() {
               <div className="rounded-lg border border-border bg-card p-4">
                 <h3 className="mb-2 text-xl font-semibold text-foreground">Feature Flags</h3>
                 <div className="space-y-3">
-                  {['AI experimental features', 'New topology rendering engine', 'Beta report builder', 'Advanced scripting mode'].map(flag => (
+                  {['AI experimental features', 'New topology rendering engine', 'Beta report designer', 'Advanced scripting mode'].map(flag => (
                     <div key={flag} className="flex items-center justify-between rounded-lg bg-muted p-4">
                       <span className="font-semibold text-foreground">{flag}</span>
                       <label className="relative inline-flex cursor-pointer items-center">

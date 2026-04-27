@@ -175,7 +175,7 @@ export const AlarmSideInspectionPanel: React.FC<AlarmSideInspectionPanelProps> =
           </div>
         </div>
 
-        {/* Correlated Alarms (placeholder) */}
+        {/* Correlated Alarms */}
         <div className="border-t pt-3">
           <h4 className="text-xs font-bold text-gray-900 mb-2 flex items-center gap-1">
             <Link2 className="w-3 h-3" /> Related

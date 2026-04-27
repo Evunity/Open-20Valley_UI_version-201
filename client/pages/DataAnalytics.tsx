@@ -1389,7 +1389,7 @@ export default function DataAnalytics() {
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           <div className="card-elevated rounded-xl border border-border/50 p-5 space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-foreground">1. Segment Builder</h3>
+              <h3 className="text-lg font-semibold text-foreground">1. Segment Designer</h3>
               <button
                 type="button"
                 onClick={() =>
@@ -1557,7 +1557,7 @@ export default function DataAnalytics() {
           </div>
 
           <div className="card-elevated rounded-xl border border-border/50 p-5 space-y-4">
-            <h3 className="text-lg font-semibold text-foreground">2. Grouping Builder</h3>
+            <h3 className="text-lg font-semibold text-foreground">2. Grouping Designer</h3>
             <div className="space-y-2">
               <p className="text-xs font-semibold text-muted-foreground">Group By (multi-level order)</p>
               <div className="space-y-2">

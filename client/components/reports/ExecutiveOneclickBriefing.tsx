@@ -75,7 +75,7 @@ export default function ExecutiveOneclickBriefing() {
         </div>
       </div>
 
-      {/* Custom Briefing Builder */}
+      {/* Custom Briefing Designer */}
       <div className="rounded-xl border border-border/50 p-6 bg-card/50">
         <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
           <Plus className="w-5 h-5" />

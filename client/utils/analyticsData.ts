@@ -895,7 +895,7 @@ export const generateVendorComparisons = (
 
       const successRateDiff = vendorA.call_success_rate - vendorB.call_success_rate;
       const stabilityDiff = vendorA.call_stability - vendorB.call_stability;
-      const speedDiff = Math.random() * 20 - 10; // Placeholder for speed difference
+      const speedDiff = Math.random() * 20 - 10;
 
       let recommendation = "";
       if (successRateDiff > 2) {

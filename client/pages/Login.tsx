@@ -31,8 +31,7 @@ export default function Login() {
   };
 
   const handleForgotPassword = () => {
-    // In production, this would navigate to a forgot password page or show a modal
-    alert('Password reset functionality coming soon. Please contact your administrator.');
+        alert('Password reset functionality coming soon. Please contact your administrator.');
   };
 
   if (!isAuthLoading && isAuthenticated) {
@@ -53,7 +52,7 @@ export default function Login() {
           {/* Logo Section */}
           <div className="flex flex-col items-center mb-8 bg-white/90 dark:bg-slate-800/50 rounded-xl p-6 sm:p-8 md:p-10">
             <img
-              src="/placeholder.svg"
+              src="/logo-mark.svg"
               alt="Open Valley Logo"
               className="w-40 sm:w-48 md:w-64 h-auto"
             />

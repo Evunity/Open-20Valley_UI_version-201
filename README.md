@@ -1,13 +1,13 @@
 # Open Valley
 
 ## Overview
-Open Valley is an enterprise OSS / Network Operations platform for monitoring, automation, topology management, alarm operations, command execution, reporting, access control, and operational intelligence.
+Open Valley is an enterprise network operations platform for monitoring, automation, topology management, alarm operations, command execution, reporting, access control, and operational intelligence.
 
-## Features
+## Core Modules
 - Dashboard
 - Analytics Management
 - Alarm Management
-- Automation & AI
+- Automation & Workflow
 - Topology & Network
 - Command Center
 - Activity & Audit
@@ -15,7 +15,7 @@ Open Valley is an enterprise OSS / Network Operations platform for monitoring, a
 - Access Control
 - Settings
 
-## Tech Stack
+## Technology Stack
 - React 18
 - TypeScript
 - Vite
@@ -27,8 +27,8 @@ Open Valley is an enterprise OSS / Network Operations platform for monitoring, a
 - npm
 
 ## Prerequisites
-- Node.js 20.x
-- npm 10+
+- Node.js 20+
+- npm
 - Git
 
 ## Local Development
@@ -37,65 +37,53 @@ npm install
 npm run dev
 ```
 
-Default local URL:
-- http://localhost:5173
+Default local URL: `http://localhost:5173`
 
 ## Production Build
 ```bash
 npm run build
 ```
 
-## Preview Production Build
+## Preview Build
 ```bash
 npm run preview
 ```
 
-## Environment Variables
-Create a `.env` file in the project root if you need environment-specific values.
-
-No mandatory environment variables are required for local frontend-only development.
-
 ## Deploy to Vercel
 1. Push the repository to GitHub.
 2. Import the project in Vercel.
-3. Set **Framework Preset** to `Vite`.
-4. Set **Install Command** to `npm install --include=dev`.
-5. Set **Build Command** to `npm run build`.
-6. Set **Output Directory** to `dist`.
-7. Add environment variables in Vercel if needed.
-8. Deploy.
-
-## Deploy to Netlify
-1. Connect your GitHub repository in Netlify.
-2. Set **Build Command** to `npm run build`.
-3. Set **Publish Directory** to `dist`.
-4. Add environment variables if needed.
-5. Deploy.
-
-## Deploy to DigitalOcean App Platform
-1. Create a new App in DigitalOcean App Platform.
-2. Connect your GitHub repository.
-3. Choose **Static Site** or a **Node build/deploy flow** based on your deployment architecture.
-4. Set **Build Command** to `npm run build`.
-5. Set **Output Directory** to `dist`.
-6. Add environment variables as required.
+3. Set framework to `Vite`.
+4. Set install command to `npm install --include=dev`.
+5. Set build command to `npm run build`.
+6. Set output directory to `dist`.
 7. Deploy.
 
+## Deploy to Netlify
+1. Connect the repository.
+2. Set build command to `npm run build`.
+3. Set publish directory to `dist`.
+4. Deploy.
+
+## Deploy to DigitalOcean
+1. Create a new App.
+2. Connect the repository.
+3. Set build command to `npm run build`.
+4. Set output directory to `dist`.
+5. Deploy.
+
 ## Project Structure
-- `client/` - React application source.
-- `client/components/` - Shared and feature UI components.
-- `client/pages/` - Page-level modules.
-- `public/` - Static assets.
-- `vite.config.ts`, `tailwind.config.ts`, `tsconfig*.json` - Core project configuration.
+- `client/` application source
+- `client/components/` reusable UI components
+- `client/pages/` route modules
+- `public/` static assets
+- configuration files (`vite.config.ts`, `tailwind.config.ts`, `tsconfig*.json`)
 
 ## Available Scripts
-Scripts from `package.json`:
 - `npm run dev`
 - `npm run build`
 - `npm run preview`
 
 ## Production Notes
-- Run `npm run build` before every deployment.
-- Keep environment variables secure and managed per environment.
-- Verify client-side routes and refresh behavior on your hosting platform.
-- Test major modules after deployment (dashboard, analytics, alarms, automation, topology, reporting, access control).
+- Always build before deployment.
+- Keep environment variables secure.
+- Test key modules after deployment.
