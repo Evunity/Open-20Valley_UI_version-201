@@ -492,7 +492,7 @@ export const AutomationManagement: React.FC = () => {
                 </div>
                 {filteredWorkflows.length === 0 ? (
                   <div className="p-8 text-center text-sm text-muted-foreground">
-                    No saved workflows yet. Save one from Builder to manage it here.
+                    No saved workflows yet. Save one from Workflow Designer to manage it here.
                   </div>
                 ) : (
                   filteredWorkflows.map((workflow) => (

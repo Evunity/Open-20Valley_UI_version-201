@@ -1,6 +1,6 @@
 # Development Guide
 
-This document describes how to set up your development environment and contribute to OVscale Dashboard.
+This document describes how to set up your development environment and contribute to Open Valley.
 
 ## Getting Started
 

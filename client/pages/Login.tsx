@@ -53,7 +53,7 @@ export default function Login() {
           {/* Logo Section */}
           <div className="flex flex-col items-center mb-8 bg-white/90 dark:bg-slate-800/50 rounded-xl p-6 sm:p-8 md:p-10">
             <img
-              src="https://cdn.builder.io/api/v1/image/assets%2Fc13b4e0240ec42a0981c688ed8e4138d%2Feedb7e1bfab14e1491bd3778fc9c7eaa?format=webp&width=800&height=1200"
+              src="/placeholder.svg"
               alt="Open Valley Logo"
               className="w-40 sm:w-48 md:w-64 h-auto"
             />

@@ -1,6 +1,6 @@
 # Technology Stack
 
-OVscale Dashboard is built with modern, production-ready technologies.
+Open Valley is built with modern, production-ready technologies.
 
 ## Core Framework
 

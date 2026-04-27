@@ -186,7 +186,7 @@ export default function SimulationPreview() {
               <input type="checkbox" defaultChecked className="mt-1" />
               <div>
                 <p className="text-sm font-medium text-foreground">Narrative Clarity</p>
-                <p className="text-xs text-muted-foreground">AI-generated text is accurate and professional</p>
+                <p className="text-xs text-muted-foreground">Generated summary text is accurate and professional</p>
               </div>
             </div>
           </div>

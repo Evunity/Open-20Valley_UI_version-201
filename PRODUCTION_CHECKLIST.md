@@ -1,6 +1,6 @@
 # Production Deployment Checklist
 
-This checklist ensures your OVscale Dashboard is ready for production deployment.
+This checklist ensures your Open Valley is ready for production deployment.
 
 ## Pre-Deployment
 

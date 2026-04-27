@@ -1,6 +1,6 @@
-# Vercel Deployment Guide - OVscale Dashboard
+# Vercel Deployment Guide - Open Valley
 
-This guide provides step-by-step instructions for deploying the OVscale Dashboard to Vercel.
+This guide provides step-by-step instructions for deploying the Open Valley to Vercel.
 
 ## 📋 Prerequisites
 
@@ -71,7 +71,7 @@ vercel --prod
 vercel
 ```
 
-#### Step 4: Follow Prompts
+#### Step 4: Complete configuration
 
 ```
 ? Set up and deploy "~/Open-20Valley_UI_version-201"? [Y/n] y
@@ -392,7 +392,7 @@ Before deploying to production:
 
 ## 🎉 Success!
 
-Once deployed, your OVscale Dashboard will be:
+Once deployed, your Open Valley will be:
 
 ✅ Live on a global CDN
 ✅ Automatically HTTPS-secured
