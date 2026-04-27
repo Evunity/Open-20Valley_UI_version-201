@@ -1,12 +1,9 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X, LayoutDashboard, Settings, Moon, Sun, Gauge, Bell, Zap, Lock, Map, Terminal, BarChart3, Shield, ChevronDown, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DEFAULT_REPORTS_SECTION, REPORTS_SECTIONS } from "@/constants/reportsSections";
 import { usePlatformSettings } from "@/contexts/PlatformSettingsContext";
-
-// Default Open Valley logo path
-const DEFAULT_LOGO = '/open-valley-logo.svg';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -24,7 +21,6 @@ export default function Layout({ children }: LayoutProps) {
     typeof window !== "undefined" ? getResponsiveSidebarWidth(window.innerWidth) : 280
   );
   const [isDragging, setIsDragging] = useState(false);
-  const [logoError, setLogoError] = useState(false);
   const location = useLocation();
   const analyticsNormalDensityRoutes = new Set(["/analytics-management", "/analytics-home"]);
   const isCompactDensity = !analyticsNormalDensityRoutes.has(location.pathname);
@@ -184,19 +180,6 @@ export default function Layout({ children }: LayoutProps) {
     "/ai-actions",
   ]);
 
-  // Determine which logo to display with fallback logic
-  const logoSrc = useMemo(() => {
-    if (logoError) {
-      // If default logo failed, use inline SVG fallback
-      return null;
-    }
-    return DEFAULT_LOGO;
-  }, [logoError]);
-
-  const handleLogoError = () => {
-    setLogoError(true);
-  };
-
   // Keep dashboard drill-down routes in Dashboard context only.
   const resolvedPath = dashboardDrilldownRoutes.has(location.pathname) ? "/" : location.pathname;
 
@@ -205,96 +188,8 @@ export default function Layout({ children }: LayoutProps) {
 
   const SidebarContent = () => (
     <>
-      {/* Logo & Header */}
+      {/* Header */}
       <div className="p-2 border-b border-sidebar-border flex items-center justify-between gap-1.5 flex-shrink-0">
-        {sidebarOpen && (
-          <Link to="/" className="flex items-center gap-2 flex-1 min-w-0">
-            {logoSrc ? (
-              <img
-                src={logoSrc}
-                alt="Open Valley"
-                className="w-9 h-9 flex-shrink-0"
-                onError={handleLogoError}
-              />
-            ) : (
-              <svg
-                className="w-9 h-9 flex-shrink-0 text-primary"
-                viewBox="0 0 100 100"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="45"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  opacity="0.8"
-                />
-                <path
-                  d="M 50 10 A 40 40 0 0 1 70 15"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M 75 20 A 35 35 0 0 1 85 40"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                />
-              </svg>
-            )}
-            <div className="flex flex-col min-w-0">
-              <span className="font-bold text-xs text-foreground truncate">{settings.systemName}</span>
-              <span className="text-xs text-muted-foreground leading-tight">{t("networkOps")}</span>
-            </div>
-          </Link>
-        )}
-        {!sidebarOpen && (
-          <Link to="/" className="flex items-center justify-center flex-1" title="Open Valley">
-            {logoSrc ? (
-              <img
-                src={logoSrc}
-                alt="Open Valley"
-                className="w-9 h-9 flex-shrink-0"
-                onError={handleLogoError}
-              />
-            ) : (
-              <svg
-                className="w-9 h-9 flex-shrink-0 text-primary"
-                viewBox="0 0 100 100"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="45"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  opacity="0.8"
-                />
-                <path
-                  d="M 50 10 A 40 40 0 0 1 70 15"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M 75 20 A 35 35 0 0 1 85 40"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                />
-              </svg>
-            )}
-          </Link>
-        )}
         {isMobile && (
           <button
             onClick={() => setMobileMenuOpen(false)}
