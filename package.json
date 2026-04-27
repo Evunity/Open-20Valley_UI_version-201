@@ -1,7 +1,7 @@
 {
-  "name": "ovscale-dashboard",
+  "name": "open-valley",
   "version": "1.0.0",
-  "description": "OVscale - AI-Powered Zero-Touch Network Operations Dashboard",
+  "description": "Enterprise network operations platform.",
   "private": true,
   "type": "module",
   "engines": {

@@ -351,7 +351,7 @@ export class PermissionEvaluationService {
   }
 
   // ============================================
-  // Result Builders
+  // Result assembly
   // ============================================
 
   private allow(checkPath: string[]): PermissionCheckResult {

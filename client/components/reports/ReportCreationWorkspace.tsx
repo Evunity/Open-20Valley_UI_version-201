@@ -292,7 +292,7 @@ export default function ReportCreationWorkspace({ initialMode = "guided" }: Repo
       {draft.mode === "visual" ? (
         <div className="space-y-2">
           <div className="rounded-lg border border-border bg-card p-2 text-xs text-muted-foreground">
-            Visual Mode is used for visual/legacy Report &amp; Viz Builder definitions. Saving keeps this report in <strong className="text-foreground">mode=visual</strong>.
+            Visual Mode is used for visual/legacy Report &amp; visualization definitions. Saving keeps this report in <strong className="text-foreground">mode=visual</strong>.
           </div>
           <AdvancedReportBuilder />
         </div>

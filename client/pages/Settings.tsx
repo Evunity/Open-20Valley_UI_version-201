@@ -383,7 +383,7 @@ export default function Settings() {
                       <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Log Level</label>
                       <select className="mt-1 w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-800 text-foreground">
                         <option>Info</option>
-                        <option>Debug</option>
+                        <option>Diagnostics</option>
                         <option>Error</option>
                       </select>
                     </div>

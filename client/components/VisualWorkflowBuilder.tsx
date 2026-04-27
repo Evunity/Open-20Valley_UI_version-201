@@ -366,7 +366,7 @@ export const VisualWorkflowBuilder: React.FC<{
               );
             })}
 
-            {/* Temporary connection line while dragging */}
+            {/* Connection line while dragging */}
             {draggingFrom && (
               <path
                 d={buildSmoothPath(

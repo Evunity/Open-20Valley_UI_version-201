@@ -260,7 +260,7 @@ export default function AdvancedReportBuilder() {
 
       <main className="rounded-xl border border-border bg-card p-4">
         <div className="mb-3 flex items-center justify-between">
-          <p className="text-sm font-semibold">Report &amp; Viz Builder Canvas</p>
+          <p className="text-sm font-semibold">Report &amp; Visualization Designer Canvas</p>
           <div className="flex items-center gap-1.5">
             <button onClick={() => toast({ title: "Preview", description: "Preview uses only fully configured blocks." })} className="rounded-lg border border-border px-2.5 py-1.5 text-xs"><Eye className="mr-1 inline h-3.5 w-3.5" />Preview</button>
             <button onClick={() => toast({ title: "Report saved", description: "Only fully configured blocks are considered ready for publish." })} className="rounded-lg bg-primary px-2.5 py-1.5 text-xs font-semibold text-primary-foreground"><Save className="mr-1 inline h-3.5 w-3.5" />Save</button>

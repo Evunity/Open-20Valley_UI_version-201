@@ -116,7 +116,7 @@ export default function SimulationPreview() {
             ))}
           </div>
 
-          {/* Chart Placeholder */}
+          {/* Chart */}
           <div className="p-6 bg-gray-50 dark:bg-slate-800 rounded border border-gray-200 dark:border-gray-700">
             <p className="text-sm font-semibold text-gray-900 dark:text-white mb-3">{previewReport.blocks[1].title}</p>
             <div className="h-48 bg-gray-100 dark:bg-slate-700 rounded flex items-center justify-center">
@@ -186,7 +186,7 @@ export default function SimulationPreview() {
               <input type="checkbox" defaultChecked className="mt-1" />
               <div>
                 <p className="text-sm font-medium text-foreground">Narrative Clarity</p>
-                <p className="text-xs text-muted-foreground">AI-generated text is accurate and professional</p>
+                <p className="text-xs text-muted-foreground">Generated summary text is accurate and professional</p>
               </div>
             </div>
           </div>
