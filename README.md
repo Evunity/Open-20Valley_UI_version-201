@@ -49,7 +49,7 @@ npm install
 npm run dev
 ```
 
-Default URL: `http://localhost:5173`
+Default URL: `http://localhost:8080`
 
 ## 6) Production Build
 ```bash
@@ -81,46 +81,21 @@ npm run preview
    ```
 7. Deploy.
 
-## 9) Deploy to Netlify
-1. Connect the repository to Netlify.
-2. Set **Build command** to:
-   ```bash
-   npm run build
-   ```
-3. Set **Publish directory** to:
-   ```text
-   dist
-   ```
-4. Deploy.
-
-## 10) Deploy to DigitalOcean
-1. Create a new App in DigitalOcean App Platform.
-2. Connect the repository.
-3. Set **Build Command** to:
-   ```bash
-   npm run build
-   ```
-4. Set **Output Directory** to:
-   ```text
-   dist
-   ```
-5. Deploy.
-
-## 11) Project Structure
+## 9) Project Structure
 - `client/` — Frontend source code
 - `client/components/` — Reusable UI and feature components
 - `client/pages/` — Route-level page modules
 - `public/` — Static assets served at runtime
-- Root configuration files — Build, TypeScript, and deployment configuration (`vite.config.ts`, `tsconfig.json`, `tailwind.config.ts`, `netlify.toml`, etc.)
+- Root configuration files — Build, TypeScript, and deployment configuration (`vite.config.ts`, `tsconfig.json`, `tailwind.config.ts`, `vercel.json`, etc.)
 
-## 12) Available Scripts
+## 10) Available Scripts
 Scripts are defined in `package.json`:
 
 - `npm run dev` — Start Vite development server
 - `npm run build` — Create production build
 - `npm run preview` — Preview production build locally
 
-## 13) Production Notes
+## 11) Production Notes
 - Always create a production build before deployment.
 - Keep environment variables secure in the deployment platform.
 - Validate key modules and critical routes after deployment.

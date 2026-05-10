@@ -1,20 +1,12 @@
 # Vercel Deployment Ignore
-# Only deploy the compiled frontend (dist/), exclude backend server code
+# This is a static frontend (Vite + React). Only the build output (dist/) is shipped.
 
-# Server code (not needed for static frontend deployment)
-server/
-vite.config.server.ts
+# Project rules and developer-facing docs
+.project-rules/
+handover-docs/
+scripts/
 
-# Development files
-.builder/
-AGENTS.md
-DEVELOPMENT.md
-
-# Documentation (optional - remove if you want docs in deployment)
-*.md
-!README.md
-
-# Test files (add if you have tests)
+# Test files
 **/*.test.*
 **/*.spec.*
 

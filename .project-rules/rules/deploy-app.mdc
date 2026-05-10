@@ -1,0 +1,21 @@
+---
+description: Deploy the Open Valley app to production using Netlify or Vercel
+globs:
+alwaysApply: true
+---
+
+Open Valley can be deployed to production through either Netlify or Vercel.
+
+**For Vercel (recommended):**
+
+- Push the repository to GitHub.
+- Import the repository in Vercel.
+- Vercel auto-detects the configuration from `vercel.json` (framework: Vite, build: `npm run build`, output: `dist`).
+- After the first import, every push to the configured branch triggers a deploy automatically.
+
+**For Netlify:**
+
+- Connect the repository to Netlify.
+- Build command: `npm run build`.
+- Publish directory: `dist`.
+- Note: Netlify builds the source code on its servers, so it is good (but not strictly required) to confirm that `npm run build` succeeds locally before pushing.
